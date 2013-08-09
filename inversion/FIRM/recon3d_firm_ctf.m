@@ -46,6 +46,10 @@ if isempty(shifts)
 else
     projs_fourier= FFT_projections( projections,shifts);
 end
+if exist('fprecomp','var')
     [v_b,kernel] = precomp_ctf( projs_fourier,inv_rot_matrices,ctfs,defocusID,fprecomp);
-    [v, err, iter, flag] = cg_recon3d(kernel, v_b, tol, max_it, x0);
+else
+    [v_b,kernel] = precomp_ctf( projs_fourier,inv_rot_matrices, ctfs,defocusID);
+end
+[v, err, iter, flag] = cg_recon3d(kernel, v_b, tol, max_it, x0);
 end
