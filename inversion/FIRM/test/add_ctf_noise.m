@@ -43,9 +43,9 @@ noisy_projections=zeros(size(projections));
 
 rand('state',1234);
 randn('state',1234);
-load color_filter.mat;
+%load color_filter.mat;
 
-noise_response=ifftshift(S);  %for optimization, so we can use fft2 and
+%noise_response=ifftshift(S);  %for optimization, so we can use fft2 and
 %ifft2 below instead of cfft2 and icfft2
 lowidx=-p/2+p+1;
 highidx=p/2+p;
@@ -57,8 +57,8 @@ parfor k=1:n_projs
     
     if strcmpi(noise_type,'gaussian')
         cn=gn;
-    else
-        cn=ifft2(fft2(gn).*noise_response);
+    %else
+    %    cn=ifft2(fft2(gn).*noise_response);
     end
     cn=cn(lowidx:highidx,lowidx:highidx);
     cn=cn/std(cn(:));

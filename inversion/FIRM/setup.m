@@ -6,4 +6,5 @@ addpath ./FIRM
 % This software was developed at the University of Michigan by Jeff Fessler and his students. 
 % addpath 'the directory of irt'
 addpath ./irt
+addpath ./test
 run ./irt/setup.m
