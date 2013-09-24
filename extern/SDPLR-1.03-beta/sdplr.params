@@ -1,0 +1,21 @@
+SDPLR 1.03-beta paramter file (automatically generated)
+
+--> Basic parameters <--
+
+Input type (1=SDPA, 2=SDPLR) : 1
+Feasibility tolerance : 1.0e-5
+Centrality tolerance : 1.0e-1
+Penalty factor increase : 2.0
+Rank reduction (1=yes, 0=no) : 0
+Time limit (in seconds) : 3600
+Print level (0=nothing, 1=all) : 1
+Dimension threshold for dense matrices : 10
+Density threshold for dense matrices (in [0,1]) : 0.75
+Number of LBFGS vectors : 4
+
+--> In-development parameters <--
+
+Rank tolerance (e.g., machine precision) : 2.2204460492503131e-16
+Duality gap tolerance : 1.0e-3
+Check dual bound (-1, 0, 1) : -1
+Dual bound type (1=+/-1, 2=0/1) : 1

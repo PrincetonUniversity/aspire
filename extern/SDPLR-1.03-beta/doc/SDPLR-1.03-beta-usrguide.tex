@@ -1,0 +1,438 @@
+\documentclass[12pt]{article}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+
+%included packages (some not so standard, let me know if you don't want to use them)
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+
+\usepackage[dvipdf,colorlinks=true,citecolor=blue,linkcolor=blue]{hyperref}
+%\usepackage[pdftex,colorlinks=true,citecolor=blue,linkcolor=blue]{hyperref}
+
+%\usepackage[authoryear,round]{natbib}
+
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{url}
+\usepackage{graphics}
+\usepackage{verbatim}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{assumption}[theorem]{Assumption}
+\def\proof{\noindent{\bf Proof.} \ignorespaces}
+\def\endproof{{\ \hfill\hbox{%
+      \vrule width1.0ex height1.0ex
+    }\parfillskip 0pt}\par}
+
+\marginparwidth 0pt \oddsidemargin  0pt \evensidemargin  0pt
+\marginparsep 0pt
+
+\setlength{\textwidth}{6.5in} \setlength{\textheight}{9in}
+\setlength{\topmargin}{-.45in}
+\setlength{\evensidemargin}{-0.14in}
+\setlength{\oddsidemargin}{-0.14in}
+%\renewcommand{\baselinestretch}{1.2}
+
+\newcommand{\vgap}{\vspace*{.1in}}
+\newcommand{\bu}{\bullet}
+\newcommand{\A}{{\cal A}}
+\newcommand{\K}{{\cal K}}
+\newcommand{\Sn}{{\cal S}^n}
+\newcommand{\Snp}{{\cal S}^n_+}
+\newcommand{\Snpp}{{\cal S}^n_{++}}
+\newcommand{\beq}{\begin{equation}}
+\newcommand{\eeq}{\end{equation}}
+\newcommand{\beqa}{\begin{eqnarray}}
+\newcommand{\eeqa}{\end{eqnarray}}
+\newcommand{\beqas}{\begin{eqnarray*}}
+\newcommand{\eeqas}{\end{eqnarray*}}
+\newcommand{\rank}{{\rm rank}\,}
+\newcommand{\Image}{{\rm Im}\,}
+\def\eqnok#1{(\ref{#1})}
+\newcommand{\mdot}{\bullet}
+\newcommand{\bSn}{{\cal S}^{n_1 \cdots n_\ell}}
+\newcommand{\bSnp}{{\cal S}^{n_1 \cdots n_\ell}_+}
+\newcommand{\tr}{\operatorname{trace}}
+\newcommand{\eqnref}[1]{(\ref{#1})}
+\newcommand{\thmref}[1]{Theorem \ref{#1}}
+\newcommand{\sectref}[1]{Section \ref{#1}}
+\newcommand{\propref}[1]{Proposition \ref{#1}}
+\newcommand{\blockRspace}{\Re^{(n_1 \times r_1)\cdots(n_\ell \times
+r_\ell)}}
+\renewcommand{\L}{{\cal L}}
+\newcommand{\blas}{{\sc blas}}
+\newcommand{\blass}{{\sc blas }}
+\newcommand{\lapack}{{\sc lapack}}
+\newcommand{\lapacks}{{\sc lapack }}
+\newcommand{\arpack}{{\sc arpack}}
+\newcommand{\arpacks}{{\sc arpack }}
+\newcommand{\metis}{{\sc metis}}
+\newcommand{\metiss}{{\sc metis }}
+
+\begin{document}
+
+\title{SDPLR 1.03-beta User's Guide (short version)}
+%\author{
+%Samuel Burer%
+%\thanks{Department of Management Sciences, University of Iowa,
+%Iowa City, IA 52242-1000, USA. (Email: samuel-burer@uiowa.edu).
+%This research was supported in part by NSF Grant CCR-0203426.}
+%\and Renato D.C.\ Monteiro%
+%\thanks{Department of Industrial and Systems Engineering, Georgia Institute
+%of Technology, Atlanta, GA 30332, USA. (Email:
+%monteiro@isye.gatech.edu).} \and Changhui Choi%
+%\thanks{Department of Management Sciences, University of Iowa,
+%Iowa City, IA 52242-1000, USA. (Email: changhui-choi@uiowa.edu).
+%This research was supported in part by NSF Grant CCR-0203426.}}
+
+\date{\today}
+
+\maketitle
+
+\section{Summary}
+
+SDPLR is a C software package for solving large-scale semidefinite
+programming problems. Source code, binaries, and a Matlab
+interface for SDPLR can be downloaded from
+\begin{center}
+\url{http://dollar.biz.uiowa.edu/~sburer/software/SDPLR/}.
+\end{center}
+SDPLR accepts the standard sparse SDPA format as well as a special
+format that handles low-rank data matrices. People involved with
+the development of SDPLR are
+\begin{itemize}
+
+\item Samuel Burer (samuel-burer@uiowa.edu)
+
+\item Renato D.C.\ Monteiro (monteiro@isye.gatech.edu)
+
+\item Changhui Choi (changhui.choi@ucdenver.edu)
+
+\end{itemize}
+
+% \section{Binaries and Installation from Source}
+\section{Installation from Source}
+
+% Binaries for different platforms are available from the SDPLR
+% website. Users' contribution of binaries would be especially
+% appreciated. In the event that no binary is available for a
+% particular platform, the source code is also available for
+% installation from scratch.
+
+It is assumed that the user has downloaded and unpacked the SDPLR
+source files.
+
+\subsection{Matlab}
+
+Within Matlab, run {\sl mexinstall.m} from the main SDPLR directory.
+Then type {\sl help sdplr} for instructions. Add the SDPLR directory to
+your Matlab path.
+
+{\bf Note to Windows users.} The top two lines of {\sl mexinstall.m} may
+need to be adjusted for the location of the Matlab's \lapack~ and \blas~
+libraries on your system.
+
+\subsection{Command line (UNIX, Linux, etc.)}
+
+\subsubsection*{Step 1}
+
+Make sure \blass and \lapacks are installed on your system and
+determine how to link them with other programs. The linking
+information will be required for the {\tt LIB} and {\tt LIB\_DIRS}
+options in {\sl Makefile.inc\/} (see Step 2).
+
+% Many systems have
+% optimized \blass and \lapacks libraries.
+
+% On Linux, Cygwin, and
+% Mingw systems, optimized libraries for common architectures can be
+% downloaded from
+% \begin{center}
+% %\url{http://www.scipy.org/download/atlasbinaries/}.
+% \url{http://old.scipy.org/download/atlasbinaries/}.
+% \end{center}
+
+% \subsubsection{Step 2 (optional)}
+
+% If you would like the ability to use some of SDPLR's advanced
+% features, including sparse eigenvalue computations and
+% preconditioning for the truncated Newton's method, download and
+% compile
+% \begin{center}
+% \arpack \ \ \ \url{http://www.caam.rice.edu/software/ARPACK/}
+% \end{center}
+% and
+% \begin{center}
+% \metis 4.0.1 \ \ \
+% \url{http://www-users.cs.umn.edu/~karypis/metis/metis/index.html}.
+% \end{center}
+% Both compilations produce static libraries (.a), which can be
+% copied into the {\sl lib\/} directory of the SDPLR package.
+% Whether \arpacks and/or \metiss are available will be required for
+% the {\tt DEFINES} option in {\sl Makefile.inc\/} (see Step 3).
+
+\subsubsection*{Step 2}
+
+Tailor the file {\sl Makefile.inc\/} to your system; {\sl
+Makefile.inc.linux\/} is provided as an example. There are three
+sections:
+
+\begin{itemize}
+
+\item Specify the location and switch for the \lapack~library
+using {\tt LAPACK\_LIB\_DIR} and {\tt LAPACK\_LIB}.
+
+\item Specify the location and switch for the \blas~library
+using {\tt BLAS\_LIB\_DIR} and {\tt BLAS\_LIB}.
+
+\item Specify the compiling options:
+
+\begin{itemize}
+
+\item {\tt CC}: Specify the compiler, e.g., {\sl gcc} or {\sl
+cc}.
+
+\item {\tt CFLAGS}: Specify any flags to pass to the compiler and
+linker, e.g., optimization flags such as {\tt -O3}.
+
+\item {\tt LIB\_DIRS}: If necessary, using the {\tt -L} switch, specify
+any directory locations for additional libraries that need to be
+linked in. Leave items involving \lapack and \blas~ unchanged. It is
+not necessary to include the SDPLR {\sl lib} directory since it is
+automatically specified.
+
+\item {\tt LIBS}: Specify the flags for the libraries that will be
+linked in. This should definitely include {\tt -lgsl}, which is included
+with and required by SDPLR, and the flags for the \blass and \lapacks
+libraries from Step 1. Remember that linking order is important! For
+example, on an Ubuntu 9.04 Linux system, the line might read
+\begin{center}
+{\tt LIBS = -lgsl -llapack -lblas -lgfortran -lm}
+\end{center}
+Here, {\tt -lgfortran} indicates a library that is required by \lapacks
+and \blas, and {\tt -lm} is the standard math library.
+
+\end{itemize}
+
+% \item {\tt DEFINES}: If \arpacks and \metiss are to be linked in,
+% then {\tt -D\_\_ARPACK} and {\tt -D\_\_METIS} should be specified.
+% (The {\tt \_\_} symbol is two underscore characters.)
+
+% \item {\tt  MEX}: (optional) If  you will  be using SDPLR  under Matlab,
+% specify the Mex binary here.
+
+% \item {\tt MEXEXT}: (optional) If you  will be using SDPLR under Matlab,
+% specify the  default Matlab  binary extension  for your  platform (e.g.,
+% {\tt mexglx} under Linux).
+
+% \item {\tt LIBSMEX}: (optional) If you  will be using SDPLR under Matlab,
+% specify those libraries which Mex requires. These may be the same or
+% different from those specified in {\tt LIBS}.
+
+\end{itemize}
+
+\subsubsection*{Step 3}
+
+Type {\sl make} to compile the program. Then type {\sl sdplr
+vibra1.dat-s} to test the installation. Your output should be similar to
+the file {\sl vibra1.dat-s.out} provided in the installation directory.
+Typing {\sl make clean} will remove all object files, and typing {\sl
+make cleanall} will remove the SDPLR executable and GSL library as well.
+
+% \subsubsection{Step 5 (optional)}
+
+% If you would like to use SDPLR from within Matlab, type {\sl make
+% mex}; this assumes that the Matlab MEX compiler is called `mex'.
+% The appropriate Matlab binary will be created. Here again, typing
+% {\sl make clean} will remove all object files, and typing {\sl
+% make cleanall} will remove the SDPLR executable, the GSL library,
+% and the Matlab binary.
+
+\subsection{Windows (via MinGW)}
+
+MinGW is a GNU compiling environment for Windows. To compile SDPLR, you will need
+
+\begin{itemize}
+
+\item The MinGW base system (including the {\sl make\/} utility). Add
+MinGW's {\sl bin\/} directory to your Windows path.
+
+\item MinGW's {\sl gcc\/} tools. It is suggested to install the latest
+{\sl gcc\/} release with additional packages such as {\sl gfortran\/}.
+
+\item Working \lapack~ and \blas~ libraries within MinGW. The following
+guide is suggested: {\tt http://gcc.gnu.org/wiki/LAPACK\%20on\%20Windows}.
+
+\end{itemize}
+
+Then tailor {\sl Makefile.inc\/} as described above; {\sl
+Makefile.inc.mingw} is provided as an example. Finally, type
+{\sl mingw32-make mingw\/}.
+
+\section{Usage}
+
+
+\subsection{Matlab}
+
+Make sure that the Matlab binary for SDPLR and the file {\sl sdplr.m\/}
+are in your Matlab path. Then type {\sl help sdplr} for more
+information.
+
+\subsection{Command line}
+
+The syntax for SDPLR is
+\begin{quote}
+Usage \#1: {\tt sdplr <input\_file> [params\_file] [soln\_in]
+[soln\_out]} \\ Usage \#2: {\tt sdplr gen\_params}
+\end{quote}
+
+\noindent Regarding usage \#1:
+
+\begin{itemize}
+
+\item If {\tt params\_file} is not specified, then a set of
+default parameters is used.
+
+\item Both files {\tt soln\_in} and {\tt soln\_out} refer to a
+particular file format generated and used by SDPLR.
+
+\item If {\tt soln\_in} is specified, then {\tt params\_file} must
+be specified.
+
+\item If {\tt soln\_out} is specified, then both {\tt
+params\_file} and {\tt soln\_in} must be specified. However, a
+dummy filename for {\tt soln\_in} may be used, allowing one to
+save an out-file without an in-file.
+
+
+\end{itemize}
+
+\noindent Regarding usage \#2: This can be used to automatically
+generate a valid {\tt params\_file} for SDPLR. The user is
+prompted to enter each parameter value, and detailed explanations
+of the parameters can be gotten by just typing `{\tt i}'.
+
+\section{Input Formats}
+
+By default, SDPLR accepts the sparse SDPA format, which is
+explained at
+\begin{center}
+% \url{http://www.nmt.edu/~sdplib/FORMAT}
+\url{http://euler.nmt.edu/~brian/sdplib/FORMAT}
+\end{center}
+However, some SDPs are not sparse but still have a great deal of
+structure. The SDPLR format, which SDPLR is also capable of
+handling, is more or less an extension of sparse SDPA format which
+also allows low-rank data matrices to be specified easily.
+
+The structure of the SDPLR format is as follows:
+
+\begin{itemize}
+
+\item The first line contains $m$, the number of constraint
+matrices.
+
+\item The second line contains $k$, the number of blocks in the SDP.
+
+\item The next $k$ lines contain the sizes $n_1, \ldots, n_k$ of the
+blocks, where a negative $n_j$ indicates a diagonal block.
+
+\item The next line contains $b$, the right-hand side vector, all
+on one line.
+
+\item The next line is currently ignored, but should contain a
+number. (This line is related to a feature of SDPLR which is in
+development. Basically, for +/-1 combinatorial optimization SDPs,
+this line will contain the trace of the primal matrix (a
+constant), which can be used to provide dual bounds during the
+execution of SDPLR.)
+
+\item The remaining portion of the file is divided into $(m+1)k$
+sections, giving the $k$ blocks of the $m+1$ objective and constraint
+data matrices. The matrices should be listed in order, i.e., the
+objective matrix first and then the constraint matrices in order, and
+within each matrix, the blocks should be listed in order.
+
+\item Two types of blocks can be specified for the data matrices: sparse
+and low-rank.
+
+\item If the $j$-th block of $A_i$ is a sparse data matrix, then the
+section is as follows:
+
+\begin{itemize}
+
+\item The first line contains the matrix number $i$ ($i = 0$ for
+objective), the block number $j$, the character {\tt s} to indicate
+`sparse,' and the number nnz, which is the number nonzeros in the upper
+triangular part of $A_i$.
+
+\item The next nnz lines contain the entries in ``$i \ \ j \ \ $
+entry'' format, where $i \le j$.
+
+\end{itemize}
+
+\item If the $j$-th block of $A_i$ is a low-rank data matrix of rank
+$r$, then a factorization $B D B^T$ of this block must be known such
+that $B \in \Re^{n_j \times r}$ and $D \in \Re^{r \times r}$ is
+diagonal. Then the section specifying the block is as follows:
+
+\begin{itemize}
+
+\item The first line contains the matrix number (0 for objective), the
+block number $j$, the character {\tt l} to indicate `low-rank,' and the
+number $r$, which is the rank of the $j$-th block of $A_i$.
+
+\item The next $r$ lines contain the diagonal entries of $D$ in
+order.
+
+\item The next $n_j r$ lines contain the entries of $B$ in
+column-major format. Note that $B$ is specified as dense.
+
+\end{itemize}
+
+\end{itemize}
+
+A brief example of the SDPLR format is the following, which encodes
+the Lov\'asz theta SDP for the 5-cycle (more examples
+available on the SDPLR website):
+% \newpage
+\begin{verbatim}
+6
+1
+5
+0.0 0.0 0.0 0.0 0.0 1.0
+-1.0
+0 1 l 1
+-1.0
+1.0
+1.0
+1.0
+1.0
+1.0
+1 1 s 1
+1 2 1.0
+2 1 s 1
+2 3 1.0
+3 1 s 1
+3 4 1.0
+4 1 s 1
+4 5 1.0
+5 1 s 1
+1 5 1.0
+6 1 s 5
+1 1 1.0
+2 2 1.0
+3 3 1.0
+4 4 1.0
+5 5 1.0
+\end{verbatim}
+
+%\bibliographystyle{plain}
+%\bibliography{../bibliography}
+
+\end{document}
