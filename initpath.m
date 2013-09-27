@@ -13,5 +13,6 @@ addpath(genpath(fullfile(pathstr,'reconstruction')))
 
 
 addpath(fullfile(pathstr,'extern','SDPLR-1.03-beta'))
+addpath(genpath(fullfile(pathstr,'extern','aLibs')))
 run(fullfile(pathstr,'extern','irt','setup.m'))
 run(fullfile(pathstr,'extern','cvx','cvx_startup.m'));
