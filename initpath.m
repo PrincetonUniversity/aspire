@@ -9,8 +9,9 @@ addpath(genpath(fullfile(pathstr,'examples')));
 addpath(genpath(fullfile(pathstr,'fourier')));
 addpath(genpath(fullfile(pathstr,'projections')))
 addpath(genpath(fullfile(pathstr,'sinograms')))
+addpath(genpath(fullfile(pathstr,'reconstruction')))
 
-run(fullfile(pathstr,'reconstruction','FIRM','setup.m'));
 
 addpath(fullfile(pathstr,'extern','SDPLR-1.03-beta'))
+run(fullfile(pathstr,'extern','irt','setup.m'))
 run(fullfile(pathstr,'extern','cvx','cvx_startup.m'));
