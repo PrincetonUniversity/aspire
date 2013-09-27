@@ -51,7 +51,8 @@ prepdata=nufft_t_3d_prepare_2(volume,precision);
 K=size(q,2);
 projections=zeros(N,N,K);
 
-for k=1:K
+poolreopen;
+parfor k=1:K
     
     R=q_to_rot(q(:,k));
     Rt=R.';

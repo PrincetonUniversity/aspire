@@ -6,6 +6,7 @@
 %
 % Yoel Shkolnisky and Lanhui Wang, September 2013.
 
+clear;
 
 %% Load and display projections
 % The MAT file p100_shifted contains 100 projections of size 65x65. The
@@ -45,13 +46,13 @@ n_r=33;
 max_shift = 15;
 shift_step = 1;
 [ clstack,~, shift_equations,~] = ...
-    commonlines_gaussian( npf,max_shift,shift_step );
+    commonlines_gaussian(npf,max_shift,shift_step );
 
 % Compare common lines computed from projections to the reference common
 % lines. A common line is considered correctly-identified if it deviates
 % from the true common line between the projections by up to 10 degrees.
 prop=comparecl( clstack, ref_clmatrix, n_theta, 10 );
-fprintf('correctness of common lines: %f\n\n',prop);
+fprintf('Percentage of correc common lines: %f%%\n\n',prop*100);
 [ est_shifts, shift_err] = test_shifts( shift_equations, shifts);
 
 %% Assign orientation using common lines, using least squares method.

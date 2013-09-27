@@ -29,8 +29,7 @@ noisy_projections=zeros(size(projections));
 noise=zeros(size(projections));
 sigma=sqrt(var(reshape(projections(:, :, 1), p^2, 1))/SNR);
 
-rng('default'); %  reinitialize the random number generator to its startup configuration.
-rng(1234); % Set the seed of the random number generator to make the noise reproducible at each run.
+initstate; %  Initialize the random number generator.
 
 %for optimization, so we can use fft2 and
 %ifft2 below instead of cfft2 and icfft2

@@ -31,7 +31,7 @@ function [projections, noisy_projections, shifts, q] = ...
 %           parameter is missing, the function draws quaternons unformly at
 %           random.
 %   precision   Accuracy of the projections. 'single' or 'double'. Default
-%           is 'double' (slower)
+%           is 'single' (faster)
 %
 % Output parameters:
 %   projections         Clean (shifted) simulated projections.
@@ -47,7 +47,7 @@ function [projections, noisy_projections, shifts, q] = ...
 % Yoel Shkolnisky, September 2013.
 
 if ~exist('precision','var')
-    precision='double';
+    precision='single';
 end
 
 if exist('ref_q','var')
@@ -55,6 +55,7 @@ if exist('ref_q','var')
         q=ref_q; % Use given quaternions.
     end
 else
+    initstate; % So we get the same results every time for reproducibility.
     q=qrand(K);  % Generate random uniform quaternions.
 end
 
@@ -88,5 +89,4 @@ else
 end
 
 % Add noise
-rng(1234); % So we get the same noise every time for reproducibility.
 noisy_projections=cryo_addnoise(projections,SNR,'gaussian');
