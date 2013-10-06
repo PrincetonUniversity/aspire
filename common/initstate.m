@@ -11,6 +11,7 @@ if nargin<1
     state = 3498;
 end
 
+rng('default');
 rng(state);
 
 

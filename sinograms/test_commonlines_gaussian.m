@@ -11,9 +11,11 @@ step_size=1;
 noise_type='gaussian';
 silent=1;
 mask_radius = 55;
-fprecomp='p100_shifted';
+% fprecomp='p100_shifted';
+% [p, np, shifts, q] = ...
+%     gen_projections(K,1,max_shift,step_size,noise_type,silent,fprecomp);
 [p, np, shifts, q] = ...
-    gen_projections(K,1,max_shift,step_size,noise_type,silent,fprecomp);
+    gen_projections(K,1,max_shift,step_size,noise_type,silent);
 [ref_clmatrix,clcorr]=clmatrix_cheat_q(q,n_theta);
 [np,sigma]=mask_fuzzy(np,mask_radius);
 [npf,freqs]=cryo_pft(np,n_r,n_theta);
@@ -42,9 +44,9 @@ for k=1:6
     noise_type='gaussian';
     silent=1;
     mask_radius = 55;
-    fprecomp='p100_shifted';
+%    fprecomp='p100_shifted';
     [p, np, shifts, q] = ...
-        gen_projections(K,SNR,max_shift,step_size,noise_type,silent,fprecomp);
+        gen_projections(K,SNR,max_shift,step_size,noise_type,silent);
     [ref_clmatrix,clcorr]=clmatrix_cheat_q(q,n_theta);
     [np,sigma]=mask_fuzzy(np,mask_radius);
     [npf,freqs]=cryo_pft(np,n_r,n_theta);
