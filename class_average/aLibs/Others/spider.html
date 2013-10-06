@@ -1,0 +1,179 @@
+<html>
+<head>
+<title>SPIDER M-files</title>
+<style>
+p.syntax { margin-left: 3ex }
+
+font.function { font-family: monospace, Courier ;
+                font-weight: bold ;
+                color: #CC5500
+              }
+font.usage { font-family: monospace, Courier ;
+                font-weight: bold ;
+                color: maroon
+              }
+</style>
+</head>
+<body>
+
+<h2>SPIDER M-files - read files in SPIDER format into Matlab</h2>
+
+<p>
+<b>SPIDER</b> is a free image processing system for electron microscopy. It is used for three-dimensional reconstruction of single particle macromolecules, multivariate statistical classification, and electron tomography. See the extensive documentation and many available techniques at <a href="http:www.wadsworth.org/spider_doc/spider/docs/master.html">www.wadsworth.org/spider_doc/spider/docs/master.html</a>
+</p>
+<p>
+SPIDER has its own binary format for images and volumes. The SPIDER M-file collection lets users read SPIDER images, volumes, image stacks, and textual document files directly into Matlab data types for processing and visualization.
+<br>
+
+<br>
+ The provided M-files are:
+</p>
+<p>
+<table>
+<tr>
+<td><a href="#read"><code>readSPIDERfile</code></a></td> 
+<td>reads SPIDER binary files</a></td>
+</tr>
+<tr>
+<td><a href="#write"><code>writeSPIDERfile</code></a></td>
+<td> writes SPIDER binary files</a></td>
+</tr>
+<tr>
+<td><a href="#header"><code>readSPIDERheader</code></a></td>
+<td> reads the header of SPIDER binary files</a></td>
+</tr>
+<tr>
+<td><a href="#readdoc"><code>readSPIDERdoc</code></a></td>
+<td> reads SPIDER document files</a></td>
+</tr>
+<tr>
+<td><a href="#writedoc"><code>writeSPIDERdoc</code></a></td>
+<td> writes SPIDER document files</a></td>
+</tr>
+<tr>
+<td><a href="example.html"><code>example.m</code></a></td>
+<td> Example usage</a></td>
+</tr></table>
+</p>
+<p>
+NB: there is no specific data extension for SPIDER files.
+</p>
+<p><hr/></p>
+
+<a name="read"></a>
+<p>
+<font class='function'>readSPIDERfile</font>
+</p>
+<p>
+Read a SPIDER image, volume, or stack file into an array.
+</p>
+<p>
+<font class='usage'>Usage</font>
+</p>
+<p class='syntax'>
+<code>m = readSPIDERfile(filename)</code>
+</p>
+
+<p>If <i>filename</i> is a SPIDER image, <code>readSPIDERfile</code> reads it into a 2D array, <code>m</code>. If <i>filename</i> is a SPIDER volume, or image stack, it is read into a 3D array. <code>readSPIDERfile</code> calls <a href="#header"><code>readSPIDERheader</code></a>.
+</p>
+
+<p><hr/></p>
+
+<a name="write"></a>
+<p>
+<font class='function'>writeSPIDERfile</font>
+</p>
+<p>
+Write a 2D or 3D array out to a SPIDER file.
+</p>
+<p>
+<font class='usage'>Usage</font>
+</p>
+<p class='syntax'>
+<code>writeSPIDERfile(filename, array)</code><br>
+<code>writeSPIDERfile(filename, array, 'stack')</code>
+</p>
+
+<p><code>writeSPIDERfile(filename, array)</code> will write data to a SPIDER image or volume, depending on whether the array is 2D or 3D. <br>
+<code>writeSPIDERfile(filename, array, 'stack')</code> writes a 3D array out as a stack file of images.
+</p>
+
+<p><hr/></p>
+
+<a name="header"></a>
+<p>
+<font class='function'>readSPIDERheader</font>
+</p>
+<p>
+Read the header of a SPIDER file.
+</p>
+<p>
+<font class='usage'>Usage</font>
+</p>
+<p class='syntax'>
+<code>v = readSPIDERheader(filename)</code>
+</p>
+
+<p>Reads the header of a SPIDER binary file into a vector (1D array). All the entries are floating point values. E.g., the width, height and depth are in v(12), v(2), v(1), respectively. For the meaning of other values, see <a href="http://www.wadsworth.org/spider_doc/spider/docs/image_doc.html">www.wadsworth.org/spider_doc/spider/docs/image_doc.html</a>
+</p>
+
+<p><hr/></p>
+
+<a name="readdoc"></a>
+<p>
+<font class='function'>readSPIDERdoc</font>
+</p>
+<p>
+Read data from a <a href="http://www.wadsworth.org/spider_doc/spider/docs/docfile.html">SPIDER document file</a>.
+</p>
+<p>
+<font class='usage'>Usage</font>
+</p>
+<p class='syntax'>
+<code>m = readSPIDERdoc(filename)</code><br>
+<code>m = readSPIDERdoc(filename, column)</code><br>
+<code>m = readSPIDERdoc(filename, [column1, column2, ...])</code>
+</p>
+
+<p>
+<code>m = readSPIDERdoc(filename)</code> reads all the columns of the document file into a 2D array, a matrix of [nrows ncolumns]. The array is accessed by <code>m(row,column)</code>. <br>
+<code>m(:,i)</code>  returns the ith column<br>
+<code>m(j,:)</code>  returns the jth row<br>
+<code>m(j,i)</code>  returns a single element
+</p>
+<p>
+<code>m = readSPIDERdoc(filename, <i>i</i>)</code> returns a single column of data.
+</p>
+<p>
+<code>m = readSPIDERdoc(filename, [<i>i j k</i>])</code> returns a set of columns. Column=1 refers to the first SPIDER data column (textually, column 3). To retrieve the key column, use column=0.
+</p>
+
+<p><hr/></p>
+
+<a name="writedoc"></a>
+<p>
+<font class='function'>writeSPIDERdoc</font>
+</p>
+<p>
+Write an array out to a SPIDER document file.
+</p>
+<p>
+<font class='usage'>Usage</font>
+</p>
+<p class='syntax'>
+<code>writeSPIDERdoc(filename, array)</code><br>
+<code>writeSPIDERdoc(filename, array, column_headers)</code>
+</p>
+
+<p><code>writeSPIDERdoc(filename, array)</code> writes a 2D array to a SPIDER document file. <br>
+<code>writeSPIDERfile(filename, array, column_headers)</code> writes the 2D array to a doc file with text headings over each column. The <code>column_headers</code> are a cell array of strings, created by e.g., <br><code>hdrs = { 'column1'; 'column2'; 'column3'}</code>.
+</p>
+
+
+<p><hr></p>
+<p>
+<small>Created: 02/04/09 &nbsp;&nbsp;&nbsp;       Bill Baxter<br>
+Enquiries: <a href= "mailto:spider@wadsworth.org">spider@wadsworth.org</a>  </small>
+</p> 
+</body>
+</html>

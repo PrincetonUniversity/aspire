@@ -1,0 +1,1 @@
+function imac(X,Y,m)% function imac(m);% Draw an image using cartesian coordinates,% with m(x,y) being in the standard position.% If the arguments X and Y are given, these define the% x and y axes as in image().if nargin<2        image(squeeze(X)'); axis xy;else    image(X,Y,squeeze(m)'); axis xy;end;

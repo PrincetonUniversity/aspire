@@ -1,0 +1,23 @@
+home = '/home/jzhao/'; %Change toolpath accordingly
+toolboxpath = [home, '/aspire/class_average']; 
+addpath( [ home,'/aspire/projections/FBsPCA']);
+addpath( [ home,'/aspire/projections/simulation']);
+addpath( [ home,'/aspire/common']);
+addpath( [toolboxpath,'/simulation'] );
+addpath( [toolboxpath,'/align'] );
+addpath( [ toolboxpath,'/bispectrum']);
+addpath( [ toolboxpath,'/preprocess']);
+addpath( [ toolboxpath,'/simulate_checks']);
+addpath( [ toolboxpath,'/aLibs']);
+addpath( [ toolboxpath,'/aLibs/MEX']);
+addpath( [ toolboxpath,'/aLibs/docs']);
+addpath( [ toolboxpath,'/aLibs/GriddingLib']);
+addpath( [ toolboxpath,'/aLibs/EMIOUtils']);
+addpath( [ toolboxpath,'/aLibs/EMIO']);
+addpath( [ toolboxpath,'/aLibs/EMSpec']);
+addpath( [ toolboxpath,'/aLibs/EMBase']);
+addpath( [ toolboxpath,'/aLibs/Others']);
+addpath( [ toolboxpath,'/common']);
+addpath( [ toolboxpath,'/VDM']);
+addpath( [ toolboxpath,'/initial']);
+addpath( [ toolboxpath,'/examples']);
