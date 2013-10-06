@@ -1,11 +1,11 @@
 %test code
-%Generate 1000 clean centered projection images.
-initstate;
-K = 1000; %K is the number of images
-q = qrand(K);
-load volume.mat
-images=cryo_project(vol,q);
-%save /simulation/clean_data_1000 images q
+%Please run gen_simulation_data before running this code, if you don't have clean_data.mat in the folder ./simulation.
+% gen_simulation_data generates 10000 clean centered projection images.
+
+data = load('clean_data.mat');
+K=1000;
+images = data.projections(:, :, 1:K);
+q = data.q(:, 1:K);
 
 L = size(images, 1);
 r_max = floor(L/2);
