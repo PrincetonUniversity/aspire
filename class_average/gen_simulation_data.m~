@@ -7,7 +7,7 @@ max_shift = 4; %maximum shift range
 step_size = 1;
 initstate;
 q = qrand(K);
-shifts=round((rand(K,2)-1/2)*2*max_shift/step_size)*step_size;
+shifts=round((rand(K,2)-1/2)*2*max_shift/step_size)*ste;
 load volume.mat
 projections=cryo_project(vol,q);
 save('/simulation/clean_data', '-v7.3', 'projections', 'q', 'shifts')
