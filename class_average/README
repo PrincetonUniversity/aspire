@@ -1,8 +1,0 @@
-1. Run startup.m to add folders in this package.
-
-change toolboxpath = '/u/zhizhenz/aspire/class_average'  to your directory.
-
-2. Run test to check if the code run correctly.
-
-3. Simulated 10^4 clean cenetered projection images are saved in ./simulation/clean_data.mat.
-

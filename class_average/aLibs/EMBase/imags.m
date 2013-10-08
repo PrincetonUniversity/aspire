@@ -1,1 +1,0 @@
-function imags(m)% function imags(m);% Draw an image using graphics coordinates and autoscaling,% This replaces imagesc but with the assumption of% a 256-level grayscale.mn=min(min(m));mx=max(max(m));if (mx-mn)<eps*max(1,(mx+mn))  % Nothing there: show gray    mx=mx+1;    mn=mn-1;end;image(255*(m-mn)/(mx-mn));

@@ -7,7 +7,7 @@ function projections=cryo_project(volume,q,n,precision)
 %   q           List of quaternions determining the projection direction of
 %               each projected image.
 %   precision   Accuracy of the projection. 'single' or 'double'. Default
-%               is double (slower).
+%               is single (faster).
 %
 % Output parameters:
 %   projections 3D stack of size of projections. Each slice
@@ -28,7 +28,7 @@ function projections=cryo_project(volume,q,n,precision)
 % Yoel Shkolnisky, August 2013.
 
 if nargin<4
-    precision='double';
+    precision='single';
 end
 
 if nargin<3
