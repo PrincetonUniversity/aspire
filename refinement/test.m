@@ -7,6 +7,7 @@
 %reference volume is of 129x129x129 voxels. 
 
 data = load('clean_data.mat'); % load clean centered projection images 
+SNR = 1/10;
 [images, defocus_group, noise, noise_spec, c, q]=create_image_wCTF_wshifts(data, SNR, 'gaussian'); %create projection images with CTF and shifts
 load volume
 L=size(data, 1); %Note image size L should be odd
@@ -19,4 +20,4 @@ params.max_shifts=6;  %maximum shift search range
 
 filename = 'refined_model';
 
-[ v_new ] = Refine( vol, data, params, 1, filename );
+[ v_new ] = Refine( vol, data, params, 1, 0.1, filename );

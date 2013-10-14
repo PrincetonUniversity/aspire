@@ -1,4 +1,4 @@
-function [ v_new ] = Refine( v, data, params, iter_max, filename )
+function [ v_new ] = Refine( v, data, params, iter_max, tol, filename )
 %This is the main function for refinement
 %   Input
 %           v: reference volume.
@@ -9,6 +9,7 @@ function [ v_new ] = Refine( v, data, params, iter_max, filename )
 %                   params.max_shifts: maximum shifts in x, y directions
 %                   params.c: The experimental CTF functions.
 %           iter_max: maximum refinement iteration
+%           tol: tolerance for the 
 %           filename: file name for storing the refinement results.
 %   Output:
 %           v_new: final refined volume
@@ -31,7 +32,7 @@ rot=zeros(P, 1);
 shifts_b=zeros(P, 2);
 iter=0;
 norm_diff_ratio = 1.0;
-initstate;
+%initstate;
 q = qrand(ref_k);
 
 while (iter<iter_max || norm_diff_ratio>tol );
@@ -41,10 +42,9 @@ while (iter<iter_max || norm_diff_ratio>tol );
 %     
     for i=1:N
         id=find(d==i);
-        [corr(id), class(id), rot(id), shifts_b(id, :)] = refinement_Bessel_v3(data(:, :, id), ref, c(:, :, i), max_shifts, r_max );
+        [corr(id), class(id), rot(id), shifts_b(id, :)] = refinement_Bessel(data(:, :, id), ref, c(:, :, i), max_shifts, r_max );
         fprintf('\nFinished defocus group %d.', i);
     end
-   [corr, class, rot, shifts_b] = refinement_Bessel_v3(data, ref, ones(L), max_shifts, r_max );
 
     %%%%Align images
     [data2]=refinement_align(rot, shifts_b, data);
