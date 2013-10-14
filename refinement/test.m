@@ -20,4 +20,4 @@ params.max_shifts=6;  %maximum shift search range
 
 filename = 'refined_model';
 
-[ v_new ] = Refine( vol, data, params, 1, 0.1, filename );
+[ v_new ] = Refine( vol, images, params, 1, 0.1, filename );
