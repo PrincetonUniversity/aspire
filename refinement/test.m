@@ -19,5 +19,7 @@ params.defidx=defocus_group;
 params.max_shifts=6;  %maximum shift search range
 
 filename = 'refined_model';
+iter_max = 2;
+tol = 0.1;
 
 [ v_new ] = Refine( vol, images, params, 1, 0.1, filename );
