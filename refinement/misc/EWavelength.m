@@ -1,0 +1,1 @@
+function w=EWavelength(V)% function w=EWavelength(V)% Compute the electron wavelength (Å) given V in kilovolts.% Uses the relativistic formula 4.3.1.27 in International Tables.w=12.2639./sqrt(V*1000+0.97845*V.^2);
