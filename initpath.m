@@ -10,6 +10,7 @@ addpath(genpath(fullfile(pathstr,'fourier')));
 addpath(genpath(fullfile(pathstr,'projections')))
 addpath(genpath(fullfile(pathstr,'sinograms')))
 addpath(genpath(fullfile(pathstr,'reconstruction')))
+addpath(genpath(fullfile(pathstr,'refinement')))
 
 
 addpath(fullfile(pathstr,'extern','SDPLR-1.03-beta'))

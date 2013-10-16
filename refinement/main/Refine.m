@@ -35,6 +35,12 @@ norm_diff_ratio = 1.0;
 %initstate;
 q = qrand(ref_k);
 
+if ~exist('./results','dir')
+    if ~mkdir('./results')
+        error('Cannot create directory ./results');
+    end
+end
+
 while (iter<iter_max && norm_diff_ratio>tol );
     filename=sprintf('./results/%s_iter%d', filename, iter+1); %save the results for each iteration
     
