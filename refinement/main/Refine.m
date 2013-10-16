@@ -39,6 +39,7 @@ while (iter<iter_max && norm_diff_ratio>tol );
     filename=sprintf('./results/%s_iter%d', filename, iter+1); %save the results for each iteration
     
     [ref]=cryo_project(real(v), q); %generate references
+    ref = permute(ref, [2, 1, 3]);
 %     
     for i=1:N
         id=find(d==i);

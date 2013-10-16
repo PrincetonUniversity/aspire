@@ -4,7 +4,6 @@ function [ P ] = Noise_Estimation( projections )
 %   Output: P power spectrum
 %   Zhizhen Zhao June 2013
 
-addpath /u/zhizhenz/matlab_cryo/epsdS
 %% Configure simulation parameters
 verbose = 1;
 norm_flag = 0;

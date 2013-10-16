@@ -7,7 +7,7 @@
 %reference volume is of 129x129x129 voxels. 
 
 data = load('clean_data.mat'); % load clean centered projection images 
-SNR = 1/10;
+SNR = 1;
 [images, defocus_group, noise, noise_spec, c, q]=create_image_wCTF_wshifts(data, SNR, 'gaussian'); %create projection images with CTF and shifts
 load volume
 L=size(data, 1); %Note image size L should be odd
