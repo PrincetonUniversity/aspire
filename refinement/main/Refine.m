@@ -9,7 +9,7 @@ function [ v_new ] = Refine( v, data, params, iter_max, tol, filename )
 %                   params.max_shifts: maximum shifts in x, y directions
 %                   params.c: The experimental CTF functions.
 %           iter_max: maximum refinement iteration
-%           tol: tolerance for the 
+%           tol: tolerance for convergence of the refinement. 
 %           filename: file name for storing the refinement results.
 %   Output:
 %           v_new: final refined volume
