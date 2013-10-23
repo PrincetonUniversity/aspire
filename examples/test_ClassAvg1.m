@@ -10,7 +10,7 @@
 % 1000 clean centered projections of the 70S ribosomal subunit. The
 % projections orientations are random and uniformly disributed.
 % If the file 'clean_data.mat' (in the folder ./simulation) is missing,
-% please run  
+% please go into "ASPIRE/projections/class_average/" and run  
 %   gen_simulation_data 
 % to generate it, before running this example code. 
 %

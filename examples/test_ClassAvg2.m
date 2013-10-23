@@ -14,7 +14,7 @@
 % direcrtions. The clean projections are separated in 20 different defocus
 % groups.
 % If the file 'clean_data.mat' (in the folder ./simulation) is missing,
-% please run  
+% please go into "ASPIRE/projections/class_average/" and run  
 %   gen_simulation_data 
 % to generate it, before running this example code. 
 
