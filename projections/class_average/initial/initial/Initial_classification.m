@@ -12,11 +12,9 @@ function [ class, class_refl, rot, corr, FBsPCA_data, timing ] = Initial_classif
 %           nearest neighbors for each image.
 %           rot: rotational alginment
 %           corr: normalized cross correlation between nearest neighbors
+%           FBsPCA_data: Fourier-Bessel steerable PCA data with r_max, UU,
+%           Coeff, Mean, Freqs
 %           timing: timing of different steps in the algorithm
-%	    FBsPCA_data: FBsPCA denoising data. It includes r_max--radius of 
-%           region of interest, UU--eigenvectors, Freqs--associated angular 
-%           frequence, Coeff--image expansion coefficients on UU, Mean--estimated
-%           rotationally invariant mean of the data, and W--weight for wiener type filtering.
 % Zhizhen Zhao Updated Feb 2014
 
 % Get date dimension:
