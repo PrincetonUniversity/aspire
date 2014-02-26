@@ -39,7 +39,7 @@ S=eye(2*K);
 poolreopen;
 
 for k1=1:K-1
-    fprintf('Process image %d out of %d\n',k1,K-1);
+    %fprintf('Process image %d out of %d\n',k1,K-1);
     Stmp=zeros(2,2,K);    
     parfor k2=k1+1:K
         Stmp(:,:,k2)=cryo_syncmatrixIJ_vote(clmatrix,k1,k2,1:K,L,refq,is_perturbed);
