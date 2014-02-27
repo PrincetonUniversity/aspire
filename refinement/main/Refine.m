@@ -1,4 +1,4 @@
-function [ v_new ] = Refine( v, data, params, iter_max, tol, filename )
+function [ v_new ] = Refine( v, data, params, iter_max, tol, CTF_flag, filename )
 %This is the main function for refinement
 %   Input
 %           v: reference volume.
@@ -9,11 +9,12 @@ function [ v_new ] = Refine( v, data, params, iter_max, tol, filename )
 %                   params.max_shifts: maximum shifts in x, y directions
 %                   params.c: The experimental CTF functions.
 %           iter_max: maximum refinement iteration
-%           tol: tolerance for convergence of the refinement. 
+%           tol: tolerance for convergence of the refinement.
+%	    CTF_flag: if the volume v is CTF corrected, CTF_flag = 1. If v is not CTF corrected, CTF_flag=0.	 
 %           filename: file name for storing the refinement results.
 %   Output:
 %           v_new: final refined volume
-%%Zhizhen Zhao 04/2013
+%%Zhizhen Zhao 02/2014
 
 v_new=zeros(size(v));
 L=size(v, 1);
@@ -42,15 +43,19 @@ if ~exist('./results','dir')
 end
 
 while (iter<iter_max && norm_diff_ratio>tol );
-    filename=sprintf('./results/%s_iter%d', filename, iter+1); %save the results for each iteration
+    filename=sprintf('%s_iter%d', filename, iter+1); %save the results for each iteration
     
     [ref]=cryo_project(real(v), q); %generate references
     ref = permute(ref, [2, 1, 3]);
 %     
     for i=1:N
         id=find(d==i);
-        [corr(id), class(id), rot(id), shifts_b(id, :)] = refinement_Bessel(data(:, :, id), ref, c(:, :, i), max_shifts, r_max );
-        fprintf('\nFinished defocus group %d.', i);
+        if (iter==0 && CTF_flag==0)
+		[corr(id), class(id), rot(id), shifts_b(id, :)] = refinement_Bessel(data(:, :, id), ref, ones(L), max_shifts, r_max );
+	else
+        	[corr(id), class(id), rot(id), shifts_b(id, :)] = refinement_Bessel(data(:, :, id), ref, c(:, :, i), max_shifts, r_max );
+	end;        
+	fprintf('\nFinished defocus group %d.', i);
     end
 
     %%%%Align images

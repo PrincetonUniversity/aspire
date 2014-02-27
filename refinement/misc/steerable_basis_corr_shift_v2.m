@@ -22,7 +22,7 @@ end
 parfor k=1:P  
     [ C ] = make_C(coeff, coeff_ref, k, max_m, lshifts);
     C2=flipud(conj(C(2:end, :)));
-    B=real((2*max_m+1)*icfft([C2; C]));
+    B=real((2*max_m+1)*icfft_1dstack([C2; C]));
     [corr(k), tmp]=max(abs(B(:)));
     [rot_tmp, id]=ind2sub([2*max_m+1, P_ref*lshifts], tmp);
     [id2, class(k)]=ind2sub([lshifts, P_ref], id);

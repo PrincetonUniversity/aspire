@@ -1,4 +1,4 @@
-% function y=icfft(x)
+% function y=icfft_1dstack(x)
 %
 % Aliased inverse Fourier transform (IFFT) of the sequence x.
 % The FFT is computed using O(nlogn) operations.
