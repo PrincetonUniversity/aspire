@@ -15,11 +15,7 @@ a=sqrt(lshifts);
 shift=zeros(P, 2);
 ITER=zeros(P, 1);
 
-ps=matlabpool('size');
-if ps==0
-    matlabpool open
-end
-parfor k=1:P  
+for k=1:P  
     [ C ] = make_C(coeff, coeff_ref, k, max_m, lshifts);
     C2=flipud(conj(C(2:end, :)));
     B=real((2*max_m+1)*icfft_1dstack([C2; C]));
@@ -50,8 +46,6 @@ parfor k=1:P
     ITER(k)=iter;
     rot(k)=x_new;
 end
-
-matlabpool close;
 
 end
 
