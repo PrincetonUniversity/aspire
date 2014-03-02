@@ -24,7 +24,7 @@ filter=(filter+fliplr(filter))./2;
 
 nzidx=find(filter>1.0e-12);
 
-%rmask=fuzzymask(K,2,0.45*K,0.05*K);[
+%rmask=fuzzymask(K,2,0.45*K,0.05*K);
 
 parfor i=1:n
     pp=zeros(K);

@@ -37,10 +37,7 @@ a2=kron(a', ones(num, 1));
 shifts=[a1, a2];
 lshifts=size(shifts, 1);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-ps=matlabpool('size');
-if ps==0
-    matlabpool open
-end
+
 %Change this part of the code to make it faster
 coeff_ref_b = b\ref;
 coeff_ref_b = coeff_ref_b(1:length(R_freq), :);
