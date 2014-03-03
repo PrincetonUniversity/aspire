@@ -1,6 +1,18 @@
 %test code
-%Please run gen_simulation_data before running this code, if you don't have clean_data.mat in the folder ./simulation.
+% If you don't have clean_data.mat in the folder ./simulation, please run
+% gen_simulation_data before running this code.
 % gen_simulation_data generates 10000 clean centered projection images.
+%
+%10^3 clean centered projection images.
+% Variables determined by users are the following:
+% r_max =floor(L/2); %radius of region of interest that contains the
+% particle.
+% n_nbor = 50; %number of nearest neighbors for initial classification.
+% k_VDM_in = 5; % number of nearest neighbors for building graph for VDM.
+% VDM_flag = 0; % Using union rule (0) or intersection rule (1) for
+% constructring VDM matrix.
+% k_VDM_out = 5; % output number of nearest neighbors
+% max_shift = 12; % shift search range.
 
 data = load('clean_data.mat');
 K=1000;
@@ -13,7 +25,7 @@ n_nbor = 50;
 isrann = 0;
 k_VDM_in = 5; % number of nearest neighbors for building graph for VDM.
 VDM_flag = 0; % VDM using union rule
-k_VDM_out = 50; % number of nearest neighbors search for 
+k_VDM_out = 5; % number of nearest neighbors search for 
 max_shift = 12;
 list_recon = 1:K;
 %%low pass filtering the images (This step is optional for centered images. This makes the images roughly invariant to very small shifts)
