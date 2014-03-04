@@ -1,18 +1,40 @@
-%test code
-% If you don't have clean_data.mat in the folder ./simulation, please run
-% gen_simulation_data before running this code.
-% gen_simulation_data generates 10000 clean centered projection images.
+
+% Example code for generating class averages.
 %
-%10^3 clean centered projection images.
-% Variables determined by users are the following:
-% r_max =floor(L/2); %radius of region of interest that contains the
-% particle.
-% n_nbor = 50; %number of nearest neighbors for initial classification.
-% k_VDM_in = 5; % number of nearest neighbors for building graph for VDM.
-% VDM_flag = 0; % Using union rule (0) or intersection rule (1) for
-% constructring VDM matrix.
-% k_VDM_out = 5; % output number of nearest neighbors
-% max_shift = 12; % shift search range.
+% The example loads a data set of 1000 clean projections, and produces 1000
+% class averages by averaging each image with its 50 nearest neighbors.
+%
+% Data set:
+% ---------
+% 1000 clean centered simulated projections. The projections orientations
+% are random and uniformly disributed. If the file 'clean_data.mat' (in the
+% folder ./simulation) is missing, please go into
+% "ASPIRE/projections/class_average/" and run
+%   gen_simulation_data 
+% to generate it, before running this example code. 
+%
+%
+% Tuning the class averaging algorithm:
+% -------------------------------------
+% Variables determined by the user are the following
+%
+%   r_max =floor(L/2); 
+%       Radius of region of interest that contains the particle.
+%
+%   n_nbor = 50;        
+%       Number of nearest neighbors for initial classification. 
+%   k_VDM_in = 5;   
+%       Nnumber of nearest neighbors for building graph for VDM. 
+%
+%   VDM_flag = 0; 
+%       Using union rule (0) or intersection rule (1) for constructring VDM
+%       matrix. 
+%
+%   k_VDM_out = 5;
+%       Output number of nearest neighbors
+%
+%   max_shift = 12; 
+%       Shift search range.
 
 data = load('clean_data.mat');
 K=1000;

@@ -25,8 +25,6 @@ Revisions
 ---------
 Changes from version 0.1
 1.	Updated class averaging code.
-2.	Remove progress prinouts from cryo_syncmatrix_vote.m
-3.	 Revise the function cryo_project to generate projections whose size is different from the size of the projected volume.
-4.	Added readme.txt
+2.	Revised the function cryo_project to generate projections whose size is different from the size of the projected volume.
 
 

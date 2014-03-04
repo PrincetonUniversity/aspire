@@ -1,21 +1,44 @@
-% Example: 
-% If you don't have clean_data.mat in the folder ./simulation, please run
-% gen_simulation_data before running this code.
-% gen_simulation_data generates 10000 clean centered projection images.
+% Example code for generating class averages.
 %
-%10^4  projection images, randomly shifted with maximum shifts +/- 4 pixels
-%in x and y directions. Images are contaminated by additive white Gaussian
-%noise. Signal to noise ratio is 1/100. They are separated in 20 different
-%defocus group.
-% Variables determined by users are the following:
-% r_max =floor(L/2)-10; %radius of region of interest that contains the
-% particle.
-% n_nbor = 50; %number of nearest neighbors for initial classification.
-% k_VDM_in = 5; % number of nearest neighbors for building graph for VDM.
-% VDM_flag = 0; % Using union rule (0) or intersection rule (1) for
-% constructring VDM matrix.
-% k_VDM_out = 50; % output number of nearest neighbors
-% max_shift = 15; % shift search range.
+% The example generates 10000 noisy projection and produces 10000 class
+% averages by averaging each image with its 50 nearest neighbors. 
+%
+% Data set:
+% ---------
+% 10000 noisy projections with additive white Gaussian noise at SNR/1=100.
+% The 
+% projections orientations are random and uniformly disributed, and they
+% are shifted randomly with maximum shift of +/- 4 pixels in the x and y
+% direcrtions. The clean projections are separated in 20 different defocus
+% groups.
+% If the file 'clean_data.mat' (in the folder ./simulation) is missing,
+% please go into "ASPIRE/projections/class_average/" and run  
+%   gen_simulation_data 
+% to generate it, before running this example code. 
+%
+%
+% Tuning the class averaging algorithm:
+% -------------------------------------
+% Variables determined by the user are the following
+%
+%   r_max =floor(L/2)-10; 
+%       Radius of region of interest that contains the particle.
+%
+%   n_nbor = 50; 
+%       Number of nearest neighbors for initial classification.
+%
+%   k_VDM_in = 5; 
+%       Number of nearest neighbors for building graph for VDM.
+%
+%   VDM_flag = 0; 
+%       Using union rule (0) or intersection rule (1) for constructring VDM
+%       matrix. 
+%
+%   k_VDM_out = 50; 
+%       Output number of nearest neighbors
+%
+%   max_shift = 15; 
+%       Shift search range.
 
 clc;
 clear all;
