@@ -1,8 +1,22 @@
-% Example 1: 
+% Example: 
+% If you don't have clean_data.mat in the folder ./simulation, please run
+% gen_simulation_data before running this code.
+% gen_simulation_data generates 10000 clean centered projection images.
+%
 %10^4  projection images, randomly shifted with maximum shifts +/- 4 pixels
 %in x and y directions. Images are contaminated by additive white Gaussian
-%noise. Signal to noise ratio is 1/50. They are separated in 20 different
+%noise. Signal to noise ratio is 1/100. They are separated in 20 different
 %defocus group.
+% Variables determined by users are the following:
+% r_max =floor(L/2)-10; %radius of region of interest that contains the
+% particle.
+% n_nbor = 50; %number of nearest neighbors for initial classification.
+% k_VDM_in = 5; % number of nearest neighbors for building graph for VDM.
+% VDM_flag = 0; % Using union rule (0) or intersection rule (1) for
+% constructring VDM matrix.
+% k_VDM_out = 50; % output number of nearest neighbors
+% max_shift = 15; % shift search range.
+
 clc;
 clear all;
 clf;
@@ -17,12 +31,12 @@ clear data;
 % shifts
 [ images_lpf ] = low_pass_filter( images );
 L = size(images, 1);
-r_max = 47;
-n_nbor = 400;
+r_max =floor(L/2)-10; %radius of region of interest. Determined by user.
+n_nbor = 50; %number of nearest neighbors for initial classification.
 isrann = 0;
 k_VDM_in = 5; % number of nearest neighbors for building graph for VDM.
 VDM_flag = 0;
-k_VDM_out = 50; % number of nearest neighbors search for 
+k_VDM_out = 50; % output number of nearest neighbors
 max_shift = 15;
 % Initial Classification
 [ class, class_refl, rot, ~, FBsPCA_data, timing ] = Initial_classification(images_lpf, r_max, n_nbor, isrann );
