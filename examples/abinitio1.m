@@ -52,7 +52,7 @@ shift_step = 1;
 % lines. A common line is considered correctly-identified if it deviates
 % from the true common line between the projections by up to 10 degrees.
 prop=comparecl( clstack, ref_clmatrix, n_theta, 10 );
-fprintf('Percentage of correc common lines: %f%%\n\n',prop*100);
+fprintf('Percentage of correct common lines: %f%%\n\n',prop*100);
 [ est_shifts, shift_err] = test_shifts( shift_equations, shifts);
 
 %% Assign orientation using common lines, using least squares method.

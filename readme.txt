@@ -1,7 +1,7 @@
 ASPIRE – Algorithms for Single Particle Reconstruction
 
 Current version: 0.11
-Date: 02/26/2014
+Date: 03/05/2014
 
 Installation
 ------------
