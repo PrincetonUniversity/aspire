@@ -12,8 +12,6 @@ noise_type='gaussian';
 silent=1;
 mask_radius = 55;
 % fprecomp='p100_shifted';
-% [p, np, shifts, q] = ...
-%     gen_projections(K,1,max_shift,step_size,noise_type,silent,fprecomp);
 [p, np, shifts, q] = ...
     gen_projections(K,1,max_shift,step_size,noise_type,silent);
 [ref_clmatrix,clcorr]=clmatrix_cheat_q(q,n_theta);
@@ -44,7 +42,6 @@ for k=1:6
     noise_type='gaussian';
     silent=1;
     mask_radius = 55;
-%    fprecomp='p100_shifted';
     [p, np, shifts, q] = ...
         gen_projections(K,SNR,max_shift,step_size,noise_type,silent);
     [ref_clmatrix,clcorr]=clmatrix_cheat_q(q,n_theta);
@@ -59,30 +56,3 @@ for k=1:6
     fprintf('-----------------------------------------------------------------\n');
 end
 
-% Results:
-% Commonline detection for shifted images using Gaussian filter.
-% =====================================================================
-% 
-% SNR=1/2, correctness of common lines: 0.944646
-% 
-% -----------------------------------------------------------------
-% 
-% SNR=1/4, correctness of common lines: 0.833939
-% 
-% -----------------------------------------------------------------
-% 
-% SNR=1/8, correctness of common lines: 0.625253
-% 
-% -----------------------------------------------------------------
-% 
-% SNR=1/16, correctness of common lines: 0.397374
-% 
-% -----------------------------------------------------------------
-% 
-% SNR=1/32, correctness of common lines: 0.212727
-% 
-% -----------------------------------------------------------------
-% 
-% SNR=1/64, correctness of common lines: 0.091515
-% 
-% -----------------------------------------------------------------
