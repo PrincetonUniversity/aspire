@@ -21,6 +21,13 @@ function projections=cryo_project(volume,q,n,precision)
 % experimental and was not tested to verify that the resulting projections
 % match the analytical ones to double precision.
 %
+% Note:
+% To make the output of this function compatible with cryo_gen_projections
+% call 
+%   projections=permute(projections,[2 1 3]); 
+% The FIRM reconstruction functions rely upon this permuted order. See
+% 'examples' directory for detailed examples.
+%
 % Example:
 %     voldef='C1_params';
 %     q = qrand(1);

@@ -1,7 +1,7 @@
 ASPIRE – Algorithms for Single Particle Reconstruction
 
-Current version: 0.11
-Date: 03/05/2014
+Current version: 0.12
+Date: 04/02/2014
 
 Installation
 ------------
@@ -23,8 +23,15 @@ Getting started
 
 Revisions
 ---------
-Changes from version 0.1
+*Changes from version 0.1
 1.	Updated class averaging code.
 2.	Revised the function cryo_project to generate projections whose size is different from the size of the projected volume.
+
+
+*Changes from version 0.11
+1. 	Added memory efficient FIRM reconstruction routine reconstruction/FIRM/recon3d_firm_ctf_large.m 
+2.	Added example file for using cryo_project examples/simulated_projections.m
+3.	Update documentation of projections/simulation/cryo_project.m
+4. 	Remove obsolete benchmark results from comment at the end of  ./sinograms/test_commonlines_gaussian.m
 
 
