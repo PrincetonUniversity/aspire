@@ -59,7 +59,7 @@ fileNames={dirInfo(files).name};
 if ~isempty(fileNames)
     for i=1:length(fileNames)
         % Do whathever (show file names?)
-        fileOperation(char(fullfile(path,fileNames(i))));
+        fileOperation(fullfile(path,fileNames{i}));
     end
 end
 
