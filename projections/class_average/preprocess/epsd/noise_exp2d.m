@@ -1,4 +1,4 @@
-function [noise,P,S,T1]=noise_exp2d(N,K,noref)
+function [noise,P,S,T1]=noise_exp2d(N,K,refpsd)
 % NOISE_EXP2D   Generate colored noise with exponentially decaying auto
 %               correlation.
 % 
@@ -8,8 +8,9 @@ function [noise,P,S,T1]=noise_exp2d(N,K,noref)
 % T1 is set to 1 so that the autocovariance at distance 30 is about 9.e-14. 
 %
 % Input parameters:
-%    N     Size of each noise image (NxN).
-%    K     Number if noise images to generate.
+%    N      Size of each noise image (NxN).
+%    K      Number if noise images to generate.
+%    refpsd Nonzero to compute reference psd. Default 0.
 %
 % Output parameters:
 %    noise  K noise images of size NxN with the required autocorrelation.
@@ -25,8 +26,8 @@ function [noise,P,S,T1]=noise_exp2d(N,K,noref)
 %
 % Revised: Yoel Shkolnisky, October 2014.
 
-if ~exist('noref','var')
-    noref=1;
+if ~exist('refpsd','var')
+    refpsd=0;
 end;
 
 initstate;
@@ -80,7 +81,7 @@ noise=real(noise);
 % be sampled at the points 2*pi*k/(2*N+1).
 %
 S=-1;
-if ~noref
+if refpsd
     M=2*N-1; % T=M (T is sampling interval);
     omega0=2*pi/(2*N-1); % frequnecy steps
     omega1=omega0*M;

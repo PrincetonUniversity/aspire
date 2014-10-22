@@ -16,7 +16,7 @@ N=129; % Each noise image is of size NxN.
 Ks=[100 1000 10000]; % Number of noise images to generate.
 
 % Generate a stack of noise images
-[noise,Sfft,Sref,T1]=noise_exp2d(N,max(Ks),0);
+[noise,Sfft,Sref,T1]=noise_exp2d(N,max(Ks),1);
 
 for j=1:numel(Ks)
     fprintf('Processing K=%d\n',Ks(j));

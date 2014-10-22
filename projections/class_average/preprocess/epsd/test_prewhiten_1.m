@@ -1,9 +1,9 @@
 
-N=350; % Each noise image is of size NxN.
+N=129; % Each noise image is of size NxN.
 Ks=1000; % Number of noise images to generate.
 
 % Generate a stack of noise images
-[noise,Sfft,Sref,T1]=noise_exp2d(N,max(Ks),0);
+[noise,Sfft,Sref,T1]=noise_exp2d(N,max(Ks),1);
 
 max_d=floor(N/3);
 [P2,~,~]=epsdS(noise(:,:,1:Ks),1:N^2,max_d,1);

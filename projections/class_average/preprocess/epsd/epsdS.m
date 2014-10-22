@@ -24,7 +24,7 @@ function [ P2,R,x ] = epsdS( imstack,samples_idx,max_d, verbose )
 %
 % Output parameters:
 %   P2           2D power spectrum function. If each image is of size
-%                pxp, then P2 is of size (2p-1)x(2p-1).
+%                pxp, then P2 is of size (2p-1)x(2p-1). P2 is always real.
 %   R            1D isotropic autocorrelation function.
 %   x            Distances at which the autocorrelction R was estimated.
 %
@@ -43,14 +43,22 @@ if ~exist('verbose','var')
     verbose=0;
 end
 
+p=size(imstack,1);
+if size(imstack,2)~=p
+    error('Images must be square');
+end
+
+if max_d>=p
+    warning('max_d too large. Setting max_d to %d',p-1);
+    max_d=p-1;
+end
+
 % Estimate the 1D isotropic autocorrelation function
-biasflag=2;
-[R,x,~]=epsdR(imstack,samples_idx,max_d,biasflag,verbose);
+[R,x,~]=epsdR(imstack,samples_idx,max_d,verbose);
 
 % Use the 1D autocorrelation estimted above to populate an array of the 2D
 % isotropic autocorrelction. This autocorrelation is later Fourier
 % transformed to get the power spectrum.
-p=size(imstack,1);
 R2=zeros(2*p-1); % Two dimensional isotropic autocorrelation
 dsquare=x.*x;
 for i=-max_d:max_d

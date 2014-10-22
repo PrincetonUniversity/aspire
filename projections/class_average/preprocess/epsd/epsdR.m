@@ -1,7 +1,7 @@
-function [R,x,cnt]=epsdR_new(vol,samples_idx,max_d,biasflag,verbose)
+function [R,x,cnt]=epsdR(vol,samples_idx,max_d,verbose)
 % EPSDR  Estimate the 1D isotropic autocorrelation of an image stack.
 %
-% [R,x,cnt]=epsdR(vol,samples_idx,max_d,biasflag,verbose)
+% [R,x,cnt]=epsdR(vol,samples_idx,max_d,verbose)
 
 % Compute the 1D isotropic autocorrelation function of a stack of images.
 % The samples to use in each image are given in samples_idx. The
@@ -14,15 +14,7 @@ function [R,x,cnt]=epsdR_new(vol,samples_idx,max_d,biasflag,verbose)
 %                 estimation.
 %    max_d        Correlations are computed up to a maximal distance of
 %                 max_d pixels. Default p-1.
-%    biasflag     Controls the bias of the estimate:
-%               0    Do not remove the mean from the samples before
-%                    computing the autocorrelation.
-%               1    Remove the mean of the pixels samples_idx in each
-%                    image. The mean of each image in the stack is computed
-%                    separately.
-%               2    Do not remove the mean but set the variance
-%                    (autocorrelation at distance 0) to be 1 (default).
-%     verbose   Set to nonzero to print progress messages. Default 0.
+%    verbose   Set to nonzero to print progress messages. Default 0.
 %
 % Output parameters:
 %    R    1D vector with samples of the isotropic autocorrelation function.
@@ -56,10 +48,6 @@ if ~exist('max_d','var')
                % than max_d pixels apart
 end
 max_d=min(max_d,p-1);
-
-if ~exist('biasflag','var')
-    biasflag=2;
-end
 
 if ~exist('verbose','var')
     verbose=0;
@@ -150,24 +138,14 @@ for k=1:K
     % Mask all pixels that are not used to autocorrelation estimation.
     samples=zeros(p);
     samples(samples_idx)=proj(samples_idx);
-    
-    %if biasflag==1
-       % samples(samples_idx) = samples(samples_idx) - mean(samples(samples_idx));
-    %end
-    
+        
     % Compute non-periodic autocorrelation of masked image with itself.
     tmp=zeros(2*p+1);
     tmp(1:p,1:p)=samples;
     ftmp=fft2(tmp);
     s=ifft2(ftmp.*conj(ftmp));
     s=s(1:max_d+1,1:max_d+1);  % Retain only relevant distances.
-       
-    % Correct the bias by forcing the variace to be 1.
-    % XXX verify this
-    %if biasflag==2
-    %    s=s-c*s(1,1)/c(1,1);
-    %end
-    
+           
     % Accumulate all autocorrelation values R(k1,k2) such that
     % k1^2+k2^2=const (all autocorrelations of a certain distance).
 

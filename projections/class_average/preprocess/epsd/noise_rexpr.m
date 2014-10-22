@@ -1,4 +1,4 @@
-function [noise,P,S,T1]=noise_rexpr(N,K,noref)
+function [noise,P,S,T1]=noise_rexpr(N,K,refpsd)
 % NOISE_REXPR   Generate colored noise with a decaying auto correlation.
 % 
 % [noise,P,S,T1]=noise_rexpr(N,K,noref)
@@ -9,6 +9,7 @@ function [noise,P,S,T1]=noise_rexpr(N,K,noref)
 % Input parameters:
 %    N     Size of each noise image (NxN).
 %    K     Number if noise images to generate.
+%    refpsd Nonzero to compute reference psd. Default 0.
 %
 % Output parameters:
 %    noise  K noise images of size NxN with the required autocorrelation.
@@ -24,8 +25,8 @@ function [noise,P,S,T1]=noise_rexpr(N,K,noref)
 %
 % Revised: Yoel Shkolnisky, October 2014.
 
-if ~exist('noref','var')
-    noref=1;
+if ~exist('refpsd','var')
+    refpsd=0;
 end;
 
 initstate;
@@ -66,7 +67,7 @@ noise=real(noise);
 % Compute true power spectrum S using the Poisson formula - compute
 % periodized power spectrum.
 S=-1;
-if ~noref    
+if refpsd   
     omega0=2*pi/(2*N-1); % frequnecy steps
     omega1=omega0*M; % bandlimit
     omega_x=omega0.*K1;
