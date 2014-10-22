@@ -21,9 +21,7 @@
 %
 % See also: 
 function [ I ] = cart2rad(N)
-    N = floor(N);
-    I = zeros(N,N);
-  
+    N = floor(N);    
     p = (N-1)/2;
     [X,Y] = meshgrid(-p:p,-p:p);
     

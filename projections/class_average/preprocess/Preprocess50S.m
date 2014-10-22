@@ -1,8 +1,8 @@
 % Preprocess the 50S dataset
 
 %% Load the data
-%projs=ReadImagic('~/data/work/molec/datasets/RibosomeData/Rib_flipcor_1.img');
-projs=projections;
+projs=ReadImagic('~/data/work/molec/datasets/RibosomeData/Rib_flipcor_1.img');
+%projs=projections;
 sz=size(projs);
 n=sz(1);
 K=sz(3);

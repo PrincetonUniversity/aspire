@@ -24,16 +24,21 @@
 % See also: 
 
 function [ w ] = iwindow( p, kind )
-    I = cart2rad(p);
-    M = p/2;
-    switch kind 
-        case 'hamming'
-        w = 0.54-0.46.*cos(2*pi*(I+M)./p);   
-        case 'hann'
-        w = 0.5*(1-cos(2*pi*(I+M)./p)); 
-        case 'boxcar'
+I = cart2rad(p);
+M = p/2;
+switch kind
+    case 'hamming'
+        w = 0.54-0.46.*cos(2*pi*(I+M)./p);
+    case 'hann'
+        w = 0.5*(1-cos(2*pi*(I+M)./p));
+    case 'boxcar'
         w = ones(p);
-    end
-    w(I>(M+1)) = 0;
+    case 'bartlett'
+        w=1-abs(I)/floor((p-1)/2);
+        w=max(w,0);
+    otherwise
+        error('No such window %s',kind);
+end
+w(I>(M+1)) = 0;
 end
 
