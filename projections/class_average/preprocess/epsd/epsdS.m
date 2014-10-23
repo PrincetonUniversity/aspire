@@ -110,4 +110,10 @@ if numel(negidx)>0
         negnorm=norm(P2(negidx));
         warning('Power specrtum P2 has negative values with energy %e',negnorm);
     end
+    P2(negidx)=0; % Zero small negative estimates.
 end
+
+% After setting small negative entries to zero, the power spectrum may not
+% be perfectly circularly symmetric. We may need to enforce this symmetry
+% back. Implmenet if needed by calling P2=radial_average(P2);
+% Make sure this works for both odd and even sized images.
