@@ -1,4 +1,4 @@
-function [bestR,bestdx,bestCorr,bestRes,vol2aligned]=bf3Dmatchaux(vol1,vol2,rotations,verbose)
+function [bestR,bestdx,bestCorr,bestResA,vol2aligned]=bf3Dmatchaux(vol1,vol2,rotations,pixA,verbose)
 %
 % BF3DMATCHAUX Auxiliary function for matching 2 density maps.
 %
@@ -35,6 +35,15 @@ if verbose
     printProgressBarHeader;
 end
 
+fakepixA=0;
+if pixA<=0
+    pixA=1;      % Use dummy pixel size.
+    fakepixA=1 ; % Indicate that we are using fake pixel size
+end
+
+ResVec=zeros(size(rotations,3),1); % Resolution achieved by each rotation
+Nvec=zeros(size(rotations,3),1); % Number of elements in each FSC curve.
+
 parfor jj=1:size(rotations,3)
     progressTic(jj,size(rotations,3));
     rot=rotations(:,:,jj);    
@@ -44,13 +53,18 @@ parfor jj=1:size(rotations,3)
         vol2RS=reshift_vol(vol2R,estdx);
         fsc=FSCorr(vol1,vol2RS);
         res=fscres(fsc,0.5);
-        Cvec(jj)=res;
+        ResVec(jj)=res;
+        Nvec(jj)=numel(fsc); % To compute resolution in angstrom.
         %Cvec(jj)=corr(vol1(:),vol2RS(:));
     end
 
 end
 
-[bestRes,ii]=max(Cvec);
+[bestRes,ii]=max(ResVec);
+bestResA=2*pixA*Nvec(ii)/bestRes; % Resolution in Angstrom.
+if fakepixA
+    bestResA=-bestResA; % Minus is an indication of fake pixel size
+end
 bestR=rotations(:,:,ii);
 vol2aligned=fastrotate3d(vol2,bestR);
 bestdx=register_translations_3d(vol1,vol2aligned);

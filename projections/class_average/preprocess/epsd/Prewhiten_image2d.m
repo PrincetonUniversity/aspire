@@ -41,7 +41,10 @@ filter=(filter+fliplr(filter))./2;
 nzidx=find(filter>1.0e-12);
 fnz=filter(nzidx);
 
+fprintf('Whitening...\n');
+printProgressBarHeader;
 parfor i=1:n
+    progressTic(i,n);
     pp=zeros(K);
     if mod(L,2)==1 % Odd-sized image
         pp(k-l:k+l, k-l:k+l)=proj(:, :, i); % Zero pad the image to twice the size.

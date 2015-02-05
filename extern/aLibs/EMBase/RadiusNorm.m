@@ -17,7 +17,8 @@ if nargin<2
      org=ceil((n+1)/2);
 end;
 
-n=single(n);  % this will force the output to be single
+% Commnted the following line. I want all numbers in double.
+%n=single(n);  % this will force the output to be single
 x=org(1);
 y=org(2);
 [X,Y]=ndgrid((1-x:n(1)-x)/n(1),(1-y:n(2)-y)/n(2));  % Make zero at x,y

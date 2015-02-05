@@ -1,4 +1,4 @@
-function [rotations,diff,mse,O]=cryo_syncrotations(S,refq)
+function [rotations,diff,mse,O]=cryo_syncrotations(S,refq,verbose)
 %
 % Compute the rotations from the syncronization matrix S.
 % refq (optional) are the quaternions corresponding to the true rotations.
@@ -14,10 +14,17 @@ function [rotations,diff,mse,O]=cryo_syncrotations(S,refq)
 %               rotations to the true ones.
 %   mse         Mean squared error, computed as the mean of the squares of
 %               the array diff.
+%   verbose     Nonzero to print debug messages. Default is 0.
 %
 % Yoel Shkolnisky, August 2010.
+%
+% Revised Y.S December 2014     Add verbose flag.
 
 TOL=1.0e-14;
+
+if ~exist('verbose','var')
+    verbose=0;
+end
 
 ref=0;
 if exist('refq','var')
@@ -43,8 +50,11 @@ K=sz(1)/2;
 % corresponding to non-zero eigenvalues.
 [V,D]=eigs(S,10);
 [sorted_eigs, sort_idx] = sort(diag(D),'descend');
-disp('Four largest eigenvalues: ');
-sorted_eigs(1:10)
+
+if verbose
+    disp('Top eigenvalues: ');
+    sorted_eigs(1:10)
+end
 V(:,1:3) = V(:,sort_idx(1:3));
 
 % S is a 2Kx2K matrix, containing KxK blocks of size 2x2.
@@ -144,7 +154,7 @@ for k=1:K
     end
     
     % Enforce R to be a rotation (in case the error is large)
-    [U,D,V]=svd(R);
+    [U,~,V]=svd(R);
     rotations(:,:,k)=U*V.';
 end
 
@@ -208,26 +218,29 @@ if ref
     % if we got the reflected one. In any case, one of them should be
     % orthogonal.
     
-    err1=norm(O1*O1.'-eye(3));
-    err2=norm(O2*O2.'-eye(3));
-    if (err1>TOL) && (err2>TOL)
-        fprintf('Registering matrix is not orthogonal, err=%e  tol=%e\n',...
-            min(err1,err2),TOL);
-    end
-    
-    errd1=abs(det(O1)-1);
-    errd2=abs(det(O2)-1);
-    if (errd1>TOL) && (errd2>TOL)
-        fprintf('Determinant of registering matrix is not 1, err=%e  tol=%e\n',...
-            min(errd1,errd2),TOL);
+    if verbose
+        err1=norm(O1*O1.'-eye(3));
+        err2=norm(O2*O2.'-eye(3));
+        if (err1>TOL) && (err2>TOL)
+            fprintf('Registering matrix is not orthogonal, err=%e  tol=%e\n',...
+                min(err1,err2),TOL);
+        end
+        
+        
+        errd1=abs(det(O1)-1);
+        errd2=abs(det(O2)-1);
+        if (errd1>TOL) && (errd2>TOL)
+            fprintf('Determinant of registering matrix is not 1, err=%e  tol=%e\n',...
+                min(errd1,errd2),TOL);
+        end
     end
     
     % In cany case, enforce the registering matrix O to be a rotation.
     if err1<err2
-        [U,unused,V]=svd(O1); % Use O1 as the registering matrix
+        [U,~,V]=svd(O1); % Use O1 as the registering matrix
         flag=1;
     else
-        [U,unused,V]=svd(O2); % Use O2 as the registering matrix
+        [U,~,V]=svd(O2); % Use O2 as the registering matrix
         flag=2;
     end
     O=U*V.';    

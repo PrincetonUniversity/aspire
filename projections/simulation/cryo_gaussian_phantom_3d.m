@@ -34,7 +34,7 @@ function vol=cryo_gaussian_phantom_3d(def,n,rmax)
 
 % param can be either a numeric scalar of a 3 by m array
 if (nargin~=3) || ~ischar(def) || ~isscalar(n)
-    error('Input must be (n,rmax,def)');
+    error('Input must be (def,n,rmax)');
 end
 
 

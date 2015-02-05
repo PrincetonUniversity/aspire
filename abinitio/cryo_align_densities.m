@@ -1,7 +1,7 @@
-function [estR,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,verbose,Rref)
+function [estR,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA,verbose,Rref)
 % CRYO_ALIGN_DENSITIES  Align two denisity maps
 %
-% [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,verbose)
+% [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2)
 %       Align vol2 to vol1. Find the relative rotation and translation
 %       between vol1 and vol2, and rotate and shift vol2 such that it is
 %       best sligned with vol1. Returns the estimate rotation (Rest) and
@@ -9,14 +9,25 @@ function [estR,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,verbose
 %       which is best aligned with vol1 (vol2aligned). The function also
 %       checks if the two volumes are reflected w.r.t each other. Sets
 %       reflect to 1 if reflection was detected and zero otherwise. Set 
-%       verbose to nonzero for verbose printouts.
+%       verbose to nonzero for verbose printouts. 
 %
+% [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA)
+%       Use pixel size in Angstrom pixA to compute the resolution.
+%       Set to non-positive number to ignore.
+
+% [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA)
+%       Set verbose to nonzero for verbose printouts. 
+
 % [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,verbose,Rref)
 %       If the true rotation between vol1 and vol2 in known (during
 %       development/debugging), the function uses Rref to provide detailed
 %       debugging messages. Rref is ignored if reflection is detected.
 %
 % Yoel Shkolnisky, January 2015.
+
+if ~exist('pixA','var')
+    pixA=0;
+end
 
 if ~exist('verbose','var')
     verbose=0;
@@ -67,8 +78,10 @@ vol2=vol2.*fuzzymask(n,3,floor(0.45*n),floor(0.05*n));
 % rotation and translation which results in the best match is taken as the
 % estimated relative rotation/translation between the volumes.
 
-vol1ds=Downsample(vol1,[33 33 33]);
-vol2ds=Downsample(vol2,[33 33 33]);
+n_downsample=33;
+pixA_downsample=pixA*n/n_downsample;
+vol1ds=Downsample(vol1,[n_downsample n_downsample n_downsample]);
+vol2ds=Downsample(vol2,[n_downsample n_downsample n_downsample]);
 
 
 Nrots=5000;
@@ -84,7 +97,7 @@ if verbose
 end
 
 tic;
-[R0,dx0,corr0,res0,~]=bf3Dmatchaux(vol1ds,vol2ds,rotations,1);
+[R0,dx0,corr0,res0,~]=bf3Dmatchaux(vol1ds,vol2ds,rotations,pixA_downsample,1);
 t=toc;
 
 if verbose
@@ -98,7 +111,7 @@ if verbose
 end
 
 tic;
-[R0R,dx0R,corr0R,res0R,~]=bf3Dmatchaux(vol1ds,flipdim(vol2ds,3),rotations,1);
+[R0R,dx0R,corr0R,res0R,~]=bf3Dmatchaux(vol1ds,flipdim(vol2ds,3),rotations,pixA_downsample,1);
 t=toc;
 
 if verbose
@@ -132,7 +145,7 @@ end
 newrots=genNearRotations(R0,10,100,10,31);
 
 tic;
-[R1,dx1,corr1,res1,~]=bf3Dmatchaux(vol1ds,vol2ds,newrots,1);
+[R1,dx1,corr1,res1,~]=bf3Dmatchaux(vol1ds,vol2ds,newrots,pixA_downsample,1);
 t=toc;
 
 
@@ -159,7 +172,7 @@ if reflect
 end
 
 tic;
-[bestR,bestdx,bestcorr,bestRes,~]=bf3Dmatchaux(vol1,vol2,newrots,1);
+[bestR,bestdx,bestcorr,bestRes,~]=bf3Dmatchaux(vol1,vol2,newrots,pixA,1);
 t=toc;
 
 if verbose
@@ -226,7 +239,11 @@ function debugmessage(t,c,res,dx,R,refgiven,Rref)
 % Show verbose message
 fprintf('Completed in %7.2f seconds\n',t);
 fprintf('Best correlation detected: %7.4f\n',c);
-fprintf('Best resolution detected: %5.2f\n',res);
+fprintf('Best resolution detected: %5.2f',abs(res));
+if res<0
+    fprintf(' (dummy pixel size)');
+end
+fprintf('\n');
 fprintf('Estimated shift [%5.3f , %5.3f, %5.3f]\n',...
     dx(1),dx(2),dx(3));
 if refgiven

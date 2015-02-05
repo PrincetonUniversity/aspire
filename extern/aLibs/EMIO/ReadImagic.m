@@ -45,9 +45,10 @@ function [map info]=ReadImagic(basename, startimage, numimages, debug)
 % CPars(5) Noise sqrt exponent
 % CPars(6) Noise linear exponent
 % CPars(7) Noise squared exponent
-% CPars(8) keV
-% CPars(9) Cs, in mm
-% CPars(10) Angstroms/pixel
+% CPars(8) ???
+% CPars(9) keV
+% CPars(10) Cs, in mm
+% CPars(11) Angstroms/pixel
 
 if nargin<2 startimage=1; end;
 if nargin<3 numimages=inf; end;
