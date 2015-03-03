@@ -1,0 +1,45 @@
+function [l_ij,l_ji]=commonline_R(Ri,Rj,L)
+%
+% Compute the common line induced by rotation matrixces Ri and Rj.
+% Ri and Rj are generated, for example, by
+% Ri=q_to_rot(q(:,i)) and Rj=q_to_rot(q(:,j))
+%
+% Returns the indices of the common lines between images  (rotations) i and
+% j in image i (l_ij) and in image j (l_ji), respectively.
+% 
+% See commonline_q for more information.
+%
+% Yoel Shkolnisky, July 2013.
+
+Ut=Rj*Ri.';
+
+alphaij=atan2(Ut(3,1),-Ut(3,2));
+alphaji=atan2(-Ut(1,3),Ut(2,3));
+
+PI=4*atan(1.0);
+alphaij=alphaij+PI; % Shift from [-pi,pi] to [0,2*pi].
+alphaji=alphaji+PI;
+
+l_ij=alphaij/(2*PI)*L;
+l_ji=alphaji/(2*PI)*L;
+ 
+l_ij=mod(round(l_ij),L);
+l_ji=mod(round(l_ji),L);
+
+%% Reference code (slower version of the above code):
+% Ri=Ri.';
+% Rj=Rj.';
+% U=Ri.'*Rj;
+% 
+% alphaij=atan2(U(1,3),-U(2,3));
+% alphaji=atan2(-U(3,1),U(3,2));
+% 
+% PI=4*atan(1.0);
+% alphaij=alphaij+PI; % Shift from [-pi,pi] to [0,2*pi].
+% alphaji=alphaji+PI;
+% 
+% l_ij=alphaij/(2*PI)*L;
+% l_ji=alphaji/(2*PI)*L;
+%  
+% l_ij=mod(round(l_ij),L);
+% l_ji=mod(round(l_ji),L);
