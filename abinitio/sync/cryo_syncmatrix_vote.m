@@ -14,6 +14,9 @@ function S=cryo_syncmatrix_vote(clmatrix,L,refq,is_perturbed)
 % Like cryo_syncmatrix_p3, but uses volting to compute the IJ element.
 % 
 % Yoel Shkolnisky, September 2010.
+%
+% Revisions:
+% Y.S. March 01, 2015   Print progress messages.
 
 if ~exist('refq','var')
     refq=0;
@@ -38,10 +41,12 @@ S=eye(2*K);
 
 poolreopen;
 
+printProgressBarHeader;
 for k1=1:K-1
-    %fprintf('Process image %d out of %d\n',k1,K-1);
+    %fprintf('Process image %d out of %d\n',k1,K-1);        
     Stmp=zeros(2,2,K);    
     parfor k2=k1+1:K
+    %for k2=k1+1:K                 
         Stmp(:,:,k2)=cryo_syncmatrixIJ_vote(clmatrix,k1,k2,1:K,L,refq,is_perturbed);
     end
     
@@ -50,7 +55,7 @@ for k1=1:K-1
         S(2*(k1-1)+1:2*k1,2*(k2-1)+1:2*k2)=R22;
         S(2*(k2-1)+1:2*k2,2*(k1-1)+1:2*k1)=R22.';
     end
-
+    progressTicFor(k1*(2*K-k1-1)/2,K*(K-1)/2);
 end
 
 

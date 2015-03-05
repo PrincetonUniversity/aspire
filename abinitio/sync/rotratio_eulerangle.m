@@ -7,6 +7,8 @@ function R = rotratio_eulerangle(cl, n_theta)
 %    -101 Triangle too small
 %
 % Yoel Shkolnisky, July 2012
+% Revisions:
+%   Y.S. Feb 28, 2105   Eliminate the call to ang2orth for speedup.
 
 TOL_idx = 1e-12;
  
@@ -30,8 +32,8 @@ end
 
 c_alpha=(a-b.*c)./sqrt(1-b.^2)./sqrt(1-c.^2);
 
-    % fix the angles between c_ij(c_ji) and c_ik(c_jk) to be smaller than pi/2
-    % otherwise there will be an ambiguity between alpha and pi-alpha
+% Fix the angles between c_ij(c_ji) and c_ik(c_jk) to be smaller than pi/2
+% otherwise there will be an ambiguity between alpha and pi-alpha
 ind1 = ((idx3 > n_theta/2+TOL_idx) |(idx3<-TOL_idx & idx3>-n_theta/2));
 ind2 = ((idx2 > n_theta/2+TOL_idx)|(idx2<-TOL_idx & idx2>-n_theta/2) );
     
@@ -43,10 +45,7 @@ end
 aa=(cl(1,2)-1)*2*pi/n_theta;
 bb=(cl(2,1)-1)*2*pi/n_theta;
 alpha = acos(c_alpha);
-R =ang2orth(pi-bb, alpha, aa-pi); % the relative rotation can be represented using ZYZ Euler angle (pi-bb, alpha, aa-pi).
-end
 
-function orthm = ang2orth(ang1,ang2,ang3)
 % Convert the Euler angles with ZXZ conversion to rotation matrices
 % Euler angle (a,b,c) to rotation
 % ra = [  ca,  -sa,  0; ...
@@ -63,29 +62,23 @@ function orthm = ang2orth(ang1,ang2,ang3)
 %
 % This function does the conversion simultanously for N Euler angles.
 %
-% Input:
-%      ang1/ang2/ang3: a vector of length N. (ang1(i),ang2(i),ang3(i))
-%      determines a rotation matrix orthm(:,:,i)
-% Ouput:
-%      orthm: rotation matrixs of size 3x3xN
-%
-ang1=ang1(:);
-ang2=ang2(:);
-ang3=ang3(:);
+ang1=pi-bb;
+ang2=alpha;
+ang3=aa-pi;
 sa = sin(ang1); ca = cos(ang1);
 sb = sin(ang2); cb = cos(ang2);
 sc = sin(ang3); cc = cos(ang3);
-n=length(ang1);
-orthm=zeros(3,3,n);
-orthm(1,1,:)=cc.*ca-sc.*cb.*sa;
-orthm(1,2,:)=-cc.*sa-sc.*cb.*ca;
-orthm(1,3,:)=sc.*sb;
-orthm(2,1,:)=sc.*ca+cc.*cb.*sa;
-orthm(2,2,:)=-sa.*sc+cc.*cb.*ca;
-orthm(2,3,:)=-cc.*sb;
-orthm(3,1,:)=sb.*sa;
-orthm(3,2,:)=sb.*ca;
-orthm(3,3,:)=cb;
+R=zeros(3,3);
+R(1,1)=cc.*ca-sc.*cb.*sa;
+R(1,2)=-cc.*sa-sc.*cb.*ca;
+R(1,3)=sc.*sb;
+R(2,1)=sc.*ca+cc.*cb.*sa;
+R(2,2)=-sa.*sc+cc.*cb.*ca;
+R(2,3)=-cc.*sb;
+R(3,1)=sb.*sa;
+R(3,2)=sb.*ca;
+R(3,3)=cb;
+
 end
 
    
