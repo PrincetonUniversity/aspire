@@ -27,3 +27,7 @@ tmp=fastrotate3y(tmp,thetad);
 %view3d(tmp,0.5,'m');
 OUTPUT=fastrotate3z(tmp,phid);
 %view3d(OUTPUT,0.5,'b');
+
+if isa(INPUT,'single')
+    OUTPUT=single(OUTPUT);
+end

@@ -73,8 +73,14 @@ memtotal=NequationsTotal*2*n_projs*8; % Estimated memory requirements for the fu
 if memoryfactor<1                                     
     Nequations = ceil(n_projs*(n_projs-1)*memoryfactor/2); % Number of equations that will be used to estimation the shifts
 else
-    subsampingfactor=memoryfactor/memtotal*10^6;
-    Nequations = ceil(n_projs*(n_projs-1)*subsampingfactor/2);
+    subsampingfactor=(memoryfactor*10^6)/memtotal; % By how much we need to 
+        % subsample the system of equations in order to use roughly
+        % memoryfactor MB.
+    if subsampingfactor<1
+        Nequations = ceil(n_projs*(n_projs-1)*subsampingfactor/2);
+    else
+        Nequations = NequationsTotal;
+    end
 end
                                                         
 % Allocate storage for the equations of determining the 2D shift of each

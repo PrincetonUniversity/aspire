@@ -1,15 +1,23 @@
-function [clmatrix,clcorr]=clmatrix_cheat_q(q,n_theta)
+function [clmatrix,clcorr,cltheta]=clmatrix_cheat_q(q,n_theta)
 %
 % Build common lines matrix using the true quaternions corresponding to the
 % projections orientations. Each projection has n_theta rays.
 % clcorr is set to 1.0e-8.
 %
+% clmatrix contains the indices of the common lines between each pair of
+% projections. cltheta contains the exact angle of the common lines and
+% thus does not contain any discretization errors.
+%
 % Yoel Shkolnisky, October 2008.
+%
+% Revised, Y.S. June 2014.
+
 
 N=size(q,2);
 
 clmatrix=zeros(N);   % common lines matrix
 clcorr=zeros(N);     % correlation coefficient for ach common line
+cltheta=zeros(N);    % angles of common line pairs
 
 for k1=1:N-1
     R1=q_to_rot(q(:,k1));
@@ -79,5 +87,7 @@ for k1=1:N-1
         clmatrix(k1,k2)=idx1+1;
         clmatrix(k2,k1)=idx2+1;
         clcorr(k1,k2)=1.0e-8;
+        cltheta(k1,k2)=theta1;
+        cltheta(k2,k1)=theta2;
     end
 end

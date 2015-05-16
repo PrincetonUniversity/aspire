@@ -41,32 +41,41 @@ if pixA<=0
     fakepixA=1 ; % Indicate that we are using fake pixel size
 end
 
-ResVec=zeros(size(rotations,3),1); % Resolution achieved by each rotation
-Nvec=zeros(size(rotations,3),1); % Number of elements in each FSC curve.
+%ResVec=zeros(size(rotations,3),1); % Resolution achieved by each rotation
+%Nvec=zeros(size(rotations,3),1); % Number of elements in each FSC curve.
+
 
 parfor jj=1:size(rotations,3)
+%for jj=1:size(rotations,3)
     progressTic(jj,size(rotations,3));
     rot=rotations(:,:,jj);    
     vol2R=fastrotate3d(vol2,rot);    
     estdx=register_translations_3d(vol1,vol2R);
     if ~isscalar(estdx)
         vol2RS=reshift_vol(vol2R,estdx);
-        fsc=FSCorr(vol1,vol2RS);
-        res=fscres(fsc,0.5);
-        ResVec(jj)=res;
-        Nvec(jj)=numel(fsc); % To compute resolution in angstrom.
-        %Cvec(jj)=corr(vol1(:),vol2RS(:));
+%         fsc=FSCorr(vol1,vol2RS);
+%         res=fscres(fsc,0.134);
+%         ResVec(jj)=res;
+%         Nvec(jj)=numel(fsc); % To compute resolution in angstrom.
+        Cvec(jj)=corr(vol1(:),vol2RS(:));
     end
 
 end
 
-[bestRes,ii]=max(ResVec);
-bestResA=2*pixA*Nvec(ii)/bestRes; % Resolution in Angstrom.
-if fakepixA
-    bestResA=-bestResA; % Minus is an indication of fake pixel size
-end
+[bestCorr,ii]=max(Cvec);
+% [bestRes,ii]=max(ResVec);
+% bestResA=2*pixA*Nvec(ii)/bestRes; % Resolution in Angstrom.
+% if fakepixA
+%     bestResA=-bestResA; % Minus is an indication of fake pixel size
+% end
 bestR=rotations(:,:,ii);
 vol2aligned=fastrotate3d(vol2,bestR);
 bestdx=register_translations_3d(vol1,vol2aligned);
 vol2aligned=reshift_vol(vol2aligned,bestdx);    
-bestCorr=corr(vol1(:),vol2aligned(:));
+%bestCorr=corr(vol1(:),vol2aligned(:));
+fsc=FSCorr(vol1,vol2aligned);
+res=fscres(fsc,0.134);
+bestResA=2*pixA*numel(fsc)/res; % Resolution in Angstrom.
+if fakepixA
+    bestResA=-bestResA; % Minus is an indication of fake pixel size
+end

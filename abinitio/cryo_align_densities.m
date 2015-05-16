@@ -25,6 +25,8 @@ function [estR,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA,ve
 %
 % Yoel Shkolnisky, January 2015.
 
+fftw('planner','exhaustive');
+
 if ~exist('pixA','var')
     pixA=0;
 end
@@ -78,22 +80,26 @@ vol2=vol2.*fuzzymask(n,3,floor(0.45*n),floor(0.05*n));
 % rotation and translation which results in the best match is taken as the
 % estimated relative rotation/translation between the volumes.
 
-n_downsample=33;
+n_downsample=round(n/4);
 pixA_downsample=pixA*n/n_downsample;
 vol1ds=Downsample(vol1,[n_downsample n_downsample n_downsample]);
 vol2ds=Downsample(vol2,[n_downsample n_downsample n_downsample]);
 
 
-Nrots=5000;
-qrots=qrand(Nrots);
-rotations=zeros(3,3,Nrots);
-for jj=1:Nrots
-    rotations(:,:,jj)=q_to_rot(qrots(:,jj));
-end
+% Nrots=5000;
+% qrots=qrand(Nrots);
+% rotations=zeros(3,3,Nrots);
+% for jj=1:Nrots
+%     rotations(:,:,jj)=q_to_rot(qrots(:,jj));
+% end
+rotations=genRotationsGrid(75);
 
 if verbose
-    fprintf('**********************************************\n');
-    fprintf('Rough alignment on downsampled masked volumes:\n');
+    log_message('**********************************************');
+    log_message('Rough alignment on downsampled masked volumes:');
+    
+    log_message('Volume downsampled from %d to %d',n,n_downsample);
+    log_message('Using %d candidate rotations',size(rotations,3));
 end
 
 tic;
@@ -101,29 +107,36 @@ tic;
 t=toc;
 
 if verbose
-    debugmessage(t,corr0,res0,dx0,R0,refgiven,Rref);
+    debugmessage(t,corr0,res0,dx0,R0,pixA_downsample,refgiven,Rref);
 end
 
 
 if verbose
-    fprintf('**************************************************************\n');
-    fprintf('Rough alignment on downsampled masked volumes with reflection:\n');
+    log_message('**************************************************************');
+    log_message('Rough alignment on downsampled masked volumes with reflection:');
+    
+    log_message('Volume downsampled from %d to %d',n,n_downsample);
+    log_message('Using %d candidate rotations',size(rotations,3));
 end
 
 tic;
 [R0R,dx0R,corr0R,res0R,~]=bf3Dmatchaux(vol1ds,flipdim(vol2ds,3),rotations,pixA_downsample,1);
 t=toc;
 
+assert(abs(norm(R0R)-1)<1.0e-14); % Verify that nothing bad happened
+    
 if verbose
     % No point in comparing to Rref if there is reflection, as Rref in this
     % case in irrelevant
-    debugmessage(t,corr0R,res0R,dx0R,R0R,0,Rref);
+    debugmessage(t,corr0R,res0R,dx0R,R0R,pixA_downsample,0,Rref);
 end
 
 reflect=0;
 if corr0<corr0R
     % Reflection needed
-    fprintf('**** Reflection detected ****.\n')
+    if verbose
+        log_message('**** Reflection detected ****')
+    end
     reflect=1;
     vol2ds=flipdim(vol2ds,3);
     R0=R0R;
@@ -138,11 +151,16 @@ end
 % rotation/translation.
 
 if verbose
-    fprintf('************************************************\n');
-    fprintf('Refined alignment on downsampled masked volumes:\n');
+    log_message('************************************************');
+    log_message('Refined alignment on downsampled masked volumes:');
 end
    
 newrots=genNearRotations(R0,10,100,10,31);
+
+if verbose
+    log_message('Volume downsampled from %d to %d',n,n_downsample);
+    log_message('Using %d candidate rotations for refined search',size(newrots,3));
+end
 
 tic;
 [R1,dx1,corr1,res1,~]=bf3Dmatchaux(vol1ds,vol2ds,newrots,pixA_downsample,1);
@@ -150,7 +168,41 @@ t=toc;
 
 
 if verbose
-    debugmessage(t,corr1,res1,dx1,R1,refgiven && ~reflect,Rref);
+    debugmessage(t,corr1,res1,dx1,R1,pixA_downsample,refgiven && ~reflect,Rref);
+end
+
+%% Brute-force search on original volumes
+%
+% Take the estimated relative rotation/translation found above and refine
+% it using the original volume. This is implemented by selecting several
+% random rotations around the estimated rotation, and for each such
+% rotation looking for the best translation. The best match is taken as the
+% new estimate of the relative rotation/translation.
+
+if reflect
+    vol2=flipdim(vol2,3);
+end
+
+if verbose
+    log_message('*************************************');
+    log_message('Alignment on original masked volumes:');
+end
+   
+newrots=genNearRotations(R1,10,20,10,11);
+
+if verbose
+    log_message('Volume of size %d',n);
+    log_message('Using %d candidate rotations for refined search',size(newrots,3));
+end
+
+
+tic;
+[R2,dx2,corr2,res2,~]=bf3Dmatchaux(vol1,vol2,newrots,pixA,1);
+t=toc;
+
+
+if verbose
+    debugmessage(t,corr2,res2,dx2,R2,pixA,refgiven && ~reflect,Rref);
 end
 
 %% Refine once more on the original volume
@@ -161,103 +213,64 @@ end
 % rotation.
 
 if verbose
-    fprintf('*********************************************\n');
-    fprintf('Refined alignment on original masked volumes:\n');
+    log_message('*********************************************');
+    log_message('Refined alignment on original masked volumes:');
 end
 
-newrots=genNearRotations(R1,5,50,5,31);
+vol2R=fastrotate3d(vol2,R2);
+estdx=register_translations_3d(vol1,vol2R);
 
-if reflect
-    vol2=flipdim(vol2,3);
-end
+%vol1filtered=GaussFilt3(vol1,0.05);
+%vol2filtered=GaussFilt3(vol2,0.05);
 
+%[bestR,bestdx]=refind3Dmatchaux_res(vol1,vol2,R2,estdx,pixA);
 tic;
-[bestR,bestdx,bestcorr,bestRes,~]=bf3Dmatchaux(vol1,vol2,newrots,pixA,1);
+[bestR,bestdx]=refind3Dmatchaux(vol1,vol2,R2,estdx);
 t=toc;
-
-if verbose
-    debugmessage(t,bestcorr,bestRes,bestdx,bestR,refgiven && ~reflect,Rref);
-end
 
 vol2aligned=fastrotate3d(vol2,bestR);
 vol2aligned=reshift_vol(vol2aligned,bestdx);    
+
+bestcorr=corr(vol1(:),vol2aligned(:));
+
 estR=bestR.';
 estdx=bestdx;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function rotations=genNearRotations(R,axisdeviation,Naxes,gammadeviation,Ngamma)
+fsc=FSCorr(vol1,vol2aligned);
+bestRes=fscres(fsc,0.134);
+bestResA=2*pixA*numel(fsc)/bestRes; % Resolution in Angstrom.
 
-% Create rotations near the estimated rotation. Find a plane perpendicular
-% to the estimated rotation axis, find points close to the rotation axis on
-% this plane, and project them back to the spehere. These are the axes of
-% the new rotations to try.
 
-[rotaxis,gamma]=rot_to_axisangle(R);
-
-[Q,~]=qr([rotaxis rand(3,2)]);
-assert(norm(Q*Q.'-eye(3))<1.0e-14,'Q not orthogonal'); 
-
-if abs(det(Q)-1)>0.1 % Vector are left handed so flip
-    Q(:,[3,2])=Q(:,[2,3]);
-end
-
-% Basis for the plane perpendicular to the projection direction rotaxis.
-u_x=Q(:,2);
-u_y=Q(:,3);
-
-%Naxes=50;  % Generates Naxes new rotation axes
-alpha=(rand(2,Naxes)-1/2)*2; % Random coordinates in [-1,1] of points on 
-                             % the plane perpendicular to rotaxis.
-alpha(:,1)=[0 0].'; % Make the current best guess one of the points
-% 0.1 corresponds roughly to a deviation of +/- 5 degrees from the rotation
-% axis
-newaxes=repmat(rotaxis,1,Naxes)...
-    +sin(axisdeviation).*repmat(u_x,1,Naxes).*repmat(alpha(1,:),3,1)...
-    +sin(axisdeviation).*repmat(u_y,1,Naxes).*repmat(alpha(2,:),3,1);
-newaxes=newaxes./repmat(sqrt(sum(newaxes.^2,1)),3,1); % Project the axes back to the sphere.
-
-% Generate new in-planes rotations that deviate by +/- degrees from the
-% estimated in-plane rotation
-gamma_degress=gamma/pi*180;
-if mod(Ngamma,2)==0
-    Ngamma=Ngamma+1; % Make sure to have an odd number of points so that 
-                     % the current best guess is one of the points.
-end
-newgammas=(linspace(-gammadeviation,gammadeviation,Ngamma)+gamma_degress)/180*pi;
-
-rotations=zeros(3,3,Naxes*numel(newgammas));
-idx=1;
-for kk=1:Naxes
-    for jj=1:numel(newgammas)
-        rotations(:,:,idx)=axisangle_to_rot(newaxes(:,kk),newgammas(jj));
-        idx=idx+1;
-    end
+if verbose
+    debugmessage(t,bestcorr,bestResA,bestdx,bestR,pixA,refgiven && ~reflect,Rref);
 end
 
 
-function debugmessage(t,c,res,dx,R,refgiven,Rref)
+
+function debugmessage(t,c,res,dx,R,pixA,refgiven,Rref)
 % Show verbose message
-fprintf('Completed in %7.2f seconds\n',t);
-fprintf('Best correlation detected: %7.4f\n',c);
-fprintf('Best resolution detected: %5.2f',abs(res));
-if res<0
-    fprintf(' (dummy pixel size)');
+log_message('Completed in %7.2f seconds',t);
+log_message('Pixel size %6.3f',pixA);
+log_message('Best correlation detected: %7.4f',c);
+if res>0
+    log_message('Best resolution detected: %5.2f',abs(res));
+else
+    log_message('Best resolution detected: %5.2f (dummy pixel size)',abs(res));
 end
-fprintf('\n');
-fprintf('Estimated shift [%5.3f , %5.3f, %5.3f]\n',...
+log_message('Estimated shift [%5.3f , %5.3f, %5.3f]',...
     dx(1),dx(2),dx(3));
 if refgiven
     [rotaxis_ref,gamma_ref]=rot_to_axisangle(Rref);
     [rotaxis,gamma]=rot_to_axisangle(R);
     
-    fprintf('Rotation axis:\n');
-    fprintf('\t Estimated \t [%5.3f , %5.3f, %5.3f]\n',...
+    log_message('Rotation axis:');
+    log_message('\t Estimated \t [%5.3f , %5.3f, %5.3f]',...
         rotaxis(1),rotaxis(2),rotaxis(3));
-    fprintf('\t Reference \t [%5.3f , %5.3f, %5.3f]\n',...
+    log_message('\t Reference \t [%5.3f , %5.3f, %5.3f]',...
         rotaxis_ref(1),rotaxis_ref(2),rotaxis_ref(3));
-    fprintf('Angle between axes %5.2f degrees\n',acosd(dot(rotaxis_ref,rotaxis)));
-    fprintf('In-plane rotation:\n');
-    fprintf('\t Estimated \t %5.3f degrees\n',gamma*180/pi);
+    log_message('Angle between axes %5.2f degrees',acosd(dot(rotaxis_ref,rotaxis)));
+    log_message('In-plane rotation:');
+    log_message('\t Estimated \t %5.3f degrees',gamma*180/pi);
     gamma_ref_degrees=gamma_ref*180/pi;
-    fprintf('\t Reference \t %5.3f degrees\n',gamma_ref_degrees);
+    log_message('\t Reference \t %5.3f degrees',gamma_ref_degrees);
 end

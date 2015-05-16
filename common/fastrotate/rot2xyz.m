@@ -35,6 +35,6 @@ else
 		psi=phi+atan2(R(1,2),R(1,3));
 	else
 		theta=-pi/2;
-		psi=-phi+atan(-R(1,2),R(1,3));
+		psi=-phi+atan2(-R(1,2),R(1,3));
 	end
 end
