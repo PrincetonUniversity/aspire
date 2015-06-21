@@ -1,4 +1,4 @@
-function [estR,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA,verbose,Rref)
+function [estR,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA,verbose,Rref,forcereflect)
 % CRYO_ALIGN_DENSITIES  Align two denisity maps
 %
 % [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2)
@@ -58,10 +58,18 @@ assert(sz1(1)==sz2(1),'Input volumes have different dimensions');
 % around rotaxis_ref.
 
 refgiven=0;
-if exist('Rref','var')    
-    refgiven=1;
+if exist('Rref','var')
+    if ~isempty(Rref)
+        refgiven=1;
+    else
+        Rref=-1;
+    end
 else
     Rref=-1;
+end
+
+if ~exist('forcereflect','var')
+    forcereflect=0;
 end
 
 %% Mask input volumes
@@ -94,22 +102,24 @@ vol2ds=Downsample(vol2,[n_downsample n_downsample n_downsample]);
 % end
 rotations=genRotationsGrid(75);
 
-if verbose
-    log_message('**********************************************');
-    log_message('Rough alignment on downsampled masked volumes:');
+corr0=0;
+if ~forcereflect
+    if verbose
+        log_message('**********************************************');
+        log_message('Rough alignment on downsampled masked volumes:');
+        
+        log_message('Volume downsampled from %d to %d',n,n_downsample);
+        log_message('Using %d candidate rotations',size(rotations,3));
+    end
     
-    log_message('Volume downsampled from %d to %d',n,n_downsample);
-    log_message('Using %d candidate rotations',size(rotations,3));
+    tic;
+    [R0,dx0,corr0,res0,~]=bf3Dmatchaux(vol1ds,vol2ds,rotations,pixA_downsample,1);
+    t=toc;
+    
+    if verbose
+        debugmessage(t,corr0,res0,dx0,R0,pixA_downsample,refgiven,Rref);
+    end    
 end
-
-tic;
-[R0,dx0,corr0,res0,~]=bf3Dmatchaux(vol1ds,vol2ds,rotations,pixA_downsample,1);
-t=toc;
-
-if verbose
-    debugmessage(t,corr0,res0,dx0,R0,pixA_downsample,refgiven,Rref);
-end
-
 
 if verbose
     log_message('**************************************************************');

@@ -7,6 +7,12 @@ function [rotaxis,gamma]=rot_to_axisangle(R)
 %    the axis rotaxis
 %
 % Yoel Shkolnisky, January 2015
+%
+% Revisions
+% Y.S. May 17, 2015     Fix the case of gamma=pi. Test which component is
+%      zero using a tolerance delta instead of 0. Otherwise, if some
+%      component is 10^-16 it will be conisdered non-zero resulting in a
+%      too large error in R2 compared to R. 
 
 cos_gamma=(trace(R)-1)/2;
 
@@ -19,36 +25,37 @@ elseif abs(cos_gamma+1)<1.0e-8 % cos_gamma_ref is near -1
     gamma=pi;
     B=(eye(3)+R)/2;
     Bvec=[B(1,2);B(2,3);B(1,3)];
-    if sum(Bvec>0)==3 % All Bii>0
+    delta=1.0e-8; % A entry b in B is considered zero is abs(b)<delta.
+    if sum(Bvec>delta)==3 % All Bii>0
         rotaxis=sqrt(diag(B));
-    elseif sum(Bvec>0)==1 && sum(Bvec<0)==2
-            if      B(1,2)<0 && B(1,3)<0 % 1 is the common index
+    elseif sum(Bvec>delta)==1 && sum(Bvec<-delta)==2
+            if      B(1,2)<-delta && B(1,3)<-delta % 1 is the common index
                 rotaxis=[-sqrt(B(1,1));+sqrt(B(2,2));+sqrt(B(3,3))];
-            elseif  B(1,2)<0 && B(2,3)<0 % 2 is the common index
+            elseif  B(1,2)<-delta && B(2,3)<-delta % 2 is the common index
                 rotaxis=[+sqrt(B(1,1));-sqrt(B(2,2));+sqrt(B(3,3))];
-            elseif  B(1,3)<0 && B(2,3)<0 % 3 is the common index
+            elseif  B(1,3)<-delta && B(2,3)<-delta % 3 is the common index
                 rotaxis=[+sqrt(B(1,1));+sqrt(B(2,2));-sqrt(B(3,3))];
             else
                 error('No common index found - should never happen');
             end            
-    elseif sum(abs(Bvec)<1.0e-8)==2
+    elseif sum(abs(Bvec)<delta)==2
         % In this case exactly one of B(1,1), B(2,2), B(3,3) is zero.
-            if      abs(B(1,1))<1.0e-8
+            if      abs(B(1,1))<delta
                 rotaxis=[0;+sqrt(B(2,2));+sqrt(B(3,3))];
                 rotaxis(3)=rotaxis(3)*sign(B(2,3));
-            elseif  abs(B(2,2))<1.0e-8
+            elseif  abs(B(2,2))<delta
                 rotaxis=[+sqrt(B(1,1));0;+sqrt(B(3,3))];
                 rotaxis(3)=rotaxis(3)*sign(B(1,3));
-            elseif  abs(B(3,3))<1.0e-8                
+            elseif  abs(B(3,3))<delta
                 rotaxis=[+sqrt(B(1,1));+sqrt(B(2,2));0];
                 rotaxis(2)=rotaxis(2)*sign(B(1,2));
             else
                 error('Exactly one of B(1,1),B(2,2), B(3,3) should have been zero?!');
             end
-    elseif sum(abs(Bvec)<1.0e-8)==3
-        if      abs(B(1,1))>1.0e-8
+    elseif sum(abs(Bvec)<delta)==3
+        if      abs(B(1,1))>delta
             rotaxis=[sqrt(B(1,1));0;0];
-        elseif  abs(B(2,2))>1.0e-8
+        elseif  abs(B(2,2))>delta
             rotaxis=[sqrt(B(2,2));0;0];
         elseif  abs(B(3,3))>1.0e-8
             rotaxis=[sqrt(B(3,3));0;0];
@@ -69,5 +76,9 @@ assert(abs(norm(rotaxis)-1)<1.0e-8);
 % angle and compare to the input rotation.
 
 R2=axisangle_to_rot(rotaxis,gamma);
-assert(norm(R-R2)<1.0e-13,...
+if norm(R-R2)>=1.0e-8
+    aaa=1;
+end
+
+assert(norm(R-R2)<1.0e-8,...
     'Failed to extract parameters of rotation');

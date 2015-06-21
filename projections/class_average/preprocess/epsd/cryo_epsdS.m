@@ -1,8 +1,8 @@
-function [ P2,R,x ] = epsdS( imstack,samples_idx,max_d, verbose )
+function [ P2,R,x ] = cryo_epsdS( imstack,samples_idx,max_d, verbose )
 %
 % EPSDS Estimate the 2D isotropic power spectrum.
 %
-% [ P2,R,x ] = epsdS( vol,samples_idx,max_d,biasflag, verbose )
+% [ P2,R,x ] = cryo_epsdS( vol,samples_idx,max_d,biasflag, verbose )
 %   Estimate the 2D isotropic power spectrum of a given image stack imstack
 %   using in each image only the pixels given in samples_idx. Typically,
 %   samples_idx will correspond to the pixles in the image that are outside
@@ -54,7 +54,7 @@ if max_d>=p
 end
 
 % Estimate the 1D isotropic autocorrelation function
-[R,x,~]=epsdR(imstack,samples_idx,max_d,verbose);
+[R,x,~]=cryo_epsdR(imstack,samples_idx,max_d,verbose);
 
 % Use the 1D autocorrelation estimted above to populate an array of the 2D
 % isotropic autocorrelction. This autocorrelation is later Fourier

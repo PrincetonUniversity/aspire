@@ -1,4 +1,4 @@
-% Test the function epsdS.
+% Test the function cryo_epsdS.
 % 
 % The script runs the following steps:
 % 1. Generate colored-noise images with known power spectrum.
@@ -28,7 +28,7 @@ for j=1:numel(Ks)
     
     % Estimate power spectrum of noise images    
     max_d=floor(N/2);
-    [P2,R,x]=epsdS(noise(:,:,1:Ks(j)),samples_idx,max_d,1);
+    [P2,R,x]=cryo_epsdS(noise(:,:,1:Ks(j)),samples_idx,max_d,1);
     
     if j==1 % Allocate memory for all power spectra of all tests.
         xs=zeros(numel(R),numel(Ks));
@@ -44,10 +44,10 @@ end
 % Display power spectrum
 for j=1:numel(Ks)
     figure;
-    P2=P2s(:,:,j);      % 2D power spectrum estimated using epsdS.
+    P2=P2s(:,:,j);      % 2D power spectrum estimated using cryo_epsdS.
     P1dSref=Sref(N,:);  % Central 1D profile of the analytic power spectrum. 
     P1dSfft=Sfft(N,:);  % Central 1D profile estimated using FFT on noise-only images.
-    P1dSest=P2(N,:);    % Central 1D profile of PSD estimated using epsdS.
+    P1dSest=P2(N,:);    % Central 1D profile of PSD estimated using cryo_epsdS.
 
     subplot(1,2,1); % Plot the profiles of the 3 PSDs.
     hold on;
@@ -56,7 +56,7 @@ for j=1:numel(Ks)
     plot(P1dSest,'x-','Color','b');
     legend('Sref',...
         sprintf('Sfft (%5.3f)',corr(Sfft(:),Sref(:))),...
-        sprintf('epsdS  (%5.3f)',corr(P2(:),Sref(:))));
+        sprintf('cryo_epsdS  (%5.3f)',corr(P2(:),Sref(:))));
     xlabel('frequency','FontSize',12);
     ylabel('power spectrum','Rotation',90,'FontSize',12);
     set(gca,'FontSize',12);
@@ -64,7 +64,7 @@ for j=1:numel(Ks)
     title(sprintf('Central profile of power spectra (K=%d)',Ks(j)));
     
     subplot(1,2,2) % Relative error between central 1D profile analytic and 
-                   % estimated (using epsdS) power spectram
+                   % estimated (using cryo_epsdS) power spectram
     plot(P1dSref-P1dSest);
     title(sprintf('Relative L2 err=%6.4f',norm(P2(:)-Sref(:))/norm(Sref(:))));
     

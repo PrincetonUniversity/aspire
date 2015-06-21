@@ -17,7 +17,7 @@ mask(I<radius_of_mask) = -1; % create a mask.
 samples_idx = find(mask~=-1); % get points coordinate
 %% measure 
 fprintf('Measuring power spectrum from background pixels...\n');
-P = epsdS( projections,samples_idx,floor(p/3),verbose );
+P = cryo_epsdS( projections,samples_idx,floor(p/3),verbose );
 P=real(P);
 end
 

@@ -76,7 +76,7 @@ noise=real(noise);
 % we should us the Poisson summation formula.
 %
 % The samples of the true power spectrum are computed as follows:
-% The function epsdR will estimate the continuous autocorrelation
+% The function cryo_epsdR will estimate the continuous autocorrelation
 % exp(-T1*r), whose Fourier transform 2*pi*T1/(T1^2+omega_r^2)^(3/2) will
 % be sampled at the points 2*pi*k/(2*N+1).
 %
