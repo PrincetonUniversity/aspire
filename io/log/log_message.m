@@ -47,6 +47,9 @@ end
 % time since last message was more than a second. Otherwise use the old
 % prefix string.
 current_time=clock;
+if isempty(log_last_prefix_time)
+    error('log system was not initialized. Call open_log first.');
+end
 if etime(current_time,log_last_prefix_time)>1
     log_prefix=datestr(clock);
     log_last_prefix_time=current_time;
