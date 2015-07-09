@@ -2,8 +2,6 @@ function results=test_cryo_clmatrix_ml(shiftslist,KNNs,matname)
 %
 % TEST_CRYO_CLMATRIX_ML     Test performance of cryo_clmatrix_ml
 %
-% Note that the function tests the GPU implementaion.
-%
 % results=test_cryo_clmatrix_ml(shiftslist,KNNs,matname)
 %   Compare the performance of maximum likelihood common lines detection to
 %   correlation-based detection. The maximimum likelihood uses KNNs
@@ -110,7 +108,7 @@ for snridx=1:numel(SNRlist)
                 psd=cryo_noise_estimation_pfs(noisy_projs,n_r,n_theta);
                 tic;
                 [clstack2]=...
-                    cryo_clmatrix_ml_gpu(pf,M,KNN,diag(psd),max_itr,verbose,max_shift_1d,shift_step_1d);                
+                    cryo_clmatrix_ml(pf,M,KNN,diag(psd),max_itr,verbose,max_shift_1d,shift_step_1d);                
                 t_ml=toc;
                 prop_ml=comparecl( clstack2, ref_clstack, n_theta, 5 );
                 log_message('Percentage of correct common lines: %f%%',prop_ml*100);
