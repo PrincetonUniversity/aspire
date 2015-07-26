@@ -10,7 +10,7 @@ function PFprojs=cryo_phaseflip(CTFdata,projs,prefix)
 % PFprojs=phaseflip(CTFdata,N,prefix) 
 %   Read the projections from disk according to the image name given in
 %   each CTF record. Only the first N records are processed. prefix is
-%   added to images names as only relative filenames are stored in CTFdata.
+%   added to image names as only relative filenames are stored in CTFdata.
 % 
 % PFprojs=phaseflip(CTFdata,N,prefix) 
 %   Read the projections from disk according to the image name given in
@@ -112,7 +112,7 @@ for k=1:Nprojs
         pixA=PS*10^4/mag; % Convert pixel size on the detector in microns to spatial resoution in Angstroms.
     end
     A=CTFdata.data{k}.rlnAmplitudeContrast;
-    h=CTF1(n,voltage,DefocusU,DefocusV,DefocusAngle,Cs,pixA,A);
+    h=cryo_CTF_Relion(n,voltage,DefocusU,DefocusV,DefocusAngle,Cs,pixA,A);
     
     % Phase flip
     imhat=fftshift(fft2(im));

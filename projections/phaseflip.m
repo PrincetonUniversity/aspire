@@ -5,4 +5,8 @@ function PFprojs=phaseflip(CTFdata,projs,prefix)
 % Yoel Shkolnisky, July 2015
 
 warning('This function is depreacted. Call cryo_phaseflip instead.');
-PFprojs=cryo_phaseflip(CTFdata,projs,prefix);
+if nargin==2
+    PFprojs=cryo_phaseflip(CTFdata,projs);
+else
+    PFprojs=cryo_phaseflip(CTFdata,projs,prefix);
+end
