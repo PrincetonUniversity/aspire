@@ -1,23 +1,23 @@
 function PFprojs=cryo_phaseflip(CTFdata,projs,prefix)
-% PHASEFLIP Phase flip projections
+% CRYO_PHASEFLIP Phase flip projections
 %
-% PFprojs=phaseflip(CTFdata,projs)   
+% PFprojs=cryo_phaseflip(CTFdata,projs)   
 %   Apply phase flipping to all projections in the stack projs. CTF data
 %   contains one record (with CTF parameters) for each projection. It is
 %   generated, for example, by reading a STAR file (see example below).
 %   CTF records with no corresponding projetctions are ignored.
 %
-% PFprojs=phaseflip(CTFdata,N,prefix) 
+% PFprojs=cryo_phaseflip(CTFdata,N,prefix) 
 %   Read the projections from disk according to the image name given in
 %   each CTF record. Only the first N records are processed. prefix is
 %   added to image names as only relative filenames are stored in CTFdata.
 % 
-% PFprojs=phaseflip(CTFdata,N,prefix) 
+% PFprojs=cryo_phaseflip(CTFdata,N,prefix) 
 %   Read the projections from disk according to the image name given in
 %   each CTF record. Only the first N records are processed. prefix is
 %   added to images names as only relative filenames are stored in CTFdata.
 %
-% PFprojs=phaseflip(CTFdata,projs,pixA) 
+% PFprojs=cryo_phaseflip(CTFdata,projs,pixA) 
 %   Use pixA for pixel size (in Angstroms).
 
 % Example:
@@ -48,7 +48,7 @@ MRCstack=-1;
 projsinit=0; % Has the stack PFprojs been initialized already.
        
 Nprojs=min(N,Nprojs);
-fprintf('Phaseflip:')
+%fprintf('Phaseflip:')
 printProgressBarHeader;
 for k=1:Nprojs
     progressTic(k,Nprojs);

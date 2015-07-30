@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+<addressBook>
+   <!-- This is the first entry of our Address Book -->
+   <entry lastModified="12-Jul-2015">
+      <firstName>
+         Joe
+      </firstName>
+      <lastName>
+         Bloggs
+      </lastName>
+      <address>
+         <institute/>
+         <street>
+            1, Avenue des Champs Elysees
+         </street>
+         <zipCode>
+            75000
+         </zipCode>
+         <city>
+            Paris
+         </city>
+         <country>
+            France
+         </country>
+      </address>
+      <phone>
+         (+33) 1 23 45 67 89
+      </phone>
+      <email>
+         john.doh@email.com
+      </email>
+   </entry>
+</addressBook>

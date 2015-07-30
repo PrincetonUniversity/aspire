@@ -7,9 +7,19 @@ function [l_ij,l_ji]=commonline_R(Ri,Rj,L)
 % Returns the indices of the common lines between images  (rotations) i and
 % j in image i (l_ij) and in image j (l_ji), respectively.
 % 
+% NOTE that this function returns indices l_ij and l_ji that are
+% zero-based, while commonlines matrices are 1 based (with 0 indicatiing
+% that a common line has not been detected). To convert the returned
+% indices l_ij and l_ji into 1-based, for example, to match the output of
+% clmatrix_cheat_q, you must explicitly set 
+%   l_ij=l_ij+1; l_ji=l_ji+1; 
+%
 % See commonline_q for more information.
 %
 % Yoel Shkolnisky, July 2013.
+%
+% Revisions:
+% Y.S. July 28, 2015    Revise header comment.
 
 Ut=Rj*Ri.';
 

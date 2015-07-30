@@ -33,17 +33,27 @@ loopstate=0; % Are we currently reading a data table?
 lineno=1;    % Current line number in the STAR file.
 dataidx=1;   % How many data rows were read.
 
+% Get size of fname
+finfo = dir(fname);
+fsize = finfo.bytes;
+bytesread=0;
+
 fid=fopen(fname,'r');
 
 if fid<0
     error('Failed to open %s',fname);
 end
 
+printProgressBarHeader;
+
 tline = fgets(fid); % Read a line form the file
 while ischar(tline)
-    if mod(dataidx,1000)==0
-        disp(dataidx);
-    end
+    bytesread=bytesread+numel(tline);
+%     if mod(dataidx,1000)==0
+%         disp(dataidx);
+%     end
+    progressTicFor(bytesread,fsize);
+    
     tline=strtrim(tline);
     if ~isempty(tline) % if empty line. Skip to the next one
         if strfind(tline,'data_')
