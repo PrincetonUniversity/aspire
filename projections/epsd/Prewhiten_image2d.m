@@ -9,6 +9,11 @@ function [ proj ] = Prewhiten_image2d(proj, noise_response )
 %   proj    Pre-whitened stack of images.
 %
 % Yoel Shkolnisky and Zhizhen Zhao, July 2013.
+% Revisions:
+%   08/04/2015  Y.S.   Change all thresholds to support both single and
+%                      double precision.
+
+delta=eps(class(proj));
 
 n=size(proj, 3);
 L=size(proj, 1); 
@@ -24,13 +29,13 @@ filter=filter/norm(filter(:));
 % The power spectrum of the noise must be positive, and then, the values
 % in filter are all real. If they are not, this means that noise_response
 % had negative values so abort.
-assert(norm(imag(filter(:)))<1.0e-14);
+assert(norm(imag(filter(:)))<10*delta); % Allow loosing one digit.
 filter=real(filter);  % Get rid of tiny imaginary components, if any.
 
 % The filter should be cicularly symmetric. In particular, it is up-down
 % and left-right symmetric.
-assert(norm(filter-flipud(filter))<1.0e-13); 
-assert(norm(filter-fliplr(filter))<1.0e-13);
+assert(norm(filter-flipud(filter))<10*delta); 
+assert(norm(filter-fliplr(filter))<10*delta);
 
 % Get rid of any tiny asymmetries in the filter.
 filter=(filter+flipud(filter))./2;
@@ -38,7 +43,7 @@ filter=(filter+fliplr(filter))./2;
 
 % The filter may have very small values or even zeros. We don't want to
 % process these so make a list of all large entries.
-nzidx=find(filter>1.0e-12);
+nzidx=find(filter>100*delta);
 fnz=filter(nzidx);
 
 fprintf('Whitening...\n');

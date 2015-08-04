@@ -37,6 +37,7 @@ fprintf('%s :%dx%d (%d projections)\n',...
 message='Number of projections to read? ';
 nprojs=fmtinput(message,mrc_header.nz,'%d');
 
+projdim=mrc_header.nx; % Default size of downsampled projections is the current size.
 message='Downsample? ';
 do_downsample=multichoice_question(message,{'Y','N'},[ 1, 0],'Y');
 if do_downsample==1
@@ -75,113 +76,5 @@ workflow.preprocess.numgroups=numgroups;
 tree=struct2xml(workflow);
 save(tree,workflow_fname); 
 
-
 %% Execute preprocessing
-
-open_log(fullfile(workflow.info.working_dir,workflow.info.logfile));
-
-% Load data
-log_message('Loading data\n');
-projs=ReadMRC(workflow.info.rawdata,1,nprojs);
-
-% Phaseflip
-if do_phaseflip
-    log_message('Reading CTF data\n');
-    CTFdata=readSTAR(workflow.preprocess.ctfdata);
-    log_message('Phasdflipping\n');
-    PFprojs=cryo_phaseflip(CTFdata,projs);
-else
-    log_message('Skipping phaseflip\n');
-    PFprojs=projs;
-end
-clear projs
-
-% Downsample
-if do_downsample
-    log_message('Downsampling\n');
-    PFDprojs=cryo_downsample(PFprojs,[projdim projdim],1); 
-else
-    log_message('Skipping downsampling\n');
-    PFDprojs=PFprojs;
-end
-clear PFprojs
-
-% Normalize images
-if do_normalize
-    log_message('Normalize background\n');
-    n=size(PFDprojs,1);
-    PFDprojs=cryo_normalize_background(PFDprojs,round(n/2)-10);
-end
-
-% Prewhiten
-if do_prewhiten
-    % Estimate noise PSD and prewhiten
-    log_message('Estimating noise power spectrum');     
-    n=size(PFDprojs,1);
-    log_message('Each projection of size %d x %d',n,n);
-    psd = Noise_Estimation(PFDprojs);
-    log_message('Finished noise power spectrum estimation');    
-    
-    h=figure;
-    plot(psd(n,:));
-    title('Noise spectrum of raw projections');
-    psdFIGname=fullfile(workflow.info.working_dir,'psd_before_prewhitening.fig');
-    psdEPSname=fullfile(workflow.info.working_dir,'psd_before_prewhitening.eps');
-    hgsave(psdFIGname);
-    print('-depsc',psdEPSname);
-    close(h);
-    
-    
-    log_message('Prewhitening images');
-    prewhitened_projs = Prewhiten_image2d(PFDprojs, psd);
-    fname=sprintf('phaseflipped_downsampled_prewhitened.mrc');
-    WriteMRC(single(prewhitened_projs),1,fullfile(workflow.info.working_dir,fname));
-    log_message('Finished prewhitening images');
-    
-    % Compute power spectrum of the prewhitened images - just to verification
-    % Normalize projections to norm 1
-    log_message('Compute power spectrum of prewhitened projections - for verifying that power spectrum is white');
-    
-    psd_white=Noise_Estimation(prewhitened_projs);
-    
-    h=figure;
-    plot(psd_white(n,:));
-    title('Noise spectrum of prewhitened-projections');
-    psdFIGname=fullfile(workflow.info.working_dir,'psd_after_prewhitening.fig');
-    psdEPSname=fullfile(workflow.info.working_dir,'psd_after_prewhitening.eps');
-    hgsave(psdFIGname);
-    print('-depsc',psdEPSname);
-    close(h);
-
-else
-    prewhitened_projs=PFDprojs;
-end
-
-clear PFDprojs
-
-% Global phase flip
-[prewhitened_projs,doflip]=cryo_globalphaseflip(prewhitened_projs);
-if doflip
-    log_message('Applying global phase flip');
-end
-
-
-% Split into groups
-K=size(prewhitened_projs,3);
-numgroups=workflow.preprocess.numgroups;
-K2=floor(K/numgroups);
-
-for groupid=1:numgroups
-    fname=sprintf('phaseflipped_downsampled_prewhitened_group%d.mrc',groupid);
-    fullfilename=fullfile(workflow.info.working_dir,fname);
-    log_message('Saving group %d\n',groupid);
-    WriteMRC(single(prewhitened_projs(:,:,(groupid-1)*K2+1:groupid*K2)),1,fullfilename);
-end
-clear prewhitened_projs
-
-xmlname=sprintf('%s.xml',workflow_fname);
-log_message('Workflow file: %s\n',xmlname);
-log_message('Use this file name when calling subsequent funtions.\n');
-log_message('Call next cryo_workflow_classify(''%s'')\n',xmlname);
-
-close_log;
+cryo_workflow_preprocess_execute(workflow_fname);
