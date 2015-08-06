@@ -1,6 +1,6 @@
-function cryo_workflow_classmeans_validate(workflow_fname)
-% Validate that the workflow file has all the required parameters to
-% generate class means.
+function cryo_workflow_abinitio_validate(workflow_fname)
+% Validate that the workflow file has all the parameters required for
+% abinitio reconstruction.
 %
 % Yoel Shkolnisky August 2015.
 

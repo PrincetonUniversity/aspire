@@ -1,4 +1,15 @@
 function cryo_workflow_classmeans(workflow_fname)
+% CRYO_WORKFLOW_CLASSMEANS  Interactive generation of class means
+%
+% cryo_workflow_classify(workflow_fname)
+%   Interactively collect all parameters required to generate class means
+%   from precomputed classification data, and generate the class means.
+%   workflow_name is the name of the file where the entered parameters will
+%   be saved.
+%
+% See also cryo_workflow_start
+%
+% Yoel Shkolnisky, August 2015.
 
 % Read workflow file
 tree=xmltree(workflow_fname);

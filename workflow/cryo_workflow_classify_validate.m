@@ -1,6 +1,6 @@
 function cryo_workflow_classify_validate(workflow_fname)
-% Validate that the section 'classify' in the given XML workflow has all
-% the required fields to exectue classification.
+% Validate that the workflow file has all the required parameters to
+% exectue classification.
 %
 % Yoel Shkolnisky August 2015.
 

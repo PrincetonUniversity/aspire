@@ -1,4 +1,13 @@
 function cryo_workflow_classmeans_execute(workflow_fname)
+% CRYO_WORKFLOW_CLASSMEANS_EXECUTE  Generate class means
+%
+% cryo_workflow_classmeans_execute(workflow_fname)
+%   Generate class means using precomputed classification according to the
+%   parameters stored in the file workflow_fname.
+%
+% See also cryo_workflow_classmeans
+%
+% Yoel Shkolnisky, August 2015.
 
 %% Validate workflow file
 cryo_workflow_classmeans_validate(workflow_fname);

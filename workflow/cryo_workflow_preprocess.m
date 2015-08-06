@@ -1,4 +1,15 @@
 function cryo_workflow_preprocess(workflow_fname)
+% CRYO_WORKFLOW_PREPROCESS  Interactive data set preprocessing
+%
+% cryo_workflow_preprocess(workflow_fname)
+%   Interactively collect all parameters required to preprocess the
+%   projections data set and execute the preprocessing.
+%   workflow_name is the name of the file where the entered parameters will
+%   be saved.
+%
+% See also cryo_workflow_start
+%
+% Yoel Shkolnisky, August 2015.
 
 % Read workflow file
 tree=xmltree(workflow_fname);
@@ -54,10 +65,15 @@ message='Prewhiten? ';
 do_prewhiten=multichoice_question(message,{'Y','N'},[ 1, 0],'Y');
 
 % Do split into groups?
+do_shuffle=0;
 message='Split data into groups? ';
 do_split=multichoice_question(message,{'Y','N'},[ 1, 0],'Y');
 if do_split==1
     numgroups=fmtinput('Number of groups ',2,'%d');
+    
+    % Split data at random?
+    message='Shuffle data before splitting? ';
+    do_shuffle=multichoice_question(message,{'Y','N'},[ 1, 0],'N');
 else
     numgroups=1;
 end
@@ -72,6 +88,7 @@ workflow.preprocess.do_normalize=do_normalize;
 workflow.preprocess.do_prewhiten=do_prewhiten;
 workflow.preprocess.split=do_split;
 workflow.preprocess.numgroups=numgroups;
+workflow.preprocess.do_shuffle=do_shuffle;
 
 tree=struct2xml(workflow);
 save(tree,workflow_fname); 

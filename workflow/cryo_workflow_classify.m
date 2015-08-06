@@ -1,4 +1,17 @@
 function cryo_workflow_classify(workflow_fname)
+% CRYO_WORKFLOW_CLASSIFY  Interactive data set classification
+%
+% cryo_workflow_classify(workflow_fname)
+%   Interactively collect all parameters required to classify preprocessed
+%   projections data set and execute the classification. No class means are
+%   produced at this step. Call cryo_workflow_classmeans to generate class
+%   means using the computed classification.
+%   workflow_name is the name of the file where the entered parameters will
+%   be saved.
+%
+% See also cryo_workflow_start
+%
+% Yoel Shkolnisky, August 2015.
 
 % Read workflow file
 tree=xmltree(workflow_fname);

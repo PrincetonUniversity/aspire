@@ -1,4 +1,13 @@
 function cryo_workflow_classify_execute(workflow_fname)
+% CRYO_WORKFLOW_CLASSIFY_EXECUTE  Execute data set classification
+%
+% cryo_workflow_classify_execute(workflow_fname)
+%   Classify preprocessed projections according to the parameters stored
+%   in the file workflow_fname.
+%
+% See also cryo_workflow_classify
+%
+% Yoel Shkolnisky, August 2015.
 
 %% Validate workflow file
 cryo_workflow_classify_validate(workflow_fname);
@@ -39,8 +48,8 @@ for groupid=1:numgroups
         'class_VDM_refl','class_VDM_refl','VDM_angles');
 end
 
-log_message('Workflow file: %s\n',workflow_fname);
-log_message('Use this file name when calling subsequent funtions.\n');
-log_message('Call next cryo_workflow_classmeans(''%s'')\n',workflow_fname);
+log_message('Workflow file: %s',workflow_fname);
+log_message('Use this file name when calling subsequent funtions.');
+log_message('Call next cryo_workflow_classmeans(''%s'')',workflow_fname);
 
 close_log;

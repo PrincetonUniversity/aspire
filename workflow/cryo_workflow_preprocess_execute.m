@@ -1,4 +1,13 @@
 function cryo_workflow_preprocess_execute(workflow_fname)
+% CRYO_WORKFLOW_PREPROCESS_EXECUTE  Execute data set preprocessing
+%
+% cryo_workflow_preprocess_execute(workflow_fname)
+%   Preprocess the projections data set according to the parameters stored
+%   in the file workflow_fname.
+%
+% See also cryo_workflow_preprocess
+%
+% Yoel Shkolnisky, August 2015.
 
 %% Validate workflow file
 cryo_workflow_preprocess_validate(workflow_fname);
@@ -105,6 +114,15 @@ end
 
 % Split into groups
 K=size(prewhitened_projs,3);
+shuffleidx=1:K;
+if fieldexist(workflow,'preprocess','do_shuffle') && ...
+        str2double(workflow.preprocess.do_shuffle)==1
+    log_message('Shuffling data');
+    shuffleidx=randperm(K);
+end
+
+save(matname,'shuffleidx','-append'); % Save the estimated PSD.
+
 numgroups=str2double(workflow.preprocess.numgroups);
 K2=floor(K/numgroups);
 
@@ -112,7 +130,7 @@ for groupid=1:numgroups
     fname=sprintf('phaseflipped_downsampled_prewhitened_group%d.mrc',groupid);
     fullfilename=fullfile(workflow.info.working_dir,fname);
     log_message('Saving group %d',groupid);
-    WriteMRC(single(prewhitened_projs(:,:,(groupid-1)*K2+1:groupid*K2)),1,fullfilename);
+    WriteMRC(single(prewhitened_projs(:,:,shuffleidx((groupid-1)*K2+1:groupid*K2))),1,fullfilename);
 end
 clear prewhitened_projs
 

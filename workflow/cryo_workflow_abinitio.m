@@ -1,4 +1,15 @@
 function cryo_workflow_abinitio(workflow_fname)
+% CRYO_WORKFLOW_ABINITIO  Interactive generation of abinitio models
+%
+% cryo_workflow_classify(workflow_fname)
+%   Interactively collect all parameters required to generate abinitio
+%   models from precomputed class averages and execute the reconstruction.
+%   workflow_name is the name of the file where the entered parameters will
+%   be saved.
+%
+% See also cryo_workflow_start
+%
+% Yoel Shkolnisky, August 2015.
 
 % Read workflow file
 tree=xmltree(workflow_fname);
@@ -6,7 +17,7 @@ workflow=convert(tree);
 
 %% Read Classification parameters
 
-defnmeans=1000; % Defults number of means to use to abinitio reconstruction.
+defnmeans=1000; % Default number of means to use to abinitio reconstruction.
 message=sprintf('Number of class means to use to abinitio reconstruction of each group? ');
 nmeans=fmtinput(message,defnmeans,'%d');
 
@@ -18,86 +29,5 @@ workflow.abinitio.nmeans=nmeans; % Number of means to use to abinitio reconstruc
 tree=struct2xml(workflow);
 save(tree,workflow_fname); 
 
-%% Execute classification
-
-open_log(fullfile(workflow.info.working_dir,workflow.info.logfile));
-
-numgroups=str2double(workflow.preprocess.numgroups); 
-nnavg=str2double(workflow.classmeans.nnavg);
-
-for groupid=1:numgroups    
-    reloadname=sprintf('averages_info_nn%02d_group%d',nnavg,groupid);
-    reloadname=fullfile(workflow.info.working_dir,reloadname);
-    log_message('Loading %s',reloadname);
-    load(reloadname);
-    fname=sprintf('averages_nn%02d_group%d.mrc',nnavg,groupid);
-    average=ReadMRC(fullfile(workflow.info.working_dir,fname));
-    average=average(:,:,1:nmeans);
-    
-    K=size(average,3);
-    log_message('Averages loaded. Using K=%d averages of size %d x %d',K,size(average,1),size(average,2));
-    
-    % Mask projections    
-    mask_radius=round(size(average,1)*0.45);
-    log_message('Masking radius is %d pixels',mask_radius);
-    [masked_average,~]=mask_fuzzy(average,mask_radius);
-
-    log_message('Computeing polar Fourier transform of class averages');
-    n_theta=360;
-    n_r=ceil(size(average,1)*0.5);
-    [pf,~]=cryo_pft(masked_average,n_r,n_theta,'single');  % take Fourier transform of projections
-    
-    % Find common lines from projections
-    log_message('Computeing common lines');
-    max_shift=15;
-    shift_step=1;
-    [clstack,~,~,~]=...
-        cryo_clmatrix_gpu(pf,K,1,max_shift,shift_step);
-    
-    log_message('Saving common lines');
-    matname=sprintf('abinitio_info_group%d',groupid);
-    save(fullfile(workflow.info.working_dir,matname),...
-        'n_theta','n_r','clstack','max_shift','shift_step');
-    
-    log_message('Starting buliding synchronization matrix');
-    S=cryo_syncmatrix_vote(clstack,n_theta);
-    log_message('Finished buliding synchronization matrix');
-    
-    rotations=cryo_syncrotations(S);
-    
-    save(fullfile(workflow.info.working_dir,matname),...
-        'rotations','S','-append');
-    
-    d=eigs(S,10);
-    d_str=sprintf('%7.2f ',d);
-    log_message('Top 10 eigenvalues of sync matrix are %s',d_str);
-    
-    clerr=cryo_syncconsistency(rotations,clstack,n_theta);
-    h=figure;
-    hist(clerr(:,3),360);
-    clerrFIGname=fullfile(workflow.info.working_dir,...
-        sprintf('clerr_nn%02d_group%d.fig',nnavg,groupid));
-    clerrEPSname=fullfile(workflow.info.working_dir,...
-        sprintf('clerr_nn%02d_group%d.eps',nnavg,groupid));
-    hgsave(clerrFIGname);
-    print('-depsc',clerrEPSname);
-    close(h);
-
-    log_message('Estimating shifts');
-    [est_shifts,~]=cryo_estimate_shifts(pf,rotations,max_shift,shift_step,10000,[],0);
-    log_message('Finished estimating shifts');
-    
-    save(fullfile(workflow.info.working_dir,matname),'est_shifts','-append');
-    
-    % Reconstruct downsampled volume
-    n=size(average,1);
-    [ v1, ~, ~ ,~, ~, ~] = recon3d_firm( average,...
-        rotations,-est_shifts, 1e-6, 30, zeros(n,n,n));
-    ii1=norm(imag(v1(:)))/norm(v1(:));
-    log_message('Relative norm of imaginary components = %e\n',ii1);
-    v1=real(v1);
-    volname=sprintf('vol_group%d.mrc',groupid);
-    WriteMRC(v1,1,fullfile(workflow.info.working_dir,volname));
-    log_message('Saved %s',volname);
-    
-end
+%% Generate abinitio models
+cryo_workflow_abinitio_exectue(workflow_fname);

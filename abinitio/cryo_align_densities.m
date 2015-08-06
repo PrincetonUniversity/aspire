@@ -75,8 +75,8 @@ end
 %% Mask input volumes
 
 n=size(vol1,1);
-vol1=vol1.*fuzzymask(n,3,floor(0.45*n),floor(0.05*n));
-vol2=vol2.*fuzzymask(n,3,floor(0.45*n),floor(0.05*n));
+vol1masked=vol1.*fuzzymask(n,3,floor(0.45*n),floor(0.05*n));
+vol2masked=vol2.*fuzzymask(n,3,floor(0.45*n),floor(0.05*n));
 
 
 %% Rough alignment on downsampled volumes.
@@ -90,8 +90,8 @@ vol2=vol2.*fuzzymask(n,3,floor(0.45*n),floor(0.05*n));
 
 n_downsample=round(n/4);
 pixA_downsample=pixA*n/n_downsample;
-vol1ds=Downsample(vol1,[n_downsample n_downsample n_downsample]);
-vol2ds=Downsample(vol2,[n_downsample n_downsample n_downsample]);
+vol1ds=Downsample(vol1masked,[n_downsample n_downsample n_downsample]);
+vol2ds=Downsample(vol2masked,[n_downsample n_downsample n_downsample]);
 
 
 % Nrots=5000;
@@ -190,7 +190,7 @@ end
 % new estimate of the relative rotation/translation.
 
 if reflect
-    vol2=flipdim(vol2,3);
+    vol2masked=flipdim(vol2masked,3);
 end
 
 if verbose
@@ -207,7 +207,7 @@ end
 
 
 tic;
-[R2,dx2,corr2,res2,~]=bf3Dmatchaux(vol1,vol2,newrots,pixA,1);
+[R2,dx2,corr2,res2,~]=bf3Dmatchaux(vol1masked,vol2masked,newrots,pixA,1);
 t=toc;
 
 
@@ -227,18 +227,14 @@ if verbose
     log_message('Refined alignment on original masked volumes:');
 end
 
-vol2R=fastrotate3d(vol2,R2);
-estdx=register_translations_3d(vol1,vol2R);
+vol2Rmasked=fastrotate3d(vol2masked,R2);
+estdx=register_translations_3d(vol1masked,vol2Rmasked);
 
-%vol1filtered=GaussFilt3(vol1,0.05);
-%vol2filtered=GaussFilt3(vol2,0.05);
-
-%[bestR,bestdx]=refind3Dmatchaux_res(vol1,vol2,R2,estdx,pixA);
 tic;
-[bestR,bestdx]=refind3Dmatchaux(vol1,vol2,R2,estdx);
+[bestR,bestdx]=refind3Dmatchaux(vol1masked,vol2masked,R2,estdx);
 t=toc;
 
-vol2aligned=fastrotate3d(vol2,bestR);
+vol2aligned=fastrotate3d(vol2masked,bestR);
 vol2aligned=reshift_vol(vol2aligned,bestdx);    
 
 bestcorr=corr(vol1(:),vol2aligned(:));

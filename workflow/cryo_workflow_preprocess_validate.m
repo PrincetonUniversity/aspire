@@ -1,6 +1,6 @@
 function cryo_workflow_preprocess_validate(workflow_fname)
-% Validate that the section 'preprocess' in the given XML workflow has all
-% the required fields to exectue preprocessing.
+% Validate that the workflow file has all the required parameters to
+% exectue preprocessing.
 %
 % Yoel Shkolnisky August 2015.
 

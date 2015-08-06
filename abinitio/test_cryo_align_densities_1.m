@@ -11,7 +11,7 @@
 
 load cleanrib
 vol=real(volref);
-vol=GaussFilt3(vol,0.8);
+vol=GaussFilt(vol,0.8);
 
 % Instead of the above lines you can use:
 % vol=cryo_gaussian_phantom_3d('C1_params',64,1); % Perfect Gaussian, perfect results.
