@@ -1,6 +1,13 @@
-function [ q ] = rot_to_q( rot )
-%UNTITLED2 Summary of this function goes here
-%   Detailed explanation goes here
+function q=rot_to_q( rot )
+%
+% ROT_TO_Q 	Convert rotaion to quaternion
+%   
+% q=rot_to_q(rot)
+%   Convert a single 3x3 rotation matrix into a quaternion.
+%
+% See also q_to_rot
+%
+% Yariv Aizenbud, August 2015
 
 
 q0 = ( rot(1,1) + rot(2,2) + rot(3,3) + 1) / 4;
