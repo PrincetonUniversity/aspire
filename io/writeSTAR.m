@@ -55,20 +55,21 @@ for k=1:ndata
     progressTicFor(k,ndata);
     
     s=datablock.data{k};
+    s_fieldnames=fieldnames(s);
     
     % Write current record
     for j=1:nlabels
-        val=s.(datablock.labels{j});
+        val=s.(s_fieldnames{j});
         if ischar(val)
             fprintf(fid,'%s',val);
         else % Val is a number
             fprintf(fid,'%g',val);
         end
         if j<nlabels
-            fprintf(fid,' ');
+            fprintf(fid,'\t');
         end
     end
-    fprintf(fid,'\t');
+    fprintf(fid,'\n');
 end
 
 fprintf(fid,'\n'); % Close "loop_"

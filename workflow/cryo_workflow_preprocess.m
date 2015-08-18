@@ -17,10 +17,10 @@ workflow=convert(tree);
 
 % Check that the input has not changed since the last time is was
 % preprocessed. % Compute hash of data file and compare to the stored hash.
-log_message('Validating input...\n');
-opt.Input='file';
-opt.Format='hex';
-opt.Method='MD5';
+%fprintf('Validating input...\n');
+%opt.Input='file';
+%opt.Format='hex';
+%opt.Method='MD5';
 % hash=DataHash(workflow.info.rawdata,opt);
 % if ~strcmpi(hash,workflow.info.rawdatahash)
 %     message='Raw projection''s file has changed. Proceed? ';
@@ -48,12 +48,21 @@ fprintf('%s :%dx%d (%d projections)\n',...
 message='Number of projections to read? ';
 nprojs=fmtinput(message,mrc_header.nz,'%d');
 
-projdim=mrc_header.nx; % Default size of downsampled projections is the current size.
+croppeddim=mrc_header.nx; % Default size of cropped projections is the current size.
+message='Crop? ';
+do_crop=multichoice_question(message,{'Y','N'},[ 1, 0],'Y');
+if do_crop==1
+    message='Crop to size? ';
+    croppeddim=fmtinput(message,mrc_header.nx,'%d');
+end
+
+
+downsampleddim=mrc_header.nx; % Default size of downsampled projections is the current size.
 message='Downsample? ';
 do_downsample=multichoice_question(message,{'Y','N'},[ 1, 0],'Y');
 if do_downsample==1
     message='Downsample to size? ';
-    projdim=fmtinput(message,mrc_header.nx,'%d');
+    downsampleddim=fmtinput(message,mrc_header.nx,'%d');
 end
 
 % Do normalize background.
@@ -82,8 +91,10 @@ end
 workflow.preprocess.phaseflip=do_phaseflip;
 workflow.preprocess.ctfdata=ctfdata;
 workflow.preprocess.nprojs=nprojs;
+workflow.preprocess.do_crop=do_crop;
+workflow.preprocess.croppeddim=croppeddim;
 workflow.preprocess.do_downsample=do_downsample;
-workflow.preprocess.projdim=projdim;
+workflow.preprocess.downsampleddim=downsampleddim;
 workflow.preprocess.do_normalize=do_normalize;
 workflow.preprocess.do_prewhiten=do_prewhiten;
 workflow.preprocess.split=do_split;

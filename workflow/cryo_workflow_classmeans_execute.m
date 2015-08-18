@@ -24,7 +24,7 @@ nnavg=str2double(workflow.classmeans.nnavg);
 numgroups=str2double(workflow.preprocess.numgroups); 
 
 for groupid=1:numgroups   
-    fname=sprintf('phaseflipped_downsampled_prewhitened_group%d.mrc',groupid);
+    fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrc',groupid);
     fullfilename=fullfile(workflow.info.working_dir,fname);
     log_message('Loading prewhitened projection from %s',fname);
     prewhitened_projs=ReadMRC(fullfilename);

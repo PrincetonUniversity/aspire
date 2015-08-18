@@ -11,6 +11,7 @@ if ~isfield(S, section)
     error('Section %s does not exist is struct %s.',section,inputname(1));
 else
     if ~isfield(S.(section),fieldname)
-        error('Field %s does not exist is struct %s.',fieldname,S.(section));
+        error('Field %s does not exist is struct %s.',fieldname,section);
     end
+end
 end

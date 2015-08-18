@@ -1,4 +1,13 @@
 function cryo_workflow_start
+%
+% CRYO_WORKFLOW_START   Start ASPIRE processing workflow
+%
+% cryo_workflow_start
+%   Gather all information required to start processing workflow of raw
+%   images.
+% This is the first command to be called in any processing workflw.
+% 
+% Yoel Shkolnisky, August 2015.
 
 workflow_name='';
 while isempty(workflow_name)

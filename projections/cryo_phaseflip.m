@@ -29,6 +29,7 @@ function PFprojs=cryo_phaseflip(CTFdata,projs,prefix)
 % Revisions:
 % Y.S. Novmber 2014     Revise function's interface.
 % Y.S. March 2015       Add option to provide pixel size.
+% Y.S. August 2015      Look for pixA in the STAR file.
 
 stackgiven=1;
 if isscalar(projs) % No stack is given, just number of projections.
@@ -110,6 +111,10 @@ for k=1:Nprojs
         PS=CTFdata.data{k}.rlnDetectorPixelSize; % In microns. Convert to Angstroms below.    
         mag=CTFdata.data{k}.rlnMagnification;
         pixA=PS*10^4/mag; % Convert pixel size on the detector in microns to spatial resoution in Angstroms.
+    elseif isfield(CTFdata.data{k},'pixA')
+        pixA=CTFdata.data{k}.pixA;
+    else
+        error('Cannot get pixel size from CTF data');
     end
     A=CTFdata.data{k}.rlnAmplitudeContrast;
     h=cryo_CTF_Relion(n,voltage,DefocusU,DefocusV,DefocusAngle,Cs,pixA,A);

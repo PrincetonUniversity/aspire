@@ -23,7 +23,7 @@ numgroups=str2double(workflow.preprocess.numgroups);
 
 for groupid=1:numgroups
     % Read prewhitened projections
-    fname=sprintf('phaseflipped_downsampled_prewhitened_group%d.mrc',groupid);
+    fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrc',groupid);
     fullfilename=fullfile(workflow.info.working_dir,fname);
     prewhitened_projs=ReadMRC(fullfilename);
     n=size(prewhitened_projs,1);
