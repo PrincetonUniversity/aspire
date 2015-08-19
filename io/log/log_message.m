@@ -13,7 +13,7 @@ function log_message(varargin)
 % varargin is either in the form 'format','arg1',arg2',..., or just a
 % string
 
-global run_silent
+global log_run_silent
 global log_prefix   
 global log_last_prefix_time
 global log_buffer
@@ -33,8 +33,8 @@ end
 
 newline=10;
 
-if numel(run_silent)==0
-    run_silent=0;
+if numel(log_run_silent)==0
+    log_run_silent=0;
 end
 
 if numel(varargin)>1
@@ -68,6 +68,6 @@ log_buffer{log_current_line}=msg;
 log_current_line=log_current_line+1;
 log_bytes_written=log_bytes_written+numel(msg);
 
-if ~run_silent
+if ~log_run_silent
     fprintf('%s',msg);
 end

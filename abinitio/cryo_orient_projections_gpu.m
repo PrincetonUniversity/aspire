@@ -1,9 +1,10 @@
-function [Rests,dxs]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs)
+function [Rests,dxs]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs,silent)
 % CRYO_ORIENT_PROJECTION Find the orientation of a given projection
 %
 % R=cryo_orient_projection(proj,vol) 
 %   Given and projection proj and a volume vol, estimate the orientation of
 %   the projection in the volume. Returns the estimated orientation R.
+%   Set silent to 1 to supress screen printouts.
 %
 % To do:
 %   1. Normalize rays properly (remove DC).
@@ -17,7 +18,7 @@ if ~exist('Nrefs','var') || isempty(Nrefs)
                % pojection.
 end
 
-if ~exist('trueRs','var')
+if ~exist('trueRs','var') || isempty(trueRs)
     trueRs=-1;
 end
 
@@ -29,6 +30,12 @@ szvol=size(vol);
 if any(szvol-szvol(1))
     error('Volume must have all dimensions equal');
 end
+
+if ~exist('silent','var')
+    silent=0;
+end
+
+currentsilentmode=log_silent(silent);
 
 % Downsample and normalize the given projection
 if size(projs,3)==1
@@ -277,7 +284,7 @@ for projidx=1:size(projs,3)
     %
     % % end of reference code
 
-    if trueRs~=-1
+    if trueRs~=0
         log_message('\t Frobenius error norm of estimated rotation is %5.2e.',...
             norm(candidate_rots(:,:,bestRidx)-trueRs(:,:,projidx),'fro')/3);
     end
@@ -307,3 +314,4 @@ t_total=toc(t_total);
 log_message('Total time for orienting %d projections is %5.2f seconds.',...
     size(projs,3),t_total);
 
+log_silent(currentsilentmode);

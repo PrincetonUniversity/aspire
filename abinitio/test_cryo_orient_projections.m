@@ -16,17 +16,17 @@ end
 
 % Run reference code
 tic;
-[Rest_ref,dx_ref]=cryo_orient_projections_ref(projshifted,voldata.volref,10,trueRs);
+[Rest_ref,dx_ref]=cryo_orient_projections_ref(projshifted,voldata.volref,10,trueRs,0);
 t_ref=toc;
 
 % Run CPU code
 tic;
-[Rest_cpu,dx_cpu]=cryo_orient_projections(projshifted,voldata.volref,10,trueRs);
+[Rest_cpu,dx_cpu]=cryo_orient_projections(projshifted,voldata.volref,10,trueRs,0);
 t_cpu=toc;
 
 % Run GPU code
 tic;
-[Rest_gpu,dx_gpu]=cryo_orient_projections_gpu(projshifted,voldata.volref,10,trueRs);
+[Rest_gpu,dx_gpu]=cryo_orient_projections_gpu(projshifted,voldata.volref,10,trueRs,0);
 t_gpu=toc;
 
 % Comprare results
