@@ -5,6 +5,11 @@ function [Rests,dxs]=cryo_orient_projections(projs,vol,Nrefs,trueRs)
 %   Given and projection proj and a volume vol, estimate the orientation of
 %   the projection in the volume. Returns the estimated orientation R.
 %
+% To do:
+%   1. Normalize rays properly (remove DC).
+%   2. Filter volume and projections to the same value.
+%   3. What correlation  should we expect as a function of SNR?
+%
 % Yoel Shkolnisky, August 2015.
 
 if ~exist('Nrefs','var') || isempty(Nrefs)
@@ -145,6 +150,9 @@ if ~skipprecomp
             
         end
     end
+    
+    t=toc;
+    log_message('Precomputing tables took %5.2f seconds.',t);
     save(Ctblfname,'Ckj','Cjk','Mkj','qrefs');
 end
 
@@ -167,36 +175,26 @@ end
 Rests=zeros(3,3,size(projs,3));
 dxs=zeros(2,size(projs,3));
 
+t_total=tic;
 for projidx=1:size(projs,3)
-    score=zeros(Nrots,1);       % Matching score of each candidate rotation.    
-    tic;    
-    parfor k=1:Nrots
-%        Rk=candidate_rots(:,:,k).';
-        cvals=zeros(Nrefs,1);
-%        cmask=zeros(Nrefs,1);        
-        
-        idx=find(Mkj(k,:)==1);
-        for j=idx
-%            Rj=Rrefs(:,:,j).';
-%            if sum(Rk(:,3).*Rj(:,3)) <0.999
-%                [ckj,cjk]=commonline_R(Rk,Rj,L);
-%                ckj=ckj+1; cjk=cjk+1;
-                
-                pfj=bsxfun(@times,refprojs_hat(:,Cjk(k,j),j),shift_phases);
-                c=real(projs_hat(:,Ckj(k,j),projidx)'*pfj);
-                bestcorr=max(c);
-                cvals(j)=bestcorr;
-%                cmask(j)=1;
-                
-%            end
-        end
-        score(k)=mean(cvals(idx));
-        %scorecount(k)=sum(cmask==1);
-        
+    log_message('Orienting projection %d/%d.',projidx,size(projs,3));   
+    t_cpu=tic;
+
+    cvals=zeros(Nrefs,Nrots);
+    for j=1:Nrefs
+        idx=find(Mkj(:,j)~=0);
+        U=projs_hat(:,Ckj(idx,j),projidx);
+        V=bsxfun(@times,conj(U),refprojs_hat(:,Cjk(idx,j),j));
+        W=real(shift_phases.'*V);
+        cvals(j,idx)=max(W);
     end
-    toc
-    [bestRscore,bestRidx]=max(score);
-    log_message('Best correlation = %5.3f',bestRscore);
+    
+    scores=sum(cvals)./sum(cvals>0);
+    [bestRscore,bestRidx]=max(scores);
+    t_cpu=toc(t_cpu);
+    log_message('\t Best correlation = %5.3f.',bestRscore);
+    log_message('\t Mean correlation = %5.3f.',mean(scores));
+    log_message('\t Took %5.2f seconds.',t_cpu);
     
     if trueRs~=-1
         log_message('\t Frobenius error norm of estimated rotation is %5.2e.',...
@@ -207,35 +205,24 @@ for projidx=1:size(projs,3)
     % projection.
     shift_equations=zeros(Nrefs,3);
     dtheta=2*pi/L;
-%    Rk=candidate_rots(:,:,bestRidx).';
     
     idx=find(Mkj(bestRidx,:)==1);
     for j=idx
-%        Rj=Rrefs(:,:,j).';
-%        if sum(Rk(:,3).*Rj(:,3)) <0.999
-%             [ckj,cjk]=commonline_R(Rk,Rj,L);
-%             ckj=ckj+1; cjk=cjk+1;
-            
-            pfj=bsxfun(@times,refprojs_hat(:,Cjk(bestRidx,j),j),shift_phases);
-            c=real(projs_hat(:,Ckj(bestRidx,j),projidx)'*pfj);
-            [~,sidx]=max(c);
-            
-            shift_alpha=(Ckj(bestRidx,j)-1)*dtheta;  % Angle of common ray in projection k.
-            dx=-max_shift+(sidx-1)*shift_step;
-            
-            shift_equations(j,1)=sin(shift_alpha);
-            shift_equations(j,2)=cos(shift_alpha);
-            shift_equations(j,3)=dx;
-%        end
+        pfj=bsxfun(@times,refprojs_hat(:,Cjk(bestRidx,j),j),shift_phases);
+        c=real(projs_hat(:,Ckj(bestRidx,j),projidx)'*pfj);
+        [~,sidx]=max(c);
+        
+        shift_alpha=(Ckj(bestRidx,j)-1)*dtheta;  % Angle of common ray in projection k.
+        dx=-max_shift+(sidx-1)*shift_step;
+        
+        shift_equations(j,1)=sin(shift_alpha);
+        shift_equations(j,2)=cos(shift_alpha);
+        shift_equations(j,3)=dx;
     end
-    
-    
     dxs(:,projidx)=shift_equations(:,1:2)\shift_equations(:,3);
     Rests(:,:,projidx)=candidate_rots(:,:,bestRidx);
 end
-
-% XXX Normalize rays properly (remove DC)
-% XXX Filter volume and projections to the same value.
-% What correlatio  should I expect as a function of SNR?
-% XXXX
+t_total=toc(t_total);
+log_message('Total time for orienting %d projections is %5.2f seconds.',...
+    size(projs,3),t_total);
 

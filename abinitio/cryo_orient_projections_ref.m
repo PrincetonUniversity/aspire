@@ -1,14 +1,12 @@
-function [Rests,dxs]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs)
-% CRYO_ORIENT_PROJECTION Find the orientation of a given projection
+function [Rests,dxs]=cryo_orient_projections_ref(projs,vol,Nrefs,trueRs)
+% CRYO_ORIENT_PROJECTION_REF Find the orientation of a given projection
 %
 % R=cryo_orient_projection(proj,vol) 
 %   Given and projection proj and a volume vol, estimate the orientation of
 %   the projection in the volume. Returns the estimated orientation R.
 %
-% To do:
-%   1. Normalize rays properly (remove DC).
-%   2. Filter volume and projections to the same value.
-%   3. What correlation  should we expect as a function of SNR?
+% This is a reference implementation of the function to validate optimized
+% versions.
 %
 % Yoel Shkolnisky, August 2015.
 
@@ -131,53 +129,24 @@ if ~skipprecomp
     log_message('Precomputing and saving common line tables.');
     log_message('The tables would be used in future calls to the function.');
     log_message('Patience please...');
-
-%     % Slower implementation of the code below.
-%     % To compare between the two code change in the slow code:
-%     %     Ckj  to  C2kj
-%     %     Cjk  to  C2jk
-%     %     Mkj  to  M2kj
-%     tic;
-%     Ckj=(-1)*ones(Nrots,Nrefs);
-%     Cjk=(-1)*ones(Nrots,Nrefs);
-%     Mkj=zeros(Nrots,Nrefs);     % Pairs of rotations that are not "too close"
-%     for k=1:Nrots
-%         Rk=candidate_rots(:,:,k).';
-%         for j=1:Nrefs
-%             Rj=Rrefs(:,:,j).';
-%             if sum(Rk(:,3).*Rj(:,3)) <0.999
-%                 [ckj,cjk]=commonline_R2(Rk,Rj,L);
-%                 ckj=ckj+1; cjk=cjk+1;
-%                 Ckj(k,j)=ckj;
-%                 Cjk(k,j)=cjk;
-%                 Mkj(k,j)=1;
-%             end
-%             
-%         end
-%     end
-%     toc
-%     % END slower implementatio
-    tic;
-    
-    candidate_rots_vec=zeros(3,3*Nrots);
-    candidate_rots_t_vec=zeros(3*Nrots,3);
-    for k=1:Nrots
-        candidate_rots_vec(:,3*(k-1)+1:3*k)=candidate_rots(:,:,k);
-        candidate_rots_t_vec(3*(k-1)+1:3*k,:)=(candidate_rots(:,:,k)).';
-    end
-    
     Ckj=(-1)*ones(Nrots,Nrefs);
     Cjk=(-1)*ones(Nrots,Nrefs);
     Mkj=zeros(Nrots,Nrefs);     % Pairs of rotations that are not "too close"
-    
-    Rk3s=candidate_rots_vec(:,3:3:end);
-    
-    for j=1:Nrefs        
-        Rj=Rrefs(:,:,j);       
-        [Mkj,Ckj,Cjk]=commonline_R_vec(candidate_rots,Rj,L,0.999);     
-        Ckj=single(Ckj);
-        Cjk=single(Cjk);
-        Mkj=single(Mkj);
+    for k=1:Nrots
+        Rk=candidate_rots(:,:,k).';
+        for j=1:Nrefs
+            Rj=Rrefs(:,:,j).';
+            if sum(Rk(:,3).*Rj(:,3)) <0.999
+                [ckj,cjk]=commonline_R(Rk,Rj,L);
+%                 [ckj2,cjk2]=commonline_R2(Rk,Rj,L);
+%                 assert(ckj==ckj2 && cjk==cjk2);
+                ckj=ckj+1; cjk=cjk+1;
+                Ckj(k,j)=ckj;
+                Cjk(k,j)=cjk;
+                Mkj(k,j)=1;
+            end
+            
+        end
     end
     
     t=toc;
@@ -204,79 +173,42 @@ end
 Rests=zeros(3,3,size(projs,3));
 dxs=zeros(2,size(projs,3));
 
-
-gCkj=gpuArray(single(Ckj));
-gCjk=gpuArray(single(Cjk));
-grefprojs_hat=gpuArray(single(refprojs_hat));
-gshift_phases=gpuArray(single(shift_phases));
-
 t_total=tic;
 for projidx=1:size(projs,3)
     log_message('Orienting projection %d/%d.',projidx,size(projs,3));   
-    t_gpu=tic;
+    t_cpu=tic;
 
-    gproj_hat=gpuArray(single(projs_hat(:,:,projidx)));   
-    cvals=zeros(Nrefs,Nrots);
-    for j=1:Nrefs
-        idx=find(Mkj(:,j)~=0);
-        gidx=gpuArray(single(idx));
-        gU=gproj_hat(:,gCkj(gidx,j));
-        gV=bsxfun(@times,conj(gU),grefprojs_hat(:,gCjk(gidx,j),j));
-        gW=real(gshift_phases.'*gV);
-        cvals(j,idx)=gather(max(gW));
+    score=zeros(Nrots,1);       % Matching score of each candidate rotation.    
+    parfor k=1:Nrots
+%        Rk=candidate_rots(:,:,k).';
+        cvals=zeros(Nrefs,1);
+%        cmask=zeros(Nrefs,1);        
+        
+        idx=find(Mkj(k,:)==1);
+        for j=idx
+%            Rj=Rrefs(:,:,j).';
+%            if sum(Rk(:,3).*Rj(:,3)) <0.999
+%                [ckj,cjk]=commonline_R(Rk,Rj,L);
+%                ckj=ckj+1; cjk=cjk+1;
+                
+                pfj=bsxfun(@times,refprojs_hat(:,Cjk(k,j),j),shift_phases);
+                c=real(projs_hat(:,Ckj(k,j),projidx)'*pfj);
+                bestcorr=max(c);
+                cvals(j)=bestcorr;
+%                cmask(j)=1;
+                
+%            end
+        end
+        score(k)=mean(cvals(idx));
+        %scorecount(k)=sum(cmask==1);
+        
     end
-    
-    scores=sum(cvals)./sum(cvals>0);
-    [bestRscore,bestRidx]=max(scores);
-    t_gpu=toc(t_gpu);   
+    [bestRscore,bestRidx]=max(score);
+    t_cpu=toc(t_cpu);
     log_message('\t Best correlation = %5.3f.',bestRscore);
-    log_message('\t Mean correlation = %5.3f.',mean(scores));
-    log_message('\t Took %5.2f seconds.',t_gpu);
+    log_message('\t Mean correlation = %5.3f.',mean(score));
+    log_message('\t Took %5.2f seconds.',t_cpu);
     
-    % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %     % Non GPU code - uncomment if no GPU exist.
-    %     tic;
-    %     cvals=zeros(Nrefs,Nrots);
-    %     for j=1:Nrefs
-    %         idx=find(Mkj(:,j)~=0);
-    %         U=projs_hat(:,Ckj(idx,j),projidx);
-    %         V=bsxfun(@times,conj(U),refprojs_hat(:,Cjk(idx,j),j));
-    %         W=real(shift_phases.'*V);
-    %         cvals(j,idx)=max(W);
-    %     end
-    %     % To run comparison against refernce and GPU code rename in the
-    %     % following line
-    %     %  bestRscore to bestRscore_cpu
-    %     %  bestRidx   to bestRidx_cpu
-    %    scores=sum(cvals)./sum(cvals>0);
-    %    [bestRscore,bestRidx]=max(scores);
-    %     t_cpu=toc;
-    % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    % % Rerefence code
-    % tic
-    % parfor k=1:Nrots
-    %     cvals=zeros(Nrefs,1);
-    %
-    %     idx=find(Mkj(k,:)==1);
-    %     for j=idx
-    %         pfj=bsxfun(@times,refprojs_hat(:,Cjk(k,j),j),shift_phases);
-    %         c=real(projs_hat(:,Ckj(k,j),projidx)'*pfj);
-    %         bestcorr=max(c);
-    %         cvals(j)=bestcorr;
-    %     end
-    %     score(k)=mean(cvals(idx));
-    % end
-    % [bestRscore_ref,bestRidx_ref]=max(score);
-    % t_ref=toc;
-    %
-    % log_message('Correlation difference between reference and GPU = %e',bestRscore_ref-bestRscore);
-    % log_message('Index difference between reference and GPU = %e',bestRidx_ref-bestRidx);
-    % log_message('Correlation difference between reference and CPU = %e',bestRscore_ref-bestRscore_cpu);
-    % log_message('Index difference between reference and GPU = %e',bestRidx_ref-bestRidx_cpu);
-    % log_message('Timing Ref/CPU/GPU = %5.2f/%5.2f/%5.2f',t_ref,t_cpu,t_gpu);
-    %
-    % % end of reference code
-
     if trueRs~=-1
         log_message('\t Frobenius error norm of estimated rotation is %5.2e.',...
             norm(candidate_rots(:,:,bestRidx)-trueRs(:,:,projidx),'fro')/3);
@@ -286,19 +218,26 @@ for projidx=1:size(projs,3)
     % projection.
     shift_equations=zeros(Nrefs,3);
     dtheta=2*pi/L;
+%    Rk=candidate_rots(:,:,bestRidx).';
     
     idx=find(Mkj(bestRidx,:)==1);
     for j=idx
-        pfj=bsxfun(@times,refprojs_hat(:,Cjk(bestRidx,j),j),shift_phases);
-        c=real(projs_hat(:,Ckj(bestRidx,j),projidx)'*pfj);
-        [~,sidx]=max(c);
-        
-        shift_alpha=(Ckj(bestRidx,j)-1)*dtheta;  % Angle of common ray in projection k.
-        dx=-max_shift+(sidx-1)*shift_step;
-        
-        shift_equations(j,1)=sin(shift_alpha);
-        shift_equations(j,2)=cos(shift_alpha);
-        shift_equations(j,3)=dx;
+%        Rj=Rrefs(:,:,j).';
+%        if sum(Rk(:,3).*Rj(:,3)) <0.999
+%             [ckj,cjk]=commonline_R(Rk,Rj,L);
+%             ckj=ckj+1; cjk=cjk+1;
+            
+            pfj=bsxfun(@times,refprojs_hat(:,Cjk(bestRidx,j),j),shift_phases);
+            c=real(projs_hat(:,Ckj(bestRidx,j),projidx)'*pfj);
+            [~,sidx]=max(c);
+            
+            shift_alpha=(Ckj(bestRidx,j)-1)*dtheta;  % Angle of common ray in projection k.
+            dx=-max_shift+(sidx-1)*shift_step;
+            
+            shift_equations(j,1)=sin(shift_alpha);
+            shift_equations(j,2)=cos(shift_alpha);
+            shift_equations(j,3)=dx;
+%        end
     end
     dxs(:,projidx)=shift_equations(:,1:2)\shift_equations(:,3);
     Rests(:,:,projidx)=candidate_rots(:,:,bestRidx);
