@@ -37,13 +37,8 @@ end
 
 currentsilentmode=log_silent(silent);
 
-% Downsample and normalize the given projection
-if size(projs,3)==1
-    projs=cryo_downsample(projs,[szvol(1) szvol(2)],0); % istack is zero
-else
-    projs=cryo_downsample(projs,[szvol(1) szvol(2)],1); % istack is zero
-end
-projs=cryo_normalize_background(projs,floor(szvol(1)/2),0);
+% Preprocess projections and referece volume.
+[vol,projs]=cryo_orient_projecions_auxpreprocess(vol,projs);
 
 % Generate Nrefs references projections of the given volume using random
 % orientations.
