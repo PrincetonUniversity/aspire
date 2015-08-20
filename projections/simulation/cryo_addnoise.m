@@ -1,4 +1,4 @@
-function [noisy_projections, noise, I, sigma] = cryo_addnoise( projections, SNR, noise_type )
+function [noisy_projections, noise, I, sigma] = cryo_addnoise( projections, SNR, noise_type,seed )
 %
 % Add additive noise to projection images.
 %
@@ -7,6 +7,10 @@ function [noisy_projections, noise, I, sigma] = cryo_addnoise( projections, SNR,
 %                   is the k'th projections.
 %    SNR            Signal to noise of the output noisy projections.
 %   noise_type      'color' or 'gaussian'
+%   seed            Seed parameter for initializing the the random number
+%                   generator of the noise samples. If not provided, a
+%                   default value is used which guarantees reproducible
+%                   results between different calls of this function.
 %
 % Output parameters:
 %    noisy_projections  Stack of noisy projections. Same size as the input
@@ -21,7 +25,8 @@ function [noisy_projections, noise, I, sigma] = cryo_addnoise( projections, SNR,
 %
 % Zhizhen Zhao 09/01/2012
 % Revised:
-% Yoel Shkolnisky August 2013.
+% Y.S. August 2015  Add seed parameter.
+%
 
 p = size(projections, 1);
 K=size(projections, 3);
@@ -29,7 +34,12 @@ noisy_projections=zeros(size(projections));
 noise=zeros(size(projections));
 sigma=sqrt(var(reshape(projections(:, :, 1), p^2, 1))/SNR);
 
-initstate; %  Initialize the random number generator.
+%  Initialize the random number generator.
+if exist('seed','var')
+    initstate(seed); 
+else
+    initstate;
+end
 
 %for optimization, so we can use fft2 and
 %ifft2 below instead of cfft2 and icfft2
