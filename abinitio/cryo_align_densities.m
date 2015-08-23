@@ -234,7 +234,7 @@ tic;
 [bestR,bestdx]=refind3Dmatchaux(vol1masked,vol2masked,R2,estdx);
 t=toc;
 
-vol2aligned=fastrotate3d(vol2masked,bestR);
+vol2aligned=fastrotate3d(vol2,bestR);
 vol2aligned=reshift_vol(vol2aligned,bestdx);    
 
 bestcorr=corr(vol1(:),vol2aligned(:));
