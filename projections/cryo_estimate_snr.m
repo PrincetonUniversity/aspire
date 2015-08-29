@@ -78,7 +78,7 @@ var_splusn=sum(projs_sumsq)/(numel(projs)-1);
 %var_n=sum_noise_sq/(total_noise_samples-1); % Noise variance
 
 %mean_proj = mean(projs, 3);
-%mean_proj=cryo_radial_average(mean_proj);
+%mean_proj=cryo_radial_average2d(mean_proj);
 %projs = bsxfun(@minus, projs, mean_proj);
 
 %var_s=mean(projs(:).^2)-var_n; % Signal variance

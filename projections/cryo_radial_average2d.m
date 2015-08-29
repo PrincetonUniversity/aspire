@@ -1,7 +1,7 @@
-function Pavg = cryo_radial_average(P)
-% CRYO_RADIAL_AVERAGE Radial average of an image
+function Pavg = cryo_radial_average2d(P)
+% CRYO_RADIAL_AVERAGE2D Radial average of an image
 %
-% Pavg = cryo_radial_average(P)
+% Pavg = cryo_radial_average2d(P)
 %   Compute the radial average of the image P. The center is taken to be
 %   the center of P. Pixel at distance d in Pavg is the average of all
 %   pixels at distance d in P. P must be two-dimensional but need not be

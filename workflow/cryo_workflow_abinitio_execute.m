@@ -1,4 +1,4 @@
-function cryo_workflow_abinitio_exectue(workflow_fname)
+function cryo_workflow_abinitio_execute(workflow_fname)
 % CRYO_WORKFLOW_CLASSIFY_EXECUTE  Reconstruct abinitio models
 %
 % cryo_workflow_abinitio_execute(workflow_fname)
@@ -20,8 +20,9 @@ workflow=convert(tree);
 
 open_log(fullfile(workflow.info.working_dir,workflow.info.logfile));
 
-numgroups=str2double(workflow.preprocess.numgroups); 
-nnavg=str2double(workflow.classmeans.nnavg);
+numgroups=str2double(workflow.preprocess.numgroups);
+nmeans=str2double(workflow.abinitio.nmeans);
+nnavg=str2double(workflow.abinitio.nnavg);
 
 for groupid=1:numgroups    
     reloadname=sprintf('averages_info_nn%02d_group%d',nnavg,groupid);
