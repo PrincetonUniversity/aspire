@@ -54,7 +54,7 @@ for groupid=1:numgroups
         cryo_clmatrix_gpu(pf,K,1,max_shift,shift_step);
     
     log_message('Saving common lines');
-    matname=sprintf('abinitio_info_group%d',groupid);
+    matname=sprintf('abinitio_info_nn%d_nm%d_group%d',nnavg,nmeans,groupid);
     save(fullfile(workflow.info.working_dir,matname),...
         'n_theta','n_r','clstack','max_shift','shift_step');
     
@@ -88,15 +88,34 @@ for groupid=1:numgroups
     
     save(fullfile(workflow.info.working_dir,matname),'est_shifts','-append');
     
-    % Reconstruct downsampled volume
+    % Reconstruct downsampled volume with no CTF correction
     n=size(average,1);
     [ v1, ~, ~ ,~, ~, ~] = recon3d_firm( average,...
-        rotations,-est_shifts, 1e-6, 30, zeros(n,n,n));
+        rotations,-est_shifts, 1e-6, 100, zeros(n,n,n));
     ii1=norm(imag(v1(:)))/norm(v1(:));
     log_message('Relative norm of imaginary components = %e\n',ii1);
     v1=real(v1);
-    volname=sprintf('vol_group%d.mrc',groupid);
+    volname=sprintf('vol_nn%d_nm%d_group%d.mrc',nnavg,nmeans,groupid);
+    WriteMRC(v1,1,fullfile(workflow.info.working_dir,volname));
+    log_message('Saved %s',volname);
+    
+    % Reconstruct downsampled volume with CTF correction
+    fname=sprintf('ctfs_effective_nn%02d_group%d.mrc',nnavg,groupid);
+    fullfilename=fullfile(workflow.info.working_dir,fname);
+    ctfs=ReadMRC(fullfilename);
+
+    [ v1, ~, ~,~, ~, ~] = recon3d_firm_ctf( average,...
+    ctfs(:,:,1:size(average,3)),1:size(average,3),rotations,-est_shifts,...
+    1.0e-6, 100, zeros(n,n,n));
+    ii1=norm(imag(v1(:)))/norm(v1(:));
+    log_message('Relative norm of imaginary components = %e\n',ii1);
+    v1=real(v1);
+    volname=sprintf('vol_ctf_corrected_nn%d_nm%d_group%d.mrc',nnavg,nmeans,groupid);    
     WriteMRC(v1,1,fullfile(workflow.info.working_dir,volname));
     log_message('Saved %s',volname);
     
 end
+
+log_message('Workflow file: %s\n',workflow_fname);
+log_message('Use this file name when calling subsequent funtions.\n');
+log_message('Call next cryo_workflow_abinitio_analyze(''%s'')\n',workflow_fname);

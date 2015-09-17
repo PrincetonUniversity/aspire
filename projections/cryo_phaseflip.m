@@ -2,7 +2,7 @@ function PFprojs=cryo_phaseflip(CTFdata,projs,prefix)
 % CRYO_PHASEFLIP Phase flip projections
 %
 % PFprojs=cryo_phaseflip(CTFdata,projs)   
-%   Apply phase flipping to all projections in the stack projs. CTF data
+%   Apply phase flipping to all projections in the stack projs. CTFdata
 %   contains one record (with CTF parameters) for each projection. It is
 %   generated, for example, by reading a STAR file (see example below).
 %   CTF records with no corresponding projetctions are ignored.
@@ -12,17 +12,12 @@ function PFprojs=cryo_phaseflip(CTFdata,projs,prefix)
 %   each CTF record. Only the first N records are processed. prefix is
 %   added to image names as only relative filenames are stored in CTFdata.
 % 
-% PFprojs=cryo_phaseflip(CTFdata,N,prefix) 
-%   Read the projections from disk according to the image name given in
-%   each CTF record. Only the first N records are processed. prefix is
-%   added to images names as only relative filenames are stored in CTFdata.
-%
 % PFprojs=cryo_phaseflip(CTFdata,projs,pixA) 
 %   Use pixA for pixel size (in Angstroms).
 
 % Example:
 %   CTFdata=readSTAR(fname);
-%   FPprojs=phaseflip(CTFdata,100); % Phase flip the first 100 projections
+%   FPprojs=cryo_phaseflip(CTFdata,100); % Phase flip the first 100 projections
 %
 % Yoel Shkolnisky, July 2014.
 %
@@ -90,33 +85,8 @@ for k=1:Nprojs
         projsinit=1;
     end;
     
-    voltage=CTFdata.data{k}.rlnVoltage;
-    DefocusU=CTFdata.data{k}.rlnDefocusU/10; % Relion uses Angstrom. Convert to nm.
-    
-    if isfield(CTFdata.data{k},'rlnDefocusV')
-        DefocusV=CTFdata.data{k}.rlnDefocusV/10; % Relion uses Angstrom. Convert to nm.
-    else
-        DefocusV=DefocusU;
-    end
-    
-    if isfield(CTFdata.data{k},'rlnDefocusAngle')
-        DefocusAngle=CTFdata.data{k}.rlnDefocusAngle*pi/180; % Convert to radians.
-    else
-        DefocusAngle=0;
-    end
-    
-    Cs=CTFdata.data{k}.rlnSphericalAberration; % In mm, No conversion is needed.
-    
-    if isfield(CTFdata.data{k},'rlnDetectorPixelSize')
-        PS=CTFdata.data{k}.rlnDetectorPixelSize; % In microns. Convert to Angstroms below.    
-        mag=CTFdata.data{k}.rlnMagnification;
-        pixA=PS*10^4/mag; % Convert pixel size on the detector in microns to spatial resoution in Angstroms.
-    elseif isfield(CTFdata.data{k},'pixA')
-        pixA=CTFdata.data{k}.pixA;
-    else
-        error('Cannot get pixel size from CTF data');
-    end
-    A=CTFdata.data{k}.rlnAmplitudeContrast;
+    [voltage,DefocusU,DefocusV,DefocusAngle,Cs,pixA,A]=...
+        cryo_parse_Relion_CTF_struct(CTFdata.data{k});
     h=cryo_CTF_Relion(n,voltage,DefocusU,DefocusV,DefocusAngle,Cs,pixA,A);
     
     % Phase flip

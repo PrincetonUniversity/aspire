@@ -42,13 +42,13 @@ function h=cryo_CTF_Relion(n,voltage,DefocusU,DefocusV,DefocusAngle,...
 % Example:
 %   n=256;
 %   V=300;
-%   DF1=2.334469921900000e+04;
-%   DF2=2.344594921900000e+04;
+%   DF1=2.334469921900000e+03;
+%   DF2=2.344594921900000e+03;
 %   theta= 36.700001;
 %   Cs=2.0;
 %   pixA=1.4;
 %   A=0.1;
-%   h=CTF(n,V,DF1,DF2,theta,Cs,pixA,A);
+%   h=cryo_CTF_Relion(n,V,DF1,DF2,theta,Cs,pixA,A);
 %   imagesc(h);
 %
 % Yoel Shkolnisky, July 2014.

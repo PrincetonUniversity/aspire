@@ -59,7 +59,41 @@ for groupid=1:numgroups
     
     reloadname=sprintf('averages_info_nn%02d_group%d',nnavg,groupid);
     save(fullfile(workflow.info.working_dir,reloadname),...
-        'shifts','corr','norm_variance','classcoreidx');  
+        'shifts','corr','norm_variance','classcoreidx');
+    
+    % Compute effetive CTF of each average    
+    fname=sprintf('ctfs_group%d.star',groupid);
+    fullfilename=fullfile(workflow.info.working_dir,fname);    
+    log_message('Load %s',fullfilename);
+    CTFdata=readSTAR(fullfilename);
+    n=size(average,1);
+    effectiveCTFs=zeros(size(average));
+    
+    log_message('Computing effective CTFs for group %d',groupid);
+    printProgressBarHeader;
+    
+    for k=1:size(average,3)
+        progressTicFor(k,size(average,3));
+        idx=classcoreidx(k); % Index of the average in unsorted stack of averages
+        ectf=zeros(n);      % Effective CTF for the current average.
+        for nnk=1:nnavg
+            nnidx=class_VDM(idx,nnk);
+            [voltage,DefocusU,DefocusV,DefocusAngle,Cs,pixA,A]=...
+                cryo_parse_Relion_CTF_struct(CTFdata.data{nnidx});
+            h=cryo_CTF_Relion(n,voltage,DefocusU,DefocusV,DefocusAngle,...
+                Cs,pixA,A);
+            if str2double(workflow.preprocess.phaseflip)
+                h=abs(h);
+            end
+            ectf=ectf+h;
+        end
+        effectiveCTFs(:,:,k)=ectf./nnavg;
+    end
+    
+    log_message('Saving effective CTFs for group %d',groupid);
+    fname=sprintf('ctfs_effective_nn%02d_group%d.mrc',nnavg,groupid);
+    fullfilename=fullfile(workflow.info.working_dir,fname);
+    WriteMRC(single(effectiveCTFs),1,fullfilename);
 end
 
 log_message('Workflow file: %s\n',workflow_fname);

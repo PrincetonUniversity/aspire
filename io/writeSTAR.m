@@ -63,7 +63,7 @@ for k=1:ndata
         if ischar(val)
             fprintf(fid,'%s',val);
         else % Val is a number
-            fprintf(fid,'%g',val);
+            fprintf(fid,'%.6f',val);
         end
         if j<nlabels
             fprintf(fid,'\t');
