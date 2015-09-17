@@ -1,7 +1,7 @@
 function Vavg = cryo_radial_average3d(V)
 % CRYO_RADIAL_AVERAGE3D Radial average of a volume
 %
-% Pavg = cryo_radial_average(V)
+% Pavg = cryo_radial_average3d(V)
 %   Compute the radial average of the volume P. The center is taken to be
 %   the center of P. Pixel at distance d in Pavg is the average of all
 %   pixels at distance d in P. P must be two-dimensional but need not be

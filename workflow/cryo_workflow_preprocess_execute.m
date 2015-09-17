@@ -26,6 +26,11 @@ matname=fullfile(workflow.info.working_dir,'preprocess_info'); % mat file
 nprojs=str2double(workflow.preprocess.nprojs);
 log_message('Loading data %d projections from %s',nprojs,workflow.info.rawdata);
 projs=ReadMRC(workflow.info.rawdata,1,nprojs);
+szprojs=size(projs);
+if szprojs(1)~=szprojs(2)
+    error('Input projections must be square.')
+end
+
 
 % Phaseflip
 if str2double(workflow.preprocess.phaseflip)
@@ -51,10 +56,12 @@ end
 clear FPprojs
 
 % Downsample
+pixelscaling=1; % How much pixel size is changed due to downsampling.
 if str2double(workflow.preprocess.do_downsample)
     downsampleddim=str2double(workflow.preprocess.downsampleddim);
     log_message('Downsampling to %dx%d',downsampleddim, downsampleddim);
     PFDprojs=cryo_downsample(PFCprojs,[downsampleddim downsampleddim],1); 
+    pixelscaling=size(PFCprojs,1)/downsampleddim;
 else
     log_message('Skipping downsampling');
     PFDprojs=PFCprojs;
@@ -142,6 +149,114 @@ for groupid=1:numgroups
     fullfilename=fullfile(workflow.info.working_dir,fname);
     log_message('Saving group %d',groupid);
     WriteMRC(single(prewhitened_projs(:,:,shuffleidx((groupid-1)*K2+1:groupid*K2))),1,fullfilename);
+    
+    % Write indices of the raw images in this group
+    fname=sprintf('raw_indices_group%d.mrc',groupid);
+    fullfilename=fullfile(workflow.info.working_dir,fname);
+    fid=fopen(fullfilename,'w');
+    if fid<0
+        error('Failed to open %s',fullfilename);
+    end
+    fprintf(fid,'%d\n',shuffleidx((groupid-1)*K2+1:groupid*K2));
+    fclose(fid);
+
+        
+    % Generate CTF data for the downsampled images in STAR format.
+    % XXX This code is ratherslow due to the cell arrays - optimize.
+    log_message('Generating CTF for downsampled images');
+    CTFdownsampled=createSTARdata(K2,'rlnVoltage','rlnDefocusU','rlnDefocusV',...
+        'rlnDefocusAngle','rlnSphericalAberration',...
+        'rlnAmplitudeContrast','pixA','phaseflipped');
+    
+    % Compute pixel size of downsampled images.
+    idx=shuffleidx((groupid-1)*K2+1); % Read parameters of the first image 
+                                      % in the current group.    
+    [~,~,~,~,~,pixA,~]=cryo_parse_Relion_CTF_struct(CTFdata.data{idx});
+        % Read pixel size
+    pixAdownsampled=pixA*pixelscaling;
+    workflow.preprocess.pixA=pixA;
+    workflow.preprocess.pixAdownsampled=pixAdownsampled;
+    tree=struct2xml(workflow);
+    save(tree,workflow_fname);
+    log_message('Pixels size of original images %d Angstroms',pixA);
+    log_message('Pixels size of downsampled images %d Angstroms',pixAdownsampled);
+            
+    log_message('Create CTF data for downsampled images');
+    printProgressBarHeader;
+        
+    for k=1:K2
+        progressTicFor(k,K2);
+        idx=shuffleidx((groupid-1)*K2+k);
+        [voltage,DefocusU,DefocusV,DefocusAngle,Cs,pixA,A]=...
+            cryo_parse_Relion_CTF_struct(CTFdata.data{idx});
+        % Convert defocus to angstroms and defocus angle to degrees.
+        CTFdownsampled=addrecordtoSTARdata(CTFdownsampled,k,'rlnVoltage',voltage,...
+            'rlnDefocusU',DefocusU*10,'rlnDefocusV',DefocusV*10,...
+            'rlnDefocusAngle',DefocusAngle*180/pi,...
+            'rlnSphericalAberration',Cs,...
+            'rlnAmplitudeContrast',A,'pixA',pixA*pixelscaling,...
+            'phaseflipped',str2double(workflow.preprocess.phaseflip));
+        
+        if workflow.preprocess.pixA~=pixA
+            error('Pixel size varies in original data');
+        end
+    end
+    
+    fname=sprintf('ctfs_group%d.star',groupid);
+    fullfilename=fullfile(workflow.info.working_dir,fname);
+    writeSTAR(CTFdownsampled,fullfilename);
+    log_message('Finished saving CTF data of downsampled images into %s',fullfilename);
+   
+%     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%     % Generate filter reponse of the CTFs of the downsampled images.
+%     % Can be used for testing the above code.
+%     
+%     log_message('Generating CTF for group %d',groupid);
+%     n=size(prewhitened_projs,1);
+%     CTFds=zeros(n,n,K2,class(prewhitened_projs)); % CTF response
+%     % of the downsampled images in each group.
+%     for k=1:K2
+%         idx=shuffleidx((groupid-1)*K2+k);
+%         [voltage,DefocusU,DefocusV,DefocusAngle,Cs,pixA,A]=...
+%             cryo_parse_Relion_CTF_struct(CTFdata.data{idx});
+%         h=cryo_CTF_Relion(n,voltage,DefocusU,DefocusV,DefocusAngle,...
+%             Cs,pixA*pixelscaling,A);
+%         if str2double(workflow.preprocess.phaseflip)
+%             h=abs(h);
+%         end
+%         CTFds(:,:,k)=h;
+%     end
+%     
+%     fname=sprintf('ctfs_group%d.mrc',groupid);
+%     fullfilename=fullfile(workflow.info.working_dir,fname);
+%     WriteMRC(single(CTFds),1,fullfilename);
+%     
+%     CTFdownsampled_response=zeros(n,n,K2,class(prewhitened_projs)); % CTF response
+%     
+%     for k=1:K2
+%         [voltage,DefocusU,DefocusV,DefocusAngle,Cs,pixA,A]=...
+%             cryo_parse_Relion_CTF_struct(CTFdownsampled.data{k});
+%         h=cryo_CTF_Relion(n,voltage,DefocusU,DefocusV,DefocusAngle,...
+%             Cs,pixA,A);
+%         if str2double(workflow.preprocess.phaseflip)
+%             h=abs(h);
+%         end
+%         CTFdownsampled_response(:,:,k)=h;
+%     end
+%     
+%     assert(norm(CTFdownsampled_response(:)-CTFds(:))/norm(CTFds(:))<1.0e-14);
+%     
+%     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    % Save CTF parameters of raw images in each group. We don't save the
+    % reponse for each image since these images may be very large.
+    CTFraw=CTFdata;
+    CTFraw.data=CTFraw.data(shuffleidx((groupid-1)*K2+1:groupid*K2));
+    fname=sprintf('ctfs_raw_group%d.star',groupid);
+    fullfilename=fullfile(workflow.info.working_dir,fname);
+    writeSTAR(CTFraw,fullfilename);
+
+    
 end
 clear prewhitened_projs
 

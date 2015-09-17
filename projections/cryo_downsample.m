@@ -105,6 +105,9 @@ switch ndim
     case 3
         if down  % scaling down
             for i=1:nim
+                if showprogress
+                    progressTicFor(i,nim);
+                end
                 x=fftshift(fftn(in(:,:,:,i)));
                 fx=Crop(x,szout).*mask;
                 if ~copy
@@ -113,8 +116,10 @@ switch ndim
             end;
         else      % scaling up
             for i=1:nim
-                x=fftshift(fftn(in(:,:,:,i)));
-                
+                if showprogress
+                    progressTicFor(i,nim);
+                end
+                x=fftshift(fftn(in(:,:,:,i)));               
                 fx=Crop(x,szout).*mask;
                 out(:,:,:,i)=ifftn(ifftshift(fx))*(prod(szout)/prod(szin));
             end;
@@ -122,6 +127,9 @@ switch ndim
     case 2
         if down
             for i=1:nim
+                if showprogress
+                    progressTicFor(i,nim);
+                end                
                 fx=Crop(fftshift(fftn(in(:,:,i))),szout).*mask;
                 if ~copy
                     out(:,:,i)=ifftn(ifftshift(fx))*(prod(szout)./prod(szin));
@@ -129,6 +137,9 @@ switch ndim
             end;
         else   % scaling up
             for i=1:nim
+                if showprogress
+                    progressTicFor(i,nim);
+                end                
                 fx=Crop(fftshift(fftn(in(:,:,i))),szout).*mask;
                 out(:,:,i)=ifftn(ifftshift(fx))*(prod(szout)/prod(szin));
             end;
@@ -137,6 +148,9 @@ switch ndim
         out=zeros([szout nim]);
         if down  % scaling down
             for i=1:nim
+                if showprogress
+                    progressTicFor(i,nim);
+                end                
                 fx=Crop(fftshift(fft(in(:,i))),szout).*mask;
                 if ~copy
                     out(:,i)=ifft(ifftshift(fx))*(prod(szout)/prod(szin));
@@ -144,6 +158,9 @@ switch ndim
             end;
         else   % scaling up
             for i=1:nim
+                if showprogress
+                    progressTicFor(i,nim);
+                end                
                 fx=Crop(fftshift(fft(in(:,i))),szout).*mask;
                 out(:,i)=ifft(ifftshift(fx))*(szout/szin);
             end;

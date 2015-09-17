@@ -12,7 +12,7 @@ for k=2:numel(options);
 end
 prompt=sprintf('%s)',prompt);
 if ~isempty(defstr)
-    prompt=sprintf('%s[%s] ',prompt,defstr);
+    prompt=sprintf('%s? [%s] ',prompt,defstr);
 end
 
 str=[];

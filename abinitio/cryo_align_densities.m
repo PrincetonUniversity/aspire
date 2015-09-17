@@ -191,6 +191,7 @@ end
 
 if reflect
     vol2masked=flipdim(vol2masked,3);
+    vol2=flipdim(vol2,3);
 end
 
 if verbose
@@ -230,11 +231,13 @@ end
 vol2Rmasked=fastrotate3d(vol2masked,R2);
 estdx=register_translations_3d(vol1masked,vol2Rmasked);
 
+
+
 tic;
 [bestR,bestdx]=refind3Dmatchaux(vol1masked,vol2masked,R2,estdx);
 t=toc;
 
-vol2aligned=fastrotate3d(vol2masked,bestR);
+vol2aligned=fastrotate3d(vol2,bestR);
 vol2aligned=reshift_vol(vol2aligned,bestdx);    
 
 bestcorr=corr(vol1(:),vol2aligned(:));

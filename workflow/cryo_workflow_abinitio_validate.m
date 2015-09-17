@@ -13,4 +13,5 @@ workflow=convert(tree);
 assertfield(workflow,'info','working_dir');
 assertfield(workflow,'info','logfile');
 assertfield(workflow,'preprocess','numgroups');
-assertfield(workflow,'classmeans','nnavg');
+assertfield(workflow,'abinitio','nmeans');
+assertfield(workflow,'abinitio','nnavg');
