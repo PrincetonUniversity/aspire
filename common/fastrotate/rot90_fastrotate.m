@@ -1,7 +1,7 @@
-function B=rot90(A)
+function B=rot90_fastrotate(A)
 %
 % Rotate the image A by 90 degrees CCW.
-%   B=rot90(A);
+%   B=rot90_fastrotate(A);
 %
 % Yoel Shkolnisky, February 2011.
 
