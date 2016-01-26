@@ -36,6 +36,7 @@ noise_variance=var(test(:)); %Estimate the noise variance from ear region.
 tic_FBsPCA=tic;
 [ U, D, freqs, rad_freqs, Mean ] = FB_SPCA(data, r_max);
 toc_FBsPCA=toc(tic_FBsPCA);
+trunc = min(trunc, length(D));
 [ UU, Freqs, ~, W ] = FBSPCA_MP_rankEst(P, U, D, freqs, rad_freqs, max(noise_variance, D(trunc)));
 %toc_FBsPCA=toc(tic_FBsPCA);
 %Cutoff is determined by the maximum of the noise_variance and the 200th
