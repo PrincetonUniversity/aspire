@@ -1,0 +1,5 @@
+*.sw*
+.nfs*
+*.mexa64
+*.mrc
+*.mat
