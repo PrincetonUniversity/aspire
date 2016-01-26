@@ -1,7 +1,6 @@
-#include "mex.h"
+#include <mex.h>
 #include <stdio.h>
 #include <math.h>
-#include "matrix.h"
 /*
  * Qtheta.c - 
  *
