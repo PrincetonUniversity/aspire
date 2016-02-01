@@ -102,17 +102,22 @@ for groupid=1:numgroups
     % Reconstruct downsampled volume with CTF correction
     fname=sprintf('ctfs_effective_nn%02d_group%d.mrc',nnavg,groupid);
     fullfilename=fullfile(workflow.info.working_dir,fname);
-    ctfs=ReadMRC(fullfilename);
-
-    [ v1, ~, ~,~, ~, ~] = recon3d_firm_ctf( average,...
-    ctfs(:,:,1:size(average,3)),1:size(average,3),rotations,-est_shifts,...
-    1.0e-6, 100, zeros(n,n,n));
-    ii1=norm(imag(v1(:)))/norm(v1(:));
-    log_message('Relative norm of imaginary components = %e\n',ii1);
-    v1=real(v1);
-    volname=sprintf('vol_ctf_corrected_nn%d_nm%d_group%d.mrc',nnavg,nmeans,groupid);    
-    WriteMRC(v1,1,fullfile(workflow.info.working_dir,volname));
-    log_message('Saved %s',volname);
+    
+    if exist(fullfilename,'file')~=2
+        log_message('%s does not exist. Skipping reconstruction with CTF correction',fullfilename);
+    else
+        log_message('Reconstructing with CTF correction.');
+        ctfs=ReadMRC(fullfilename);
+        [ v1, ~, ~,~, ~, ~] = recon3d_firm_ctf( average,...
+            ctfs(:,:,1:size(average,3)),1:size(average,3),rotations,-est_shifts,...
+            1.0e-6, 100, zeros(n,n,n));
+        ii1=norm(imag(v1(:)))/norm(v1(:));
+        log_message('Relative norm of imaginary components = %e\n',ii1);
+        v1=real(v1);
+        volname=sprintf('vol_ctf_corrected_nn%d_nm%d_group%d.mrc',nnavg,nmeans,groupid);
+        WriteMRC(v1,1,fullfile(workflow.info.working_dir,volname));
+        log_message('Saved %s',volname);
+    end
     
 end
 
