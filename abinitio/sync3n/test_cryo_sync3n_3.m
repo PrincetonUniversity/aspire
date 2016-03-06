@@ -28,4 +28,4 @@ p=0.5;
 rotations=cryo_sync3n_estimate_rotations(noisy_cl,L);
 dir1=Q2S2(q,L);
 dir2=R2S2(rotations,L);
-check_orientations(dir1,dir2)
+check_orientations(dir1,dir2);

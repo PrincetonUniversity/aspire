@@ -29,14 +29,14 @@ verbose=1;
 % Estimate the handedeness of each relative rotation (up a global common
 % unknown hand).
 [J_sync,J_significance,eigenvalues,itr,dd] =...
-    cryo_sync3n_Jsync_power_method(K,Rijs,n_eigs,scores_as_entries,verbose );
+    cryo_sync3n_Jsync_power_method(Rijs,n_eigs,scores_as_entries,verbose );
 
 % Flip the handedness of the estimates Rij according to hand estimated in
 % J_sync. Estimates Rij from which J_sync==-1 are J-conjugated.
 Rijs = cryo_sync3n_flip_handedness(J_sync, Rijs);
 
 % Build 3KX3K synchronization matrix 
-S = cryo_sync3n_syncmatrix(K, Rijs);
+S = cryo_sync3n_syncmatrix(Rijs);
 
 s=eig(S);
 s=sort(s);
@@ -64,14 +64,14 @@ end
 e2=max(diff(:));
 
 if e2>TOL
-    log_message('**** Maximal rotation is error is large e2=%e\n',e2);
+    log_message('**** Maximal rotation is error is large e2=%e',e2);
 else
-    log_message('Maximal rotation is error is OK e2=%e\n',e2);
+    log_message('Maximal rotation is error is OK e2=%e',e2);
 end
 
 if mse>TOL
-    log_message('**** mse is large mse=%e\n',mse);
+    log_message('**** mse is large mse=%e',mse);
 else
-    log_message('mse OK mse=%e\n',mse);
+    log_message('mse OK mse=%e',mse);
 end
 

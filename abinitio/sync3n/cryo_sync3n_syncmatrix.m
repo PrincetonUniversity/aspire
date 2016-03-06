@@ -11,7 +11,7 @@ function S = cryo_sync3n_syncmatrix(Rij)
 % Yoel Shkolnisky, March 2016.
 % based on code by Ido Greenberg, 2015.
 
-N=(1+sqrt(1+8*suze(Rij,3)))/2; % Extract N from the number of relative rotaitons in Rij.
+N=(1+sqrt(1+8*size(Rij,3)))/2; % Extract N from the number of relative rotaitons in Rij.
     % The number of relative rotation for a given N is (N choose 2) so,
     % solve for N from this number.
 assert(N==round(N));  % Make sure we got an integer.

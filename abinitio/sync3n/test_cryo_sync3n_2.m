@@ -27,14 +27,14 @@ end
 e2=max(diff(:));
 
 if e2>TOL
-    log_message('**** Maximal rotation is error is large e2=%e\n',e2);
+    log_message('**** Maximal rotation is error is large e2=%e',e2);
 else
-    log_message('Maximal rotation is error is OK e2=%e\n',e2);
+    log_message('Maximal rotation is error is OK e2=%e',e2);
 end
 
 if mse>TOL
-    log_message('**** mse is large mse=%e\n',mse);
+    log_message('**** mse is large mse=%e',mse);
 else
-    log_message('mse OK mse=%e\n',mse);
+    log_message('mse OK mse=%e',mse);
 end
 

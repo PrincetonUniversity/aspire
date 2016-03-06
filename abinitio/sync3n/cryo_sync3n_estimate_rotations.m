@@ -29,7 +29,7 @@ log_message('Computing %d eigenvalues of the J-synchronization matrix',n_eigs);
 % Synchronize all relative rotations to a consistent handedness.
 [J_sync,~,eigenvalues,itr,~] =...
     cryo_sync3n_Jsync_power_method(Rijs,n_eigs,scores_as_entries,verbose );
-log_message('Converged on iterations %d',itr);
+log_message('Converged on iteration %d',itr);
 log_message('Eigenvalues of the J-synchronization matrix [ %s ]',num2str(eigenvalues.'));
 
 

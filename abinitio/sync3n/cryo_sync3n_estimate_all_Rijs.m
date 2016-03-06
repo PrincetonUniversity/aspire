@@ -90,7 +90,7 @@ for i = 1:(N-1)
 
     % Print updates
     if progress_update_freq > 0 && idx >= progress_update_next
-        fprintf('Computed %d Rij''s out of %d\n', progress_update_next, N_pairs);
+        log_message('Computed %d Rij''s out of %d', progress_update_next, N_pairs);
         while progress_update_next <= idx
             progress_update_next = progress_update_next + progress_update_freq;
         end

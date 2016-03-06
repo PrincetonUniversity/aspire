@@ -77,9 +77,9 @@ end
 eigenvalues = evalues;
 
 % Print eigenvalues
-log_message( '3NX3N Sync Matrix First %d Eigenvalues:\n%s\n', n_eigs, num2str(evalues') );
+log_message( '3NX3N Sync Matrix First %d Eigenvalues:\n%s', n_eigs, num2str(evalues') );
 if n_eigs>=4
-    log_message('Spectral gap: 3rd_eig/4th_eig = %.2f\n', evalues(3)/evalues(4));
+    log_message('Spectral gap: 3rd_eig/4th_eig = %.2f', evalues(3)/evalues(4));
 else
     log_message('Cannot compute spectral gap. Used n_eigs>=4');
 end
@@ -114,6 +114,6 @@ for i = 1:N
     % fix rotation to be orthogonal
     R(:,:,i) = tmp;
 end
-log_message('Non orthogonal rotations (above error threshold of %.2f):\t%d\n', ORTHOGONALITY_THRESHOLD, non_orthogonal_counter);
+log_message('Non orthogonal rotations (above error threshold of %.2f):\t%d', ORTHOGONALITY_THRESHOLD, non_orthogonal_counter);
 
 end
