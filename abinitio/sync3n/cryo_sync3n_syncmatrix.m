@@ -8,6 +8,9 @@ function S = cryo_sync3n_syncmatrix(Rij)
 % S     3NX3N synchronization matrix (without blocks weights) where the
 %       (i,j)'th 3x3 block is Ri'*Rj.
 %
+% This function was renamed from
+%       sync_matrix ( N, Rij )
+%
 % Yoel Shkolnisky, March 2016.
 % based on code by Ido Greenberg, 2015.
 

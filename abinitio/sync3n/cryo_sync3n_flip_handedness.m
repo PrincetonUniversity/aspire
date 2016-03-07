@@ -9,7 +9,11 @@ function Rij = cryo_sync3n_flip_handedness(J_sync, Rij)
 %   Returns the list of relative rotations Rij where rotations that
 %   correspond to J_sync=-1 have been J conjugated.
 %
+% The function was revised from 
+%   sync_J(J_sync, Rij)
+%
 % Ido Greenbeg, March 2016.
+% Revised by Yoel Shkolnisky, March 2016.
 
 J = diag([1 1 -1]);
 for pair = 1:size(Rij,3)
