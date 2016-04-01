@@ -80,7 +80,7 @@ cosvals=clerr(:,3);
 coserr=cosvals(abs(cosvals)>1)-1;
 if ~isempty(coserr)
     if max(coserr)>1.0e-13
-        idx=find(abs(cosval)>1);
+        idx=find(abs(cosvals)>1);
         warning('Found %d cosines with large imaginary components', numel(idx));
     end;
 end
