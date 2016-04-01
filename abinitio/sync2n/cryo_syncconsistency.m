@@ -74,6 +74,17 @@ for k1=1:K-1
     idx=idx+numel(nnzidx);
 end
 clerr=clerr(1:idx,:);
+
+% Make sure that clerr(:,3) is in [-1,1] (roundoff errors are allowed).
+cosvals=clerr(:,3);
+coserr=cosvals(abs(cosvals)>1)-1;
+if ~isempty(coserr)
+    if max(coserr)>1.0e-13
+        idx=find(abs(cosval)>1);
+        warning('Found %d cosines with large imaginary components', numel(idx));
+    end;
+end
+clerr(:,3)=real(cosvals);
 clerr(:,3)=acosd(clerr(:,3)); % Convert to degrees
 
 
