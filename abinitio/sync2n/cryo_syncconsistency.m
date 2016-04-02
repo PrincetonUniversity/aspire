@@ -77,13 +77,22 @@ clerr=clerr(1:idx,:);
 
 % Make sure that clerr(:,3) is in [-1,1] (roundoff errors are allowed).
 cosvals=clerr(:,3);
-coserr=cosvals(abs(cosvals)>1)-1;
+
+if norm(imag(cosvals))~=0
+        idx=find(imag(cosvals)~=0);
+        warning('Found %d cosines with imaginary components', numel(idx));
+end
+cosvals=real(cosvals);
+    
+coserr=cosvals(abs(cosvals)>1);
 if ~isempty(coserr)
     if max(coserr)>1.0e-13
         idx=find(abs(cosvals)>1);
-        warning('Found %d cosines with large imaginary components', numel(idx));
+        warning('Found %d cosines outside [-1,1]', numel(idx));
     end;
 end
+cosvals=max(cosvals,-1);
+cosvals=min(cosvals,1);
 clerr(:,3)=real(cosvals);
 clerr(:,3)=acosd(clerr(:,3)); % Convert to degrees
 
