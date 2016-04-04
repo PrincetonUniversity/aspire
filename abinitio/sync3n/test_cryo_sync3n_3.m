@@ -24,7 +24,7 @@ p=0.5;
 %p=1;
 [noisy_cl,is_perturbed]=perturb_clmatrix(clmatrix,L,p);
 
-%S=cryo_syncmatrix_vote(noisy_cl,L,q,is_perturbed);
+open_log(0);
 rotations=cryo_sync3n_estimate_rotations(noisy_cl,L);
 dir1=Q2S2(q,L);
 dir2=R2S2(rotations,L);

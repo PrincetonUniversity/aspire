@@ -1,21 +1,45 @@
-function [R, eigenvalues, orthogonality_error] = cryo_sync3n_S_to_rot (S, W, Dhalf, n_eigs, ORTHOGONALITY_THRESHOLD)
+function [R, eigenvalues, orthogonality_error] = cryo_sync3n_S_to_rot... 
+    (S, n_eigs, W, ORTHOGONALITY_THRESHOLD)
 % CRYO_SYNC3N_S_TO_ROT  Extract rotations from synchronization matrix.
 %
-% cryo_sync3n_S_to_rot (S, n_eigs, ORTHOGONALITY_THRESHOLD)
-%   Given a 3Nx3N synchronization matrix S, whose (i,j)'th block of size
-%   3x3 is an estimate Ru'*Rj, for estimate the rortaions Ri.
-%   The function also compute the top n_eigs eigenvalues of S, which can be
-%   used to inspect the spectral gap.
+% cryo_sync3n_S_to_rot (S, n_eigs, W, ORTHOGONALITY_THRESHOLD)
+%   Compute rotations from the synchronization matrix S. Given a 3Nx3N
+%   synchronization matrix S, whose (i,j)'th block of size 3x3 is an
+%   estimate Ri'*Rj, for estimate the rortaions Ri. The function
+%   computes n_eigs of the matrix S. n_eigs must be at least 3. If n_eigs
+%   is larger, the fourth eigenvalue and on are used only to display the
+%   gap in the spectrum of S, and are not used for computing the rotations.
+%   The blocks of the matrix S are weighted according to the weights in W.
+%   If S is of size 3Nx3N, then W is of size NxN whose (i,j) entry is the 
+%   reliability of the (i,j)'th 3x3 block of S. 
+%   When S is consturcted from noisy data, its top three eigenvectors are
+%   not exactly the requested rotations. ORTHOGONALITY_THRESHOLD is used to
+%   determine which estimated matrices are not orthogonal. Each estimated
+%   matrix is considered orthogonal if the difference from its closest
+%   orthogonal matrix (in Frobenius norm) is less than
+%   ORTHOGONALITY_THRESHOLD. The function reports how many estimated
+%   matrices are not orthogonal. Set ORTHOGONALITY_THRESHOLD to a negative
+%   value to bypass this test. In any case, all returned matrices are
+%   orthogonalized by projecting each estimated matrix to its nearest
+%   orthogonal matrix.
 %
-% cryo_sync3n_S_to_rot (S, W, Dhalf, N, n_eigs, ORTHOGONALITY_THRESHOLD)
-%   Weight each block in S according to the weights in W.
+% cryo_sync3n_S_to_rot (S, n_eigs, W)
+%   Use no ORTHOGONALITY_THRESHOLD.
+%
+% cryo_sync3n_S_to_rot (S, n_eigs, ORTHOGONALITY_THRESHOLD)
+%   No weights are applied to the blocks of the matrix S.
+%
+% cryo_sync3n_S_to_rot (S, n_eigs)
+%   Use no ORTHOGONALITY_THRESHOLD and not weights.
+%
+% cryo_sync3n_S_to_rot (S)
+%   Use neigs=3, no ORTHOGONALITY_THRESHOLD and not weights.
 %
 % Input:
 %   S   3NX3N Synchronization matrix whose blocks are the relative
 %       rotations, as returned from cryo_sync3n_syncmatrix.
-%   W   3NX3N weights matrix (without rows normalization).
-%   Dhalf   Normalizing matrix of W
 %   n_eigs  Number of eigenvalues to compute
+%   W   NXN weights matrix (without rows normalization).
 %   ORTHOGONALITY_THRESHOLD    The function estimates the rotations from
 %       the top three eigenvectors of the matrix S. In the noiseless case,
 %       theses eigenvectors are exactly the rotations. In the presence of
@@ -28,10 +52,7 @@ function [R, eigenvalues, orthogonality_error] = cryo_sync3n_S_to_rot (S, W, Dha
 %   R   3X3XN rotations matrices.
 %   eigenvalues The top n_eigs eigenvalues of the normalized, weighted S.
 %   orthogonality_error Array of length N of the distances
-%          ||Ri-orthogonalize(Ri)||_F.
-%
-%XXX Wny W is not NxN by rather 3Nx3N?
-% Why do we need both W and Dhalf? Why not computing D from W?
+%                       ||Ri-orthogonalize(Ri)||_F. 
 %
 % This function was revised from
 %   rotations (S, W, Dhalf, N, n_eigs, ORTHOGONALITY_THRESHOLD)
@@ -40,24 +61,50 @@ function [R, eigenvalues, orthogonality_error] = cryo_sync3n_S_to_rot (S, W, Dha
 % Yoel Shkolnisky, March 2016.
 % Based on code by Ido Greenberg, 2015
 
-if nargin<=3
+%(S, n_eigs, W, ORTHOGONALITY_THRESHOLD)
+
+N=size(S,1)/3;
+
+if nargin==3
     if isscalar(W)
-        % The parameters are (S, n_eigs, ORTHOGONALITY_THRESHOLD)
-        if nargin==3
-            ORTHOGONALITY_THRESHOLD=Dhalf;
-        end
-        n_eigs=W;
-        W=1;
-        Dhalf=1;
+        ORTHOGONALITY_THRESHOLD=W;
     end
-elseif nargin<5
+end
+
+if nargin<4
+   W=ones(N);
+end
+
+
+if nargin<3
     ORTHOGONALITY_THRESHOLD=-1; % Ignore
+end
+
+if nargin==1
+    n_eigs=3;
 end
 
 % Input validation
 if n_eigs < 3
     error('n_eigs must be >= 3 integer! otherwise H cannot be deduced from Sync Matrix. Currently n_eigs = %d', n_eigs);
 end
+
+
+% Prepare weights for the blocks of the matrix S.
+D = mean(W,2); % We use mean and not sum so that after normalizing W the 
+               % sum of its rows will be N, as required.
+Dhalf=D;
+Dhalf(abs(Dhalf)>1.0e-13)=Dhalf.^-0.5; % vector of (row sums)^-0.5
+Dhalf(abs(Dhalf)<=1.0e-13)=0; % vector of (row sums)^-0.5
+Dhalf=diag(Dhalf);
+
+% Assert Rows Normalization
+W_normalized = (Dhalf.^2)*W;
+nzidx = sum(W_normalized,2) ~= 0; % do not consider erased rows
+assert(norm(sum(W_normalized(nzidx,:),2)-N)<1.0e-10, 'Weights Matrix Normalization Error');
+
+W=kron(W,ones(3));  % Make W of size 3Nx3N
+Dhalf=diag(kron(diag(Dhalf),ones(3,1))); % Make Dhalf of size 3Nx3N
 
 % Compute eigenvectors
 [evecs, evalues] = eigs( Dhalf * (W.*S) * Dhalf , n_eigs);
@@ -91,7 +138,6 @@ evecs = Dhalf * evecs(:,1:3);
 
 % Normalization
 % normalize eigenvectors such that every 3X3 block may be orthogonal
-N=size(S,1)/3;
 for i = 1:3
     evecs(:,i) = sqrt(N)*evecs(:,i)/norm(evecs(:,i));
 end

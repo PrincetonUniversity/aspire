@@ -1,15 +1,10 @@
-% Test the function cryo_sync3n_estimate_Rij_scores using noisy simulated
-% data. 
+% Test the 3Nx3N synchronization algorithm on noisy simulated data.
 %
-% The script generates K quternions (images), constructs their
-% corresponding common lines matrix, and introduces errors into the
-% common lines matrix, such that only a factrion p of the common lines
-% remain correct. 
-% Then, the function calls cryo_sync3n_estimate_Rij_scores to estimate the
-% number of correct common lines. The printed numbers should comparable
-% with p.
+% Same as test_cryo_sync3n_3, but uses wieghts for the blocks of the
+% synchronization matrix. See improvement in accuracy of the rotations over
+% test_cryo_sync3n_3.
 %
-% Yoel Shkolnisky, March 2016.
+% Yoel Shkolnisky, April 2016.
 
 K=400;
 initstate;
@@ -23,11 +18,8 @@ p=0.5;
 [noisy_cl,is_perturbed]=perturb_clmatrix(clmatrix,L,p);
 
 open_log(0);
-[Rijs, ~, ~, ~] = cryo_sync3n_estimate_all_Rijs(noisy_cl, L);
-
-required_P=0;
-PLOT=1;
-verbose=1;
-[P, sigma, Rsquare, Pij, scores_hist, cum_scores, plotted] =...
-    cryo_sync3n_estimate_Rij_scores(Rijs,required_P, PLOT, verbose);
-
+use_weights=1;
+rotations=cryo_sync3n_estimate_rotations(noisy_cl,L,use_weights);
+dir1=Q2S2(q,L);
+dir2=R2S2(rotations,L);
+check_orientations(dir1,dir2);
