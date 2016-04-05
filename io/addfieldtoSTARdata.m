@@ -7,6 +7,11 @@ function datablock=addfieldtoSTARdata(datablock,fieldname,fieldvals)
 %   Otherwise, length of fieldvals must be equal to the number of data
 %   records in the datablock struct. Currently fieldvals must be a real
 %   scalar or vector. Returns the modified data block.
+%
+% Example:
+% CTFdata=readSTAR('ctffile.star');
+% CTFdata=addfieldtoSTARdata(CTFdata,'pixA',1.23)
+% writeSTAR('ctffile_new.star');
 %   
 % Yoel Shkolnisky, August 2015.
 
