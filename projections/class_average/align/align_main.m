@@ -69,11 +69,11 @@ for i=1:359
     M{i}=fastrotateprecomp(L, L,i);
 end;
 
-%Go concurrent
-ps=matlabpool('size');
-if ps==0
-    matlabpool open
-end
+% %Go concurrent
+% ps=matlabpool('size');
+% if ps==0
+%     matlabpool open
+% end
 
 parfor j=1:length(list_recon)
     
@@ -134,4 +134,4 @@ parfor j=1:length(list_recon)
 
 end
 
-matlabpool close;
+%matlabpool close;
