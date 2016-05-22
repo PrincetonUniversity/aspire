@@ -25,6 +25,9 @@ if isfield(CTFdata,'rlnDetectorPixelSize')
 elseif isfield(CTFdata,'pixA')
     pixA=CTFdata.pixA;
 else
-    error('Cannot get pixel size from CTF data');
+    errmsg=sprintf(strcat('Cannot get pixel size from CTF data.\n',...
+        'Either pixA or rlnDetectorPixelSize together with rlnMagnification should be given.\n',...
+        'Use addfieldtoSTARdata to add pixA manually to the STAR file.'));
+    error('%s',errmsg);
 end
 A=CTFdata.rlnAmplitudeContrast;
