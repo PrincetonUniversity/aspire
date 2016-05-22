@@ -78,6 +78,9 @@ n=size(vol1,1);
 vol1masked=vol1.*fuzzymask(n,3,floor(0.45*n),floor(0.05*n));
 vol2masked=vol2.*fuzzymask(n,3,floor(0.45*n),floor(0.05*n));
 
+vol1masked=GaussFilt(vol1masked,0.3);
+vol2masked=GaussFilt(vol2masked,0.3);
+
 
 %% Rough alignment on downsampled volumes.
 %
@@ -89,6 +92,7 @@ vol2masked=vol2.*fuzzymask(n,3,floor(0.45*n),floor(0.05*n));
 % estimated relative rotation/translation between the volumes.
 
 n_downsample=round(n/4);
+n_downsample=max(n_downsample,32); % Minimal size of downsampled volume is 32.
 pixA_downsample=pixA*n/n_downsample;
 vol1ds=Downsample(vol1masked,[n_downsample n_downsample n_downsample]);
 vol2ds=Downsample(vol2masked,[n_downsample n_downsample n_downsample]);
