@@ -26,10 +26,10 @@ R_ns = B(:, 3);
 Phi_ns=zeros(2*N+1, 2*N+1, size(B, 1));
 
 %Go concurrent
-ps=matlabpool('size');
-if ps==0
-    matlabpool open
-end
+% ps=matlabpool('size');
+% if ps==0
+%     matlabpool open
+% end
 
 parfor i=1:size(B, 1)
     r0=r*R_ns(i);
