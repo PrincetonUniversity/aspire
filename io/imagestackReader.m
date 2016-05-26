@@ -18,7 +18,9 @@ properties
         images              % Cache of images loaded into memory.
         images_idx          % Indices of the loaded images.
         cachesize           % Number of images to store in memory.
-        stacksize           % Total number of images in the stack.
+        dim                 % Dimensions of the image stack. First two 
+                            % dimensions are image size. Third dimension is
+                            % number of images.
         verbose             % Print mesages.
     end
         
@@ -51,12 +53,12 @@ properties
             obj.filename=MRCname;
             obj.images=zeros(size(im,1),size(im,2),obj.cachesize,precision);
             obj.images_idx=zeros(obj.cachesize,1);   
-            obj.stacksize=info.nz;
+            obj.dim=[size(im,1);size(im,2);info.nz;];
             obj.verbose=verbose;
             
             if obj.verbose
                 log_message('Creating imagestack. Nimages=%d, Ncache=%d, precision=%s, MRC=%s',...
-                    obj.stacksize,obj.cachesize,precision,obj.filename);
+                    obj.dim(3),obj.cachesize,precision,obj.filename);
             end
                 
         end
@@ -64,26 +66,30 @@ properties
         function im=getImage(obj,idx)
             % Get image with index idx from the image stack.
             % If image is not in stack, flush entire stack and read images
-            % from disk, starting with image idx.
+            % from disk, starting with image idx. idx can be a vector.
+            im=zeros(obj.dim(1),obj.dim(2),numel(idx));
             
-            if idx>obj.stacksize
-                error('Image %d does not exist in stack.',idx);
-            end
-            
-            ii=find(obj.images_idx==idx);
-            if isempty(ii)
-                % Read images
-                if obj.verbose
-                    log_message('Cache miss. Loading images.');
+            for k=1:numel(idx)
+                
+                if idx(k)>obj.dim(3)
+                    error('Image %d does not exist in stack.',idx(k));
                 end
                 
-                buf=ReadMRC(obj.filename,idx,obj.cachesize);
-                nread=size(buf,3);
-                obj.images(:,:,1:nread)=buf;
-                obj.images_idx=idx:idx+nread-1;
-                ii=1;
+                ii=find(obj.images_idx==idx(k));
+                if isempty(ii)
+                    % Read images
+                    if obj.verbose
+                        log_message('Cache miss for image %d. Loading images.',idx(k));
+                    end
+                    
+                    buf=ReadMRC(obj.filename,idx(k),obj.cachesize);
+                    nread=size(buf,3);
+                    obj.images(:,:,1:nread)=buf;
+                    obj.images_idx=idx:idx+nread-1;
+                    ii=1;
+                end
+                im(:,:,k)=obj.images(:,:,ii);
             end
-            im=obj.images(:,:,ii);            
         end
     end
 end
