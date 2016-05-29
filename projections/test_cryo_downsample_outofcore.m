@@ -1,5 +1,5 @@
 function test_cryo_downsample_outofcore
-
+%
 % Test the function cryo_downsample_outofcore by comapring its output to
 % cryo_downsample. Both functions shouls have the same output.
 %

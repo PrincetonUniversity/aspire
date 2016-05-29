@@ -1,4 +1,4 @@
-function [ P2,R,x ] = cryo_epsdS( imstack,samples_idx,max_d, verbose )
+function [ P2,R,R2,x ] = cryo_epsdS( imstack,samples_idx,max_d, verbose )
 %
 % EPSDS Estimate the 2D isotropic power spectrum.
 %
@@ -26,6 +26,7 @@ function [ P2,R,x ] = cryo_epsdS( imstack,samples_idx,max_d, verbose )
 %   P2           2D power spectrum function. If each image is of size
 %                pxp, then P2 is of size (2p-1)x(2p-1). P2 is always real.
 %   R            1D isotropic autocorrelation function.
+%   R2           2D isotropic autocorrelation function.
 %   x            Distances at which the autocorrelction R was estimated.
 %
 % Yoel Shkolnisky and Mor Cohen, May 2011.
@@ -37,6 +38,8 @@ function [ P2,R,x ] = cryo_epsdS( imstack,samples_idx,max_d, verbose )
 % 2. Remove window_type. Always use bartlett window, as it has positive
 %    Fourier transform.
 % 3. Remove bias_flag. Not needed.
+%
+% Revised Y.S. March 3, 2016    Add R2 as output variable.
 
 
 if ~exist('verbose','var')
@@ -65,7 +68,10 @@ for i=-max_d:max_d
     for j=-max_d:max_d
         d=i*i+j*j;
         if d<=max_d*max_d
-            idx=bsearch(dsquare,d-1.0e-13,d+1.0e-13);
+            idx=bsearch(dsquare,d*(1-1.0e-13),d*(1+1.0e-13));
+            % Just subtracting/adding 1.0e-13 from d won't work since for
+            % d>1000 this addition/subtraction disappears due to loss of
+            % significant digits.
             if isempty(idx) || numel(idx)>1
                 error('Something went wrong');
             end
@@ -95,7 +101,13 @@ for j=1:size(imstack,3)
     E = E+ sum((im(samples_idx) - mean(im(samples_idx))).^2);
 end
 meanE=E./(numel(samples_idx)*size(imstack,3));  % Mean energy of the noise samples
-P2=(P2./norm(P2(:))).*sqrt(meanE); % Normalize P2 such that norm(P2(:))=meanE.
+P2=(P2./sum(P2(:))).*meanE.*numel(P2); 
+    % Normalize P2 such that its mean energy is preserved and is equal to
+    % meanE, that is, mean(P2(:))==meanE. That way the mean energy does not
+    % go down if the number of pixels is artifically changed (say be
+    % upsampling, downsampling, or cropping). Note that P2 is already in
+    % units of energy, and so the total energy is given by sum(P2(:)) and
+    % not by norm(P2(:)).
 
 % Check that P2 has no negative values.
 % Due to the truncation of the Gaussian window, we get small negative

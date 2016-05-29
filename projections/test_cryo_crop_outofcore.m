@@ -1,5 +1,5 @@
 function test_cryo_crop_outofcore
-
+%
 % Test the function cryo_crop_outofcore by comapring its output to
 % cryo_crop. Both functions shouls have the same output.
 %
