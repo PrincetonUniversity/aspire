@@ -19,7 +19,7 @@ function snr=cryo_estimate_snr(projs,prewhiten)
 if nargin==2
     if prewhiten
         psd = cryo_noise_estimation(projs);
-        prewhitened_projs = Prewhiten_image2d(projs, psd);
+        prewhitened_projs = cryo_prewhiten(projs, psd);
         projs=prewhitened_projs;
         clear prewhitened_projs;
     end

@@ -11,11 +11,11 @@ K=10000; % Number of noise images to generate.
 [noise,~,Sref]=noise_exp2d(p,K,1); % Generate a stack of noise images
 
 %% Estimate the power spectrum of the noise
-psd=Noise_Estimation(noise);
+psd=cryo_noise_estimation(noise);
 
 %% Prewhiten the images
-prewhitened_data = Prewhiten_image2d(noise, psd);
-psd_white=Noise_Estimation(prewhitened_data);
+prewhitened_data = cryo_prewhiten(noise, psd);
+psd_white=cryo_noise_estimation(prewhitened_data);
 
 %% Display results
 figure;

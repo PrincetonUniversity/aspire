@@ -1,8 +1,8 @@
 function [ P2,R,R2,x ] = cryo_epsdS( imstack,samples_idx,max_d, verbose )
 %
-% EPSDS Estimate the 2D isotropic power spectrum.
+% CRYO_EPSDS Estimate the 2D isotropic power spectrum.
 %
-% [ P2,R,x ] = cryo_epsdS( vol,samples_idx,max_d,biasflag, verbose )
+% [ P2,R,R2,x ] = cryo_epsdS( imstack,samples_idx,max_d, verbose )
 %   Estimate the 2D isotropic power spectrum of a given image stack imstack
 %   using in each image only the pixels given in samples_idx. Typically,
 %   samples_idx will correspond to the pixles in the image that are outside

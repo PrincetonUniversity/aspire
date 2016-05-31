@@ -31,7 +31,7 @@ cryo_crop_outofcore(instackname,outstackname,[nc nc])
 projs_cropped2=ReadMRC(outstackname);
 
 err=norm(projs_cropped1(:)-projs_cropped2(:)); % Should be zero.
-fprintf('diff between two cropping methods = %5.3e\n',err);
+fprintf('diff between two methods = %5.3e\n',err);
 if err<1.0e-14
     fprintf('test ok\n');
 else

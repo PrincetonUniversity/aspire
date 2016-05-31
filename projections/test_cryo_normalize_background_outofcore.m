@@ -1,7 +1,8 @@
-function test_cryo_downsample_outofcore
+function test_cryo_normalize_background_outofcore
 %
-% Test the function cryo_downsample_outofcore by comapring its output to
-% cryo_downsample. Both functions shouls have the same output.
+% Test the function cryo_normalized_backgorund_outofcore by comapring its
+% output to cryo_normalize_background. Both functions shouls have the same
+% output.
 %
 % Yoel Shkolnisky, May 2016.
 
@@ -25,20 +26,18 @@ projs=double(projs); % Although we read single precision numbers, cast to
     % cryo_normalize_background and cryo_normalize_background_outofcore to
     % have exactly the same roundoff error.
 
-n_downsampled=65; % Dimensions of the cropped image.
-
 % Downsample the images in-memory
-projs_downsampled1=cryo_downsample(projs,[n_downsampled n_downsampled],1);
-projs_downsampled1=single(projs_downsampled1); % The numbers in 
-    % cryo_downsample_outofcore are read below as single
+projs_normalized1=cryo_normalize_background(projs);
+projs_normalized1=single(projs_normalized1); % The numbers in 
+    % cryo_normalize_background_outofcore are read below as single
     % precision.
 
 % Downsample the images from an MRC file
 outstackname=tempname;
-cryo_downsample_outofcore(instackname,outstackname,[n_downsampled n_downsampled])
-projs_downsampled2=ReadMRC(outstackname);
+cryo_normalize_background_outofcore(instackname,outstackname)
+projs_normalized2=ReadMRC(outstackname);
 
-err=norm(projs_downsampled1(:)-projs_downsampled2(:)); % Should be zero.
+err=norm(projs_normalized1(:)-projs_normalized2(:));  % Should be zero.
 fprintf('diff between two methods = %5.3e\n',err);
 if err<1.0e-10
     fprintf('test ok\n');

@@ -30,7 +30,7 @@ title(sprintf('Central profile of power spectra (K=%d)',Ks));
 
 
 % Prewhiten
-prewhitened=Prewhiten_image2d(noise, P2);
+prewhitened=cryo_prewhiten(noise, P2);
 [prewhitenedP2,~,~,~]=cryo_epsdS(prewhitened,1:N^2,max_d,1);
 
 subplot(2,2,2)

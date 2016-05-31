@@ -25,8 +25,11 @@ matname=fullfile(workflow.info.working_dir,'preprocess_info'); % mat file
 % Load data
 nprojs=str2double(workflow.preprocess.nprojs);
 log_message('Loading data %d projections from %s',nprojs,workflow.info.rawdata);
-projs=ReadMRC(workflow.info.rawdata,1,nprojs);
-szprojs=size(projs);
+%projs=ReadMRC(workflow.info.rawdata,1,nprojs);
+%szprojs=size(projs);
+
+rawdataReader=imagestackReader(workflow.info.rawdata);
+szprojs=rawdataReader.dim;
 if szprojs(1)~=szprojs(2)
     error('Input projections must be square.')
 end
@@ -41,51 +44,86 @@ if str2double(workflow.preprocess.phaseflip)
     log_message('Reading CTF data %s',workflow.preprocess.ctfdata);
     CTFdata=readSTAR(workflow.preprocess.ctfdata);
     log_message('Phaseflipping');
-    PFprojs=cryo_phaseflip(CTFdata,projs);
+    %PFprojs=cryo_phaseflip(CTFdata,projs);
+    PFfname=tempname; %PF stands for phaseflipped
+    log_message('Using temporary file %s',PFfname);
+    cryo_phaseflip_outofcore(CTFdata,workflow.info.rawdata,PFfname);
 else
     log_message('Skipping phaseflip');
-    PFprojs=projs;
+    %PFprojs=projs;
+    PFfname=workflow.info.rawdata; % No phaseflip so continute with the raw data file.
 end
-clear projs
+
+%PFprojs=ReadMRC(PFfname);
+%clear projs
 
 % Crop
 if str2double(workflow.preprocess.do_crop)
     croppeddim=str2double(workflow.preprocess.croppeddim);
     log_message('Cropping to %dx%d',croppeddim, croppeddim);
-    PFCprojs=cryo_crop(PFprojs,[croppeddim croppeddim],1); 
+    % PFCprojs=cryo_crop(PFprojs,[croppeddim croppeddim],1); 
+    PFCfname=tempname; % PFC stands for phaseflipped+cropped
+    log_message('Using temporary file %s',PFCfname);
+    cryo_crop_outofcore(PFname,PFCfname,[croppeddim croppeddim])
+    
+    delete(PFname);
 else
     log_message('Skipping cropping');
-    PFCprojs=PFprojs;
+    %PFCprojs=PFprojs;
+    PFCfname=PFfname;
 end
-clear FPprojs
+%clear FPprojs
 
 % Downsample
 pixelscaling=1; % How much pixel size is changed due to downsampling.
 if str2double(workflow.preprocess.do_downsample)
     downsampleddim=str2double(workflow.preprocess.downsampleddim);
     log_message('Downsampling to %dx%d',downsampleddim, downsampleddim);
-    PFDprojs=cryo_downsample(PFCprojs,[downsampleddim downsampleddim],1); 
-    pixelscaling=size(PFCprojs,1)/downsampleddim;
+    %PFDprojs=cryo_downsample(PFCprojs,[downsampleddim downsampleddim],1); 
+    PFCDfname=tempname; %PFCD stands for phaseflipped+cropped+downsampled
+    log_message('Using temporary file %s',PFCDfname);
+    cryo_downsample_outofcore(PFCfname,PFCDfname,[downsampleddim downsampleddim]);
+    
+    PFCReader=imagestackReader(PFCfname);
+    originaldim=PFCReader.dim(1);
+    pixelscaling=originaldim/downsampleddim;
+    
+    delete(PFCfname)
 else
     log_message('Skipping downsampling');
-    PFDprojs=PFCprojs;
+    %PFDprojs=PFCprojs;
+    PFCDfname=PFCfname;
 end
-clear PFCprojs
+%clear PFCprojs
 
 % Normalize images
 if str2double(workflow.preprocess.do_normalize)
     log_message('Normalize background');
-    n=size(PFDprojs,1);
-    PFDprojs=cryo_normalize_background(PFDprojs,round(n/2)-10);
+    % n=size(PFDprojs,1);
+    % PFDprojs=cryo_normalize_background(PFDprojs,round(n/2)-10);
+
+    PFCDReader=imagestackReader(PFCDfname);
+    n=PFCDReader.dim(1);
+    PFCDNfname=tempname; % phaseflipped+cropped+downsampled+normalized
+    log_message('Using temporary file %s',PFCDNfname);
+    cryo_normalize_background_outofcore(PFCDfname,PFCDNfname,round(n/2)-10);
+    
+    delete(PFCDfname);
+else
+    log_message('Skipping background normaliztion.');
+    PFCDNfname=PFCDfname;
 end
 
 % Prewhiten
 if str2double(workflow.preprocess.do_prewhiten)
     % Estimate noise PSD and prewhiten
     log_message('Estimating noise power spectrum');     
-    n=size(PFDprojs,1);
+    % n=size(PFDprojs,1);
+    PFCDNReader=imagestackReader(PFCDNfname);
+    n=PFCDNReader.dim(1);
     log_message('Each projection of size %dx%d',n,n);
-    psd = cryo_noise_estimation(PFDprojs);
+    %psd = cryo_noise_estimation(PFDprojs);
+    psd = cryo_noise_estimation_outofcore(PFCDNfname);
     log_message('Finished noise power spectrum estimation');    
 
     save(matname,'psd'); % Save the estimated PSD.
@@ -101,16 +139,22 @@ if str2double(workflow.preprocess.do_prewhiten)
     
     
     log_message('Prewhitening images');
-    prewhitened_projs = Prewhiten_image2d(PFDprojs, psd);
-    fname=sprintf('phaseflipped_downsampled_prewhitened.mrc');
-    WriteMRC(single(prewhitened_projs),1,fullfile(workflow.info.working_dir,fname));
+    %prewhitened_projs = Prewhiten_image2d(PFDprojs, psd);
+    %fname=sprintf('phaseflipped_downsampled_prewhitened.mrc');
+    %WriteMRC(single(prewhitened_projs),1,fullfile(workflow.info.working_dir,fname));
+
+    PFCDNWfname=tempname;
+        % phaseflipped+cropped+downsampled+normalized+whitened
+    log_message('Using temporary file %s',PFCDNWfname);
+    cryo_prewhiten_outofcore(PFCDNfname,PFCDNWfname,psd);
     log_message('Finished prewhitening images');
     
     % Compute power spectrum of the prewhitened images - just to verification
     % Normalize projections to norm 1
     log_message('Compute power spectrum of prewhitened projections - for verifying that power spectrum is white');
     
-    psd_white=cryo_noise_estimation(prewhitened_projs);
+    %psd_white=cryo_noise_estimation(prewhitened_projs);
+    psd_white = cryo_noise_estimation_outofcore(PFCDNWfname);
     
     h=figure;
     plot(psd_white(n,:));
@@ -120,22 +164,30 @@ if str2double(workflow.preprocess.do_prewhiten)
     hgsave(psdFIGname);
     print('-depsc',psdEPSname);
     close(h);
+    
+    delete(PFCDNfname);
 
 else
-    prewhitened_projs=PFDprojs;
+    PFCDNWfname=PFCDNfname;
 end
 
-clear PFDprojs
+%clear PFDprojs
 
 % Global phase flip
-[prewhitened_projs,doflip]=cryo_globalphaseflip(prewhitened_projs);
+%[prewhitened_projs,doflip]=cryo_globalphaseflip(prewhitened_projs);
+fname=sprintf('phaseflipped_downsampled_prewhitened.mrc');
+PFCDNWGfname=fullfile(workflow.info.working_dir,fname);
+doflip=cryo_globalphaseflip_outofcore(PFCDNWfname ,PFCDNWGfname);
+
 if doflip
     log_message('Applying global phase flip');
 end
 
-
+% XXX
 % Split into groups
-K=size(prewhitened_projs,3);
+PFCDNWGReader=imagestackReader(PFCDNWGfname);
+K=PFCDNWGReader.dim(3);
+%K=size(prewhitened_projs,3);
 shuffleidx=1:K;
 if fieldexist(workflow,'preprocess','do_shuffle') && ...
         str2double(workflow.preprocess.do_shuffle)==1
@@ -156,9 +208,15 @@ K2=floor(K/numgroups);
 for groupid=1:numgroups
     fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrc',groupid);
     fullfilename=fullfile(workflow.info.working_dir,fname);
-    log_message('Saving group %d',groupid);
-    WriteMRC(single(prewhitened_projs(:,:,shuffleidx((groupid-1)*K2+1:groupid*K2))),1,fullfilename);
+    log_message('Saving group %d',groupid);    
+    %WriteMRC(single(prewhitened_projs(:,:,shuffleidx((groupid-1)*K2+1:groupid*K2))),1,fullfilename);
     
+    groupstack=imagestackWriter(fullfilename,1,K2);
+    for k=1:K2
+        proj=PFCDNWGReader.getImage((groupid-1)*K2+k);
+        groupstack.append(proj);
+    end
+    groupstack.close;
     % Write indices of the raw images in this group
     fname=sprintf('raw_indices_group%d.mrc',groupid);
     fullfilename=fullfile(workflow.info.working_dir,fname);
@@ -268,7 +326,7 @@ for groupid=1:numgroups
         
     end
 end
-clear prewhitened_projs
+%clear prewhitened_projs
 
 log_message('Workflow file: %s',workflow_fname);
 log_message('Use this file name when calling subsequent funtions.');

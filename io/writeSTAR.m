@@ -12,7 +12,11 @@ function writeSTAR(datablock,fname)
 
 % Open file for writing.
 if exist(fname,'file')==2
-    error('File %s exists. Delete it manually.',fname);
+    [pathstr,name,ext]=fileparts(fname);
+    name=sprintf('%s_sav',name);
+    bakname=fullfile(pathstr,[name ext]);
+    copyfile(fname,bakname);
+    log_message('File %s alreadey exists. Moving it to %s',fname,bakname);    
 end
 
 fid=fopen(fname,'w');

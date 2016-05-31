@@ -1,45 +1,22 @@
-function [R,x,cnt]=cryo_epsdR(vol,samples_idx,max_d,verbose)
-% CRYO_EPSDR  Estimate the 1D isotropic autocorrelation of an image stack.
+function [R,x,cnt]=cryo_epsdR_outofcore(instackname,samples_idx,max_d,verbose)
+% CRYO_EPSDR_OUTOFCORE  Estimate the 1D isotropic autocorrelation of an image stack.
 %
-% [R,x,cnt]=cryo_epsdR(vol,samples_idx,max_d,verbose)
-%   Estimate the 1D isotropic autocorrelation function of a stack of
-%   images. The samples to use in each image are given in samples_idx. The
-%   correlation is computed up to a maximal distance of max_d.
+% [R,x,cnt]=cryo_epsdRoutof(vol,samples_idx,max_d,verbose)
+%   Estimate the 1D isotropic autocorrelation function of the stack of
+%   images in the MRC file instackname. The samples to use in each image
+%   are given in samples_idx. The correlation is computed up to a maximal
+%   distance of max_d.
+%   See cryo_epsdR for more information.
 %
-% Inputs parameters:
-%    vol          Stack of square pxp images.
-%    samples_idx  List of pixel indices to use for autocorrelation
-%                 estimation.
-%    max_d        Correlations are computed up to a maximal distance of
-%                 max_d pixels. Default p-1.
-%    verbose   Set to nonzero to print progress messages. Default 0.
-%
-% Output parameters:
-%    R    1D vector with samples of the isotropic autocorrelation function.
-%    x    Distaces at which the samples of the autocorrelation function are
-%         given. A vector of the same length as R.
-%    cnt  Number of autocorrelation samples available for each distance.
-%
-% Other m-files required: none
-% Subfunctions: none
-% MAT-files required: none
-%
-% Yoel Shkolnisky, October 2014.
+% Yoel Shkolnisky, May 2015.
 
-
-p=size(vol,1);
-if size(vol,2)~=p
+instack=imagestackReader(instackname);
+p=instack.dim(1);
+if instack.dim(2)~=p
     error('vol must be a stack of square images');
 end
 
-if ndims(vol)>3
-    error('vol must be a 3D array');
-end
-
-K=1;
-if ndims(vol)==3
-    K=size(vol,3);
-end
+K=instack.dim(3);
 
 if ~exist('max_d','var')
     max_d=p-1; % Do not compute correlations between pixels that are more 
@@ -131,7 +108,7 @@ for k=1:K
         end
     end        
     
-    proj=vol(:,:,k);
+    proj=instack.getImage(k);
 
     % Mask all pixels that are not used to autocorrelation estimation.
     samples=zeros(p);

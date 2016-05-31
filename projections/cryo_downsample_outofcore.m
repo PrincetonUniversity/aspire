@@ -1,4 +1,4 @@
-function cryo_downsample_outofcore(instackname,outstackname,szout)
+function cryo_downsample_outofcore(instackname,outstackname,szout,verbose)
 % CRYO_DOWNSAMPLE_OUTOFCORE      Downsample projections
 %
 % cryo_downsample_outofcore(instackname,outstackname,szout)
@@ -13,13 +13,21 @@ function cryo_downsample_outofcore(instackname,outstackname,szout)
 %
 % Yoel Shkolnisky, May 2016.
 
+if nargin<4
+    verbose=1;
+end
+
 instack=imagestackReader(instackname,100);
 Nprojs=instack.dim(3);
 outstack=imagestackWriter(outstackname,1,Nprojs,100);
 
-%printProgressBarHeader;
+if verbose
+    printProgressBarHeader;
+end
 for k=1:Nprojs
-%    progressTic(k,Nprojs);
+    if verbose
+        progressTicFor(k,Nprojs);
+    end
     im=instack.getImage(k);    
     downsampled_im=cryo_downsample(im,szout,0);  % We are downsampling a 
         % single image so set the stack flag to 0.
