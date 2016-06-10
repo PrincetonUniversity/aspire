@@ -214,7 +214,8 @@ end
 
 shift_equations=sparse(shift_I,shift_J,shift_eq,Nequations,2*n_projs);
 shift_equations=[shift_equations shift_b(1:shift_equation_idx)];
-est_shifts=shift_equations(:,1:end-1)\shift_equations(:,end);
+%est_shifts=shift_equations(:,1:end-1)\shift_equations(:,end);
+est_shifts=lsqr(shift_equations(:,1:end-1),shift_equations(:,end),1.0e-8,100);
 est_shifts=full(transpose(reshape(est_shifts,2,n_projs)));
 
 if ~isscalar(shifts_2d_ref) 
