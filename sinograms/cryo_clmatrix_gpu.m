@@ -503,13 +503,18 @@ for k1=1:n_proj;
         g_C1=2*real(g_P1_stack'*g_P2);
         g_C2=2*real(g_P1_flipped_stack'*g_P2);
         
-        [g_sval1,g_sidx1]=max(g_C1(:));
-        [g_sval2,g_sidx2]=max(g_C2(:));
-        sval1=gather(g_sval1);
-        sval2=gather(g_sval2);
-        sidx1=gather(g_sidx1);
-        sidx2=gather(g_sidx2);
-        
+        g_C=[g_C1 g_C2];
+        [g_sval,g_sidx]=max(g_C(:));
+        sval=gather(g_sval);
+        sidx=gather(g_sidx);
+                        
+        [cl1,sidx,cl2]=ind2sub([n_theta n_shifts 2*n_theta],sidx);
+        clstack(k1,k2)=cl1;
+        clstack(k2,k1)=cl2;
+        corrstack(k1,k2)=sval;
+        shift=-max_shift+(sidx-1)*shift_step;
+        shifts_1d(k1,k2)=shift;
+        improved_correlation=1;
 
 % Optimized CPU version. Uncommet to use on CPU:
 %         C1=2*real(P1_stack'*P2);
@@ -518,27 +523,32 @@ for k1=1:n_proj;
 %         [sval1,sidx1]=max(C1(:));
 %         [sval2,sidx2]=max(C2(:));
 
-        if sval1>sval2
-            [cl1,sidx,cl2]=ind2sub([n_theta n_shifts n_theta],sidx1);
-            clstack(k1,k2)=cl1;
-            clstack(k2,k1)=cl2;
-            corrstack(k1,k2)=sval1;
-            shift=-max_shift+(sidx-1)*shift_step;
-            shifts_1d(k1,k2)=shift;
-            improved_correlation=1;
-        else
-            [cl1,sidx,cl2]=ind2sub([n_theta n_shifts n_theta],sidx2);
-            clstack(k1,k2)=cl1;
-            clstack(k2,k1)=cl2+n_theta;
-            corrstack(k1,k2)=sval2;
-            shift=-max_shift+(sidx-1)*shift_step;
-            shifts_1d(k1,k2)=shift;
-            improved_correlation=1;
-        end
-        
-        
-
-        
+% The above GPU code is a compact version of the following one.            
+%         [g_sval1,g_sidx1]=max(g_C1(:));
+%         [g_sval2,g_sidx2]=max(g_C2(:));
+%         sval1=gather(g_sval1);
+%         sval2=gather(g_sval2);
+%         sidx1=gather(g_sidx1);
+%         sidx2=gather(g_sidx2);
+%         
+%         if sval1>sval2
+%             [cl1,sidx,cl2]=ind2sub([n_theta n_shifts n_theta],sidx1);
+%             clstack(k1,k2)=cl1;
+%             clstack(k2,k1)=cl2;
+%             corrstack(k1,k2)=sval1;
+%             shift=-max_shift+(sidx-1)*shift_step;
+%             shifts_1d(k1,k2)=shift;
+%             improved_correlation=1;
+%         else
+%             [cl1,sidx,cl2]=ind2sub([n_theta n_shifts n_theta],sidx2);
+%             clstack(k1,k2)=cl1;
+%             clstack(k2,k1)=cl2+n_theta;
+%             corrstack(k1,k2)=sval2;
+%             shift=-max_shift+(sidx-1)*shift_step;
+%             shifts_1d(k1,k2)=shift;
+%             improved_correlation=1;
+%         end
+                       
         t2=clock;
         t=etime(t2,t1);
 

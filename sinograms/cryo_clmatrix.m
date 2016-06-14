@@ -368,32 +368,58 @@ for k1=1:n_proj;
             % Compute correlations in the negative r direction
             C2=2*real(P1_shifted_flipped'*P2);
                         
-            % The best match is the maximum among C1 and C2.
-            [sval1,sidx1]=max(C1(:));
-            [sval2,sidx2]=max(C2(:));
-                                      
+            
+            C = [C1,C2];
+%             if keep_maps && shift == 0
+%                 similarities_maps(:,:,pair_idx) = C;
+%             end
+%             
+%             if avg > 0
+%                 C = map_averages(C, avg, 1);
+%             end
+            
+            [sval,sidx]=max(C(:));            
+           
             improved_correlation=0; % Indicates that we found a better 
                 % correlation than previously known.
             
-            if sval1>sval2
-                if sval1>corrstack(k1,k2)
-                    [cl1,cl2]=ind2sub([n_theta n_theta],sidx1);
-                    clstack(k1,k2)=cl1;
-                    clstack(k2,k1)=cl2;
-                    corrstack(k1,k2)=sval1;
-                    shifts_1d(k1,k2)=shift;
-                    improved_correlation=1;
-                end
-            else
-                if sval2>corrstack(k1,k2)
-                    [cl1,cl2]=ind2sub([n_theta n_theta],sidx2);
-                    clstack(k1,k2)=cl1;
-                    clstack(k2,k1)=cl2+n_theta;
-                    corrstack(k1,k2)=sval2;
-                    shifts_1d(k1,k2)=shift;
-                    improved_correlation=1;
-                end
+            if sval>corrstack(k1,k2)
+                [cl1,cl2]=ind2sub([n_theta 2*n_theta],sidx);
+                clstack(k1,k2)=cl1;
+                clstack(k2,k1)=cl2;
+                corrstack(k1,k2)=sval;
+                shifts_1d(k1,k2)=shift;
+                improved_correlation=1;
             end
+            
+            
+% The above code is a compact version of the following one.            
+%             % The best match is the maximum among C1 and C2.
+%             [sval1,sidx1]=max(C1(:));
+%             [sval2,sidx2]=max(C2(:));
+%                                       
+%             improved_correlation=0; % Indicates that we found a better 
+%                 % correlation than previously known.
+%             
+%             if sval1>sval2
+%                 if sval1>corrstack(k1,k2)
+%                     [cl1,cl2]=ind2sub([n_theta n_theta],sidx1);
+%                     clstack(k1,k2)=cl1;
+%                     clstack(k2,k1)=cl2;
+%                     corrstack(k1,k2)=sval1;
+%                     shifts_1d(k1,k2)=shift;
+%                     improved_correlation=1;
+%                 end
+%             else
+%                 if sval2>corrstack(k1,k2)
+%                     [cl1,cl2]=ind2sub([n_theta n_theta],sidx2);
+%                     clstack(k1,k2)=cl1;
+%                     clstack(k2,k1)=cl2+n_theta;
+%                     corrstack(k1,k2)=sval2;
+%                     shifts_1d(k1,k2)=shift;
+%                     improved_correlation=1;
+%                 end
+%             end
             
             if verbose_detailed_debugging && found_ref_clmatrix && found_ref_shifts
                 % Compute and store the correlation between the true
