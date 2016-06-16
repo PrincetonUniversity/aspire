@@ -1,5 +1,5 @@
 function [clstack,corrstack,shift_equations,shift_equations_map,clstack_mask]=...
-    cryo_clmatrix_gpu(pf,NK,verbose,max_shift,shift_step,...
+    cryo_clmatrix_gpu(pf,NK,verbose,max_shift,shift_step,map_filter_radius,...
     ref_clmatrix,ref_shifts_2d)
 %
 %
@@ -29,6 +29,11 @@ function [clstack,corrstack,shift_equations,shift_equations_map,clstack_mask]=..
 %       common-lines. Default: 15.
 %   shift_step      Resolution of shift estimation in pixels. Note that
 %        shift_step can be any positive real number. Default: 1.
+%   map_filter_radius      If nonzero, the common line between a pair
+%       images is detected not by the pair of lines with the highest 
+%       correlation, but rather the pair of lines that both them and their
+%       sorroundings given the best match. The radius for comparison is
+%       determined by the value of map_filter_radius (Default 0).
 %   ref_clmatrix    True common-lines matrix (for debugging).
 %   ref_shifts_2d   True 2D shifts between projections (for debugging).
 %
@@ -141,27 +146,46 @@ if (nargin<2) || (NK==-1)
     NK=n_proj; % Number of common-line pairs to compute for each projection
 end
 
-if nargin<3
+if ~exist('verbose','var');
     verbose=1;
 end
 
-if nargin<4
+if ~exist('max_shift','var');
     max_shift=15; % Maximal shift between common-lines in pixels. The 
                   % shift  is from -max_shift to max_shift. 
 end
 
-if nargin<5
+if ~exist('shift_step','var');
     shift_step=1.0; % Resolution of shift estimation in pixels.
 end
 n_shifts=ceil(2*max_shift/shift_step+1); % Number of shifts to try.
 
-if nargin<6
+if ~exist('map_filter_radius','var')
+    map_filter_radius=0;
+else
+    % Prepare mask to be applied
+    W0 = 1.25.^(21:-1:1);
+    d=map_filter_radius;
+    W0 = W0(1:(1+2*d));
+    W = W0 ( 1 + kron(abs(-d:d),ones(2*d+1,1)) + kron(abs(-d:d)',ones(1,2*d+1)) );
+    W=conj(fft2(W,2*n_theta,2*n_theta));
+    
+    if strcmpi(PRECISION,'single')
+        gW=single(gpuArray(W));
+    else
+        gW=gpuArray(W);
+    end
+
+end
+
+if ~exist('ref_clmatrix','var') || isempty(ref_clmatrix)
     ref_clmatrix=0;
 end
 
-if nargin<7
+if ~exist('ref_shifts_2d','var') || isempty(ref_shifts_2d)
     ref_shifts_2d=0;
 end
+
 
 % Set flag for progress and debug messages
 verbose_progress=0;
@@ -260,7 +284,11 @@ dtheta=pi/n_theta; % Not 2*pi/n_theta, since we divided n_theta by 2 to
 if verbose>0
     log_message('Shift estimation parameters: max_shift=%d   shift_step=%d',max_shift,shift_step);
 end
-                                                       
+
+if verbose>0
+    log_message('map_filter_radius = %d',map_filter_radius);
+end
+
 
 %% Debugging handles and variables
 
@@ -504,6 +532,22 @@ for k1=1:n_proj;
         g_C2=2*real(g_P1_flipped_stack'*g_P2);
         
         g_C=[g_C1 g_C2];
+        
+        L=n_theta;
+        d=map_filter_radius;
+        if map_filter_radius > 0
+            for k=1:n_shifts
+%               g_C((k-1)*n_theta+1:k*n_theta,:)=cryo_average_clmap_gpu(g_C((k-1)*n_theta+1:k*n_theta,:), map_filter_radius);
+
+                tmp=[g_C((k-1)*n_theta+1:k*n_theta,:); g_C((k-1)*n_theta+1:k*n_theta,[L+1:2*L,1:L])];
+                tmp = ifft2(fft2(tmp).*gW); % Apply averaging to map.
+                % take half map
+                avg_map = tmp([2*L+1-d:2*L,1:L-d],[2*L+1-d:2*L,1:2*L-d]);
+                g_C((k-1)*n_theta+1:k*n_theta,:)=avg_map;
+            end
+        end
+        
+
         [g_sval,g_sidx]=max(g_C(:));
         sval=gather(g_sval);
         sidx=gather(g_sidx);

@@ -1,5 +1,5 @@
 function [clstack,corrstack,shift_equations,shift_equations_map,clstack_mask]=...
-    cryo_clmatrix(pf,NK,verbose,max_shift,shift_step,...
+    cryo_clmatrix(pf,NK,verbose,max_shift,shift_step,map_filter_radius,...
     ref_clmatrix,ref_shifts_2d)
 %
 %
@@ -21,6 +21,11 @@ function [clstack,corrstack,shift_equations,shift_equations_map,clstack_mask]=..
 %       common-lines. Default: 15.
 %   shift_step      Resolution of shift estimation in pixels. Note that
 %        shift_step can be any positive real number. Default: 1.
+%   map_filter_radius      If nonzero, the common line between a pair
+%       images is detected not by the pair of lines with the highest 
+%       correlation, but rather the pair of lines that both them and their
+%       sorroundings given the best match. The radius for comparison is
+%       determined by the value of map_filter_radius (Default 0).
 %   ref_clmatrix    True common-lines matrix (for debugging).
 %   ref_shifts_2d   True 2D shifts between projections (for debugging).
 %
@@ -119,27 +124,32 @@ if (nargin<2) || (NK==-1)
     NK=n_proj; % Number of common-line pairs to compute for each projection
 end
 
-if nargin<3
+if ~exist('verbose','var');
     verbose=1;
 end
 
-if nargin<4
+if ~exist('max_shift','var');
     max_shift=15; % Maximal shift between common-lines in pixels. The 
                   % shift  is from -max_shift to max_shift. 
 end
 
-if nargin<5
+if ~exist('shift_step','var');
     shift_step=1.0; % Resolution of shift estimation in pixels.
 end
 n_shifts=ceil(2*max_shift/shift_step+1); % Number of shifts to try.
 
-if nargin<6
+if ~exist('map_filter_radius','var')
+    map_filter_radius=0;
+end
+
+if ~exist('ref_clmatrix','var') || isempty(ref_clmatrix)
     ref_clmatrix=0;
 end
 
-if nargin<7
+if ~exist('ref_shifts_2d','var') || isempty(ref_shifts_2d)
     ref_shifts_2d=0;
 end
+
 
 % Set flag for progress and debug messages
 verbose_progress=0;
@@ -155,16 +165,16 @@ found_ref_clmatrix=0;
 if ~isscalar(ref_clmatrix) 
     found_ref_clmatrix=1;
 else
-    if verbose~=0
+    if verbose>0 
         log_message('Reference clmatrix not found');
-    end    
+    end
 end
 
 found_ref_shifts=0;
 if ~isscalar(ref_shifts_2d)
     found_ref_shifts=1;
 else
-    if verbose~=0
+    if verbose>0
         log_message('Reference shifts not found');
     end
 end
@@ -234,11 +244,14 @@ shift_b=zeros(n_proj*(n_proj-1)/2,1);   % Right hand side of the system.
 dtheta=pi/n_theta; % Not 2*pi/n_theta, since we divided n_theta by 2 to 
     % take rays of length 2*n_r-1.
                                       
-
-if verbose~=0       
+if verbose>0
     log_message('Shift estimation parameters: max_shift=%d   shift_step=%d',max_shift,shift_step);
 end
-                                                       
+
+if verbose>0
+    log_message('map_filter_radius = %d',map_filter_radius);
+end
+
 
 %% Debugging handles and variables
 
@@ -370,13 +383,10 @@ for k1=1:n_proj;
                         
             
             C = [C1,C2];
-%             if keep_maps && shift == 0
-%                 similarities_maps(:,:,pair_idx) = C;
-%             end
-%             
-%             if avg > 0
-%                 C = map_averages(C, avg, 1);
-%             end
+   
+            if map_filter_radius > 0
+                C = cryo_average_clmap(C, map_filter_radius);
+            end
             
             [sval,sidx]=max(C(:));            
            
