@@ -42,7 +42,7 @@ for groupid=1:numgroups
     if ~exist(tmpdir,'dir')
         mkdir(tmpdir);
     end
-    delete(fullfile(tmpdir,'*'));
+    delete(fullfile(tmpdir,'*')); % Delete any leftovers from the temp directory
 
     list_recon=1:prewhitened_projs.dim(3);
     [ shifts, corr, unsortedaveragesfname, norm_variance ] = align_main(prewhitened_projs,...
@@ -103,6 +103,8 @@ for groupid=1:numgroups
     save(fullfile(workflow.info.working_dir,reloadname),...
         'shifts','corr','norm_variance','classcoreidx','VDM_angles',...
         'class_VDM', 'class_VDM_refl','doflip');
+    
+    delete(fullfile(tmpdir,'*')); % Clean the temp directory.
 %     
 %     % Compute effetive CTF of each average
 %     fname=sprintf('ctfs_group%d.star',groupid);
