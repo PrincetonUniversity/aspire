@@ -1,5 +1,8 @@
 % Print a table of detection rates using cryo_clmatrix_gpu
 %
+% The function demonstrates the effectiveness of correlation map averaging
+% for high levels of noise.
+%
 % Yoel Shkolnisky, June 2016.
 clear;
 fprintf('Commonline detection rates.\n');
