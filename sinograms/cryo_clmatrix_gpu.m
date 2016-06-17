@@ -541,7 +541,9 @@ for k1=1:n_proj;
 
                 tmp=[g_C((k-1)*n_theta+1:k*n_theta,:); g_C((k-1)*n_theta+1:k*n_theta,[L+1:2*L,1:L])];
                 tmp = ifft2(fft2(tmp).*gW); % Apply averaging to map.
-                % take half map
+                
+                % See cryo_average_clmap for an explanation of the next
+                % line.
                 avg_map = tmp([2*L+1-d:2*L,1:L-d],[2*L+1-d:2*L,1:2*L-d]);
                 g_C((k-1)*n_theta+1:k*n_theta,:)=avg_map;
             end

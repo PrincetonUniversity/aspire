@@ -34,7 +34,17 @@ avg_map = ifft2(...
     fft2(map) .* conj(fft2(W,size(map,1),size(map,2))) ...
     );
 
-% take half map
+% Reshape map.
+% Currently, every pixel is the average of a square, where the pixel is
+% the upper-left corner of the square. We want to shift the pixels by d
+% to the center of the corresponding squares.
+% this turns into:
+%   [ avg_map(2L+1-d:2L,2L+1-d:2L) , avg_map(2L+1-d:2L,1:2L-d) ;
+%   avg_map(1:2L-d,2L+1-d:2L) , avg_map(1:2L-d,1:2L-d) ]
+%   or equivalently:
+% avg_map( [ 2L+1-d:2L , 1:2L-d ] , [ 2L+1-d:2L , 1:2L-d ] ).
+% We only need Lx2L of of the current LxL map. This turns into
+% avg_map(1:L,1:2*L). together, we have:
 avg_map = avg_map([2*L+1-d:2*L,1:L-d],[2*L+1-d:2*L,1:2*L-d]);
 
 end
