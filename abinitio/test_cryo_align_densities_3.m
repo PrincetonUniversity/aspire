@@ -4,6 +4,7 @@
 % the other, in the presence of noise.
 %
 % Yoel Shkolnisky, January 2015.
+% Revised: July 2016.
 
 initstate;
 
@@ -11,7 +12,7 @@ initstate;
 
 load cleanrib
 vol=real(volref);
-vol=GaussFilt3(vol,0.8);
+vol=GaussFilt(vol,0.8);
 
 [R,~,~]=svd(rand(3)); % Generate random rotation
 volRotated=fastrotate3d(vol,R); % Rotate the reference volume by the random rotation
@@ -22,7 +23,7 @@ volRotated=volRotated/norm(volRotated(:));
 
 h=figure;
 
-SNRs=[100,1,1/2,1/4,1/8,1/16 1/32 1/64].';
+SNRs=[100,1,1/2,1/4,1/8,1/16 1/32 1/64 1/128 1/256].';
 corrsNoisy=zeros(numel(SNRs),1);
 corrsClean=zeros(numel(SNRs),1);
 
@@ -45,7 +46,7 @@ for snridx=1:numel(SNRs)
     %% Align
     verbose=1;
 
-    [Rest,estdx,volAlignedNoisy]=cryo_align_densities(volNoisy,volRotatedNoisy,0,verbose,R);
+    [Rest,estdx,volAlignedNoisy]=cryo_align_densities(volNoisy,volRotatedNoisy,0,verbose,R,0,50);
 
     % Correlation of noisy volumes after alignment
     c1=corr(vol(:),volAlignedNoisy(:));
@@ -71,5 +72,5 @@ for snridx=1:numel(SNRs)
     plotFSC(vol,volAligned,0.5,1,h);
     
 end
-
-disp([SNRs corrsNoisy corrsClean]);
+fprintf('     1/SNR  corrNoisy  corrClean\n');
+disp([1./SNRs corrsNoisy corrsClean]);

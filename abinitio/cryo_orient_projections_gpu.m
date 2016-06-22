@@ -1,10 +1,29 @@
-function [Rests,dxs]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs,silent)
-% CRYO_ORIENT_PROJECTION Find the orientation of a given projection
+function [Rests,dxs]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs,verbose,preprocess)
+% CRYO_ORIENT_PROJECTION Find the orientation of a projection image.
 %
-% R=cryo_orient_projection(proj,vol) 
-%   Given and projection proj and a volume vol, estimate the orientation of
-%   the projection in the volume. Returns the estimated orientation R.
-%   Set silent to 1 to supress screen printouts.
+% [Rests,dxs]=cryo_orient_projection(proj,vol) 
+%   Given a stack of projections projs and a volume vol, estimate the
+%   orientation of each projection in the stack. That is, estimate the
+%   orientations in which we need to project vol to get projs.
+%   the projection in the volume. Returns the estimated orientations Rest
+%   and the translation dxs.
+%
+% [Rests,dxs]=cryo_orient_projections_gpu(projs,vol,Nrefs)
+%   The function estimates the orientation parameters of the projections
+%   projs using their common lines with Nrefs reference projections of vol.
+%   By default, Nrefs is 1.5 times the dimension of vol.
+%
+% [Rests,dxs]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs)
+%   Provide the true rotations trueRs for debugging. Use empty array ([])
+%   to ignore this parameter.
+%
+% [Rests,dxs]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs,verbose)
+%   Set verbose to 0 to supress screen printouts (default is 1).
+%
+% [Rests,dxs]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs,verbose,preprocess)
+%   If preprocess is nonzero (default is 1) the projections and volme are
+%   preprocessed. See cryo_orient_projections_auxpreprocess for details of
+%   the preprocessing.
 %
 % To do:
 %   1. Normalize rays properly (remove DC).
@@ -12,10 +31,11 @@ function [Rests,dxs]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs,silent)
 %   3. What correlation  should we expect as a function of SNR?
 %
 % Yoel Shkolnisky, August 2015.
+% Revised: Yoel Shkolnisky, June 2016.
 
 if ~exist('Nrefs','var') || isempty(Nrefs)
-    Nrefs=100; % Default number of references to use to orient the given 
-               % pojection.
+    Nrefs=-1; % Default number of references to use to orient the given 
+               % projection is set below.
 end
 
 if ~exist('trueRs','var') || isempty(trueRs)
@@ -23,7 +43,7 @@ if ~exist('trueRs','var') || isempty(trueRs)
 end
 
 if size(projs,1)~=size(projs,2)
-    error('Projection to orient must be square.');
+    error('Projections to orient must be square.');
 end
 
 szvol=size(vol);
@@ -31,14 +51,29 @@ if any(szvol-szvol(1))
     error('Volume must have all dimensions equal');
 end
 
-if ~exist('silent','var')
-    silent=0;
+if ~exist('verbose','var')
+    verbose=1;
 end
 
-currentsilentmode=log_silent(silent);
+currentsilentmode=log_silent(verbose==0);
 
 % Preprocess projections and referece volume.
-[vol,projs]=cryo_orient_projecions_auxpreprocess(vol,projs);
+if ~exist('preprocess','var')
+    preprocess=1; % Default is to apply preprocessing
+end
+
+if preprocess
+    log_message('Preprocessing volume and projections');
+    [vol,projs]=cryo_orient_projections_auxpreprocess(vol,projs);
+else
+    log_message('Skipping preprocessing of volume and projections');
+end
+
+szvol=size(vol); % The dimensions of vol may have changed after preprocessing.
+
+if Nrefs==-1
+    Nrefs=round(szvol(1)*1.5);
+end
 
 % Generate Nrefs references projections of the given volume using random
 % orientations.
@@ -65,18 +100,32 @@ L=ceil(2*pi/atan(2/szvol(1)));
 if mod(L,2)==1 % Make n_theta even
     L=L+1;
 end
-log_message('Using angular resolution L=%d.',L);
  
 % Compute polar Fourier transform of the projecitons.
+n_r=ceil(szvol(1)/2);
 log_message('Computing polar Fourier transforms.');
-refprojs_hat=cryo_pft(refprojs,ceil(szvol(1)/2),L,'single');
-projs_hat=cryo_pft(projs,ceil(szvol(1)/2),L,'single');
+log_message('Using n_r=%d L=%d.',n_r,L);
+refprojs_hat=cryo_pft(refprojs,n_r,L,'single');
+projs_hat=cryo_pft(projs,n_r,L,'single');
+
+
+% % if bandpass
+% %     % Bandpass filter all projection, by multiplying the shift_phases the the
+% %     % filter H. Then H will be applied to all projections when applying the
+% %     % phases below.
+% %     rk2=(0:n_r-1).';
+% %     H=fuzzymask(n_r,1,floor(n_r*0.4),ceil(n_r*0.1),(n_r+1)/2).*sqrt(rk2);
+% %     H=H./norm(H);    
+% % else 
+% %     H=1;
+% % end
 
 
 % Normalize polar Fourier transforms
 log_message('Normalizing projections.');
 for k=1:Nrefs
     pf=refprojs_hat(:,:,k);    
+% %     pf=bsxfun(@times,pf,H);
     %proj(rmax:rmax+2,:)=0;
     pf=cryo_raynormalize(pf);
     refprojs_hat(:,:,k)=pf;
@@ -84,6 +133,7 @@ end
 
 for k=1:size(projs,3)
     proj_hat=projs_hat(:,:,k);
+% %     proj_hat=bsxfun(@times,proj_hat,H);
     proj_hat=cryo_raynormalize(proj_hat);
     projs_hat(:,:,k)=proj_hat;
 end
@@ -102,7 +152,7 @@ log_message('Using %d candidate rotations.',Nrots);
 
 log_message('Loading precomputed tables.');
 Ctbldir=fileparts(mfilename('fullpath'));
-Ctblfname=fullfile(Ctbldir,'cryo_orient_projections_tables.mat');
+Ctblfname=fullfile(Ctbldir,'cryo_orient_projections_tables_gpu.mat');
 skipprecomp=0;
 if exist(Ctblfname,'file')
     tic
@@ -112,15 +162,20 @@ if exist(Ctblfname,'file')
     
     if isfield(precompdata,'Mkj') && ...
             isfield(precompdata,'Ckj') && isfield(precompdata,'Cjk') &&...
-        isfield(precompdata,'qrefs')
+        isfield(precompdata,'qrefs') && isfield(precompdata,'L')
         Mkj=precompdata.Mkj;
         Ckj=precompdata.Ckj;
         Cjk=precompdata.Cjk;
         if size(Mkj,1)==Nrots && size(Mkj,2)==Nrefs && ...
-                norm(qrefs-precompdata.qrefs)<1.0e-14
+                norm(qrefs-precompdata.qrefs)<1.0e-14 && ...
+                L==precompdata.L
             skipprecomp=1;
         else
             log_message('Precomputed tables incompatible with input parameters.');
+            log_message('\t Loaded \t Required');
+            log_message('Nrots \t %d \t %d',size(Mkj,1),Nrots);
+            log_message('Nrefs \t %d \t %d',size(Mkj,2),Nrefs);
+            log_message('L \t \t %d \t %d',precompdata.L,L);
         end
     else
         log_message('Precomputed tables do not contain required data.');
@@ -171,27 +226,30 @@ if ~skipprecomp
     Ckj=(-1)*ones(Nrots,Nrefs);
     Cjk=(-1)*ones(Nrots,Nrefs);
     Mkj=zeros(Nrots,Nrefs);     % Pairs of rotations that are not "too close"
-    
-    Rk3s=candidate_rots_vec(:,3:3:end);
-    
+       
     for j=1:Nrefs        
         Rj=Rrefs(:,:,j);       
-        [Mkj,Ckj,Cjk]=commonline_R_vec(candidate_rots,Rj,L,0.999);     
-        Ckj=single(Ckj);
-        Cjk=single(Cjk);
-        Mkj=single(Mkj);
+        [Mkj(:,j),Ckj(:,j),Cjk(:,j)]=commonline_R_vec(candidate_rots,Rj,L,0.999);     
     end
+    
+    % Convert to single to save space in the tables
+    Ckj=single(Ckj);
+    Cjk=single(Cjk);
+    Mkj=single(Mkj);
     
     t=toc;
     log_message('Precomputing tables took %5.2f seconds.',t);
-    save(Ctblfname,'Ckj','Cjk','Mkj','qrefs');
+        
+    save(Ctblfname,'Ckj','Cjk','Mkj','qrefs', 'L');
 end
 
 % Setup shift search parameters
-max_shift=6;
+max_shift=round(size(projs,1)*0.1);
 rmax=size(pf,1);
 shift_step=0.5;
 n_shifts=ceil(2*max_shift/shift_step+1); % Number of shifts to try.
+log_message('Using max_shift=%d  shift_step=%d, n_shifts=%d',max_shift,shift_step,n_shifts);
+
 rk2=(0:rmax-1).';
 shift_phases=zeros(rmax,n_shifts);
 for shiftidx=1:n_shifts
@@ -279,7 +337,7 @@ for projidx=1:size(projs,3)
     %
     % % end of reference code
 
-    if trueRs~=0
+    if trueRs~=-1
         log_message('\t Frobenius error norm of estimated rotation is %5.2e.',...
             norm(candidate_rots(:,:,bestRidx)-trueRs(:,:,projidx),'fro')/3);
     end
