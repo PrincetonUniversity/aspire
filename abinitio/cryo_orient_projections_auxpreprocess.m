@@ -1,4 +1,4 @@
-function [vol,projs]=cryo_orient_projecions_auxpreprocess(vol,projs)
+function [vol,projs]=cryo_orient_projections_auxpreprocess(vol,projs)
 %
 % Preprocess the volume and projections for the various
 % cryo_orient_projections_* functions.

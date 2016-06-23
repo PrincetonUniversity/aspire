@@ -1,4 +1,4 @@
-function [Rests,dxs]=cryo_orient_projections_ref(projs,vol,Nrefs,trueRs,silent)
+function [Rests,dxs]=cryo_orient_projections_ref(projs,vol,Nrefs,trueRs,verbose)
 % CRYO_ORIENT_PROJECTION_REF Find the orientation of a given projection
 %
 % R=cryo_orient_projection(proj,vol) 
@@ -30,13 +30,13 @@ if any(szvol-szvol(1))
 end
 
 if ~exist('silent','var')
-    silent=0;
+    verbose=1;
 end
 
-currentsilentmode=log_silent(silent);
+currentsilentmode=log_silent(verbose==0);
 
 % Preprocess projections and referece volume.
-[vol,projs]=cryo_orient_projecions_auxpreprocess(vol,projs);
+[vol,projs]=cryo_orient_projections_auxpreprocess(vol,projs);
 
 % Generate Nrefs references projections of the given volume using random
 % orientations.
@@ -100,7 +100,7 @@ log_message('Using %d candidate rotations.',Nrots);
 
 log_message('Loading precomputed tables.');
 Ctbldir=fileparts(mfilename('fullpath'));
-Ctblfname=fullfile(Ctbldir,'cryo_orient_projections_tables.mat');
+Ctblfname=fullfile(Ctbldir,'cryo_orient_projections_tables_ref.mat');
 skipprecomp=0;
 if exist(Ctblfname,'file')
     tic
