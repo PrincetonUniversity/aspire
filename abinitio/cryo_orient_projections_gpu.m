@@ -151,7 +151,8 @@ log_message('Using %d candidate rotations.',Nrots);
 % reference projections. Load if possible.
 
 log_message('Loading precomputed tables.');
-Ctbldir=fileparts(mfilename('fullpath'));
+%Ctbldir=fileparts(mfilename('fullpath'));
+Ctbldir=tempdir;
 Ctblfname=fullfile(Ctbldir,'cryo_orient_projections_tables_gpu.mat');
 skipprecomp=0;
 if exist(Ctblfname,'file')
@@ -241,6 +242,7 @@ if ~skipprecomp
     log_message('Precomputing tables took %5.2f seconds.',t);
         
     save(Ctblfname,'Ckj','Cjk','Mkj','qrefs', 'L');
+    system(sprintf('chmod a+rwx %s',Ctblfname));
 end
 
 % Setup shift search parameters

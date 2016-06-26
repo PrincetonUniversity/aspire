@@ -136,6 +136,12 @@ if verbose
     log_message('\t with    reflection (%7.4f,%7.4f,%7.4f); condition number = %7.4f',s2(1),s2(2),s2(3),no2);
 end
 
+if min(no1,no2)>1.2 % The condition number of the estimated rotation is 
+       % larger than 1.2, that is, no rotation was recovered. This
+       % threshold was set arbitrarily.
+       warning('Alignment failed.');
+end
+
 reflect=0; % Do we have reflection?
 R=R1;
 if no2<no1 || forcereflect
