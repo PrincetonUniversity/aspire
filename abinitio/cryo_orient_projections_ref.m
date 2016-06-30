@@ -1,4 +1,4 @@
-function [Rests,dxs]=cryo_orient_projections_ref(projs,vol,Nrefs,trueRs,silent)
+function [Rests,dxs]=cryo_orient_projections_ref(projs,vol,Nrefs,trueRs,verbose)
 % CRYO_ORIENT_PROJECTION_REF Find the orientation of a given projection
 %
 % R=cryo_orient_projection(proj,vol) 
@@ -30,13 +30,13 @@ if any(szvol-szvol(1))
 end
 
 if ~exist('silent','var')
-    silent=0;
+    verbose=1;
 end
 
-currentsilentmode=log_silent(silent);
+currentsilentmode=log_silent(verbose==0);
 
 % Preprocess projections and referece volume.
-[vol,projs]=cryo_orient_projecions_auxpreprocess(vol,projs);
+[vol,projs]=cryo_orient_projections_auxpreprocess(vol,projs);
 
 % Generate Nrefs references projections of the given volume using random
 % orientations.
@@ -99,8 +99,9 @@ log_message('Using %d candidate rotations.',Nrots);
 % reference projections. Load if possible.
 
 log_message('Loading precomputed tables.');
-Ctbldir=fileparts(mfilename('fullpath'));
-Ctblfname=fullfile(Ctbldir,'cryo_orient_projections_tables.mat');
+%Ctbldir=fileparts(mfilename('fullpath'));
+Ctbldir=tempdir;
+Ctblfname=fullfile(Ctbldir,'cryo_orient_projections_tables_ref.mat');
 skipprecomp=0;
 if exist(Ctblfname,'file')
     tic
@@ -165,7 +166,12 @@ rk2=(0:rmax-1).';
 shift_phases=zeros(rmax,n_shifts);
 for shiftidx=1:n_shifts
     shift=-max_shift+(shiftidx-1)*shift_step;
-    shift_phases(:,shiftidx)=exp(-2*pi*sqrt(-1).*rk2.*shift./(2*rmax+1));
+    shift_phases(:,shiftidx)=exp(+2*pi*sqrt(-1).*rk2.*shift./(2*rmax+1));
+        % The shift phases are +2*pi*sqrt(-1) and not -2*pi*sqrt(-1) as
+        % in cryo_estimate_shifts.m, since the phases in the latter are
+        % conjugated while computing correlations, so in essesnce the
+        % latter also uses  +2*pi*sqrt(-1). This function and the function 
+        % cryo_estimate_shifts.m should return shifts with the same signs.            
 end
 
 % Main loop. For each candidate rotation for the givn projection, compute

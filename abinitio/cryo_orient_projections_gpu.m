@@ -196,7 +196,12 @@ rk2=(0:rmax-1).';
 shift_phases=zeros(rmax,n_shifts);
 for shiftidx=1:n_shifts
     shift=-max_shift+(shiftidx-1)*shift_step;
-    shift_phases(:,shiftidx)=exp(-2*pi*sqrt(-1).*rk2.*shift./(2*rmax+1));
+    shift_phases(:,shiftidx)=exp(+2*pi*sqrt(-1).*rk2.*shift./(2*rmax+1));
+        % The shift phases are +2*pi*sqrt(-1) and not -2*pi*sqrt(-1) as
+        % in cryo_estimate_shifts.m, since the phases in the latter are
+        % conjugated while computing correlations, so in essesnce the
+        % latter also uses  +2*pi*sqrt(-1). This function and the function 
+        % cryo_estimate_shifts.m should return shifts with the same signs.        
 end
 
 % Main loop. For each candidate rotation for the givn projection, compute

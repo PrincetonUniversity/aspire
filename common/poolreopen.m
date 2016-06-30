@@ -9,7 +9,7 @@ function poolreopen(n)
 % Yoel Shkolsnisky, July 2015.
 
 if nargin<1
-    n=8;
+    n=12;
 end
 
 [mjv,mnv]=matlabversion; % Get MATLAB version
@@ -27,9 +27,8 @@ if mjv>8 || (mjv==8 && mnv >=5)
     if poolsize==0 || poolsize~=n
         if poolsize~=0
             delete(poolobj);
-        else
-            parpool(n);
         end
+        parpool(n);
     end
 else
     % Use matlabpool        
