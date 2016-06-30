@@ -68,12 +68,12 @@ fprintf('\t mean = %5.3f\n',mean(rot2_Killing_error));
 fprintf('\t std  = %5.3f\n',std(rot2_Killing_error));
 fprintf('\t med  = %5.3f\n',median(rot2_Killing_error));
 
-shifts1_L2_error=norm(dx1_gpu.'+ref_shifts)/norm(ref_shifts);
+shifts1_L2_error=norm(dx1_gpu.'-ref_shifts)/norm(ref_shifts);
 fprintf('L2 error in shifts estimation with preprocessing= %e\n',shifts1_L2_error);
 fprintf('Max shift error in integral pixels (in each coordinate) with preprocessing= (%d,%d)\n',...
-    max(round(ref_shifts)+round(dx1_gpu')));
+    max(round(ref_shifts)-round(dx1_gpu')));
 
-shifts2_L2_error=norm(dx2_gpu.'+ref_shifts)/norm(ref_shifts);
+shifts2_L2_error=norm(dx2_gpu.'-ref_shifts)/norm(ref_shifts);
 fprintf('L2 error in shifts estimation without preprocessing= %e\n',shifts2_L2_error);
 fprintf('Max shift error in integral pixels (in each coordinate) without preprocessing= (%d,%d)\n',...
-    max(round(ref_shifts)+round(dx2_gpu')));
+    max(round(ref_shifts)-round(dx2_gpu.')));

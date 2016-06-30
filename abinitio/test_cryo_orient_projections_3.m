@@ -8,7 +8,6 @@
 % Yoel Shkolnisky, June 2016.
 
 clear;
-open_log('log150_2275.txt');
 mapname=cryo_fetch_emdID(2275);
 map=ReadMRC(mapname);
 map=single(map);
@@ -60,9 +59,8 @@ log_message('\t mean = %5.3f\n',mean(rot_Killing_error));
 log_message('\t std  = %5.3f\n',std(rot_Killing_error));
 log_message('\t med  = %5.3f\n',median(rot_Killing_error));
 
-shifts_L2_error=norm(dx_gpu.'+ref_shifts)/norm(ref_shifts);
+shifts_L2_error=norm(dx_gpu.'-ref_shifts)/norm(ref_shifts);
 log_message('L2 error in shifts estimation with preprocessing= %e\n',shifts_L2_error);
 log_message('Max shift error in integral pixels (in each coordinate)= (%d,%d)\n',...
-    max(round(ref_shifts)+round(dx_gpu')));
+    max(round(ref_shifts)-round(dx_gpu.')));
 
-close_log;
