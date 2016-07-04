@@ -91,7 +91,8 @@ function [clstack,corrstack,shift_equations,shift_equations_map,clstack_mask]=..
 %          calulations. Speedup of this function vs cryo_clmatrix is ~4.5
 %          for double precision and ~14 for single precision.
 
-PRECISION='single';
+%PRECISION='single';
+PRECISION='double'; % Due to bug in GPU, only double precision is allowed.
 
 if verbose>0
     log_message('GPU PRECISION=%s',PRECISION);
@@ -551,9 +552,10 @@ for k1=1:n_proj;
         
 
         [g_sval,g_sidx]=max(g_C(:));
+
         sval=gather(g_sval);
         sidx=gather(g_sidx);
-                        
+        
         [cl1,sidx,cl2]=ind2sub([n_theta n_shifts 2*n_theta],sidx);
         clstack(k1,k2)=cl1;
         clstack(k2,k1)=cl2;
