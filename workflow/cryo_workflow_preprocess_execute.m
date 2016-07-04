@@ -35,12 +35,12 @@ if szprojs(1)~=szprojs(2)
 end
 
 
-if ~exist(workflow.preprocess.ctfdata,'file')
-    error('Cannot read STAR file %s',workflow.preprocess.ctfdata);
-end
 
 % Phaseflip
 if str2double(workflow.preprocess.phaseflip)
+    if ~exist(workflow.preprocess.ctfdata,'file')
+        error('Cannot read STAR file %s',workflow.preprocess.ctfdata);
+    end
     log_message('Reading CTF data %s',workflow.preprocess.ctfdata);
     CTFdata=readSTAR(workflow.preprocess.ctfdata);
     log_message('Phaseflipping');

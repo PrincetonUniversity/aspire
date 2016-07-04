@@ -18,21 +18,29 @@ rmax=size(proj_hat,1);
 rk2=(0:rmax-1).';
 
 Nrefs=size(refprojs_hat,3);
-cvals=zeros(Nrefs,1);
+%cvals=zeros(Nrefs,1);
+
+alpha=(Cjk-1)*dtheta;
+delta=[sin(alpha) cos(alpha)]*dx;
+shift_phases=exp(+2*pi*sqrt(-1).*rk2*delta.'./(2*rmax+1)); 
+W=zeros(numel(rk2),Nrefs);
 
 for j=1:Nrefs
     if Mkj(j)>0
         U=proj_hat(:,Cjk(j));
         V=refprojs_hat(:,Ckj(j),j);
-        V=bsxfun(@times,conj(U),V);
+        V=conj(U).*V;
+        %V=bsxfun(@times,conj(U),V);
         
-        alpha=(Cjk(j)-1)*dtheta;  % Angle of common ray in projection k.
-        delta=sin(alpha)*dx(1)+cos(alpha)*dx(2);      
-        shift_phases=exp(+2*pi*sqrt(-1).*rk2.*delta./(2*rmax+1)); % - sign since we shift back.
-        W=real(sum(V.*shift_phases));
-        cvals(j)=W;
+        %alpha=(Cjk(j)-1)*dtheta;  % Angle of common ray in projection k.
+        %delta=sin(alpha(j))*dx(1)+cos(alpha(j))*dx(2);      
+        %shift_phases=exp(+2*pi*sqrt(-1).*rk2.*delta(j)./(2*rmax+1)); % - sign since we shift back.
+        %W=real(sum(V.*shift_phases(:,j)));        
+        %cvals(j)=W;
+        W(:,j)=V.*shift_phases(:,j);
     end
 end
+cvals=real(sum(W));
 
 c=sum(cvals)./sum(cvals>0);
 % Extract Fourier rays corresponding to the common lines

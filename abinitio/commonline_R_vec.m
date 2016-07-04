@@ -19,12 +19,24 @@ function [Mkj,Ckj,Cjk]=commonline_R_vec(Rks,Rj,L,delta)
 % Yoel Shkolnisky, June 2016.
 
 Nrots=size(Rks,3);
-Rks_vec=zeros(3,3*Nrots);
-Rks_t_vec=zeros(3*Nrots,3);
-for k=1:Nrots
-    Rks_vec(:,3*(k-1)+1:3*k)=Rks(:,:,k);
-    Rks_t_vec(3*(k-1)+1:3*k,:)=(Rks(:,:,k)).';
-end
+
+% Rks_vec=zeros(3,3*Nrots);
+% Rks_t_vec=zeros(3*Nrots,3);
+% for k=1:Nrots
+%     Rks_vec(:,3*(k-1)+1:3*k)=Rks(:,:,k);
+%     Rks_t_vec(3*(k-1)+1:3*k,:)=(Rks(:,:,k)).';
+% end
+
+% Rks_vec_1=reshape(Rks,3,3*Nrots);
+% Rks_t_vec_1=(Rks_vec_1).';
+% 
+% assert(norm(Rks_vec-Rks_vec_1)==0);
+% assert(norm(Rks_t_vec-Rks_t_vec_1)==0);
+
+% The following two lines are an optimized version of the above block. Note
+% that the above block also include the required test code.
+Rks_vec=reshape(Rks,3,3*Nrots);
+Rks_t_vec=(Rks_vec).';
 
 Mkj=zeros(Nrots,1);     % Pairs of rotations that are not "too close"
 

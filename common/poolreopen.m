@@ -9,7 +9,7 @@ function poolreopen(n)
 % Yoel Shkolsnisky, July 2015.
 
 if nargin<1
-    n=12;
+    n=8;
 end
 
 [mjv,mnv]=matlabversion; % Get MATLAB version

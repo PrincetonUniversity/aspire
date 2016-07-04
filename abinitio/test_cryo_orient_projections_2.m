@@ -14,7 +14,7 @@ voldata=load('cleanrib');
 projs=cryo_project(voldata.volref,q);
 projs=permute(projs,[2,1,3]);
 [projshifted,ref_shifts]=cryo_addshifts(projs,[],2,1);
-snr=1/20;
+snr=1/32;
 projshifted=cryo_addnoise(projshifted,snr,'gaussian');
 
 % Convert quaternions to rotations

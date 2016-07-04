@@ -23,27 +23,41 @@ if any(szvol-szvol(1)) % Check that the volume has all dimensions equal.
     error('Volume must have all dimensions equal');
 end
 
-n=szprojs(1);
-log_message('Resampling refence volume from %d to %d',szvol(1),n);
-vol=cryo_downsample(vol,[n,n,n],0);
+% Mask and filter the volume
+n=size(vol,1);
+vol=vol.*fuzzymask(n,3,floor(0.45*n),floor(0.05*n));
+vol=GaussFilt(vol,0.3);
 
-snr=cryo_estimate_snr(projs);
-log_message('Estimated SNR of projections = %5.2f',snr);
-if snr<100 % Don't bother when the SNR is high
-    % Prewhiten projections
-    log_message('Estimating noise power spectrum');
-    n=size(projs,1);
-    log_message('Each projection of size %dx%d',n,n);
-    psd = cryo_noise_estimation(projs);
-    log_message('Finished noise power spectrum estimation');
-
-    log_message('Prewhitening images');
-    projs = cryo_prewhiten(projs, psd);
-    log_message('Finished prewhitening images');
-
-    % Normalize projections background
-    projs=cryo_normalize_background(projs,floor(szvol(1)/2),0);
+% Mask and filter the projections
+for k=1:size(projs,3)
+    p=projs(:,:,k);
+    p=p.*fuzzymask(n,2,floor(0.45*n),floor(0.05*n));
+    p=GaussFilt(p,0.3);
+    projs(:,:,k)=p;
 end
+
+
+% n=szprojs(1);
+% log_message('Resampling refence volume from %d to %d',szvol(1),n);
+% vol=cryo_downsample(vol,[n,n,n],0);
+% 
+% snr=cryo_estimate_snr(projs);
+% log_message('Estimated SNR of projections = %5.2f',snr);
+% if snr<100 % Don't bother when the SNR is high
+%     % Prewhiten projections
+%     log_message('Estimating noise power spectrum');
+%     n=size(projs,1);
+%     log_message('Each projection of size %dx%d',n,n);
+%     psd = cryo_noise_estimation(projs);
+%     log_message('Finished noise power spectrum estimation');
+% 
+%     log_message('Prewhitening images');
+%     projs = cryo_prewhiten(projs, psd);
+%     log_message('Finished prewhitening images');
+% 
+%     % Normalize projections background
+%     projs=cryo_normalize_background(projs,floor(szvol(1)/2),0);
+% end
 
 % % Compute frequnecy support of the volume.
 % ravg3d=cryo_radial_powerspect_3d(vol);

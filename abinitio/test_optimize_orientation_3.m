@@ -7,7 +7,7 @@
 %
 % Yoel Shkolnisky, June 2016.
 clear;
-Nprojs=200;
+Nprojs=2000;
 q=qrand(Nprojs);  % Generate Nprojs projections to orient.
 
 log_message('Loading volume');
@@ -20,7 +20,7 @@ projs=permute(projs,[2,1,3]);
 log_message('Adding shifts');
 [projshifted,ref_shifts]=cryo_addshifts(projs,[],2,1);
 
-snr=1/2;
+snr=1/8;
 log_message('Adding noise. snr=%d',snr);
 projshifted=cryo_addnoise(projshifted,snr,'gaussian');
 
@@ -81,8 +81,8 @@ proj_hat=cryo_pft(projshifted,n_r,L,'single');
 
 R_refined=zeros(size(Rest1));
 estdx_refined=zeros(size(dx1));
-errs=zeros(Nprojs,4);
-for k=1:Nprojs
+errs=zeros(4,Nprojs);
+parfor k=1:Nprojs
     estdx=dx1(:,k); 
     Rest=Rest1(:,:,k);
     [R_refined(:,:,k),estdx_refined(:,k),optout]=optimize_orientation(proj_hat(:,:,k),Rest,projs_ref_hat,Rrefs,L,estdx);
@@ -97,10 +97,10 @@ for k=1:Nprojs
     fprintf('\t Rotation error: before=%e \t after=%e\n',rot_L2_error_before_refinement,rot_L2_error_after_refinement);
     fprintf('\t Shift error:    before=%e \t after=%e\n',shifts_L2_error_before_refinement,shifts_L2_error_after_refinement);
     
-    errs(k,1)=shifts_L2_error_before_refinement;
-    errs(k,2)=shifts_L2_error_after_refinement;
-    errs(k,3)=shifts_L2_error_before_refinement;
-    errs(k,4)=shifts_L2_error_after_refinement;
+    errs(:,k)=[shifts_L2_error_before_refinement;...
+        shifts_L2_error_after_refinement;...
+        shifts_L2_error_before_refinement;...
+        shifts_L2_error_after_refinement];
 
 end
 
@@ -112,11 +112,4 @@ v2=real(v2);
 log_message('Comparing reconstructed volume to reference volume');
 plotFSC(voldata.volref,v2);
 
-
-fsc1=FSCorr(voldata.volref,v1);
-fsc2=FSCorr(voldata.volref,v2);
-figure;
-plot(fsc1);
-hold on;
-plot(fsc2,'r');
-legend('not refined','refined');
+plotFSC2(voldata.volref,v1,voldata.volref,v2)
