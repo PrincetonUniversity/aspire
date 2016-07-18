@@ -500,23 +500,24 @@ for k1=1:n_proj;
         end
         
 %Optimized GPU version:
-        g_C1=2*real(g_P1_stack'*g_P2);
-        g_C2=2*real(g_P1_flipped_stack'*g_P2);
-        
-        [g_sval1,g_sidx1]=max(g_C1(:));
-        [g_sval2,g_sidx2]=max(g_C2(:));
-        sval1=gather(g_sval1);
-        sval2=gather(g_sval2);
-        sidx1=gather(g_sidx1);
-        sidx2=gather(g_sidx2);
+disp('Commenting out GPU version. Using CPU in cryo_clmatrix_gpu')
+%         g_C1=2*real(g_P1_stack'*g_P2);
+%         g_C2=2*real(g_P1_flipped_stack'*g_P2);
+%         
+%         [g_sval1,g_sidx1]=max(g_C1(:));
+%         [g_sval2,g_sidx2]=max(g_C2(:));
+%         sval1=gather(g_sval1);
+%         sval2=gather(g_sval2);
+%         sidx1=gather(g_sidx1);
+%         sidx2=gather(g_sidx2);
         
 
 % Optimized CPU version. Uncommet to use on CPU:
-%         C1=2*real(P1_stack'*P2);
-%         C2=2*real(P1_flipped_stack'*P2);
-% 
-%         [sval1,sidx1]=max(C1(:));
-%         [sval2,sidx2]=max(C2(:));
+        C1=2*real(P1_stack'*P2);
+        C2=2*real(P1_flipped_stack'*P2);
+
+        [sval1,sidx1]=max(C1(:));
+        [sval2,sidx2]=max(C2(:));
 
         if sval1>sval2
             [cl1,sidx,cl2]=ind2sub([n_theta n_shifts n_theta],sidx1);

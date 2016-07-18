@@ -54,7 +54,7 @@ for kk=1:K
     % Compute mean and standard deviation of background pixels
     mm=mean(background_pixels);
     sd=std(background_pixels);
-    
+%    sprintf('Subtracting background mean: %f and normalizing by background stdev: %f',mm, sd)
     % Normalize the projections
     proj=(proj-mm)./sd;
     stack(:,:,kk)=proj;

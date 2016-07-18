@@ -80,9 +80,12 @@ prepdata=nufft_t_3d_prepare_2(volume,precision);
 K=size(q,2);
 projections=zeros(N,N,K);
 
-poolreopen;
+parpool('local',12);
 parfor k=1:K
-    
+
+  if((mod(k,1000))==0)
+		sprintf('%d projections done',k)
+  end
     R=q_to_rot(q(:,k));
     Rt=R.';
     
@@ -120,3 +123,4 @@ parfor k=1:K
     projection = real(projection);
     projections(:,:,k)=projection;
 end
+delete(gcp);

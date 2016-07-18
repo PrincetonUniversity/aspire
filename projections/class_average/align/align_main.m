@@ -69,11 +69,13 @@ for i=1:359
     M{i}=fastrotateprecomp(L, L,i);
 end;
 
+
 %Go concurrent
-ps=matlabpool('size');
+ps=parpool('local', 12);
 if ps==0
-    matlabpool open
+  parpool('local',12);
 end
+
 
 parfor j=1:length(list_recon)
     
@@ -134,4 +136,4 @@ parfor j=1:length(list_recon)
 
 end
 
-matlabpool close;
+delete(gcp)

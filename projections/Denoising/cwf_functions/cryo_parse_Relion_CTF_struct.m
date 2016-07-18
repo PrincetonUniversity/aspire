@@ -1,6 +1,8 @@
 function [voltage,DefocusU,DefocusV,DefocusAngle,Cs,pixA,A]=...
     cryo_parse_Relion_CTF_struct(CTFdata)
 
+% Parse .star file to extract parameters in RELION format
+
 voltage=CTFdata.rlnVoltage;
 DefocusU=CTFdata.rlnDefocusU/10; % Relion uses Angstrom. Convert to nm.
 
@@ -25,6 +27,6 @@ if isfield(CTFdata,'rlnDetectorPixelSize')
 elseif isfield(CTFdata,'pixA')
     pixA=CTFdata.pixA;
 else
-    error('Cannot get pixel size from CTF data');
+    warning('Cannot get pixel size from CTF data');
 end
 A=CTFdata.rlnAmplitudeContrast;

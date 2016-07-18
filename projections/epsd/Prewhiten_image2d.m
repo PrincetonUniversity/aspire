@@ -1,4 +1,4 @@
-function [ proj ] = Prewhiten_image2d(proj, noise_response )
+function [ proj, filter, nzidx] = Prewhiten_image2d(proj, noise_response )
 % Pre-whiten a stack of projections using the power spectrum of the noise.
 %  
 %  Input:
@@ -63,6 +63,7 @@ parfor i=1:n
                                % large. In frequnecies where the filter is
                                % tiny  we cannot pre-whiten so we just put
                                % zero.
+
     p2 = icfft2(p);
     assert(norm(imag(p2(:)))/norm(p2(:))<1.0e-13); % The resulting image should be real.
     if mod(L,2)==1

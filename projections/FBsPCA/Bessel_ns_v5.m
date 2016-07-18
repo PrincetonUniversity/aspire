@@ -26,10 +26,11 @@ R_ns = B(:, 3);
 Phi_ns=zeros(2*N+1, 2*N+1, size(B, 1));
 
 %Go concurrent
-ps=matlabpool('size');
+ps=parpool('local', 12);
 if ps==0
-    matlabpool open
+  parpool('local',12);
 end
+
 
 parfor i=1:size(B, 1)
     r0=r*R_ns(i);
@@ -41,5 +42,6 @@ end;
 Phi_ns=reshape(Phi_ns, (2*N+1)^2, size(B, 1));
 Phi_ns=Phi_ns(r<=1, :);
 
+delete(gcp)
 end
  

@@ -44,10 +44,8 @@ defocus_group=zeros(K, 1);
 
 
 %Go concurrent
-ps=matlabpool('size');
-if ps==0
-    matlabpool open
-end
+num_pool=12;
+parpool('local', num_pool);
 
 parfor i=1:K
     tmp=cfft2(projections(:, :, i));
@@ -63,4 +61,5 @@ if ~strcmpi(noise_type,'clean')
     [proj, noise, noise_response]=addnoise(proj, SNR, noise_type);
 end;
 
+delete(gcp);
 end
