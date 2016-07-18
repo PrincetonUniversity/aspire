@@ -30,7 +30,7 @@ Phi_ns=zeros(length(r), size(B, 1));
 Phi = cell(max_ang_freqs+1, 1);
 
 %For matlab2014 above, use parpool() and delete(gcp)
-parpool('local',12);
+poolreopen(12);
 %matlabpool open;
 parfor i=1:size(B, 1)
     r0=r*R_ns(i)/c;
