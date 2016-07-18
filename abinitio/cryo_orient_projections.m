@@ -114,7 +114,7 @@ end
 
 % Generate candidate rotations. The rotation corresponding to the given
 % projection will be searched month these rotatios.
-candidate_rots=genRotationsGrid(100);
+candidate_rots=genRotationsGrid(75);
 %candidate_rots(:,:,1)=Rref;
 Nrots=size(candidate_rots,3);
 

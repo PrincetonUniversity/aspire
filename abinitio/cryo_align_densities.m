@@ -104,7 +104,47 @@ projs2=cryo_project(vol2masked,refq);
 projs2=permute(projs2,[2,1,3]);
 
 % Estimate rotations of the projections of volume 2.
-Rests=cryo_orient_projections_gpu(projs2,vol1masked,Nprojs,[],verbose,0);
+log_message('Aligning volumes.')
+[Rests,dxests]=cryo_orient_projections_gpu(projs2,vol1masked,Nprojs,[],verbose,0);
+
+% Assess quality of the alignment. Use Rests and trueRs to estimate the
+% matrix aligning the two volumes. The close this matrix to an orthogonal
+% matrix, the better the alignment. 
+%
+% There are two possibilties:
+% 1. There is no reflection between vol1 and vol2, in which case they are
+% related by rotation only, that is R_{i} = O \tilde{R}_{i}, where R_{i}
+% and tilde{R}_{i} are the rotations are the rotations of the projections
+% in the coordinates systems of vol2 and vol1, respectively (corresponding
+% to trueRs and Rests, respectively).
+% 2. There is reflection, in which case R_{i} = O J \tilde{R}_{i} J.
+%
+% We estimate O in both cases and choose the one for which the resulting O
+% is more orthogonal.
+R1=zeros(3);
+Omat=zeros(3);
+J3=diag([1 1 -1]);
+for k=1:Nprojs
+    R1=R1+trueRs(:,:,k)*Rests(:,:,k).';
+    Omat=Omat+trueRs(:,:,k)*(J3*Rests(:,:,k)*J3).';
+end
+R1=R1./Nprojs;
+Omat=Omat./Nprojs;
+
+s1=svd(R1); s2=svd(Omat);
+no1=max(s1)/min(s1); %Non orthogonality (actually, the condition number)
+no2=max(s2)/min(s2);
+
+if verbose
+    log_message('Singular values of aligning matrix:');
+    log_message('\t without reflection (%7.4f,%7.4f,%7.4f); condition number = %7.4f',s1(1),s1(2),s1(3),no1);
+    log_message('\t with    reflection (%7.4f,%7.4f,%7.4f); condition number = %7.4f',s2(1),s2(2),s2(3),no2);
+end
+
+
+log_message('Refining alignment.');
+Rests=cryo_refine_orientations(projs2,vol1masked,Rests,dxests,1,-1);
+
 
 % There are two possibilties:
 % 1. There is no reflection between vol1 and vol2, in which case they are
