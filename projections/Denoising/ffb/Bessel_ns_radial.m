@@ -44,7 +44,6 @@ end;
 parfor i=1:max_ang_freqs+1
     Phi{i} = Phi_ns(:, ang_freqs == i-1);
 end;
-delete(gcp)
 %matlabpool close;
 
 basis.Phi_ns = Phi;
