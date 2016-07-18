@@ -1,4 +1,4 @@
-function [ timing, coeff, mean_coeff, sPCA_coeff, U, D ] = jobscript_FFBsPCA(data, R, noise_variance, basis,  num_pool)
+function [ timing, coeff, mean_coeff, sPCA_coeff, U, D ] = jobscript_FFBsPCA(data, R, noise_variance, basis,  sample_points, num_pool)
 %Description:
 % Computes Fourier-Bessel expansion coefficients 'coeff', and filtered steerable PCA expansion coefficients 'sPCA_coeff'.
 %Input:
@@ -17,7 +17,6 @@ function [ timing, coeff, mean_coeff, sPCA_coeff, U, D ] = jobscript_FFBsPCA(dat
 
 %n_r = ceil(4*c*R);
 n = size(data, 3);
-sample_points=basis.sample_points;
 %[ basis, sample_points ] = precomp_fb( n_r, R, c );
 %num_pool = maxNumCompThreads;
 %num_pool = 30;
