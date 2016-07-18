@@ -242,7 +242,8 @@ if ~isscalar(shifts_2d_ref)
                 log_message('cryo_estimate_shifts error: %8.5e',...
                     (norm(V.'*(s1-s2))/norm(V.'*s1)));
             else
-                log_message('norm(V.''*s1) = %7.5e',norm(V.'*s1));
+                % Print absolute error
+                log_message('norm(V.''*s1) = %7.5e',norm(V.'*s2));
             end
     else
         log_message('Not comparing to reference shifts - too many equations\n');
