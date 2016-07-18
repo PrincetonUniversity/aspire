@@ -17,6 +17,7 @@ function [ timing, coeff, mean_coeff, sPCA_coeff, U, D ] = jobscript_FFBsPCA(dat
 
 %n_r = ceil(4*c*R);
 n = size(data, 3);
+sample_points=basis.sample_points;
 %[ basis, sample_points ] = precomp_fb( n_r, R, c );
 %num_pool = maxNumCompThreads;
 %num_pool = 30;
