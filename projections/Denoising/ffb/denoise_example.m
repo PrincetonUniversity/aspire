@@ -1,8 +1,8 @@
 %Denoise example code, input image
-var_hat = 1; %noise variance, change accordingly
-n_im = 3; % number of denoised images
+var_hat = 0.1; %noise variance, change accordingly
+n_im = 1000; % number of denoised images
 energy_thresh=0.99;
-data=ones(10,10,n_im)+0.1*randn(10,10,n_im);
+data=ones(20,20,n_im)+randn(20,20,n_im);
 [ c, R ] = avg_pspec(data, var_hat, energy_thresh); %Estimate band limit and compact support size
 num_pool=2;
 n_r = ceil(4*c*R);
