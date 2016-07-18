@@ -39,7 +39,7 @@ function [ R , r_valid_ks , r_good_ks , peak_width , euler_angles ] =...
 
 
 if ~exist('VOTING_TICS_WIDTH','var') || isempty(VOTING_TICS_WIDTH)
-    VOTING_TICS_WIDTH=1;
+    VOTING_TICS_WIDTH=3;
 end
 log_message('VOTING_TICS_WIDTH=%d',VOTING_TICS_WIDTH);
 

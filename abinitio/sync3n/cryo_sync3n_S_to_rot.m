@@ -113,7 +113,7 @@ Dhalf=diag(kron(diag(Dhalf),ones(3,1))); % Make Dhalf of size 3Nx3N
 % the first 3 by real value, and the rest by absolute value.
 % GGG actually it's not trivial that we prefer abs upon real value
 evalues = diag(evalues);
-[~,ids] = sort(-evalues); % (assert 3 largest eigenvalues are first)
+[~,ids] = sort(evalues, 'descend'); % (assert 3 largest eigenvalues are first)
 evalues = evalues(ids);
 evecs = evecs(:,ids);
 if n_eigs > 3
@@ -128,7 +128,7 @@ log_message( '3NX3N Sync Matrix First %d Eigenvalues:\n%s', n_eigs, num2str(eval
 if n_eigs>=4
     log_message('Spectral gap: 3rd_eig/4th_eig = %.2f', evalues(3)/evalues(4));
 else
-    log_message('Cannot compute spectral gap. Used n_eigs>=4');
+    log_message('Cannot compute spectral gap. Use n_eigs>=4');
 end
 % Cancel symmetrization
 % till now we used a symmetrized variant of the weighted Sync matrix,
