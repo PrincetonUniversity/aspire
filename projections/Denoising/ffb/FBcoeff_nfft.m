@@ -59,7 +59,6 @@ parfor i = 1:num_pool
     pos_k{i} = pf_f(:, 1:max(ang_freqs)+1, :);
 end;
 
-delete(gcp);
 pos_k = cat(3, pos_k{:});
 
 clear pf_f tmp tmp2;
