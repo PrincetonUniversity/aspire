@@ -1,13 +1,8 @@
 % Denoise projections of 80s ribosome (with white noise and CTF added).
-load /scratch/tbhamre/emd_6454_proj.mat
+vol=load('cleanrib.mat');
 
-%n=105;
 K=1000;
-%[projections] = emd5278_proj_full(n,K); % IP3 dataset EMD5278.mat
-
-cd ~/aspire
-initpath
-cd ~/cwf_denoise
+[projections] = cryo_gen_projections(35,K,1,0);
 
 N_images=K;
 g_projections=projections(:,:,1:N_images);
@@ -75,7 +70,7 @@ for count=1:numel(SNR)
     sprintf('Total number of coeffs per image after compression is %d' ,sum(cellfun(@numel,compressed_den_coeff))/N_images)
 
 
-    [recon] = recon_images_FB(c, R, L0, denoised_coeff_ccwf, 1, 10); % Specify range of images to reconstruct
+    [recon] = recon_images_FB(c, R, L0, denoised_coeff_ccwf, 1, 1); % Specify range of images to reconstruct
     [mse_ccwf] = calc_MSE_v6(recon,  g_projections(:,:,1:n_im),R)
     t1_stop=toc(t1_start);
     mse_ccwf_snr_trend(count)=mse_ccwf;
