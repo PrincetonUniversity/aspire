@@ -59,7 +59,7 @@ for count=1:numel(SNR)
     %psd_white=cryo_noise_estimation(prewhitened_projs);
     %plot(psd_white(n,:));
     %title('Noise spectrum of prewhitened-projections');
-    delete(gcp);
+    
     proj_CTF_noisy=cfft2(prewhitened_projs);
     [ noise_v_r ] = estimate_noise_real(prewhitened_projs);
     

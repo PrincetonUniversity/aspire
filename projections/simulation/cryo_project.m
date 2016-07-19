@@ -122,4 +122,4 @@ parfor k=1:K
     projection = real(projection);
     projections(:,:,k)=projection;
 end
-delete(gcp);
+

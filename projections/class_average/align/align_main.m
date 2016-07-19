@@ -149,7 +149,6 @@ parfor j=1:length(list_recon)
 
 end
 
-<<<<<<< HEAD
 % Merge all averages into a single file.
 averagesfname=tempname;
 [~, averagesfname]=fileparts(averagesfname);
@@ -164,9 +163,3 @@ end
 stack.close;
 
 end
-
-
-%matlabpool close;
-=======
-delete(gcp)
->>>>>>> spca_cwf
