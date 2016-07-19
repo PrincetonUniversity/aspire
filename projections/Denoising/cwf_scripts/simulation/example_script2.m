@@ -22,6 +22,7 @@ def1=1;
 def2=4;
 lambda = EWavelength(300);
 B=10; % decay envelope parameter
+num_pool=num_cores();
 
 open_log('test_log.txt')
 
@@ -87,9 +88,9 @@ for count=1:numel(SNR)
     
     [y_mu] = demean_y_v6(proj_CTF_noisy, w_CTF, mean_image_f, index);
     tic_coeffymu=tic;
-    [ coeff_ymu ] = coeff_demean( icfft2(y_mu) , R, basis, sample_points );
+    [ coeff_ymu ] = coeff_demean( icfft2(y_mu) , R, basis, sample_points, num_pool );
     timing.coeffymu=toc(tic_coeffymu)
-    [ coeff_mean ] = coeff_demean( icfft2(mean_image_f) , R, basis, sample_points );
+    [ coeff_mean ] = coeff_demean( icfft2(mean_image_f) , R, basis, sample_points, num_pool );
     
     
     %% CTF in new basis: numerical integration
