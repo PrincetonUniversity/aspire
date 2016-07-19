@@ -54,7 +54,7 @@ for count=1:numel(SNR)
     %title('Noise spectrum before prewhitening');
     %Prewhiten
     
-    [prewhitened_projs, whiten_filter, nzidx] = Prewhiten_image2d(PFDprojs, psd);
+    [prewhitened_projs, whiten_filter, nzidx] = cryo_prewhiten(PFDprojs, psd);
     clear PFDprojs
     %psd_white=cryo_noise_estimation(prewhitened_projs);
     %plot(psd_white(n,:));
