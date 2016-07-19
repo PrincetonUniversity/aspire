@@ -125,7 +125,9 @@ w(low_idx_u+low_idx+1:low_idx_u+low_idx+1+n-1,...
   low_idx_u+low_idx+1:low_idx_u+low_idx+1+n-1,...
   low_idx_u+low_idx+1:low_idx_u+low_idx+1+n-1)=u;
 
-W=fftshift(ifftn(ifftshift(w)));
+w = ifftshift(ifftshift(ifftshift(w, 1), 2), 3);
+W = ifftn(w);
+W = fftshift(fftshift(fftshift(W, 1), 2), 3);
 W=W*numel(W);
 
 % Slow version (was replaced by the subsequent block) 
