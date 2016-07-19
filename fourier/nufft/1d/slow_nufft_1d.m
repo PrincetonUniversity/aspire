@@ -25,12 +25,7 @@ end
 
 low_idx=-ceil((m-1)/2);
 high_idx=floor((m-1)/2);
-f=zeros(m,1);
 
-for j=low_idx:high_idx
-    for k=1:n
-        f(j-low_idx+1)=f(j-low_idx+1)+alpha(k)*exp(2*pi*i*j*omega(k)/m);
-    end
-end
+F = exp(2*pi*1i*[low_idx:high_idx]'*omega(:)'/m);
 
-
+f = F*alpha(:);

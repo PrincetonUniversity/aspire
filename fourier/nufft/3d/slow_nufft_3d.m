@@ -24,15 +24,11 @@ end
 
 low_idx=ceil((M-1)/2);
 high_idx=floor((M-1)/2);
-f=zeros(M,M,M);
 
-for j1=-low_idx:high_idx
-    for j2=-low_idx:high_idx
-        for j3=-low_idx:high_idx
-            for k=1:n
-                v=alpha(k)*exp(2*pi*1i*(dot([j1 j2 j3],omega(k,:)))/M);
-                f(j1+low_idx+1,j2+low_idx+1,j3+low_idx+1)=f(j1+low_idx+1,j2+low_idx+1,j3+low_idx+1)+v;
-            end
-        end
-    end
-end
+[j1, j2, j3] = ndgrid(-low_idx:high_idx, -low_idx:high_idx, -low_idx:high_idx);
+
+F = exp(2*pi*1i*(j1(:)*omega(:,1)'+j2(:)*omega(:,2)'+j3(:)*omega(:,3)')/M);
+
+f = F*alpha(:);
+
+f = reshape(f, M*ones(1, 3));
