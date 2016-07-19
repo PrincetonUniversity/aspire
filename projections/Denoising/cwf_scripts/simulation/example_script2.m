@@ -108,7 +108,7 @@ for count=1:numel(SNR)
     [ctf_rad_all]=  calc_CTF_rad(use_CTF, L0, index, ndef, def1,def2,B, lambda, sample_points.r*((floor(L0/2)+1)/0.5));
     [ denoised_coeff_ccwf] = jobscript_CCWF_cgshrink_jsb(index, w_f_rad, ctf_rad_all, basis, sample_points,  coeff_mean, coeff_ymu, noise_v_r);
     [recon] = recon_images_FB(c, R, L0, denoised_coeff_ccwf, 1, n_im);
-    
+    [mse_ccwf] = calc_MSE_v6(recon,  g_projections(:,:,1:n_im),R)
     
     %% Save results
    
