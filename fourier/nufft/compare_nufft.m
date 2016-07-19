@@ -22,8 +22,8 @@ fprintf('nufft_1d: %g s\n', t1);
 fprintf('nufft1d1: %g s\n', t2);
 fprintf('slow_nufft_1d: %g s\n', t3);
 
-fprintf('error of nufft_1d vs nufft1d1: %g\n', norm(f1(:)-f2(:))/norm(f2(:)));
-fprintf('error of nufft_1d vs slow_nufft_1d: %g\n', norm(f1(:)-f3(:))/norm(f3(:)));
+fprintf('error of nufft_1d: %g\n', norm(f1(:)-f3(:))/norm(f3(:)));
+fprintf('error of nufft1d1: %g\n', norm(f2(:)-f3(:))/norm(f3(:)));
 
 cf = rand(m, 1) + i*rand(m, 1);
 
@@ -43,8 +43,8 @@ fprintf('nufft_1d_t: %g s\n', t1);
 fprintf('nufft1d2: %g s\n', t2);
 fprintf('slow_nufft_1d_t: %g s\n', t3);
 
-fprintf('error of nufft_t_1d vs nufft1d2: %g\n', norm(g1(:)-g2(:))/norm(g2(:)));
-fprintf('error of nufft_t_1d vs slow_nufft_t_1d: %g\n', norm(g1(:)-g3(:))/norm(g3(:)));
+fprintf('error of nufft_t_1d: %g\n', norm(g1(:)-g3(:))/norm(g3(:)));
+fprintf('error of nufft1d2: %g\n', norm(g2(:)-g3(:))/norm(g3(:)));
 
 fprintf('\n');
 
@@ -68,8 +68,8 @@ fprintf('nufft_2d: %g s\n', t1);
 fprintf('nufft2d1: %g s\n', t2);
 fprintf('slow_nufft_2d: %g s\n', t3);
 
-fprintf('error of nufft_2d vs nufft2d1: %g\n', norm(f1(:)-f2(:))/norm(f2(:)));
-fprintf('error of nufft_2d vs slow_nufft_2d: %g\n', norm(f1(:)-f3(:))/norm(f3(:)));
+fprintf('error of nufft_2d: %g\n', norm(f1(:)-f3(:))/norm(f3(:)));
+fprintf('error of nufft2d1: %g\n', norm(f2(:)-f3(:))/norm(f3(:)));
 
 cf = rand(m*ones(1, 2)) + i*rand(m*ones(1, 2));
 
@@ -89,8 +89,8 @@ fprintf('nufft_2d_t: %g s\n', t1);
 fprintf('nufft2d2: %g s\n', t2);
 fprintf('slow_nufft_2d_t: %g s\n', t3);
 
-fprintf('error of nufft_t_2d vs nufft2d2: %g\n', norm(g1(:)-g2(:))/norm(g2(:)));
-fprintf('error of nufft_t_2d vs slow_nufft_t_2d: %g\n', norm(g1(:)-g3(:))/norm(g3(:)));
+fprintf('error of nufft_t_2d: %g\n', norm(g1(:)-g3(:))/norm(g3(:)));
+fprintf('error of nufft2d2: %g\n', norm(g2(:)-g3(:))/norm(g3(:)));
 
 fprintf('\n');
 
@@ -115,8 +115,8 @@ fprintf('nufft_3d: %g s\n', t1);
 fprintf('nufft3d1: %g s\n', t2);
 fprintf('slow_nufft_3d: %g s\n', t3);
 
-fprintf('error of nufft_3d vs nufft3d1: %g\n', norm(f1(:)-f2(:))/norm(f2(:)));
-fprintf('error of nufft_3d vs slow_nufft_3d: %g\n', norm(f1(:)-f3(:))/norm(f3(:)));
+fprintf('error of nufft_3d: %g\n', norm(f1(:)-f3(:))/norm(f3(:)));
+fprintf('error of nufft3d1: %g\n', norm(f2(:)-f3(:))/norm(f3(:)));
 
 cf = rand(m*ones(1, 3)) + i*rand(m*ones(1, 3));
 
@@ -136,6 +136,6 @@ fprintf('nufft_3d_t: %g s\n', t1);
 fprintf('nufft3d2: %g s\n', t2);
 fprintf('slow_nufft_3d_t: %g s\n', t3);
 
-fprintf('error of nufft_t_3d vs nufft3d2: %g\n', norm(g1(:)-g2(:))/norm(g2(:)));
-fprintf('error of nufft_t_3d vs slow_nufft_t_3d: %g\n', norm(g1(:)-g3(:))/norm(g3(:)));
+fprintf('error of nufft_t_3d: %g\n', norm(g1(:)-g3(:))/norm(g3(:)));
+fprintf('error of nufft3d2: %g\n', norm(g2(:)-g3(:))/norm(g3(:)));
 
