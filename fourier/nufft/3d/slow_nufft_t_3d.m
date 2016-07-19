@@ -30,18 +30,9 @@ high_idx2=floor((n(2)-1)/2);
 low_idx3=-ceil((n(3)-1)/2);
 high_idx3=floor((n(3)-1)/2);
 
-g=zeros(size(x,1),1);
+[k1, k2, k3] = ndgrid(low_idx1:high_idx1, low_idx2:high_idx2, low_idx3:high_idx3);
 
-for j=1:m
-    for k1=low_idx1:high_idx1
-        for k2=low_idx2:high_idx2
-            for k3=low_idx3:high_idx3
-                g(j)=g(j)+...
-                    beta(k1-low_idx1+1,k2-low_idx2+1,k3-low_idx3+1)*...
-                    exp(i*(k1*x(j,1)+k2*x(j,2)+k3*x(j,3)));
-            end
-        end
-    end
-end
+G = exp(1i*(x(:,1)*k1(:)'+x(:,2)*k2(:)'+x(:,3)*k3(:)'));
 
+g = G*beta(:);
 

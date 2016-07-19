@@ -28,14 +28,8 @@ high_idx1=floor((n(1)-1)/2);
 low_idx2=-ceil((n(2)-1)/2);
 high_idx2=floor((n(2)-1)/2);
 
-g=zeros(size(x,1),1);
+[k1, k2] = ndgrid(low_idx1:high_idx1, low_idx2:high_idx2);
 
-for j=1:m
-    for k1=low_idx1:high_idx1
-        for k2=low_idx2:high_idx2
-            g(j)=g(j)+beta(k1-low_idx1+1,k2-low_idx2+1)*exp(i*(k1*x(j,1)+k2*x(j,2)));
-        end
-    end
-end
+G = exp(1i*(x(:,1)*k1(:)'+x(:,2)*k2(:)'));
 
-
+g = G*beta(:);
