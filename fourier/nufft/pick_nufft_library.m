@@ -21,6 +21,10 @@ function lib_code = pick_nufft_library(sz)
 
 	lib_codes = [lib_codes 1];
 
+	if numel(sz) == 2 && sz(2) == 1
+		sz = sz(1);
+	end
+
 	if ~all(mod(sz, 2)==0)
 		lib_codes(lib_codes==3) = [];
 	end
