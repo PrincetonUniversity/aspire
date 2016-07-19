@@ -46,7 +46,7 @@ scale = 2*pi/(n_theta);
 coeff_pos_k = cell(max_ang_freqs+1, 1);
 pos_k = cell(num_pool, 1);
 
-poolreopen(num_pool);
+%poolreopen(num_pool);
 %disp('Setting OMP_NUM_THREADS to 1 for nufft')
 %setenv('OMP_NUM_THREADS', '1');
 

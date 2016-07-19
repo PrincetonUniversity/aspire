@@ -47,7 +47,6 @@ for count=1:numel(SNR)
     tic_basis=tic;
     [ basis, sample_points ] = precomp_fb( n_r, R, c );
     timing.basis=toc(tic_basis)
-    num_pool=10;
     
     L0=size(g_proj_CTF,1);
 
@@ -56,8 +55,8 @@ for count=1:numel(SNR)
     err_mean=norm(mean_image_f-mean(hatI_curr,3),'fro')/norm(mean(hatI_curr,3),'fro')
 
     [y_mu] = demean_y_v6(proj_CTF_noisy, CTF, mean_image_f, index);
-    [ coeff_ymu ] = coeff_demean( icfft2(y_mu) , R, basis, sample_points, num_pool);
-    [ coeff_mean ] = coeff_demean( icfft2(mean_image_f) , R, basis, sample_points, num_pool);
+    [ coeff_ymu ] = coeff_demean( icfft2(y_mu) , R, basis, sample_points );
+    [ coeff_mean ] = coeff_demean( icfft2(mean_image_f) , R, basis, sample_points );
    
     %% CTF in new basis: numerical integration
 
