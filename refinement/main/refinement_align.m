@@ -11,15 +11,7 @@ P=size(data, 3);
 % shifts_b(:, 2)=imag(s_2);
 
 data=shift_images(data, shifts_b);
-
-% Go concurrent
-ps=matlabpool('size');
-if ps==0
-    matlabpool open
-end
-    
+  
 parfor k=1:P
     data(:, :, k)=fastrotate(data(:, :, k), -rot(k));
 end;
-
-matlabpool close;

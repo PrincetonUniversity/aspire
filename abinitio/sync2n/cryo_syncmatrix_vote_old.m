@@ -1,4 +1,4 @@
-function S=cryo_syncmatrix_vote(clmatrix,L,refq,is_perturbed)
+function S=cryo_syncmatrix_vote_old(clmatrix,L,refq,is_perturbed)
 %
 % Construct the CryoEM synchronization matrix, given a common lines matrix
 % clmatrix, that was constructed using angular resolution of L radial lines
@@ -35,8 +35,6 @@ end
 
 K=sz(1);
 S=eye(2*K);   
-
-poolreopen;
 
 for k1=1:K-1
     %fprintf('Process image %d out of %d\n',k1,K-1);

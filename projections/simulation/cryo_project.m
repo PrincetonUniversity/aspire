@@ -80,7 +80,6 @@ prepdata=nufft_t_3d_prepare_2(volume,precision);
 K=size(q,2);
 projections=zeros(N,N,K);
 
-parpool('local',12);
 parfor k=1:K
 
   if((mod(k,1000))==0)

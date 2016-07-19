@@ -39,8 +39,6 @@ end
 K=sz(1);
 S=eye(2*K);   
 
-poolreopen;
-
 printProgressBarHeader;
 for k1=1:K-1
     %fprintf('Process image %d out of %d\n',k1,K-1);        
