@@ -42,7 +42,9 @@ end
 
 tau=nufft3dauxmx(n,M,m,q,mu,Px.',Py.',Pz.',alpha);
 
-T=fftshift(ifftn(ifftshift(tau)));
+tau = ifftshift(ifftshift(ifftshift(tau, 1), 2), 3);
+T = ifftn(tau);
+T = fftshift(fftshift(fftshift(T, 1), 2), 3);
 T=T*numel(T);
 
 low_idx_M=-ceil((M-1)/2);
