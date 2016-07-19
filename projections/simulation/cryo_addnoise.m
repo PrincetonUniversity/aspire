@@ -53,7 +53,15 @@ end;
 
 % Color Noise Response
 I = cart2rad(2*p+1);
+%I=1./sqrt((1+I.^2));
+
+%Debug
+disp('test noise resp I')
+I1=ones(size(I));
 I=1./sqrt((1+I.^2));
+I=0*I1 + 1*I;
+
+%I=1./sqrt(1+abs(I));
 %I = exp(-I/5);
 I=I/norm(I(:));
 noise_response = sqrt(I); 

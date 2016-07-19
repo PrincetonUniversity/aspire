@@ -564,11 +564,11 @@ for k1=1:n_proj;
         improved_correlation=1;
 
 % Optimized CPU version. Uncommet to use on CPU:
-%         C1=2*real(P1_stack'*P2);
-%         C2=2*real(P1_flipped_stack'*P2);
-% 
-%         [sval1,sidx1]=max(C1(:));
-%         [sval2,sidx2]=max(C2(:));
+        C1=2*real(P1_stack'*P2);
+        C2=2*real(P1_flipped_stack'*P2);
+
+        [sval1,sidx1]=max(C1(:));
+        [sval2,sidx2]=max(C2(:));
 
 % The above GPU code is a compact version of the following one.            
 %         [g_sval1,g_sidx1]=max(g_C1(:));

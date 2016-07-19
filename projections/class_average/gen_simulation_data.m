@@ -14,7 +14,7 @@ end
 
 
 K = 10000; %K is the number of images
-max_shift = 4; %maximum shift range
+max_shift = 0; %maximum shift range
 step_size = 1;
 initstate;
 q = qrand(K);

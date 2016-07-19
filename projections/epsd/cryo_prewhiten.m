@@ -1,4 +1,4 @@
-function [ proj ] = cryo_prewhiten(proj, noise_response )
+function [ proj, filter, nzidx] = cryo_prewhiten(proj, noise_response )
 % Pre-whiten a stack of projections using the power spectrum of the noise.
 %  
 %  Input:
