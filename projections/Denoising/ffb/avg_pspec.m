@@ -22,21 +22,16 @@ mean_data = mean(img, 3);
 %remove mean from the data
 img = bsxfun(@minus, img, mean_data);
 
-disp('start var map')
 variance_map = var(img, [], 3);
-disp('end var map')
 %mean 2D variance radial function
 radial_var = zeros(N, 1);
 for i = 1:N
     radial_var(i) = mean(variance_map(r>=i-1 & r<i));
-disp('rad var')
 end;
 
-disp('here')
 %for i = 1:size(img, 3)
 %    img(:, :, i) = abs(cfft2(img(:, :, i))).^2;
 %end;  
-disp('here')
 
 %Tejal 
 img=abs(cfft2(img)).^2;
@@ -46,7 +41,6 @@ radial_pspec = zeros(N, 1);
 %compute the radial power spectrum;
 for i = 1:N
     radial_pspec(i) = mean(pspec(r>=i-1 & r<i))/L^2;
-disp('pspec')
 end;
 %subtract the noise variance
 %var_hat = 1;
