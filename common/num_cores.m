@@ -1,4 +1,4 @@
-ORES Count the number of cores available
+%CORES Count the number of cores available
 
 %
 
