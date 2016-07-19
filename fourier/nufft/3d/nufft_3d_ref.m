@@ -87,7 +87,9 @@ for j1=-q/2:q/2
     end
 end
 
-T=fftshift(ifftn(ifftshift(tau)));
+tau = ifftshift(ifftshift(ifftshift(tau, 1), 2), 3);
+T = ifftn(tau);
+T = fftshift(fftshift(fftshift(T, 1), 2), 3);
 T=T*numel(T);
 
 low_idx_M=-ceil((M-1)/2);
