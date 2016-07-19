@@ -25,6 +25,11 @@ global log_max_bytes
 %%% HACK
 %return;
 
+if isempty(log_last_prefix_time)
+    warning('log system was not initialized. Initalizing log to print to screen.');
+    open_log(0);
+end
+
 % Do not allow log files that are too big . If more than log_max_bytes (say
 % 100MB) have been written then do nothing.
 if log_bytes_written>log_max_bytes
@@ -47,9 +52,6 @@ end
 % time since last message was more than a second. Otherwise use the old
 % prefix string.
 current_time=clock;
-if isempty(log_last_prefix_time)
-    error('log system was not initialized. Call open_log first.');
-end
 if etime(current_time,log_last_prefix_time)>1
     log_prefix=datestr(clock);
     log_last_prefix_time=current_time;

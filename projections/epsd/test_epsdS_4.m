@@ -20,7 +20,7 @@ for j=1:numel(Ks)
     
     % Estimate power spectrum of noise images    
     max_d=floor(N/2);
-    [P2,R,x]=cryo_epsdS(noise(:,:,1:Ks(j)),1:N^2,max_d,1);
+    [P2,R,~,x]=cryo_epsdS(noise(:,:,1:Ks(j)),1:N^2,max_d,1);
     
     if j==1 % Allocate memory for all power spectra of all tests.
         xs=zeros(numel(R),numel(Ks));

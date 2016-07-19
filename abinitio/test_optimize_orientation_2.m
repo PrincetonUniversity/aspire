@@ -1,0 +1,57 @@
+Nprojs=10;
+q=qrand(Nprojs);  % Generate Nprojs projections to orient.
+voldata=load('cleanrib');
+projs=cryo_project(voldata.volref,q);
+projs=permute(projs,[2,1,3]);
+[projshifted,ref_shifts]=cryo_addshifts(projs,[],2,1);
+snr=1000;
+projshifted=cryo_addnoise(projshifted,snr,'gaussian');
+
+% Convert quaternions to rotations
+trueRs=zeros(3,3,Nprojs);
+for k=1:Nprojs
+    trueRs(:,:,k)=(q_to_rot(q(:,k))).';
+end
+
+Nrefs=10;
+[Rest_gpu,dx_gpu]=cryo_orient_projections_gpu(projshifted,voldata.volref,Nrefs,trueRs,1);
+
+rot_L2_error=norm(Rest_gpu(:)-trueRs(:))/norm(trueRs(:));
+fprintf('L2 error in rotations estimation = %e\n',rot_L2_error);
+shifts_L2_error=norm(dx_gpu.'-ref_shifts)/norm(ref_shifts);
+fprintf('L2 error in shifts estimation = %e\n',shifts_L2_error);
+fprintf('Max shift error in integral pixels (in each coordinate) = (%d,%d)\n',...
+    max(round(ref_shifts)-round(dx_gpu')));
+
+q_ref=qrand(Nprojs);  % Generate Nprojs projections to orient.
+volref=voldata.volref;
+projs_ref=cryo_project(volref,q_ref);
+projs_ref=permute(projs_ref,[2,1,3]);
+Rrefs=zeros(3,3,Nprojs);
+for k=1:Nprojs
+    Rrefs(:,:,k)=(q_to_rot(q_ref(:,k))).';
+end
+
+
+L=360;
+szvol=size(volref);
+n_r=ceil(szvol(1)/2);
+projs_ref_hat=cryo_pft(projs_ref,n_r,L,'single');
+proj_hat=cryo_pft(projshifted,n_r,L,'single');
+
+for k=1:Nprojs
+    estdx=dx_gpu(:,k); 
+    Rest=Rest_gpu(:,:,k);
+    [R_refined,estdx_refined,optout]=optimize_orientation(proj_hat(:,:,k),Rest,projs_ref_hat,Rrefs,L,estdx);
+    
+    rot_L2_error_before_refinement=norm(Rest_gpu(:,:,k)-trueRs(:,:,k),'fro')/norm(trueRs(:,:,k),'fro');
+    rot_L2_error_after_refinement=norm(R_refined-trueRs(:,:,k),'fro')/norm(trueRs(:,:,k),'fro');
+
+    shifts_L2_error_before_refinement=norm(dx_gpu(:,k)-(ref_shifts(k,:)).');
+    shifts_L2_error_after_refinement=norm(estdx_refined-(ref_shifts(k,:)).');
+
+    fprintf('k=%d/%d\n',k,Nprojs);
+    fprintf('\t Rotation error: before=%e \t after=%e\n',rot_L2_error_before_refinement,rot_L2_error_after_refinement);
+    fprintf('\t Shift error:    before=%e \t after=%e\n',shifts_L2_error_before_refinement,shifts_L2_error_after_refinement);
+
+end

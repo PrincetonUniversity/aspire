@@ -1,12 +1,42 @@
 function [Mkj,Ckj,Cjk]=commonline_R_vec(Rks,Rj,L,delta)
+%
+% COMMONLINE_R_VEC  Compute common lines from rotation matrices.
+%
+% [Mkj,Ckj,Cjk]=commonline_R_vec(Rks,Rj,L,delta)
+%   Compute the common lines induced by the rotation matrix Rj with all
+%   rotations matrices in the array Rks. The size of all returned arrays is
+%   size(Rks,3)x1. Mkj is a mask array with 1 for each element in Rks whose
+%   viewing direction has angle at least acos(delta) with the viewing
+%   direction Rj (that is, the cosine between the
+%   viewing directions is smaller than delta). Ckj is the common line
+%   between each Rks and Rj in the coordinates of Rks. Cjk is the common
+%   line between each Rks and Rj in the coordinates of Rj. For entries for
+%   which Mkj==0, Ckj and Cjk contain -1.
+%
+% The returned common lines are 1-based and not zero based as
+% commonlines_R.
+%
+% Yoel Shkolnisky, June 2016.
 
 Nrots=size(Rks,3);
-Rks_vec=zeros(3,3*Nrots);
-Rks_t_vec=zeros(3*Nrots,3);
-for k=1:Nrots
-    Rks_vec(:,3*(k-1)+1:3*k)=Rks(:,:,k);
-    Rks_t_vec(3*(k-1)+1:3*k,:)=(Rks(:,:,k)).';
-end
+
+% Rks_vec=zeros(3,3*Nrots);
+% Rks_t_vec=zeros(3*Nrots,3);
+% for k=1:Nrots
+%     Rks_vec(:,3*(k-1)+1:3*k)=Rks(:,:,k);
+%     Rks_t_vec(3*(k-1)+1:3*k,:)=(Rks(:,:,k)).';
+% end
+
+% Rks_vec_1=reshape(Rks,3,3*Nrots);
+% Rks_t_vec_1=(Rks_vec_1).';
+% 
+% assert(norm(Rks_vec-Rks_vec_1)==0);
+% assert(norm(Rks_t_vec-Rks_t_vec_1)==0);
+
+% The following two lines are an optimized version of the above block. Note
+% that the above block also include the required test code.
+Rks_vec=reshape(Rks,3,3*Nrots);
+Rks_t_vec=(Rks_vec).';
 
 Mkj=zeros(Nrots,1);     % Pairs of rotations that are not "too close"
 

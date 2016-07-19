@@ -95,7 +95,14 @@ line([j,j],[0,yy(2)],'LineStyle','--','Color','b','LineWidth',1.5)
 xticks=get(gca,'XTick');
 df=1/(2*pixelsize*n);
 xticks=xticks*df;
-set(gca,'XTickLabel',sprintf('%7.3f|',xticks));
+
+[mjv,mnv]=matlabversion;
+if (mjv>8) || (mjv==8 && mnv>=4)
+    % Behavior changed on Matlab R2014b
+    set(gca,'XTickLabel',sprintf('%7.3f\n',xticks));
+else
+    set(gca,'XTickLabel',sprintf('%7.3f|',xticks));
+end
 xlabel('1/A')
 
 % Add top axis

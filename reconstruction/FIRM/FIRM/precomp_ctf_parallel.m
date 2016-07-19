@@ -64,11 +64,6 @@ I=I(:);
 J=J(:);
 omega=zeros(m^2,n_proj,3);
 ctfs=ctfs(:,:,defocusID);
-ps=matlabpool('size');
-if ps==0
-    matlabpool open;
-end
-ps=matlabpool('size');
 pfs=zeros(n,n,n_proj);
 weights=zeros(n,n,n_proj);
 
@@ -125,7 +120,7 @@ parfor core=1:ps
         kernel=kernel+kernel_temp;
     end
 end
-matlabpool close;
+
 if precomp==0
     s3=-n+1;% use toepliz property
     idx3=s3+n+(1:n-1);

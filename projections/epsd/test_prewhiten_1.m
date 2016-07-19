@@ -6,7 +6,7 @@ Ks=1000; % Number of noise images to generate.
 [noise,Sfft,Sref,T1]=noise_exp2d(N,max(Ks),1);
 
 max_d=floor(N/3);
-[P2,~,~]=cryo_epsdS(noise(:,:,1:Ks),1:N^2,max_d,1);
+[P2,~,~,~]=cryo_epsdS(noise(:,:,1:Ks),1:N^2,max_d,1);
 
 % Display power spectrum
 figure;
@@ -30,8 +30,8 @@ title(sprintf('Central profile of power spectra (K=%d)',Ks));
 
 
 % Prewhiten
-prewhitened=Prewhiten_image2d(noise, P2);
-[prewhitenedP2,~,~]=cryo_epsdS(prewhitened,1:N^2,max_d,1);
+prewhitened=cryo_prewhiten(noise, P2);
+[prewhitenedP2,~,~,~]=cryo_epsdS(prewhitened,1:N^2,max_d,1);
 
 subplot(2,2,2)
 prewhitenedP1d=prewhitenedP2(N,:);    % Central 1D profile of PSD estimated using cryo_epsdS.

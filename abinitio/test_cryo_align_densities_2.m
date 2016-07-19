@@ -4,6 +4,7 @@
 % relative to the other.
 %
 % Yoel Shkolnisky, January 2015.
+% Revised: July 2016.
 
 %initstate;
 
@@ -11,14 +12,14 @@
 
 load cleanrib
 vol=real(volref);
-vol=GaussFilt3(vol,0.8);
-vol=Downsample(vol,[33 33 33]);
+vol=GaussFilt(vol,0.8);
+%vol=cryo_downsample(vol,[33 33 33]);
 
 % Instead of the above lines you can use:
 % vol=cryo_gaussian_phantom_3d('C1_params',64,1); % Perfect Gaussian, perfect results.
 [R,~,~]=svd(rand(3)); % Generate random rotation
 volRotated=fastrotate3d(vol,R); % Rotate the reference volume by the random rotation
-volRotatedReflected=flipdim(volRotated,1);
+volRotatedReflected=flip(volRotated,1);
 volRotatedReflected=reshift_vol(volRotatedReflected,[5 0 0]);
 %
 % Note: it seems that the estimated shift estdx below is equation to (the

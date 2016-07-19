@@ -61,5 +61,4 @@ if ~strcmpi(noise_type,'clean')
     [proj, noise, noise_response]=addnoise(proj, SNR, noise_type);
 end;
 
-delete(gcp);
 end

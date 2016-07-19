@@ -89,7 +89,10 @@ end
 
 %% Update workflow struct
 workflow.preprocess.phaseflip=do_phaseflip;
-workflow.preprocess.ctfdata=ctfdata;
+workflow.preprocess.ctfdata='';
+if do_phaseflip
+    workflow.preprocess.ctfdata=ctfdata;
+end
 workflow.preprocess.nprojs=nprojs;
 workflow.preprocess.do_crop=do_crop;
 workflow.preprocess.croppeddim=croppeddim;

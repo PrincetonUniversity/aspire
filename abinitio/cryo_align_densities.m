@@ -1,31 +1,32 @@
-function [estR,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA,verbose,Rref,forcereflect)
+function [estR,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA,verbose,Rref,forcereflect,Nprojs)
 % CRYO_ALIGN_DENSITIES  Align two denisity maps
 %
 % [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2)
 %       Align vol2 to vol1. Find the relative rotation and translation
 %       between vol1 and vol2, and rotate and shift vol2 such that it is
-%       best sligned with vol1. Returns the estimate rotation (Rest) and
+%       best aligned with vol1. Returns the estimated rotation (Rest) and
 %       tranaltion (estdx) between the volumes, as well as a copy of vol2
 %       which is best aligned with vol1 (vol2aligned). The function also
 %       checks if the two volumes are reflected w.r.t each other. Sets
-%       reflect to 1 if reflection was detected and zero otherwise. Set 
-%       verbose to nonzero for verbose printouts. 
+%       reflect to 1 if reflection was detected (zero otherwise). 
 %
 % [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA)
 %       Use pixel size in Angstrom pixA to compute the resolution.
 %       Set to non-positive number to ignore.
-
+%
 % [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA)
 %       Set verbose to nonzero for verbose printouts. 
-
-% [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,verbose,Rref)
-%       If the true rotation between vol1 and vol2 in known (during
-%       development/debugging), the function uses Rref to provide detailed
-%       debugging messages. Rref is ignored if reflection is detected.
 %
-% Yoel Shkolnisky, January 2015.
+% [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA,verbose)
+%       Set verbose to nonzero for verbose printouts (default is zero).
+%
+% [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,verbose,Rref)
+%       Use the true rotation between vol1 and vol2 specified by Rref to
+%       provide detailed debugging messages. Rref is ignored if reflection
+%       is detected.
+%
+% Yoel Shkolnisky, June 2016.
 
-fftw('planner','exhaustive');
 
 if ~exist('pixA','var')
     pixA=0;
@@ -33,6 +34,10 @@ end
 
 if ~exist('verbose','var')
     verbose=0;
+end
+
+if ~exist('Nprojs','var')
+    Nprojs=100;  % Number of projections to use for alignment.
 end
 
 %% Validate input
@@ -72,205 +77,196 @@ if ~exist('forcereflect','var')
     forcereflect=0;
 end
 
+timing=tic;
+
 %% Mask input volumes
 
 n=size(vol1,1);
 vol1masked=vol1.*fuzzymask(n,3,floor(0.45*n),floor(0.05*n));
 vol2masked=vol2.*fuzzymask(n,3,floor(0.45*n),floor(0.05*n));
 
+vol1masked=GaussFilt(vol1masked,0.3);
+vol2masked=GaussFilt(vol2masked,0.3);
 
-%% Rough alignment on downsampled volumes.
+
+%% Alignment 
+
+refq=qrand(Nprojs); % Quaternions used to project volume 2.
+
+% Convert quaternions to rotations
+trueRs=zeros(3,3,Nprojs); 
+for k=1:Nprojs
+    trueRs(:,:,k)=(q_to_rot(refq(:,k))).';
+end
+
+% Generate projections of volume 2.
+projs2=cryo_project(vol2masked,refq);
+projs2=permute(projs2,[2,1,3]);
+
+% Estimate rotations of the projections of volume 2.
+log_message('Aligning volumes.')
+[Rests,dxests]=cryo_orient_projections_gpu(projs2,vol1masked,Nprojs,[],verbose,0);
+
+% Assess quality of the alignment. Use Rests and trueRs to estimate the
+% matrix aligning the two volumes. The close this matrix to an orthogonal
+% matrix, the better the alignment. 
 %
-% Downsample the input volmes, generate a list of Nrots rotations, and find
-% the rotation from this list which best aligns the two volumes. This is
-% implemented by trying all rotations from the list, and for each 
-% rotation looking for the best translation. The combination of
-% rotation and translation which results in the best match is taken as the
-% estimated relative rotation/translation between the volumes.
-
-n_downsample=round(n/4);
-pixA_downsample=pixA*n/n_downsample;
-vol1ds=Downsample(vol1masked,[n_downsample n_downsample n_downsample]);
-vol2ds=Downsample(vol2masked,[n_downsample n_downsample n_downsample]);
-
-
-% Nrots=5000;
-% qrots=qrand(Nrots);
-% rotations=zeros(3,3,Nrots);
-% for jj=1:Nrots
-%     rotations(:,:,jj)=q_to_rot(qrots(:,jj));
-% end
-rotations=genRotationsGrid(75);
-
-corr0=0;
-if ~forcereflect
-    if verbose
-        log_message('**********************************************');
-        log_message('Rough alignment on downsampled masked volumes:');
-        
-        log_message('Volume downsampled from %d to %d',n,n_downsample);
-        log_message('Using %d candidate rotations',size(rotations,3));
-    end
-    
-    tic;
-    [R0,dx0,corr0,res0,~]=bf3Dmatchaux(vol1ds,vol2ds,rotations,pixA_downsample,1);
-    t=toc;
-    
-    if verbose
-        debugmessage(t,corr0,res0,dx0,R0,pixA_downsample,refgiven,Rref);
-    end    
+% There are two possibilties:
+% 1. There is no reflection between vol1 and vol2, in which case they are
+% related by rotation only, that is R_{i} = O \tilde{R}_{i}, where R_{i}
+% and tilde{R}_{i} are the rotations are the rotations of the projections
+% in the coordinates systems of vol2 and vol1, respectively (corresponding
+% to trueRs and Rests, respectively).
+% 2. There is reflection, in which case R_{i} = O J \tilde{R}_{i} J.
+%
+% We estimate O in both cases and choose the one for which the resulting O
+% is more orthogonal.
+R1=zeros(3);
+Omat=zeros(3);
+J3=diag([1 1 -1]);
+for k=1:Nprojs
+    R1=R1+trueRs(:,:,k)*Rests(:,:,k).';
+    Omat=Omat+trueRs(:,:,k)*(J3*Rests(:,:,k)*J3).';
 end
+R1=R1./Nprojs;
+Omat=Omat./Nprojs;
+
+s1=svd(R1); s2=svd(Omat);
+no1=max(s1)/min(s1); %Non orthogonality (actually, the condition number)
+no2=max(s2)/min(s2);
 
 if verbose
-    log_message('**************************************************************');
-    log_message('Rough alignment on downsampled masked volumes with reflection:');
-    
-    log_message('Volume downsampled from %d to %d',n,n_downsample);
-    log_message('Using %d candidate rotations',size(rotations,3));
+    log_message('Singular values of aligning matrix:');
+    log_message('\t without reflection (%7.4f,%7.4f,%7.4f); condition number = %7.4f',s1(1),s1(2),s1(3),no1);
+    log_message('\t with    reflection (%7.4f,%7.4f,%7.4f); condition number = %7.4f',s2(1),s2(2),s2(3),no2);
 end
 
-tic;
-[R0R,dx0R,corr0R,res0R,~]=bf3Dmatchaux(vol1ds,flipdim(vol2ds,3),rotations,pixA_downsample,1);
-t=toc;
 
-assert(abs(norm(R0R)-1)<1.0e-14); % Verify that nothing bad happened
-    
+log_message('Refining alignment.');
+Rests=cryo_refine_orientations(projs2,vol1masked,Rests,dxests,1,-1);
+
+
+% There are two possibilties:
+% 1. There is no reflection between vol1 and vol2, in which case they are
+% related by rotation only, that is R_{i} = O \tilde{R}_{i}, where R_{i}
+% and tilde{R}_{i} are the rotations are the rotations of the projections
+% in the coordinates systems of vol2 and vol1, respectively (corresponding
+% to trueRs and Rests, respectively).
+% 2. There is reflection, in which case R_{i} = O J \tilde{R}_{i} J.
+%
+% We estimate O in both cases and choose the one for which the resulting O
+% is more orthogonal.
+R1=zeros(3);
+Omat=zeros(3);
+J3=diag([1 1 -1]);
+for k=1:Nprojs
+    R1=R1+trueRs(:,:,k)*Rests(:,:,k).';
+    Omat=Omat+trueRs(:,:,k)*(J3*Rests(:,:,k)*J3).';
+end
+R1=R1./Nprojs;
+Omat=Omat./Nprojs;
+
+s1=svd(R1); s2=svd(Omat);
+no1=max(s1)/min(s1); %Non orthogonality (actually, the condition number)
+no2=max(s2)/min(s2);
+
 if verbose
-    % No point in comparing to Rref if there is reflection, as Rref in this
-    % case in irrelevant
-    debugmessage(t,corr0R,res0R,dx0R,R0R,pixA_downsample,0,Rref);
+    log_message('Singular values of aligning matrix:');
+    log_message('\t without reflection (%7.4f,%7.4f,%7.4f); condition number = %7.4f',s1(1),s1(2),s1(3),no1);
+    log_message('\t with    reflection (%7.4f,%7.4f,%7.4f); condition number = %7.4f',s2(1),s2(2),s2(3),no2);
 end
 
-reflect=0;
-if corr0<corr0R
-    % Reflection needed
-    if verbose
-        log_message('**** Reflection detected ****')
-    end
+if min(no1,no2)>1.2 % The condition number of the estimated rotation is 
+       % larger than 1.2, that is, no rotation was recovered. This
+       % threshold was set arbitrarily.
+       warning('Alignment failed.');
+end
+
+reflect=0; % Do we have reflection?
+R=R1;
+if no2<no1 || forcereflect
     reflect=1;
-    vol2ds=flipdim(vol2ds,3);
-    R0=R0R;
+    R=Omat;
+    
+    if verbose
+        log_message('**** Reflection detected ****');
+    end
 end
-
-%% Refine search on downsampled volumes
-%
-% Take the estimated relative rotation/translation found above and refine
-% it. This is implemented by selecting several random rotations around the
-% estimated rotation, and for each such rotation looking for the best
-% translation. The best match is taken as the new estimate of the relative
-% rotation/translation.
-
-if verbose
-    log_message('************************************************');
-    log_message('Refined alignment on downsampled masked volumes:');
-end
-   
-newrots=genNearRotations(R0,10,100,10,31);
-
-if verbose
-    log_message('Volume downsampled from %d to %d',n,n_downsample);
-    log_message('Using %d candidate rotations for refined search',size(newrots,3));
-end
-
-tic;
-[R1,dx1,corr1,res1,~]=bf3Dmatchaux(vol1ds,vol2ds,newrots,pixA_downsample,1);
-t=toc;
+    
+[U,~,V]=svd(R); % Project R to the nearest rotation.
+Omat=U*V.';
+assert(det(Omat)>0);
+Omat=Omat([2 1 3],[2 1 3]);
 
 
 if verbose
-    debugmessage(t,corr1,res1,dx1,R1,pixA_downsample,refgiven && ~reflect,Rref);
+    log_message('Estimated rotation:');
+    log_message('%7.4f %7.4f  %7.4f',Omat(1,1),Omat(1,2),Omat(1,3));
+    log_message('%7.4f %7.4f  %7.4f',Omat(2,1),Omat(2,2),Omat(2,3));
+    log_message('%7.4f %7.4f  %7.4f',Omat(3,1),Omat(3,2),Omat(3,3));
+    
+    if refgiven
+        tmp=Rref;
+        
+        if reflect
+            %tmp=J3*tmp*J3;
+            % Seems it should be tmp=J2*tmp*J3, but I did not look into
+            % that.
+        end
+        log_message('Reference rotation:');
+        log_message('%7.4f %7.4f  %7.4f',tmp(1,1),tmp(1,2),tmp(1,3));
+        log_message('%7.4f %7.4f  %7.4f',tmp(2,1),tmp(2,2),tmp(2,3));
+        log_message('%7.4f %7.4f  %7.4f',tmp(3,1),tmp(3,2),tmp(3,3));
+        if reflect
+            %log_message('Reference rotation was J-conjugated');
+        end
+        
+        log_message('Estimation error (Frobenius norm) = %5.3e', norm(Omat-tmp,'fro'));
+    end
 end
 
-%% Brute-force search on original volumes
-%
-% Take the estimated relative rotation/translation found above and refine
-% it using the original volume. This is implemented by selecting several
-% random rotations around the estimated rotation, and for each such
-% rotation looking for the best translation. The best match is taken as the
-% new estimate of the relative rotation/translation.
+
+vol2maskedaligned=fastrotate3d(vol2masked,Omat.'); % Rotate the masked vol2 back.
+vol2aligned=fastrotate3d(vol2,Omat.'); % Rotate the original vol2 back.
 
 if reflect
-    vol2masked=flipdim(vol2masked,3);
-    vol2=flipdim(vol2,3);
+    vol2maskedaligned=flip(vol2maskedaligned,3);
+    vol2aligned=flip(vol2aligned,3);
 end
 
+estdx=register_translations_3d(vol1masked,vol2maskedaligned);
 if verbose
-    log_message('*************************************');
-    log_message('Alignment on original masked volumes:');
-end
-   
-newrots=genNearRotations(R1,10,20,10,11);
-
-if verbose
-    log_message('Volume of size %d',n);
-    log_message('Using %d candidate rotations for refined search',size(newrots,3));
+    log_message('Estimated translations: (%7.4f,%7.4f,%7.4f)',estdx(1),estdx(2),estdx(3));
 end
 
+vol2maskedaligned=reshift_vol(vol2maskedaligned,estdx);
+vol2aligned=reshift_vol(vol2aligned,estdx);    
 
-tic;
-[R2,dx2,corr2,res2,~]=bf3Dmatchaux(vol1masked,vol2masked,newrots,pixA,1);
-t=toc;
+timing=toc(timing);
 
+estR=Omat;
 
-if verbose
-    debugmessage(t,corr2,res2,dx2,R2,pixA,refgiven && ~reflect,Rref);
-end
-
-%% Refine once more on the original volume
-%
-% Use the prevoius estimated rotation/translation as a starting point for
-% aligning the two original (not downsampled) volumes. This is done as
-% above by using several random rotation near the previously estimated
-% rotation.
-
-if verbose
-    log_message('*********************************************');
-    log_message('Refined alignment on original masked volumes:');
-end
-
-vol2Rmasked=fastrotate3d(vol2masked,R2);
-estdx=register_translations_3d(vol1masked,vol2Rmasked);
-
-
-
-tic;
-[bestR,bestdx]=refind3Dmatchaux(vol1masked,vol2masked,R2,estdx);
-t=toc;
-
-vol2aligned=fastrotate3d(vol2,bestR);
-vol2aligned=reshift_vol(vol2aligned,bestdx);    
-
-bestcorr=corr(vol1(:),vol2aligned(:));
-
-estR=bestR.';
-estdx=bestdx;
-
+% Compute correlations
+c_masked=corr(vol1masked(:),vol2maskedaligned(:)); % Masked volumes
+c_orig=corr(vol1(:),vol2aligned(:)); % Original volumes
 fsc=FSCorr(vol1,vol2aligned);
-bestRes=fscres(fsc,0.134);
-bestResA=2*pixA*numel(fsc)/bestRes; % Resolution in Angstrom.
+res=fscres(fsc,0.134);
+resA=2*pixA*numel(fsc)/res; % Resolution in Angstrom.
 
-
-if verbose
-    debugmessage(t,bestcorr,bestResA,bestdx,bestR,pixA,refgiven && ~reflect,Rref);
-end
-
-
-
-function debugmessage(t,c,res,dx,R,pixA,refgiven,Rref)
-% Show verbose message
-log_message('Completed in %7.2f seconds',t);
+log_message('Completed in %7.2f seconds',timing);
 log_message('Pixel size %6.3f',pixA);
-log_message('Best correlation detected: %7.4f',c);
+log_message('Correlation between masked aligned volumes = %7.4f',c_masked);
+log_message('Correlation between original aligned volumes = %7.4f',c_orig);
+
 if res>0
-    log_message('Best resolution detected: %5.2f',abs(res));
+    log_message('Resolution of aligned volumes = %5.2f',abs(resA));
 else
-    log_message('Best resolution detected: %5.2f (dummy pixel size)',abs(res));
+    log_message('Resolution of aligned volumes = %5.2f (dummy pixel size)',abs(resA));
 end
-log_message('Estimated shift [%5.3f , %5.3f, %5.3f]',...
-    dx(1),dx(2),dx(3));
+
 if refgiven
     [rotaxis_ref,gamma_ref]=rot_to_axisangle(Rref);
-    [rotaxis,gamma]=rot_to_axisangle(R);
+    [rotaxis,gamma]=rot_to_axisangle(Omat.');
     
     log_message('Rotation axis:');
     log_message('\t Estimated \t [%5.3f , %5.3f, %5.3f]',...

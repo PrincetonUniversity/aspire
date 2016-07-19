@@ -67,7 +67,6 @@ end
 % used below for computing the polar Fourier transform of all slices
 precomp=nufft_t_2d_prepare(freqs,size(p,1),precision);
 
-poolreopen;
 pf=zeros(n_r,n_theta,n_proj);
 parfor k=1:n_proj
     tmp=p(:,:,k);

@@ -73,8 +73,12 @@ for k=1:Nprojs
     else
         stackname='N/A';
         imageidx=k;
-        im=projs(:,:,k);
+        im=projs(:,:,k);        
     end
+    im=double(im); % Convert to double to eliminate small numerical 
+        % roundoff errors when comparing the current function to
+        % cryo_phaseflip_outofcore. This line is only required to get
+        % perfectly zero error when comparing the functions.
     n=size(im,1);
     if n~=size(im,2)
         error('Images must be square');

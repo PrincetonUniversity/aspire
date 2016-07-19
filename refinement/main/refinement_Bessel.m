@@ -52,11 +52,6 @@ B=pinv(b);
 
 coeff_b=zeros(size(b, 2), P, lshifts);
 
-ps=matlabpool('size');
-if ps==0
-    matlabpool open
-end
-
 parfor k=1:lshifts
     data_shift= cryo_reshift_cart( data, -shifts(k, :) );
     data1=reshape(data_shift, L^2, P);
@@ -65,8 +60,6 @@ parfor k=1:lshifts
     coeff = coeff(1:length(R_freq), :);
     coeff_b(:, :, k)=coeff;
 end;
-
-matlabpool close;
 
 clear data_shift data1
 
