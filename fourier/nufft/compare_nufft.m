@@ -50,14 +50,15 @@ fprintf('\n');
 
 fprintf('------\n| 2D |\n------\n');
 
-om = m*(rand(n, 2)-0.5);
+c = rand(n^2, 1) + i*rand(n^2, 1);
+om = m*(rand(n^2, 2)-0.5);
 
 tt = tic;
 f1 = nufft_2d(c, om, 'double', m);
 t1 = toc(tt);
 
 tt = tic;
-f2 = n*nufft2d1(n, 2*pi/m*om(:,1), 2*pi/m*om(:,2), c, 1, 1e-10, m, m);
+f2 = n*nufft2d1(n^2, 2*pi/m*om(:,1), 2*pi/m*om(:,2), c, 1, 1e-10, m, m);
 t2 = toc(tt);
 
 tt = tic;
@@ -78,7 +79,7 @@ g1 = nufft_t_2d(cf, 2*pi/m*om, 'double');
 t1 = toc(tt);
 
 tt = tic;
-g2 = nufft2d2(n, 2*pi/m*om(:,1), 2*pi/m*om(:,2), 1, 1e-10, m, m, cf);
+g2 = nufft2d2(n^2, 2*pi/m*om(:,1), 2*pi/m*om(:,2), 1, 1e-10, m, m, cf);
 t2 = toc(tt);
 
 tt = tic;
@@ -117,14 +118,15 @@ fprintf('\n');
 
 fprintf('------\n| 3D |\n------\n');
 
-om = m*(rand(n, 3)-0.5);
+c = rand(n^3, 1) + i*rand(n^3, 1);
+om = m*(rand(n^3, 3)-0.5);
 
 tt = tic;
 f1 = nufft_3d_ref(c, om, 'double', m);
 t1 = toc(tt);
 
 tt = tic;
-f2 = n*nufft3d1(n, 2*pi/m*om(:,1), 2*pi/m*om(:,2), 2*pi/m*om(:,3), c, 1, 1e-10, m, m, m);
+f2 = n^3*nufft3d1(n^3, 2*pi/m*om(:,1), 2*pi/m*om(:,2), 2*pi/m*om(:,3), c, 1, 1e-10, m, m, m);
 f2 = reshape(f2, m*ones(1, 3));
 t2 = toc(tt);
 
@@ -152,7 +154,7 @@ g1 = nufft_t_3d(cf, 2*pi/m*om, 'double');
 t1 = toc(tt);
 
 tt = tic;
-g2 = nufft3d2(n, 2*pi/m*om(:,1), 2*pi/m*om(:,2), 2*pi/m*om(:,3), 1, 1e-10, m, m, m, cf);
+g2 = nufft3d2(n^3, 2*pi/m*om(:,1), 2*pi/m*om(:,2), 2*pi/m*om(:,3), 1, 1e-10, m, m, m, cf);
 t2 = toc(tt);
 
 tt = tic;
