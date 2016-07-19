@@ -10,7 +10,8 @@
 #include <mex.h>
 #include <math.h>
 #include <string.h>
-#include "../common/mexutil.h"
+#include <stdio.h>
+#include "mexutil.h"
 
 #define for if(0);else for
 
