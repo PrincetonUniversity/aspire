@@ -19,12 +19,6 @@ m=length(x);
 
 low_idx=-ceil((n-1)/2);
 high_idx=floor((n-1)/2);
-g=zeros(m,1);
 
-for j=1:m
-    for k=low_idx:high_idx
-        g(j)=g(j)+beta(k-low_idx+1)*exp(i*k*x(j));
-    end
-end
-
-
+G = exp(1i*x(:)*[low_idx:high_idx]);
+g = G*beta;

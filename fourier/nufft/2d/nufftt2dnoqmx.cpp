@@ -16,6 +16,7 @@
 #include <mex.h>
 #include <math.h>
 #include <string.h>
+#include <stdio.h>
 
 #define for if(0);else for
 

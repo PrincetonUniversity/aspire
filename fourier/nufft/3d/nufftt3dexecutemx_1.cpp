@@ -11,7 +11,8 @@
 #include <mex.h>
 #include <math.h>
 #include <string.h>
-#include "debug.h"
+#include <stdio.h>
+#include "debug_ys.h"
 #include "mexutil.h"
 
 #define for if(0);else for
