@@ -1,9 +1,9 @@
 % Denoise projections of 80s ribosome (with white noise and CTF added).
-load /scratch/tbhamre/emd_6454_proj.mat
+vol=load('cleanrib.mat');
 
-%n=105;
 K=1000;
-%[projections] = emd5278_proj_full(n,K); % IP3 dataset EMD5278.mat
+[projections] = cryo_gen_projections(35,K,1,0);
+
 nbatch=10;
 cd ~/aspire
 initpath
@@ -32,6 +32,7 @@ B=10; % decay envelope parameter
 use_CTF=1;
 n_im = N_images 
 [g_proj_CTF,CTF,index]=  add_CTF_env_v6(hatI_curr(:,:,1:n_im), ndef, def1,def2,B, lambda, use_CTF);
+[fpath_user]=fmtinput('Please enter the destination path for denoised images. The default destination is your home directory','~/.','%s');
 
 SNR= 1/20;
 for count=1:numel(SNR)
@@ -62,7 +63,7 @@ for count=1:numel(SNR)
 	high=min(K,low+(K/nbatch)-1);
 	sprintf('Saving noisy, demeaned images from %d to %d', low, high)
 	curr_batch=proj_CTF_noisy(:,:,low:high);	
-	filename=fullfile('/scratch/tbhamre/cwf_batch/', sprintf('set%d',nb));
+	filename=fullfile(fpath_user, sprintf('set%d',nb));
 	save(filename,'curr_batch','-v7.3');
     end
 
@@ -77,10 +78,10 @@ for count=1:numel(SNR)
 	low=(nb-1)*(K/nbatch)+1;
 	high=min(K,low+(K/nbatch)-1);
 	sprintf('Computing coeffs of images from %d to %d', low, high)
-	filename=fullfile('/scratch/tbhamre/cwf_batch/', sprintf('demean_set%d',nb));
+	filename=fullfile(fpath_user, sprintf('demean_set%d',nb));
 	load(filename);
 	[ coeff_pos_k ] = coeff_demean( icfft2(curr_batch) , R, basis, sample_points, num_pool);
-	filename=fullfile('/scratch/tbhamre/cwf_batch/', sprintf('coeff_set%d',nb));
+	filename=fullfile(fpath_user, sprintf('coeff_set%d',nb));
 	save(filename,'coeff_pos_k','-v7.3');
     end
 
@@ -90,12 +91,12 @@ for count=1:numel(SNR)
     	for nb=1:nbatch
 		low=(nb-1)*(K/nbatch)+1;
 		high=min(K,low+(K/nbatch)-1);
-		filename=fullfile('/scratch/tbhamre/cwf_batch/', sprintf('coeff_set%d',nb));
+		filename=fullfile(fpath_user, sprintf('coeff_set%d',nb));
 	        load(filename);
 		coeff_pos_k_new(1:sz_k,low:high)=coeff_pos_k{k+1};		
 	end
     sprintf('Save coeffs for k=%d',k)
-    filename=fullfile('/scratch/tbhamre/cwf_batch/', sprintf('coeff_pos%d',k));
+    filename=fullfile(fpath_user, sprintf('coeff_pos%d',k));
     save(filename,'coeff_pos_k_new','-v7.3');
     end
   
@@ -112,12 +113,12 @@ for count=1:numel(SNR)
         low=(nb-1)*(K/nbatch)+1;
 	high=min(K,low+(K/nbatch)-1);
 	for k=unique(basis.ang_freqs)'
-		filename=fullfile('/scratch/tbhamre/cwf_batch/', sprintf('den_coeff_pos%d',k));
+		filename=fullfile(fpath_user, sprintf('den_coeff_pos%d',k));
 	        load(filename);
 		den_coeff_new{k+1}=denoised_coeff(:,low:high);		
 	end
     sprintf('Save reshaped batch coeffs for batch%d',nb)
-    filename=fullfile('/scratch/tbhamre/cwf_batch/', sprintf('batch_den_coeff_pos%d',nb));
+    filename=fullfile(fpath_user, sprintf('batch_den_coeff_pos%d',nb));
     save(filename,'den_coeff_new','-v7.3');
     clear den_coeff_new
     end
