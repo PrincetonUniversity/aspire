@@ -1,4 +1,4 @@
-function [ est_mean ] = mean_LS_batch( ctf, index, regu, nim , nbatch, L)
+function [ est_mean ] = mean_LS_batch( ctf, index, regu, nim , nbatch, L, fpath)
 %Estimate the mean of the dataset using least squares
 
 ndef=size(ctf,3);
@@ -6,7 +6,7 @@ ctf=reshape(ctf,L^2,ndef);
 t1=zeros(L^2,1);
 t2=zeros(L^2,1);
 for nb=1:nbatch
-	filename=fullfile('/scratch/tbhamre/cwf_batch/', sprintf('set%d',nb));
+	filename=fullfile(fpath, sprintf('set%d',nb));
 	load (filename);
 	offset=(nb-1)*(nim/nbatch);
 	y=reshape(curr_batch,L^2,size(curr_batch,3));

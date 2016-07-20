@@ -65,7 +65,7 @@ for count=1:numel(SNR)
     end
 
     regu=1;
-    mean_image_f=mean_LS_batch(CTF, index, regu, K, nbatch, L0);
+    mean_image_f=mean_LS_batch(CTF, index, regu, K, nbatch, L0, fpath);
     err_mean=norm(mean_image_f-mean(hatI_curr,3),'fro')/norm(mean(hatI_curr,3),'fro')
 
     demean_y_batch(CTF, mean_image_f, index, nbatch, K, fpath_user);
