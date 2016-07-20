@@ -65,7 +65,18 @@ function install_cims_nufft(url, location, force_compile)
 		end
 	end
 
+	% Save current dir so that we can go back.
+	current_dir = pwd();
+
+	% Move into folder since untar depends on current directory.
+	cd(fileparts(filepath));
+
 	unzipped_files = gunzip(filepath);
+	if numel(unzipped_files) == 1 && strcmp(unzipped_files{1}(end-3:end), '.tar')
+		untarred_files = untar(unzipped_files{1});
+		delete(unzipped_files{1});
+		unzipped_files = untarred_files;
+	end
 
 	nufft_root = fullfile(fileparts(filepath), fileparts(unzipped_files{1}));
 
@@ -75,8 +86,6 @@ function install_cims_nufft(url, location, force_compile)
 	if any(strcmp(nufft_root, paths))
 		rmpath(nufft_root);
 	end
-
-	current_dir = pwd;
 
 	if force_compile
 		% NOTE: It's important to run this here. If we delete MEX files that
