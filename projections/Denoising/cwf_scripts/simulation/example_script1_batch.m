@@ -5,9 +5,6 @@ K=1000;
 [projections] = cryo_gen_projections(35,K,1,0);
 
 nbatch=10;
-cd ~/aspire
-initpath
-cd ~/cwf_denoise
 
 N_images=K;
 g_projections=projections(:,:,1:N_images);
