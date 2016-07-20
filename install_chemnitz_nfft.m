@@ -2,7 +2,7 @@
 %
 % Usage
 %    install_chemnitz_nfft();
-%    install_chemnitz_nfft(url, location);
+%    install_chemnitz_nfft(url, location, fftw_location);
 %
 % Input
 %    url: The url from which the package should be downloaded. By default,
@@ -13,6 +13,8 @@
 %
 %    location: The location in which the package should be installed. By
 %       default, this is the subfolder 'extern' of the ASPIRE root folder.
+%    fftw_location: The location of the FFTW3 package needed to compile NFFT.
+%       By default, the location is 'extern/fftw3'.
 %
 % Description
 %    This function downloads and compiles the NFFT library from TU Chemnitz,
