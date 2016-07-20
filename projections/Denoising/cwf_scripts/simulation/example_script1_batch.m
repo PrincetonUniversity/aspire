@@ -1,4 +1,5 @@
 % Denoise projections of 80s ribosome (with white noise and CTF added).
+[fpath_user]=fmtinput('Please enter the destination path for denoised images. The default destination is your home directory','~/.','%s');
 vol=load('cleanrib.mat');
 
 K=1000;
@@ -29,7 +30,6 @@ B=10; % decay envelope parameter
 use_CTF=1;
 n_im = N_images 
 [g_proj_CTF,CTF,index]=  add_CTF_env_v6(hatI_curr(:,:,1:n_im), ndef, def1,def2,B, lambda, use_CTF);
-[fpath_user]=fmtinput('Please enter the destination path for denoised images. The default destination is your home directory','~/.','%s');
 
 SNR= 1/20;
 for count=1:numel(SNR)
