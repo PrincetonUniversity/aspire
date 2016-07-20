@@ -53,6 +53,7 @@ function install_cims_nufft(url, location, force_compile)
 		try
 			fprintf('Downloading...');
 			urlwrite(url, filepath);
+			fprintf('OK\n');
 		catch
 			fprintf('Failed.\n');
 			fprintf('Please download the package at the URL\n');
