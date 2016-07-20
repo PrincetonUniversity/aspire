@@ -68,7 +68,7 @@ for count=1:numel(SNR)
     mean_image_f=mean_LS_batch(CTF, index, regu, K, nbatch, L0);
     err_mean=norm(mean_image_f-mean(hatI_curr,3),'fro')/norm(mean(hatI_curr,3),'fro')
 
-    demean_y_batch(CTF, mean_image_f, index, nbatch, K);
+    demean_y_batch(CTF, mean_image_f, index, nbatch, K, fpath_user);
     [ coeff_mean ] = coeff_demean( icfft2(mean_image_f) , R, basis, sample_points, num_pool);
     low=0; high=0;
     for nb=1:nbatch
@@ -99,7 +99,7 @@ for count=1:numel(SNR)
   
     %% CTF in new basis: numerical integration
     [ctf_rad_all]=  calc_CTF_rad(use_CTF, L0, index, ndef, def1,def2,B, lambda, sample_points.r*((floor(L0/2)+1)/0.5));
-    jobscript_CCWF_cgshrink_test_batch(index, ctf_rad_all, basis, sample_points,  coeff_mean, noise_v_r, nbatch, nim);
+    jobscript_CCWF_cgshrink_test_batch(index, ctf_rad_all, basis, sample_points,  coeff_mean, noise_v_r, nbatch, nim, fpath_user);
 
 %    energy_coeff=cumsum(cellfun(@norm,denoised_coeff_ccwf));
 %    cutoff_coeff=find(energy_coeff/max(energy_coeff)>0.99,1,'first');

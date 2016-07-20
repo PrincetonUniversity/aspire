@@ -1,4 +1,4 @@
-function [ denoised_coeff, skip_flags]  = jobscript_CCWF_cgshrink_test(index, CTF_rad_all, basis, sample_points,  mean_coeff,  noise_v, nbatch, nim)
+function [ denoised_coeff, skip_flags]  = jobscript_CCWF_cgshrink_test(index, CTF_rad_all, basis, sample_points,  mean_coeff,  noise_v, nbatch, nim, fpath)
 
 ang_freqs=basis.ang_freqs;
 
@@ -12,7 +12,7 @@ end
 for k=unique(ang_freqs)'
     
     if k>=0
-        filename=fullfile('/scratch/tbhamre/cwf_batch/', sprintf('coeff_pos%d',k));
+        filename=fullfile(fpath, sprintf('coeff_pos%d',k));
  	load(filename);
         tmp=coeff_pos_k_new;
         %tr_c=tr_coeff_pos_k{k+1};
@@ -71,7 +71,7 @@ for k=unique(ang_freqs)'
             end
             % Fix this
         end
-	    filename=fullfile('/scratch/tbhamre/cwf_batch/', sprintf('den_coeff_pos%d',k));
+	    filename=fullfile(fpath, sprintf('den_coeff_pos%d',k));
             save(filename,'denoised_coeff','-v7.3');
 	    clear denoised_coeff
     end
