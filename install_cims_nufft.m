@@ -120,7 +120,7 @@ function install_cims_nufft(url, location, force_compile)
 			nufft3d1(1, 0, 0, 0, 0, 1, 1, 1, 1, 1);
 			fprintf('MEX files are working.\n');
 		catch
-			error('MEX compilation failed.\n');
+			error('MEX compilation failed.');
 		end
 	end
 	cd(current_dir);
