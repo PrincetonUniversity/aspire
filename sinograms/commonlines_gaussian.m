@@ -3,7 +3,7 @@ function [ clstack,corrstack, shift_equations,shift_equations_map]...
 % Detect the commonlines by searching for the maximun cross-correlation 
 % between the rays on the polar Fourier Transforms. Gaussian filter applied 
 % to damp the noise in the high frequency domain.
-
+%
 % Input: 
 %
 %   pf       3D array where each image pf(:,:,k) corresponds to the Fourier

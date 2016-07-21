@@ -33,7 +33,7 @@ clear Coeff_norm Phase O1 O2
 
 %% PCA the bispectrum
 
-[U, S, V]=pca_Y(M, 200);
+[U, S, V]=pca_Y(M, min([200 size(M)]));
 Coeff_b=S*V';       %reduced rotationally invariant features
 Coeff_b_r=U'*conj(M);      %reduced rotationally invariant features for reflected images.
 clear M U S V

@@ -32,13 +32,13 @@ function A=ATA_solver(V1,V2,K)
 %     alpha=sqrt(0.95*K);
     
     % Find the least squares approximation
-    cvx_begin
-        variable ATA(3,3) symmetric
-        minimize(norm(equations*ATA(:)-b))
-        ATA==semidefinite(3);
-%         alpha*eye(3)-ATA==semidefinite(3);
-    cvx_end
+    ATA = equations\b;
+
+    ATA = reshape(ATA, 3*ones(1, 2));
    
-    
+    if any(eig(ATA)<=0)
+        error('ATA is not positive definite');
+    end
+
     % The Cholesky decomposition of A'*A gives A
     A = chol(ATA);

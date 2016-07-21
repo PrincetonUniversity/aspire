@@ -171,7 +171,7 @@ end
 
 if numel(goodratios)>0
     %diff=Rks2-repmat(mean(Rks2,2),1,numel(goodratios));
-    diff=Rs(1:2,1:2,:)-repmat(Rk(1:2,1:2),1,1,numel(goodratios));
+    diff=Rs(1:2,1:2,:)-repmat(Rk(1:2,1:2),[1,1,numel(goodratios)]);
     tmpR=Rs(1:2,1:2,:);
     err=norm(diff(:))/norm(tmpR(:));
     if err>TOL
