@@ -67,6 +67,21 @@ properties
             end
         end
         
+        function gc = mtimes(ga, gb)
+            M = ga.dim(1);
+            N = ga.dim(2);
+            if N ~= gb.dim(1)
+                error('matirces of incorect sizes');
+            end
+            K = gb.dim(2);
+            if ga.mode == 0 && gb.mode ==0
+                gcptr = gpuauxSmul(ga.gptr,ga.dim(1),ga.dim(2),gb.gptr,gb.dim(1),gb.dim(2),0,0);
+            else
+                gcptr = gpuauxCmul(ga.gptr,ga.dim(1),ga.dim(2),gb.gptr,gb.dim(1),gb.dim(2),0,0);
+            end
+            gc=gpumatrix(gcptr,M,K,0);
+        end
+        
         function A=gather(obj) 
             % Read the matrix from the GPU.
             if obj.gptr==0

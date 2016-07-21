@@ -9,7 +9,7 @@
 #include "cublas.h"
 #include "timings.h"
 
-#define DEBUG
+//#define DEBUG
 
 void mexFunction( int nlhs, mxArray *plhs[],
         int nrhs, const mxArray *prhs[])

@@ -12,7 +12,7 @@
 #include "mex.h"
 #include "cublas.h"
 
-#define DEBUG
+// #define DEBUG
 
 
 void floats2cuComplex( const float *inr, const float *ini, cuComplex *out, int Ntot)
