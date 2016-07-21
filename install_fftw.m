@@ -72,7 +72,9 @@ function install_fftw(url, location)
 
 	fftw_dir = fileparts(unzipped_files{1});
 	ind = find(fftw_dir=='/', 1);
-	fftw_dir = fftw_dir(1:ind-1);
+	if ~isempty(ind)
+		fftw_dir = fftw_dir(1:ind-1);
+	end
 
 	fftw_root = fullfile(fileparts(filepath), fftw_dir);
 

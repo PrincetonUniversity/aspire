@@ -86,7 +86,9 @@ function install_chemnitz_nfft(url, location, fftw_location)
 
 	nfft_dir = fileparts(unzipped_files{1});
 	ind = find(nfft_dir=='/', 1);
-	nfft_dir = nfft_dir(1:ind-1);
+	if ~isempty(ind)
+		nfft_dir = nfft_dir(1:ind-1);
+	end
 
 	nfft_root = fullfile(fileparts(filepath), nfft_dir);
 
