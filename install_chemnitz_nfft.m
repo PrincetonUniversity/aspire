@@ -36,6 +36,11 @@ function install_chemnitz_nfft(url, location, fftw_location)
 		fftw_location = fullfile(aspire_root, 'extern', 'fftw3');
 	end
 
+	if ~exist(fftw_location, 'dir')
+		fprintf('FFTW3 not installed. Installing...\n');
+		install_fftw();
+	end
+
 	fprintf('Installing the TU Chemnitz NFFT package.\n');
 	fprintf('URL: %s\n', url);
 	fprintf('Location: %s\n', location);
