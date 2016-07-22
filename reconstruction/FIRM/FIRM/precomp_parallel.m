@@ -73,18 +73,11 @@ omega=omega(ind_cub,:);
 pfs=projs_fourier(ind_cub);
 
 %% Precompute the backprojection and the kernel matrix
-% V=nufft_3d(projs_fourier,omega,precision,M);
-Jd = [4 4 4];
 Nd = [n n n];
-Ld = [2^11 2^11 2^11];% use table for large matrix
-Kd = 2 * Nd;
-% 		n_shift = zeros(size(Nd)); printm 'easy: 0 shift'
 n_shift = fix(Nd/2); % stress it
 
 gam = 2*pi ./ Nd;
 omega=[omega(:,1)*gam(1) omega(:,2)*gam(2) omega(:,3)*gam(3)];
-ktype = 'minmax:kb';
-% H = nufft_init(omega, Nd, Jd, Kd, n_shift, ktype);
 v_b=zeros(n,n,n);
 total_length=length(pfs);
 ps=16;
@@ -92,8 +85,7 @@ core_length=ceil(total_length/ps);
 parfor core=1:ps
     core_ind= ((core-1)*core_length+1):min(core*core_length,total_length);
     core_ind=core_ind(:);
-    st = nufft_init(omega(core_ind,:), Nd, Jd, Kd, n_shift, 'table', Ld, ktype);
-    v_b_temp = nufft_adj(pfs(core_ind), st);
+    v_b_temp = anufft3(pfs(core_ind), omega(core_ind,:)', Nd);
     v_b=v_b+v_b_temp;
     kernel_temp=zeros(n*2,n*2,n*2);
     if precomp==0
@@ -103,11 +95,11 @@ parfor core=1:ps
                 idx1=s1+n+(1:n);
                 idx2=s2+n+(1:n);
                 idx3=s3+n+(1:n);
-                st1=st;
                 shift=[-s1 -s2 -s3];
-                st1.phase_shift = exp(1i * (st.om * shift(:)));
-                %         kernel(idx1,idx2,idx3) = nufft_adj(ones(size(ind_cub)), st1);
-                kernel_temp(idx1,idx2,idx3) = nufft_adj(ones(size(core_ind)), st1);
+                shift = -shift+n_shift;
+                kernel_temp(idx1,idx2,idx3) = anufft3( ...
+                    exp(1i*(omega(core_ind,:)*shift(:))), ...
+                    omega(core_ind,:)', Nd);
             end
         end
         kernel=kernel+kernel_temp;
