@@ -244,7 +244,7 @@ estdx=register_translations_3d(vol1masked,vol2Rmasked);
 
 
 tic;
-[bestR,bestdx]=refind3Dmatchaux(vol1masked,vol2masked,R2,estdx);
+[bestR,bestdx]=refine3Dmatchaux(vol1masked,vol2masked,R2,estdx);
 t=toc;
 
 vol2aligned=fastrotate3d(vol2,bestR);
