@@ -76,11 +76,30 @@ properties
             K = gb.dim(2);
             if ga.mode == 0 && gb.mode ==0
                 gcptr = gpuauxSmul(ga.gptr,ga.dim(1),ga.dim(2),gb.gptr,gb.dim(1),gb.dim(2),0,0);
+                gc=gpumatrix(gcptr,M,K,0);
             else
                 gcptr = gpuauxCmul(ga.gptr,ga.dim(1),ga.dim(2),gb.gptr,gb.dim(1),gb.dim(2),0,0);
+                gc=gpumatrix(gcptr,M,K,1);
             end
-            gc=gpumatrix(gcptr,M,K,0);
+            
         end
+        
+        function gc = times(ga, gb)
+            M = ga.dim(1);
+            N = ga.dim(2);
+            if M ~= gb.dim(1) || N ~= gb.dim(2)
+                error('matirces of incorect sizes');
+            end
+            if ga.mode == 0 && gb.mode ==0
+                gcptr = gpuauxSdottimes(ga.gptr,ga.dim(1),ga.dim(2),gb.gptr,gb.dim(1),gb.dim(2));
+                gc=gpumatrix(gcptr,M,N,0);
+            else
+                gcptr = gpuauxCdottimes(ga.gptr,ga.dim(1),ga.dim(2),gb.gptr,gb.dim(1),gb.dim(2));
+                gc=gpumatrix(gcptr,M,N,1);
+            end
+            
+        end
+        
         
         function A=gather(obj) 
             % Read the matrix from the GPU.
