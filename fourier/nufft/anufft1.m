@@ -23,7 +23,7 @@ function sig = anufft1(sig_f, fourier_pts, sz)
 
 	lib_code = pick_nufft_library(sz);
 
-	num_pts = size(fourier_pts, 2);
+	num_pts = size(fourier_pts, 1);
 
 	if lib_code == 3
 		if ~isempty(p_plan) && all(p_sz==sz) && p_num_pts == num_pts
@@ -32,7 +32,7 @@ function sig = anufft1(sig_f, fourier_pts, sz)
 			plan = nfft_init_1d(sz(1), num_pts);
 		end
 
-		nfft_set_x(plan, 1/(2*pi)*fourier_pts);
+		nfft_set_x(plan, 1/(2*pi)*fourier_pts');
 		nfft_precompute_psi(plan);
 		nfft_set_f(plan, double(sig_f(:)));
 
@@ -49,7 +49,7 @@ function sig = anufft1(sig_f, fourier_pts, sz)
 		end
 	elseif lib_code == 2
 		sig = num_pts*nufft1d1(num_pts, ...
-			fourier_pts(1,:), ...
+			fourier_pts, ...
 			double(sig_f(:)), 1, epsilon, sz(1));
 	elseif lib_code == 1
 		sig = anudft1(sig_f, fourier_pts, sz);

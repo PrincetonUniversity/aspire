@@ -7,7 +7,7 @@
 %    vol_f: An array containing the Fourier transform of a volume at certain
 %       points.
 %    fourier_pts: The points in Fourier space where the Fourier transform is to
-%       be calculated, arranged as a 3-by-N array. These need to be in the
+%       be calculated, arranged as an N-by-3 array. These need to be in the
 %       range [-pi, pi] in each dimension.
 %    sz: The size of the resulting volume.
 %
@@ -25,7 +25,7 @@ function vol = anufft3(vol_f, fourier_pts, sz)
 
 	lib_code = pick_nufft_library(sz);
 
-	num_pts = size(fourier_pts, 2);
+	num_pts = size(fourier_pts, 1);
 
 	if lib_code == 3
 		if ~isempty(p_plan) && all(p_sz==sz) && p_num_pts == num_pts
@@ -34,7 +34,7 @@ function vol = anufft3(vol_f, fourier_pts, sz)
 			plan = nfft_init_3d(sz(1), sz(2), sz(3), num_pts);
 		end
 
-		nfft_set_x(plan, 1/(2*pi)*fourier_pts);
+		nfft_set_x(plan, 1/(2*pi)*fourier_pts');
 		nfft_precompute_psi(plan);
 		nfft_set_f(plan, double(vol_f(:)));
 
@@ -52,7 +52,7 @@ function vol = anufft3(vol_f, fourier_pts, sz)
 		end
 	elseif lib_code == 2
 		vol = num_pts*nufft3d1(num_pts, ...
-			fourier_pts(1,:), fourier_pts(2,:), fourier_pts(3,:), ...
+			fourier_pts(:,1), fourier_pts(:,2), fourier_pts(:,3), ...
 			double(vol_f(:)), 1, epsilon, sz(1), sz(2), sz(3));
 		vol = reshape(vol, sz);
 	elseif lib_code == 1
