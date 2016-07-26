@@ -51,18 +51,24 @@ workflow_log =fmtinput('Enter log file name: ','log.txt','%s');
 
 fprintf('Preparing data. Please wait...\n');
 
-% Compute hash of data file
-opt.Input='file';
-opt.Format='hex';
-opt.Method='MD5';
-hash=DataHash(workflow_mrc,opt);
+
+% Next lines have been commented until we decided we want to keep the hash
+% of the input data set. This requires finding a freely available hash
+% function which is fast enough for large inputs. 
+% Y.S. July 2016.
+
+% % % % Compute hash of data file
+% % % opt.Input='file';
+% % % opt.Format='hex';
+% % % opt.Method='MD5';
+% % % hash=DataHash(workflow_mrc,opt);
 
 % Create strucut
 workflow.info.name=workflow_name;
 workflow.info.description=workflow_desc;
 workflow.info.created=datestr(now);
 workflow.info.rawdata=workflow_mrc;
-workflow.info.rawdatahash=hash;
+% % % workflow.info.rawdatahash=hash;
 workflow.info.working_dir=workflow_dir;
 workflow.info.logfile=workflow_log;
 
