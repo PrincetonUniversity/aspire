@@ -13,6 +13,9 @@ addpath(genpath(fullfile(pathstr,'sinograms')))
 addpath(genpath(fullfile(pathstr,'reconstruction')))
 addpath(genpath(fullfile(pathstr,'refinement')))
 addpath(genpath(fullfile(pathstr,'workflow')))
+addpath(genpath(fullfile(pathstr,'development')))
 
 addpath(fullfile(pathstr,'extern','SDPLR-1.03-beta'))
+addpath(genpath(fullfile(pathstr,'extern','aLibs')))
 run(fullfile(pathstr,'extern','irt','setup.m'))
+
