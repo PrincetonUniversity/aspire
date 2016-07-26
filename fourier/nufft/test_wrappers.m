@@ -1,4 +1,4 @@
-N = 8;
+N = 10;
 M = 87;
 
 fprintf('Testing NUFFT wrappers\n');
