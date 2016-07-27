@@ -48,7 +48,6 @@ function vol_f = nufft3(vol, fourier_pts)
 			p_sz = sz;
 			p_num_pts = num_pts;
 		end
-		nfft_finalize(plan)
 	elseif lib_code == 2
 		vol_f = nufft3d2(num_pts, ...
 			fourier_pts(:,1), fourier_pts(:,2), fourier_pts(:,3), ...
