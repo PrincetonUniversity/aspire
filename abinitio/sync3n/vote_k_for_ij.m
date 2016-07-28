@@ -36,6 +36,9 @@ end
 sigma = 3.0; % For compatibility with histfilter_v6
 h = sum(exp(-angles_distances.^2/(2*sigma.^2)));
 %h = gather(sum(exp(-gpuArray(angles_distances).^2/(2*sigma.^2))));
+% GPU was found to be not cost-effective in this case - wastes more time than it saves.
+% Alternative implementation can use bsxfun to compute h=exp(angles*tics-angles.^2-tics.^2) (which is algebraically equivalent). We did not check which implementation is more efficient.
+% This is quite important since this specific line is a significant bottle-neck in the running time.
 
 % We assume that at the location of the peak we get the true angle
 % between images k1 and k2. Find all third images k3, that induce an
