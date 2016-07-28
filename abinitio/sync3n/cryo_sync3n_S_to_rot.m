@@ -110,16 +110,20 @@ Dhalf=diag(kron(diag(Dhalf),ones(3,1))); % Make Dhalf of size 3Nx3N
 [evecs, evalues] = eigs( Dhalf * (W.*S) * Dhalf , n_eigs);
 
 % eigs() returns eigenvalues sorted by absolute value. we wish to sort
-% the first 3 by real value, and the rest by absolute value.
-% GGG actually it's not trivial that we prefer abs upon real value
+% the first 3 by real value, and the rest by either real or absolute value.
+% the choice between both cases is used only for computing the spectral gap, and not for the reconstruction itself.
+SORT_EIGS_BY_ABS_VALUE = false; % false = dont count large negative eigenvalues.
 evalues = diag(evalues);
 [~,ids] = sort(evalues, 'descend'); % (assert 3 largest eigenvalues are first)
 evalues = evalues(ids);
 evecs = evecs(:,ids);
 if n_eigs > 3
-    [~,ids] = sort(-abs(evalues(4:end))); % (assert other eigs are sorted by abs)
-    evalues(4:end) = evalues(3+ids);
-    evecs(:,4:end) = evecs(:,3+ids);
+    if SORT_EIGS_BY_ABS_VALUE
+        % assert that except for the 3 largest ones, the eigs are sorted by abs value.
+        [~,ids] = sort(-abs(evalues(4:end)));
+        evalues(4:end) = evalues(3+ids);
+        evecs(:,4:end) = evecs(:,3+ids);
+    end
 end
 eigenvalues = evalues;
 
