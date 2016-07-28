@@ -48,7 +48,7 @@ function sig = nufft_adjoint(plan, sig_f)
 				plan.sz(1), plan.sz(2), plan.sz(3));
 		end
 
-		sig = reshape(sig, plan.sz);
+		sig = reshape(sig, [plan.sz 1]);
 
 		if isa(sig_f, 'single')
 			sig = single(sig);
