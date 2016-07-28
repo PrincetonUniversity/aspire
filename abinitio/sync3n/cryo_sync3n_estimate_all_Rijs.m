@@ -39,6 +39,9 @@ function [ R , r_valid_ks , r_good_ks , peak_width , euler_angles ] =...
 
 
 if ~exist('VOTING_TICS_WIDTH','var') || isempty(VOTING_TICS_WIDTH)
+    % Voting histogram resolution (in degrees).
+    % The sensitivity to this variable was not examined. Historically, the values 1 and 3 were in use.
+    % The typical errors in the common lines are known to be in the range of 5-20 degrees, so 3 degrees seems like a fair default resolution for the histogram.
     VOTING_TICS_WIDTH=3;
 end
 log_message('VOTING_TICS_WIDTH=%d',VOTING_TICS_WIDTH);
