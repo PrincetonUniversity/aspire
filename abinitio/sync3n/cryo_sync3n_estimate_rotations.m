@@ -1,4 +1,4 @@
-function rotations=cryo_sync3n_estimate_rotations(clstack,L,use_weights)
+function rotations=cryo_sync3n_estimate_rotations(clstack,L,use_J_weights,use_S_weights)
 % CRYO_SYNC3N_ESTIMATE_ROTATIONS Estimate orientations from common lines.
 %
 % cryo_sync3n_estimate_rotations(clstack,L)
@@ -16,7 +16,11 @@ function rotations=cryo_sync3n_estimate_rotations(clstack,L,use_weights)
 % Yoel Shkolnisky, April 2016.
 
 if nargin<3
-    use_weights=0;
+    use_J_weights=0;
+end
+
+if nargin<4
+    use_S_weights=0;
 end
 
 K=size(clstack,1);
@@ -26,8 +30,8 @@ log_message('Estimating pairwise rotations');
 [Rijs, ~, ~, ~] = cryo_sync3n_estimate_all_Rijs(clstack, L);
         
 % If use_weights=0, then construct the J-sync matrix using only +1 and -1.
-if use_weights
-   use_weights=1;
+if use_J_weights
+   use_J_weights=1;
 end
 
 n_eigs=3; % Number of eigenvalues of the J-sync matrix to compute.
@@ -37,7 +41,7 @@ log_message('Synchronizing relative orientations');
 log_message('Computing %d eigenvalues of the J-synchronization matrix',n_eigs);
 % Synchronize all relative rotations to a consistent handedness.
 [J_sync,scores,eigenvalues,itr,~] =...
-    cryo_sync3n_Jsync_power_method(Rijs,n_eigs,use_weights,verbose );
+    cryo_sync3n_Jsync_power_method(Rijs,n_eigs,use_J_weights,verbose );
 log_message('Converged on iteration %d',itr);
 log_message('Eigenvalues of the J-synchronization matrix [ %s ]',num2str(eigenvalues.'));
 
@@ -54,7 +58,7 @@ S = cryo_sync3n_syncmatrix(Rijs);
 % These values are stored in the variable scores returned by the function
 % cryo_sync3n_Jsync_power_method above.
 W=ones(K); % Default weights are all one (no weights)
-if use_weights
+if use_S_weights
     % Estimate weights for the 3x3 blocks of S
     W=cryo_sync3n_syncmatrix_weights(scores);
 end
