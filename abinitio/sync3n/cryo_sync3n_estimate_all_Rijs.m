@@ -71,6 +71,9 @@ peak_width = zeros(N_pairs, 1);
 idx = 0;
 for i = 1:(N-1)
     
+    % INEFFICIENT IMPLEMENTATION: The parfor loop probably can be wrapped in more elegant and efficient way (as in similar parallel loops in previous variants of the algorithm).
+    % However, it does not expected to affect the running time significantly.
+    
     euler_angles_tmp = cell(N-i,1);
     r_valid_ks_tmp = cell(N-i,1);
     r_good_ks_tmp = cell(N-i,1);
