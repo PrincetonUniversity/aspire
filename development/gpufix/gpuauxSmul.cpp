@@ -1,12 +1,17 @@
 /* Compute C=A*B using cuda-blas.
  * A, B, and C are matrices of single precision.
  * Yoel Shkolnisky, July 2016.
+ * mex complie with:
+ * mex gpuauxSmul.cpp -O -I/usr/local/cuda/targets/x86_64-linux/include/ -L/usr/local/cuda/targets/x86_64-linux/lib/ -lcudart -lcublas
  */
 
 #include <stdint.h>
 #include <inttypes.h>
 #include "mex.h"
-#include "cublas.h"
+//#include "cublas.h"
+#include <cuda_runtime.h>
+#include "cublas_v2.h"
+
 #include "timings.h"
 
 //#define DEBUG
@@ -19,7 +24,9 @@ void mexFunction( int nlhs, mxArray *plhs[],
     int mA,nA,mB,nB;
     int transA,transB;
     float alpha,beta;    
-    cublasStatus retStatus;
+    cublasHandle_t handle;
+    cublasStatus_t retStatus;
+    cudaError_t cudaStat;
 
     /* Input:
      *  gA          GPU pointer to A
@@ -67,7 +74,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
         
     /* STARTUP   CUBLAS */
     TIC;
-    retStatus = cublasInit();
+    retStatus = cublasCreate(&handle);
     if (retStatus != CUBLAS_STATUS_SUCCESS) {
         printf("[%s,%d] an error occured in cublasInit\n",__FILE__,__LINE__);
     } 
@@ -81,18 +88,21 @@ void mexFunction( int nlhs, mxArray *plhs[],
      */
     
     /* Allocate C on the GPU */
-    TIC;
-    cublasAlloc (mA*nB, sizeof(float), (void**)&gC);
+    TIC;    
+    cudaStat = cudaMalloc((void**)&gC,mA*nB*sizeof(float));
     TOCM("Allocate C");
-
+    if (cudaStat != cudaSuccess) {
+        mexPrintf ("[%s,%d] device memory allocation failed",__FILE__,__LINE__);
+        //return EXIT_FAILURE; 
+    }
+    
     #ifdef DEBUG
     mexPrintf("[%s,%d] gC=%" PRIu64 " mC=%d  nC=%d\n", __FILE__,__LINE__,(uint64_t)gC, mA, nB);
     #endif
-    
-    
+        
     TIC;
     /* Multiply */
-    (void) cublasSgemm ('n','n',mA,nB,nA,alpha,gA,mA,gB,mB,beta,gC,mA);
+    (void) cublasSgemm (handle,CUBLAS_OP_N ,CUBLAS_OP_N,mA,nB,nA,&alpha,gA,mA,gB,mB,&beta,gC,mA);
     TOCM("mul");
     #ifdef DEBUG
     mexPrintf("[%s,%d] multiply\n", __FILE__,__LINE__);
@@ -108,8 +118,8 @@ void mexFunction( int nlhs, mxArray *plhs[],
     
     /* Shutdown */
     TIC;
-    cublasShutdown();
-    TOCM("shutdown");    
+    cublasDestroy(handle);
+    TOCM("shutdown");
     #ifdef DEBUG
     mexPrintf("[%s,%d] shutdown\n", __FILE__,__LINE__);
     #endif

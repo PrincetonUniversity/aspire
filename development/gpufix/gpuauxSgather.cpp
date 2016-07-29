@@ -9,7 +9,9 @@
 
 #include <stdint.h>
 #include "mex.h"
-#include "cublas.h"
+//#include "cublas.h"
+#include <cuda_runtime.h>
+#include "cublas_v2.h"
 
 //#define DEBUG
 
@@ -19,7 +21,9 @@ void mexFunction( int nlhs, mxArray *plhs[],
     uint64_t gptr; // Pointer to GPU array to return.
     int M,N;       // Dimensions of the returned matrix.
     float* A;      // Elements of the GPU-stored matrix.
-    cublasStatus retStatus;
+    cublasHandle_t handle;
+    cublasStatus_t retStatus;
+
           
     if (nrhs != 3) {
         mexErrMsgTxt("gpuauxfree requires 3 input arguments (gptr,m,n)");
@@ -38,7 +42,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     plhs[0]=mxCreateNumericMatrix(M, N, mxSINGLE_CLASS, mxREAL);
     A=(float*)mxGetPr(plhs[0]);
     
-    retStatus = cublasInit();
+    retStatus = cublasCreate(&handle);
     if (retStatus != CUBLAS_STATUS_SUCCESS) {
         mexPrintf("[%s,%d] an error occured in cublasInit\n",__FILE__,__LINE__);
     }
@@ -58,7 +62,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     }
     #endif
     
-    cublasShutdown();
+    cublasDestroy(handle);
     
     #ifdef DEBUG
     mexPrintf("[%s,%d] Matrix retrieved from GPU\n",__FILE__,__LINE__);

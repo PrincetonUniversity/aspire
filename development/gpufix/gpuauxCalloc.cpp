@@ -10,7 +10,9 @@
 #include <stdint.h>
 #include <inttypes.h>
 #include "mex.h"
-#include "cublas.h"
+//#include "cublas.h"
+#include <cuda_runtime.h>
+#include "cublas_v2.h"
 #include "timings.h"
 
 // #define DEBUG
@@ -35,7 +37,8 @@ void mexFunction( int nlhs, mxArray *plhs[],
     cuComplex *gA;   // Pointer to the GPU copy of the data of A.
     uint64_t *gptr;  // Address of the GPU-allocated array.
     cublasHandle_t handle;
-    cublasStatus retStatus;
+    cublasStatus_t retStatus;
+    cudaError_t cudaStat;
     
     if (nrhs != 1) {
         mexErrMsgTxt("gpuauxSalloc requires 1 input arguments (matrix A)");
@@ -59,7 +62,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
 
     /* STARTUP   CUBLAS */
     TIC;
-    retStatus = cublasInit();
+     retStatus = cublasCreate(&handle);
     if (retStatus != CUBLAS_STATUS_SUCCESS) {
         printf("[%s,%d] an error occured in cublasInit\n",__FILE__,__LINE__);
     } 
@@ -72,11 +75,11 @@ void mexFunction( int nlhs, mxArray *plhs[],
     /*
     
     /* ALLOCATE SPACE ON THE GPU */
-    cublasAlloc (M*N, sizeof(cuComplex), (void**)&gA);
+    //cublasAlloc (M*N, sizeof(float), (void**)&gA);
+    cudaStat=cudaMalloc((void**)&gA,M*N*sizeof(cuComplex));
     
     // test for error
-    retStatus = cublasGetError ();   
-    if (retStatus != CUBLAS_STATUS_SUCCESS) {
+    if (cudaStat != cudaSuccess) {
         mexPrintf("CUBLAS: an error occured in cublasAlloc\n");
     } 
     #ifdef DEBUG
@@ -101,7 +104,8 @@ void mexFunction( int nlhs, mxArray *plhs[],
     gptr=(uint64_t*) mxGetPr(plhs[0]);
     *gptr=(uint64_t) gA;
     
-    cublasShutdown();
+    //cublasShutdown();
+    cublasDestroy(handle);
     mxFree(a);
     
     #ifdef DEBUG
