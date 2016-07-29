@@ -49,22 +49,22 @@ void mexFunction( int nlhs, mxArray *plhs[],
         
     retStatus = cublasInit();
     if (retStatus != CUBLAS_STATUS_SUCCESS) {
-        mexPrintf("CUBLAS: an error occured in cublasInit\n");
+        mexPrintf("[%s,%d] an error occured in cublasInit\n",__FILE__,__LINE__);
     }
     #ifdef DEBUG
     else {
-        mexPrintf("CUBLAS: cublasInit worked\n");
+        mexPrintf("[%s,%d] cublasInit worked\n",__FILE__,__LINE__);
     }
     #endif
     
     a  = (cuComplex*) mxMalloc(sizeof(cuComplex)*M*N);
     retStatus = cublasGetMatrix (M, N, sizeof(cuComplex), (void*)gptr, M, a, M);
     if (retStatus != CUBLAS_STATUS_SUCCESS) {
-        mexPrintf("CUBLAS: an error occured in cublasGetMatrix\n");
+        mexPrintf("[%s,%d] an error occured in cublasGetMatrix\n",__FILE__,__LINE__);
     } 
     #ifdef DEBUG
     else {
-        printf("CUBLAS: cublasGetMatrix worked\n");
+        printf("[%s,%d] cublasGetMatrix worked\n",__FILE__,__LINE__);
     }
     #endif
     
@@ -77,6 +77,6 @@ void mexFunction( int nlhs, mxArray *plhs[],
     mxFree(a);
     
     #ifdef DEBUG
-    mexPrintf("Matrix retrieved from GPU\n");
+    mexPrintf("[%s,%d] Matrix retrieved from GPU\n",__FILE__,__LINE__);
     #endif
 }

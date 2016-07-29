@@ -25,22 +25,32 @@ void mexFunction( int nlhs, mxArray *plhs[],
     } else if (nlhs > 0 ) {
         mexErrMsgTxt("gpuauxfree requires no output arguments");
     }
-            
+
+    
+    gptr = (uint64_t) mxGetScalar(prhs[0]);
+    #ifdef DEBUG
+    mexPrintf("[%s,%d] starting to free GPU array at address %" PRIu64 "\n", __FILE__,__LINE__,gptr);
+    #endif
+
+    
     retStatus = cublasInit();
     if (retStatus != CUBLAS_STATUS_SUCCESS) {
-        mexPrintf("CUBLAS: an error occured in cublasInit\n");
+        mexPrintf("[%s,%d] an error occured in cublasInit\n",__FILE__,__LINE__);
     }
     #ifdef DEBUG
     else {
-        mexPrintf("CUBLAS: cublasInit worked\n");
+        mexPrintf("[%s,%d] cublasInit worked\n",__FILE__,__LINE__);
     }
     #endif
     
-    gptr = (uint64_t) mxGetScalar(prhs[0]);
     cublasFree ((void*)gptr);
+    #ifdef DEBUG
+    mexPrintf("[%s,%d] memory freed %" PRIu64 "\n", __FILE__,__LINE__,gptr);
+    #endif
+    
     cublasShutdown();
     
     #ifdef DEBUG
-    mexPrintf("GPU array freed at address %" PRIu64 "\n", gptr);
+    mexPrintf("[%s,%d] GPU array freed at address %" PRIu64 "\n", __FILE__,__LINE__,gptr);
     #endif
 }

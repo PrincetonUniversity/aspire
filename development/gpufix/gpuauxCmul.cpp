@@ -1,6 +1,8 @@
 /* Compute C=A*B using cuda-blas.
  * A, B, and C are matrices of single precision.
  * Yoel Shkolnisky, July 2016.
+ * mex complie with:
+ * mex gpuauxSmul.cpp -O -I/usr/local/cuda/targets/x86_64-linux/include/ -L/usr/local/cuda/targets/x86_64-linux/lib/ -lcudart -lcublas
  */
 
 #include <stdint.h>
@@ -15,10 +17,10 @@ void mexFunction( int nlhs, mxArray *plhs[],
         int nrhs, const mxArray *prhs[])
 {
     uint64_t gptr;
-    float *gA,*gB,*gC;
+    cuComplex *gA,*gB,*gC;
     int mA,nA,mB,nB;
     int transA,transB;
-    float alpha,beta;    
+    cuComplex alpha,beta;    
     cublasStatus retStatus;
 
     /* Input:
@@ -43,7 +45,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     
     /* Get pointers to matrices on the GPU */
     gptr=(uint64_t) mxGetScalar(prhs[0]);
-    gA = (float*) gptr;
+    gA = (cuComplex*) gptr;
     mA=(int) mxGetScalar(prhs[1]);
     nA=(int) mxGetScalar(prhs[2]);
     
@@ -52,7 +54,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     #endif
     
     gptr=(uint64_t) mxGetScalar(prhs[3]);
-    gB=(float*) gptr;
+    gB=(cuComplex*) gptr;
     mB=(int) mxGetScalar(prhs[4]);
     nB=(int) mxGetScalar(prhs[5]);
 
@@ -60,8 +62,10 @@ void mexFunction( int nlhs, mxArray *plhs[],
     mexPrintf("[%s,%d] gB=%" PRIu64 " mB=%d  nB=%d\n", __FILE__,__LINE__,(uint64_t)gB, mB, nB);
     #endif
         
-    alpha = 1.0;
-    beta = 0.0;
+    alpha.x = (float)1.0;
+    alpha.y = (float)0.0;
+    beta.x = (float)0.0;
+    beta.y = (float)0.0;
 
     /* M->mA K->nA  L->mB   N-> nB */
         
@@ -82,7 +86,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     
     /* Allocate C on the GPU */
     TIC;
-    cublasAlloc (mA*nB, sizeof(float), (void**)&gC);
+    cublasAlloc (mA*nB, sizeof(cuComplex), (void**)&gC);
     TOCM("Allocate C");
 
     #ifdef DEBUG
@@ -92,7 +96,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     
     TIC;
     /* Multiply */
-    (void) cublasSgemm ('n','n',mA,nB,nA,alpha,gA,mA,gB,mB,beta,gC,mA);
+    (void) cublasCgemm ('n','n',mA,nB,nA,alpha,gA,mA,gB,mB,beta,gC,mA);
     TOCM("mul");
     #ifdef DEBUG
     mexPrintf("[%s,%d] multiply\n", __FILE__,__LINE__);
@@ -109,10 +113,10 @@ void mexFunction( int nlhs, mxArray *plhs[],
     /* Shutdown */
     TIC;
     cublasShutdown();
-    TOCM("shutdown");    
+    TOCM("shutdown");
     #ifdef DEBUG
     mexPrintf("[%s,%d] shutdown\n", __FILE__,__LINE__);
     #endif
-
+    
 }
 

@@ -54,11 +54,11 @@ void mexFunction( int nlhs, mxArray *plhs[],
             A, M, (void*)gA, M);
     
     if (retStatus != CUBLAS_STATUS_SUCCESS) {
-        mexPrintf("CUBLAS: an error occured in cublasSetMatrix\n");
+        mexPrintf("[%s,%d] an error occured in cublasSetMatrix\n",__FILE__,__LINE__);
     } 
     #ifdef DEBUG
     else {
-        mexPrintf("CUBLAS: cublasSetMatrix worked\n");
+        mexPrintf("[%s,%d] cublasSetMatrix worked\n",__FILE__,__LINE__);
     }
     #endif
         
@@ -69,7 +69,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     cublasShutdown();
     
     #ifdef DEBUG
-    mexPrintf("GPU array allocated at address %" PRIu64 "\n", (uint64_t)gA);
+    mexPrintf("[%s,%d] GPU array allocated at address %" PRIu64 "\n", __FILE__,__LINE__,(uint64_t)gA);
     #endif
 }
 

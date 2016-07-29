@@ -68,20 +68,41 @@ properties
         end
         
         function gc = mtimes(ga, gb)
-            M = ga.dim(1);
-            N = ga.dim(2);
-            if N ~= gb.dim(1)
-                error('matirces of incorect sizes');
-            end
-            K = gb.dim(2);
-            if ga.mode == 0 && gb.mode ==0
-                gcptr = gpuauxSmul(ga.gptr,ga.dim(1),ga.dim(2),gb.gptr,gb.dim(1),gb.dim(2),0,0);
-                gc=gpumatrix(gcptr,M,K,0);
+            if isnumeric(gb) 
+                c = single(gb);
+                if ga.mode == 1
+                    gcptr=gpuauxCconstMul(ga.gptr,ga.dim(1),ga.dim(2), c);
+                    gc=gpumatrix(gcptr,gb.dim(1),gb.dim(2),1);
+                else
+                    gcptr=gpuauxSconstMul(ga.gptr,ga.dim(1),ga.dim(2), c);
+                    gc=gpumatrix(gcptr,gb.dim(1),gb.dim(2),0);
+                end
+                return
+            elseif isnumeric(ga)
+                c = single(ga);
+                if gb.mode == 1
+                    gcptr=gpuauxCconstMul(gb.gptr,gb.dim(1),gb.dim(2), c);
+                    gc=gpumatrix(gcptr,gb.dim(1),gb.dim(2),1);
+                else
+                    gcptr=gpuauxSconstMul(gb.gptr,gb.dim(1),gb.dim(2), c);
+                    gc=gpumatrix(gcptr,gb.dim(1),gb.dim(2),0);
+                end
+                return
             else
-                gcptr = gpuauxCmul(ga.gptr,ga.dim(1),ga.dim(2),gb.gptr,gb.dim(1),gb.dim(2),0,0);
-                gc=gpumatrix(gcptr,M,K,1);
+                M = ga.dim(1);
+                N = ga.dim(2);
+                if N ~= gb.dim(1)
+                    error('matirces of incorect sizes');
+                end
+                K = gb.dim(2);
+                if ga.mode == 0 && gb.mode ==0
+                    gcptr = gpuauxSmul(ga.gptr,ga.dim(1),ga.dim(2),gb.gptr,gb.dim(1),gb.dim(2),0,0);
+                    gc=gpumatrix(gcptr,M,K,0);
+                else
+                    gcptr = gpuauxCmul(ga.gptr,ga.dim(1),ga.dim(2),gb.gptr,gb.dim(1),gb.dim(2),0,0);
+                    gc=gpumatrix(gcptr,M,K,1);
+                end
             end
-            
         end
         
         function gc = times(ga, gb)
@@ -97,7 +118,68 @@ properties
                 gcptr = gpuauxCdottimes(ga.gptr,ga.dim(1),ga.dim(2),gb.gptr,gb.dim(1),gb.dim(2));
                 gc=gpumatrix(gcptr,M,N,1);
             end
+
+        end
+        
+        function gc = rdivide(ga,gb)
+            M = ga.dim(1);
+            N = ga.dim(2);
+            if M ~= gb.dim(1) || N ~= gb.dim(2)
+                error('matirces of incorect sizes');
+            end
+            if ga.mode == 0 && gb.mode ==0
+                gcptr = gpuauxSdotdiv(ga.gptr,ga.dim(1),ga.dim(2),gb.gptr,gb.dim(1),gb.dim(2));
+                gc=gpumatrix(gcptr,M,N,0);
+            else
+                gcptr = gpuauxCdotdiv(ga.gptr,ga.dim(1),ga.dim(2),gb.gptr,gb.dim(1),gb.dim(2));
+                gc=gpumatrix(gcptr,M,N,1);
+            end
+
             
+        end
+        
+        function gc = horzcat(ga,gb)
+            if ga.mode == 0 && gb.mode ==0
+                gptr=gpuauxSconcat(ga.gptr,ga.dim(1),ga.dim(2),gb.gptr,gb.dim(2));
+                gc = gpumatrix(gptr,ga.dim(1),ga.dim(2)+gb.dim(2),0);
+            else
+                gptr=gpuauxCconcat(ga.gptr,ga.dim(1),ga.dim(2),gb.gptr,gb.dim(2));
+                gc = gpumatrix(gptr,ga.dim(1),ga.dim(2)+gb.dim(2),1);
+            end
+        end
+        function val = subsref(ga,s)
+            if strcmp(s(1).type, '()')
+                if ga.mode == 0 
+                    val = gpuauxSreadVal(ga.gptr,ga.dim(1),ga.dim(2), s.subs{1});
+                else
+                    error('gpuauxCreadVal not implemented')
+                end
+            elseif strcmp(s(1).type, '.')
+                if strcmp(s(1).subs, 'dim')
+                    val = ga.dim(s(2).subs{1});
+                elseif strcmp(s(1).subs, 'mode')
+                    val = ga.mode;
+                elseif strcmp(s(1).subs, 'gptr')
+                    val = ga.gptr;
+                end
+            else
+                error('Illigal input to subsref');
+            end
+            
+            
+        end
+        
+        function gb = ctranspose(ga)
+            m = ga.dim(1);
+            n = ga.dim(2);
+
+            if ga.mode == 0
+                gptr=gpuauxStrans(ga.gptr,ga.dim(1),ga.dim(2));
+                gb=gpumatrix(gptr,n,m,0);
+            else
+                gptr=gpuauxCtrans(ga.gptr,ga.dim(1),ga.dim(2));
+                gb=gpumatrix(gptr,n,m,1);
+            end
         end
         
         
