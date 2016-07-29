@@ -43,7 +43,7 @@ function b_mu = backproject_conv_mu(N, image_fun, rot_matrices, ctfs, ...
 
     im = image_fun(1, n);
 
-	im = cast(im, mu_est_opt.precision);
+    im = cast(im, mu_est_opt.precision);
 
     im = im_apply_radial_filter(im, ctfs(ctf_idx));
     im_f = im_to_vec(centered_fft2(im));

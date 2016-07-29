@@ -46,9 +46,9 @@ mu_est_opt.precision
     ctfsq = zeros([size(pts_rot, 2) size(pts_rot, 3)], mu_est_opt.precision);
     for s = 1:n
         ctfsq_s = ctfs{ctf_idx(s)}(frob_norm(pts_rot(:,:,s), 1)).^2;
-		ctfsq_s = cast(ctfsq_s, mu_est_opt.precision);
+        ctfsq_s = cast(ctfsq_s, mu_est_opt.precision);
 
-		ctfsq(:,s) = ctfsq_s;
+        ctfsq(:,s) = ctfsq_s;
     end
 
     pts_rot = reshape(pts_rot, 3, []);
