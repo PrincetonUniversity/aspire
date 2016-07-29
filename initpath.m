@@ -14,6 +14,8 @@ addpath(genpath(fullfile(pathstr,'reconstruction')))
 addpath(genpath(fullfile(pathstr,'refinement')))
 addpath(genpath(fullfile(pathstr,'workflow')))
 
+addpath(fullfile(pathstr, 'heterogeneity'));
+
 addpath(fullfile(pathstr,'extern','SDPLR-1.03-beta'))
 addpath(genpath(fullfile(pathstr,'extern','aLibs')))
 run(fullfile(pathstr,'extern','cvx','cvx_startup.m'));
