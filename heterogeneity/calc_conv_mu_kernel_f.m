@@ -35,8 +35,6 @@ function mu_kernel_f = calc_conv_mu_kernel_f(N, rot_matrices, ctfs, ...
     mu_est_opt = fill_struct(mu_est_opt, ...
         'precision', 'double');
 
-mu_est_opt.precision
-
     sz_mult = 2;
 
     n = size(rot_matrices, 3);
