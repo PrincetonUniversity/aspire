@@ -52,5 +52,5 @@ function b_mu = backproject_conv_mu(N, image_fun, rot_matrices, ctfs, ...
     pts_rot = reshape(pts_rot, 3, []);
     im_f = reshape(im_f, 1, []);
 
-    b_mu = 2/N*anufft3(im_f, pi*pts_rot', N*ones(1,3));
+    b_mu = 1/n*2/N*anufft3(im_f, pi*pts_rot', N*ones(1,3));
 end

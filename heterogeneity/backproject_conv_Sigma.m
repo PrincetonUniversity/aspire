@@ -88,7 +88,7 @@ function b_Sigma_image = backproject_conv_Sigma_image(N, image_fun, ...
                 frob_norm(pts_rot(:,:,s), 1)), ...
                 pi*pts_rot(:,:,s)', N*ones(1,3));
 
-            factors(:,s) = real(factor_s(:));
+            factors(:,s) = 1/sqrt(n)*real(factor_s(:));
         end
     else
         for s = 1:n
@@ -100,7 +100,7 @@ function b_Sigma_image = backproject_conv_Sigma_image(N, image_fun, ...
                 frob_norm(pts_rot(:,:,s), 1)), ...
                 pi*pts_rot(:,:,s)', N*ones(1,3));
 
-            factors(:,s) = real(factor_s(:));
+            factors(:,s) = 1/sqrt(n)*real(factor_s(:));
         end
     end
 
@@ -135,7 +135,7 @@ function b_Sigma_noise = backproject_conv_Sigma_noise(N, rot_matrices, ...
     ind = sub2ind((2*N)*ones(1,3), I(:), J(:), K(:));
     ind = reshape(ind, N^3*[1 1]);
 
-    b_Sigma_noise = N^2*noise_kernel(ind);
+    b_Sigma_noise = 1/n*N^2*noise_kernel(ind);
 
     b_Sigma_noise = vecmat_to_volmat(b_Sigma_noise);
 end

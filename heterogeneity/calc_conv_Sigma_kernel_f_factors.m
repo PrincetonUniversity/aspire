@@ -57,7 +57,7 @@ function factors = calc_conv_Sigma_kernel_f_factors(N, rot_matrices, ctfs, ctf_i
                 factor_s(:,:,1) = 0;
             end
 
-            factors(:,s) = real(factor_s(:));
+            factors(:,s) = 1/sqrt(n)*real(factor_s(:));
         end
     else
         for s = 1:n
@@ -72,7 +72,7 @@ function factors = calc_conv_Sigma_kernel_f_factors(N, rot_matrices, ctfs, ctf_i
                 factor_s(:,:,1) = 0;
             end
 
-            factors(:,s) = real(factor_s(:));
+            factors(:,s) = 1/sqrt(n)*real(factor_s(:));
         end
     end
 
