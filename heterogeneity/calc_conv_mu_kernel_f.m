@@ -1,7 +1,8 @@
 % CALC_CONV_MU_KERNEL Calculate convolution kernel for mu
 %
 % Usage
-%    mu_kernel_f = calc_conv_mu_kernel_f(N, rot_matrices, ctfs, ctf_idx);
+%    mu_kernel_f = calc_conv_mu_kernel_f(N, rot_matrices, ctfs, ctf_idx, ...
+%        mu_est_opt);
 %
 % Input
 %    N: The resolution of the images.
@@ -15,24 +16,39 @@
 %    ctf_idx: The indices of the CTFs in the function handle array
 %       corresponding to each projection. This is a vector of length n, where
 %       n is the number of images.
+%    mu_est_opt: A struct containing different options for the estimation of
+%       the mean. The supported fields are:
+%          - precision: The precision of the calculation. This is either
+%            'double' or 'single' (default 'double').
 %
 % Output
 %    mu_kernel_f: The Fourier transform of the convolution kernel
 %       corresponding to the projection-backprojection operator of the
 %       dataset. This is an array of size 2N-by-2N-by-2N.
 
-function mu_kernel_f = calc_conv_mu_kernel_f(N, rot_matrices, ctfs, ctf_idx)
+function mu_kernel_f = calc_conv_mu_kernel_f(N, rot_matrices, ctfs, ...
+       ctf_idx, mu_est_opt)
+    if nargin < 5 || isempty(mu_est_opt)
+        mu_est_opt = struct();
+    end
+
+    mu_est_opt = fill_struct(mu_est_opt, ...
+        'precision', 'double');
+
+mu_est_opt.precision
+
     sz_mult = 2;
-    precision = 'double';
 
     n = size(rot_matrices, 3);
 
     pts_rot = rotated_grids(N, rot_matrices);
 
-    ctfsq = zeros([size(pts_rot, 2) size(pts_rot, 3)], precision);
+    ctfsq = zeros([size(pts_rot, 2) size(pts_rot, 3)], mu_est_opt.precision);
     for s = 1:n
-        ctfsq(:,s) = ctfs{ctf_idx(s)}( ...
-            frob_norm(pts_rot(:,:,s), 1)).^2;
+        ctfsq_s = ctfs{ctf_idx(s)}(frob_norm(pts_rot(:,:,s), 1)).^2;
+		ctfsq_s = cast(ctfsq_s, mu_est_opt.precision);
+
+		ctfsq(:,s) = ctfsq_s;
     end
 
     pts_rot = reshape(pts_rot, 3, []);
