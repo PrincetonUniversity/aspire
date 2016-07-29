@@ -57,10 +57,14 @@ S = cryo_sync3n_syncmatrix(Rijs);
 % the values of the top eigenvector of the J-synchronization matrix.
 % These values are stored in the variable scores returned by the function
 % cryo_sync3n_Jsync_power_method above.
+% Update: the probabilities of the relative rotations {Rij} to be indicative ("good")
+% can be estimated by the significance of the local J-synchronization between every
+% triplet Rij,Rjk,Rik. Those probabilities turn out to have better performance as weights,
+% both analytically and empirically.
 W=ones(K); % Default weights are all one (no weights)
 if use_S_weights
     % Estimate weights for the 3x3 blocks of S
-    W=cryo_sync3n_syncmatrix_weights(scores);
+    W=cryo_sync3n_syncmatrix_weights(Rijs);
 end
 
 % Estimate rotations from S.
