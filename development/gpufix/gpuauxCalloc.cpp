@@ -11,6 +11,7 @@
 #include <inttypes.h>
 #include "mex.h"
 #include "cublas.h"
+#include "timings.h"
 
 // #define DEBUG
 
@@ -33,6 +34,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     cuComplex *a;    // Complex data of A in cuComplex layout.
     cuComplex *gA;   // Pointer to the GPU copy of the data of A.
     uint64_t *gptr;  // Address of the GPU-allocated array.
+    cublasHandle_t handle;
     cublasStatus retStatus;
     
     if (nrhs != 1) {
@@ -55,6 +57,20 @@ void mexFunction( int nlhs, mxArray *plhs[],
     a  = (cuComplex*) mxMalloc(sizeof(cuComplex)*M*N);
     floats2cuComplex(Ar,Ai,a, M*N);
 
+    /* STARTUP   CUBLAS */
+    TIC;
+    retStatus = cublasInit();
+    if (retStatus != CUBLAS_STATUS_SUCCESS) {
+        printf("[%s,%d] an error occured in cublasInit\n",__FILE__,__LINE__);
+    } 
+    #ifdef DEBUG 
+    else {
+        printf("[%s,%d] cublasInit worked\n",__FILE__,__LINE__);
+    }
+    #endif    
+    TOCM("init");
+    /*
+    
     /* ALLOCATE SPACE ON THE GPU */
     cublasAlloc (M*N, sizeof(cuComplex), (void**)&gA);
     

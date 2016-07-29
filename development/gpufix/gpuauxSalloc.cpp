@@ -10,7 +10,9 @@
 #include <stdint.h>
 #include <inttypes.h>
 #include "mex.h"
-#include "cublas.h"
+//#include "cublas.h"
+#include "cublas_v2.h"
+#include "timings.h"
 
 //#define DEBUG
 
@@ -36,6 +38,21 @@ void mexFunction( int nlhs, mxArray *plhs[],
     #ifdef DEBUG
     mexPrintf("M=%d  N=%d\n",M,N);
     #endif
+    
+    
+    /* STARTUP   CUBLAS */
+    TIC;
+    retStatus = cublasInit();
+    if (retStatus != CUBLAS_STATUS_SUCCESS) {
+        printf("[%s,%d] an error occured in cublasInit\n",__FILE__,__LINE__);
+    } 
+    #ifdef DEBUG 
+    else {
+        printf("[%s,%d] cublasInit worked\n",__FILE__,__LINE__);
+    }
+    #endif    
+    TOCM("init");
+    /*
     
     /* ALLOCATE SPACE ON THE GPU */
     cublasAlloc (M*N, sizeof(float), (void**)&gA);
