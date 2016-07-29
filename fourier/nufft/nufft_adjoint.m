@@ -13,6 +13,8 @@
 function sig = nufft_adjoint(plan, sig_f)
 	dims = numel(plan.sz);
 
+	precision = class(sig_f);
+
 	if plan.lib_code == 1
 		if dims == 1
 			sig = anudft1(sig_f, plan.fourier_pts, plan.sz);
@@ -49,10 +51,6 @@ function sig = nufft_adjoint(plan, sig_f)
 		end
 
 		sig = reshape(sig, [plan.sz 1]);
-
-		if isa(sig_f, 'single')
-			sig = single(sig);
-		end
 	elseif plan.lib_code == 3
 		sig_f = double(sig_f);
 		sig_f = sig_f(:);
@@ -66,9 +64,7 @@ function sig = nufft_adjoint(plan, sig_f)
 		elseif dims == 3
 			sig = permute(reshape(sig, plan.sz), [3 2 1]);
 		end
-
-		if isa(sig_f, 'single')
-			sig = single(sig);
-		end
 	end
+
+	sig = cast(sig, precision);
 end

@@ -13,6 +13,8 @@
 function sig_f = nufft_transform(plan, sig)
 	dims = numel(plan.sz);
 
+	precision = class(sig);
+
 	if plan.lib_code == 1
 		if dims == 1
 			sig_f = nudft1(sig, plan.fourier_pts);
@@ -44,10 +46,6 @@ function sig_f = nufft_transform(plan, sig)
 				-1, epsilon, ...
 				plan.sz(1), plan.sz(2), plan.sz(3), sig);
 		end
-
-		if isa(sig, 'single')
-			sig_f = single(sig_f);
-		end
 	elseif plan.lib_code == 3
 		sig = double(sig);
 
@@ -60,9 +58,7 @@ function sig_f = nufft_transform(plan, sig)
 		nfft_set_f_hat(plan.nfft_plan_id, sig);
 		nfft_trafo(plan.nfft_plan_id);
 		sig_f = nfft_get_f(plan.nfft_plan_id);
-
-		if isa(sig, 'single')
-			sig_f = single(sig_f);
-		end
 	end
+
+	sig_f = cast(sig_f, precision);
 end
