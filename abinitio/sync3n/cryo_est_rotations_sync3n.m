@@ -1,4 +1,8 @@
 
+% OLD LEGACY VERSION
+% This function reconstruct a volume from projection images end-to-end.
+% However, it uses different api than the convention in ASPIRE, and it depends on components (e.g. initial_configuration.m) which are currently unavailable in this package.
+
 function [V, data, algo, disp] = main_3N (conf)
 % CryoEM: reconstruct a 3D volume by its 2D projections images
 % Using the "3N X 3N" algorithm introduced in <GGG insert link or name>
