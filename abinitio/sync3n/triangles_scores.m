@@ -48,6 +48,8 @@ N=(1+sqrt(1+8*size(Rij,3)))/2; % Extract N from the number of relative rotations
     % The number of relative rotations for a given N is (N choose 2).
     % Solve for N from this number.
 assert(N==round(N));  % Make sure we got an integer.
+if Pmin<0; Pmin=0; end
+if Pmax>1; Pmax=1; end
 
 %% Compute triangles scores
 if ~isempty(scores_hist)
