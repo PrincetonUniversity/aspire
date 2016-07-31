@@ -33,7 +33,7 @@ N=(1+sqrt(1+8*numel(scores)))/2; % Extract N from the number of scores.
     % number.
 assert(N==round(N));  % Make sure we got an integer.
 
-W=eye(N);
+W=eye(N); % GGG why ones instead of zeros on the diagonal?
 scores=scores(:);
 scores = scores./max(scores);
 idx = 0; % pair index
