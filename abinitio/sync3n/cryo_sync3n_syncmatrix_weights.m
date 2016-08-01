@@ -1,49 +1,130 @@
-function W = cryo_sync3n_syncmatrix_weights(scores)
-%
-% CRYO_SYNC3N_SYNCMATRIX_WEIGHTS   Determine weights for 3Nx3N synchronization matrix.
-%
-% cryo_sync3n_syncmatrix_weights(scores)
-%   Determine weights matrix for the blocks of the 3N X 3N matrix S
-%   (which are the relative rotations Rij between the projections
-%   directions). The weights are used to improve the accuracy of the
-%   estimated fotations, by giving more weight to reliable relative
-%   rotations.
-%
+
+function [W, Pij, scores_hist, cum_scores] = cryo_sync3n_syncmatrix_weights (Rij)
+%TRIANGLES_SYNC synchronize J-multiplications between all triplets of
+% relative rotations {Rij,Rjk,Rki}, and evaluate the probability of every
+% relative rotation to be indicative ("good", rather than arbitrary).
+% The probabilities are formed as a matrix of weights, used later for weighting
+% the blocks {Rij} of the synchronization matrix S.
+% 
+% $$$ A reference to the weighting paper should appear here.
+% 
+% The probabilities are calculated in triangles_scores() (see documentation
+% inside). This function is an iterative wrapper for these calculations.
+% 
+% - Why do the calculations have to be repeated iteratively?
+% triangles_scores() first estimates the rate P of indicative relative
+% rotations. Then it uses Bayesian approach to find the probability Pij of
+% every relative rotation Rij to be indicative.
+% When P is correctly estimated, then it is expected to approximately equal
+% mean(Pij). Unfortunately, when P<<1, the estimation of P has a strong
+% bias upwards. In this case {Pij} turn out to be far too small, and we
+% have mean(Pij)<<P. When we detect this phenomenon, we try to re-estimate
+% P, forcing stricter limits on the estimation. We do that iteratively,
+% until we have P~mean(Pij).
+% 
 % Input:
-% scores    A list of the weight to assign to each relative rotation in the
-%           matrix S.  If we want to estimate N rotations, then scores is a
-%           vector of length N choose 2.
-%
+%   Rij (3x3x(N-choose-2)): relative rotations between viewing directions.
+% 
 % Output:
-% W         NXN symmetric weights matrix without rows-normalization. 
-%
-% See cryo_sync3n_estimate_rotations for a useage example. 
-%
-% This function was revised from 
-% set_weights...
-%    set_weights(N, component_indices, W0, method, scores, stack, keep_initial_weights, iteration, N_iterations, w_normalization)
-%
-% Revised by Yoel Shkolnisky, April 2016, based on the function set_weights
-% by Ido Greenberg, 2015 
+%   W (NxN): weights matrix (later we will have S <- S.*W).
+%   Pij (N-choose-2): the probabilities of the relative rotations to be
+%     indicative.
+%   scores_hist (struct): properties of the histogram of the triangles scores
+%     (used for the estimation of Pij). P is included here, and can be used
+%     as indication for the quality of the data and the reliability of the
+%     reconstruction.
+%   cum_scores (N-choose-2): cummulated triangles scores - sum of scores
+%     {s_ijk} for every pair ij.
+% 
+% Written by Ido Greenberg, 2016
 
+%% Configuration
+PERMITTED_INCONSISTENCY = 2; % Consistency condition is: mean(Pij)/PERMITTED_INCONSISTENCY < P < mean(Pij)*PERMITTED_INCONSISTENCY.
+P_DOMAIN_LIMIT = 0.7; % Forced domain of P is [Pmin,Pmax], with Pmin=P_DOMAIN_LIMIT*Pmax.
+MAX_ITERATIONS = 10; % Maximum iterations for P estimation.
+MIN_P_PERMITTED = 0.04; % When P is that small, stop trying to synchronize P with Pij, since we have no chance.
 
-N=(1+sqrt(1+8*numel(scores)))/2; % Extract N from the number of scores.
-    % The number of scores for a given N is (N choose 2) as each pair of
-    % rotations Rij (i<j) has a reliability score. Solve for N from this
-    % number.
-assert(N==round(N));  % Make sure we got an integer.
+%% Get initial estimation for Pij
 
-W=eye(N); % GGG why ones instead of zeros on the diagonal?
-scores=scores(:);
-scores = scores./max(scores);
+% get estimation
+scores_hist = struct;
+[P, scores_hist.sigma, scores_hist.Rsquare, Pij, scores_hist.hist, cum_scores] =...
+    triangles_scores(Rij);
+
+% are P and Pij consistent?
+too_low = P < mean(Pij)/PERMITTED_INCONSISTENCY;
+too_high = P > mean(Pij)*PERMITTED_INCONSISTENCY;
+inconsistent = too_low | too_high;
+
+% define limits for next P estimation
+if too_high
+    Pmax = P;
+    Pmin = Pmax*P_DOMAIN_LIMIT;
+else
+    Pmin = P;
+    Pmax = Pmin/P_DOMAIN_LIMIT;
+end
+
+%% Repeat iteratively until estimations of P & Pij are consistent
+
+iteration = 0;
+
+while inconsistent
+    
+    % count iterations
+    iteration = iteration + 1;
+    if iteration >= MAX_ITERATIONS
+        warning('Triangles Scores are too bad distributed, P failed to converge wrt Pij.');
+        break;
+    end
+    
+    % keep last inconsistency direction to recognize trends
+    prev_too_low = too_low;
+    %prev_too_high = too_high;
+    
+    % get estimation
+    [P, scores_hist.sigma, scores_hist.Rsquare, Pij, ~, ~] = ...
+        triangles_scores(Rij, scores_hist.hist, Pmin, Pmax);
+    
+    % are P and Pij consistent?
+    too_low = P < mean(Pij)/PERMITTED_INCONSISTENCY;
+    too_high = P > mean(Pij)*PERMITTED_INCONSISTENCY;
+    inconsistent = too_low | too_high;
+    
+    % check trend
+    if too_low ~= prev_too_low
+        % error trend inverted -> we're around the correct value -> use stricter limits
+        P_DOMAIN_LIMIT = sqrt(P_DOMAIN_LIMIT);
+    end
+    
+    % define limits for next P estimation
+    if too_high
+        if P < MIN_P_PERMITTED
+            warning('Triangles Scores are too bad distributed, whatever small P we force.');
+            break;
+        end
+        Pmax = Pmax*P_DOMAIN_LIMIT;
+        Pmin = Pmax*P_DOMAIN_LIMIT;
+    else
+        Pmin = Pmin/P_DOMAIN_LIMIT;
+        Pmax = Pmin/P_DOMAIN_LIMIT;
+    end
+    
+end
+
+scores_hist.P = P;
+
+%% Fill weights matrix
+
+W = eye(N); % $$$ why ones instead of zeros on the diagonal?
 idx = 0; % pair index
+
 for i = 1:N
     for j = (i+1):N
         idx = idx + 1;
-        W(i,j) = scores(idx);
-        W(j,i) = scores(idx);
+        W(i,j) = Pij(idx);
+        W(j,i) = Pij(idx);
     end
 end
 
 end
-
