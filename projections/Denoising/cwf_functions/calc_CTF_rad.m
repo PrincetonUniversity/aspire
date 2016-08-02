@@ -4,7 +4,7 @@ function [ctf_rad_all]=  calc_CTF_rad(use_CTF, n, index, ndef, def1,def2,B, lamb
 % resolution 2.82 same as add_CTF_env, this is arbitrary and should be
 % changed to the CTF parameters used in add_CTF function
 % Same alpha, other params
-
+% Tejal Bhamre: updated Oct 2015
 
 defocus=linspace(def1, def2, ndef);
 ctf_rad_all=zeros(length(r),max(index));

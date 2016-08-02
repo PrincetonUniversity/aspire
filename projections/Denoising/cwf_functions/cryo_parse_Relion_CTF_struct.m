@@ -1,6 +1,6 @@
 function [voltage,DefocusU,DefocusV,DefocusAngle,Cs,pixA,A]=...
     cryo_parse_Relion_CTF_struct(CTFdata)
-
+% Tejal Oct 2015, based on Yoel's function
 % Parse .star file to extract parameters in RELION format
 
 voltage=CTFdata.rlnVoltage;

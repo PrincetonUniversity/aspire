@@ -5,7 +5,7 @@ function [ coeff ] = coeff_demean( data, R, basis, sample_points, num_pool )
 % basis: precomputed basis functions
 % num_pool: Number of workers
 % sample_points: Quadrature points
-% Tejal Oct 2015, Based on Jane's FFB code
+% Tejal: updated Oct 2015, Based on Jane's FFB code
 
 n = size(data, 3);
 data2 = cell(num_pool, 1);

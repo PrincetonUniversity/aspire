@@ -5,7 +5,7 @@ function [c_limit, R_limit] = choose_support_v6( proj_CTF_noisy, energy_threshol
 % R_limit: Size of support in real space
 % We scale the images in real space by L, so that the noise variance in
 % both real and Fourier domains is the same.
-% Tejal Oct 2015
+% Tejal: updated Oct 2015
 
 L=size(proj_CTF_noisy,1);
 N=floor(L/2);
@@ -16,9 +16,7 @@ r_max=N;
 
 
 img_f=proj_CTF_noisy;
-img=(icfft2(img_f))*L;  %% Note: don't use real here because noise variance estimate will then be wrong in line 21, only
-%from real part.
-mean_data = mean(img, 3);
+img=(icfft2(img_f))*L;mean_data = mean(img, 3);
 %remove mean from the data
 img = bsxfun(@minus, img, mean_data);
 

@@ -5,7 +5,7 @@ function [p,fre]= check_MP(evals, fr, noise_variance, n, nbin)
 % fr: Frequency
 % n: Number of data, the n is p/n
 % nbin: Number of bins for the histogram
-% Tejal Oct 2015
+% Tejal Bhamre: Oct 2015
 
 evals=sort(evals,'ascend');
 p=size(evals,1);

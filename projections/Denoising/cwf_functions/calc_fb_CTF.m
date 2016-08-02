@@ -4,7 +4,7 @@ function [fb_CTF] = calc_fb_CTF(ctf_rad, Phins_k, sample_points)
 % Phins_k: Radial bessel function, ang freq k
 % sample_points: Quadrature points for evaluation, w are the associated
 % weights.
-% Tejal Oct 2015
+% Tejal Bhamre: updates Oct 2015
 
 r=sample_points.r;
 w=sample_points.w;

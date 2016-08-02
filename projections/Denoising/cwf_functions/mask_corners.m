@@ -1,5 +1,6 @@
 function [ masked ] = mask_corners( im )
 
+% Tejal Bhamre, Oct 2015
 %EMDB data not masked at corners, masking to zero.
 
 L=size(im,1);

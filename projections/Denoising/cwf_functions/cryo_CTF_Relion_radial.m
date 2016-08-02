@@ -52,8 +52,8 @@ function h=cryo_CTF_Relion_radial(n,voltage,DefocusU,DefocusV,DefocusAngle,...
 %   imagesc(h);
 %
 % Yoel Shkolnisky, July 2014.
-% Modified by Tejal Oct 2015, compute CTF along a radial line, returns 1D
-% instead of 2D CTF
+
+% Modified by Tejal Bhamre, Oct 2015, compute CTF along a radial line, returns 1D instead of 2D CTF
 
 lambda=1.22639./sqrt(voltage*1000+0.97845*voltage.^2);  % Wavelength in nm.
 
