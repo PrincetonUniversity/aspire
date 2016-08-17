@@ -1,7 +1,7 @@
 debug=1;
 timing=0;
 
-flags='-O -g -I/usr/local/cuda/targets/x86_64-linux/include/ -L/usr/local/cuda/targets/x86_64-linux/lib/ -lcublas -lcudart';
+flags='-O -g -I/usr/local/cuda/include/ -L/usr/local/cuda/lib64/ -lcublas -lcudart';
 
 debugdef='';
 if debug

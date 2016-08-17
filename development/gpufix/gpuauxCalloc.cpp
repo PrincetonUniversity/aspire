@@ -36,20 +36,24 @@ void mexFunction( int nlhs, mxArray *plhs[],
     cuComplex *a;    // Complex data of A in cuComplex layout.
     cuComplex *gA;   // Pointer to the GPU copy of the data of A.
     uint64_t *gptr;  // Address of the GPU-allocated array.
+    uint64_t hptr;
     cublasHandle_t handle;
     cublasStatus_t retStatus;
     cudaError_t cudaStat;
     
-    if (nrhs != 1) {
-        mexErrMsgTxt("gpuauxSalloc requires 1 input arguments (matrix A)");
+    if (nrhs != 2) {
+        mexErrMsgTxt("gpuauxSalloc requires 2 input arguments (handle and matrix A)");
     } else if (nlhs != 1) {
         mexErrMsgTxt("gpuauxSalloc requires 1 output argument");
     }
     
-    Ar = (float*) mxGetPr(prhs[0]);  // Get real data of A.
-    Ai = (float*) mxGetPi(prhs[0]);  // Get real data of A.
-    M = mxGetM(prhs[0]);   // Get number of rows of A.
-    N = mxGetN(prhs[0]);   // Get number of columns of A.
+    hptr=(uint64_t) mxGetScalar(prhs[0]);
+    handle = (cublasHandle_t) hptr;
+
+    Ar = (float*) mxGetPr(prhs[1]);  // Get real data of A.
+    Ai = (float*) mxGetPi(prhs[1]);  // Get real data of A.
+    M = mxGetM(prhs[1]);   // Get number of rows of A.
+    N = mxGetN(prhs[1]);   // Get number of columns of A.
         
     #ifdef DEBUG
     mexPrintf("M=%d  N=%d\n",M,N);
@@ -59,20 +63,6 @@ void mexFunction( int nlhs, mxArray *plhs[],
     /* Convert A=(Ar,Ai) into cuComplex format */
     a  = (cuComplex*) mxMalloc(sizeof(cuComplex)*M*N);
     floats2cuComplex(Ar,Ai,a, M*N);
-
-    /* STARTUP   CUBLAS */
-    TIC;
-     retStatus = cublasCreate(&handle);
-    if (retStatus != CUBLAS_STATUS_SUCCESS) {
-        printf("[%s,%d] an error occured in cublasInit\n",__FILE__,__LINE__);
-    } 
-    #ifdef DEBUG 
-    else {
-        printf("[%s,%d] cublasInit worked\n",__FILE__,__LINE__);
-    }
-    #endif    
-    TOCM("init");
-    /*
     
     /* ALLOCATE SPACE ON THE GPU */
     //cublasAlloc (M*N, sizeof(float), (void**)&gA);
@@ -103,13 +93,12 @@ void mexFunction( int nlhs, mxArray *plhs[],
     plhs[0] = mxCreateNumericMatrix(1, 1, mxUINT64_CLASS, mxREAL);
     gptr=(uint64_t*) mxGetPr(plhs[0]);
     *gptr=(uint64_t) gA;
-    
-    //cublasShutdown();
-    cublasDestroy(handle);
+
     mxFree(a);
     
     #ifdef DEBUG
     mexPrintf("[%s,%d] GPU array allocated at address %" PRIu64 "\n", __FILE__,__LINE__,(uint64_t)gA);
     #endif
+
 }
 

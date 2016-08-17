@@ -9,6 +9,7 @@ properties
         gptr                % Pointer into the GPU memory.
         dim                 % Dimensions of the matrix.
         mode                % 0 for single, 1 for single-complex.
+        handle
     end
         
     methods
@@ -39,9 +40,9 @@ properties
                 obj.dim=size(A);
                 
                 if obj.mode==0
-                    obj.gptr=gpuauxSalloc(A);
+                    obj.gptr=gpuauxSalloc(obj.handle,A);
                 else
-                    obj.gptr=gpuauxCalloc(A);
+                    obj.gptr=gpuauxCalloc(obj.handle,A);
                 end
             elseif nargin==4
                 obj.gptr=varargin{1};
@@ -51,6 +52,7 @@ properties
             else
                 error('Incorrect number of arguments.');
             end
+            obj.handle=gpumatrix.init;
         end
         
         function delete(obj)
@@ -62,7 +64,7 @@ properties
             % Free the stored matrix from the GPU and invalidate the
             % object to prevent further access.
             if obj.gptr~=0
-                gpuauxfree(obj.gptr);
+                gpuauxfree(obj.handle,obj.gptr);
                 obj.gptr=0;
             end
         end
@@ -96,10 +98,10 @@ properties
                 end
                 K = gb.dim(2);
                 if ga.mode == 0 && gb.mode ==0
-                    gcptr = gpuauxSmul(ga.gptr,ga.dim(1),ga.dim(2),gb.gptr,gb.dim(1),gb.dim(2),0,0);
+                    gcptr = gpuauxSmul(ga.handle,ga.gptr,ga.dim(1),ga.dim(2),gb.gptr,gb.dim(1),gb.dim(2),0,0);
                     gc=gpumatrix(gcptr,M,K,0);
                 else
-                    gcptr = gpuauxCmul(ga.gptr,ga.dim(1),ga.dim(2),gb.gptr,gb.dim(1),gb.dim(2),0,0);
+                    gcptr = gpuauxCmul(ga.handle,ga.gptr,ga.dim(1),ga.dim(2),gb.gptr,gb.dim(1),gb.dim(2),0,0);
                     gc=gpumatrix(gcptr,M,K,1);
                 end
             end
@@ -190,11 +192,25 @@ properties
             end
             
             if obj.mode==0
-                A=gpuauxSgather(obj.gptr,obj.dim(1),obj.dim(2));
+                A=gpuauxSgather(obj.handle,obj.gptr,obj.dim(1),obj.dim(2));
             else
-                A=gpuauxCgather(obj.gptr,obj.dim(1),obj.dim(2));
+                A=gpuauxCgather(obj.handle,obj.gptr,obj.dim(1),obj.dim(2));
             end
         end
     end
+    
+    methods (Static)
+      function out=init(doinit)
+         persistent handle;
+         if nargin
+            handle=gpuauxinit;
+         end
+         out=handle;
+      end
+      function shutdown
+          h=gpumatrix.init;
+          gpuauxshutdown(h);
+      end
+   end
     
 end

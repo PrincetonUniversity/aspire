@@ -33,19 +33,23 @@ void mexFunction( int nlhs, mxArray *plhs[],
     int M,N;       // Dimensions of the returned matrix.
     cuComplex* a;  // Elements of the GPU-stored matrix in cuComplex format.
     float *Ar,*Ai; // Real and imaginary parts of returned mxArray.
+    uint64_t    hptr;
     cublasHandle_t handle;
     cublasStatus_t retStatus;
 
           
-    if (nrhs != 3) {
-        mexErrMsgTxt("gpuauxfree requires 3 input arguments (gptr,m,n)");
+    if (nrhs != 4) {
+        mexErrMsgTxt("gpuauxfree requires 4 input arguments (handle,gptr,m,n)");
     } else if (nlhs !=1 ) {
         mexErrMsgTxt("gpuauxfree requires 1 output argument (A)");
     }
     
-    gptr = (uint64_t) mxGetScalar(prhs[0]);
-    M=(int) mxGetScalar(prhs[1]);
-    N=(int) mxGetScalar(prhs[2]);
+    hptr=(uint64_t) mxGetScalar(prhs[0]);
+    handle = (cublasHandle_t) hptr;
+
+    gptr = (uint64_t) mxGetScalar(prhs[1]);
+    M=(int) mxGetScalar(prhs[2]);
+    N=(int) mxGetScalar(prhs[3]);
     
     #ifdef DEBUG
     mexPrintf("M=%d  N=%d\n",M,N);
@@ -55,16 +59,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     Ar=(float*)mxGetPr(plhs[0]);
     Ai=(float*)mxGetPi(plhs[0]);
     cuComplex2floats(a,Ar,Ai,M*N);
-
-    retStatus = cublasCreate(&handle);
-    if (retStatus != CUBLAS_STATUS_SUCCESS) {
-        mexPrintf("[%s,%d] an error occured in cublasInit\n",__FILE__,__LINE__);
-    }
-    #ifdef DEBUG
-    else {
-        mexPrintf("[%s,%d] cublasInit worked\n",__FILE__,__LINE__);
-    }
-    #endif
+   
     
     a  = (cuComplex*) mxMalloc(sizeof(cuComplex)*M*N);
     retStatus = cublasGetMatrix (M, N, sizeof(cuComplex), (void*)gptr, M, a, M);
@@ -76,8 +71,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
         printf("[%s,%d] cublasGetMatrix worked\n",__FILE__,__LINE__);
     }
     #endif
-    
-    cublasDestroy(handle);
+
     mxFree(a);
     
     #ifdef DEBUG

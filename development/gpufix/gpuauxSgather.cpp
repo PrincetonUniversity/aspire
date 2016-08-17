@@ -21,19 +21,23 @@ void mexFunction( int nlhs, mxArray *plhs[],
     uint64_t gptr; // Pointer to GPU array to return.
     int M,N;       // Dimensions of the returned matrix.
     float* A;      // Elements of the GPU-stored matrix.
+    uint64_t    hptr;
     cublasHandle_t handle;
     cublasStatus_t retStatus;
 
           
-    if (nrhs != 3) {
-        mexErrMsgTxt("gpuauxfree requires 3 input arguments (gptr,m,n)");
+    if (nrhs != 4) {
+        mexErrMsgTxt("gpuauxfree requires 4 input arguments (handle,gptr,m,n)");
     } else if (nlhs !=1 ) {
         mexErrMsgTxt("gpuauxfree requires 1 output argument (A)");
     }
     
-    gptr = (uint64_t) mxGetScalar(prhs[0]);
-    M=(int) mxGetScalar(prhs[1]);
-    N=(int) mxGetScalar(prhs[2]);
+    hptr=(uint64_t) mxGetScalar(prhs[0]);
+    handle = (cublasHandle_t) hptr;
+
+    gptr = (uint64_t) mxGetScalar(prhs[1]);
+    M=(int) mxGetScalar(prhs[2]);
+    N=(int) mxGetScalar(prhs[3]);
     
     #ifdef DEBUG
     mexPrintf("M=%d  N=%d\n",M,N);
@@ -41,17 +45,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     
     plhs[0]=mxCreateNumericMatrix(M, N, mxSINGLE_CLASS, mxREAL);
     A=(float*)mxGetPr(plhs[0]);
-    
-    retStatus = cublasCreate(&handle);
-    if (retStatus != CUBLAS_STATUS_SUCCESS) {
-        mexPrintf("[%s,%d] an error occured in cublasInit\n",__FILE__,__LINE__);
-    }
-    #ifdef DEBUG
-    else {
-        mexPrintf("[%s,%d] cublasInit worked\n",__FILE__,__LINE__);
-    }
-    #endif
-    
+       
     retStatus = cublasGetMatrix (M, N, sizeof(float), (void*)gptr, M, A, M);
     if (retStatus != CUBLAS_STATUS_SUCCESS) {
         mexPrintf("[%s,%d] an error occured in cublasGetMatrix\n",__FILE__,__LINE__);
@@ -61,10 +55,5 @@ void mexFunction( int nlhs, mxArray *plhs[],
         printf("[%s,%d] cublasGetMatrix worked\n",__FILE__,__LINE__);
     }
     #endif
-    
-    cublasDestroy(handle);
-    
-    #ifdef DEBUG
-    mexPrintf("[%s,%d] Matrix retrieved from GPU\n",__FILE__,__LINE__);
-    #endif
+
 }

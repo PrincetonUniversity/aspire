@@ -22,12 +22,14 @@ void mexFunction( int nlhs, mxArray *plhs[],
     cuComplex *gA,*gB,*gC;
     int mA,nA,mB,nB;
     int transA,transB;
-    cuComplex alpha,beta;    
+    cuComplex alpha,beta;   
+    uint64_t    hptr;
     cublasHandle_t handle;
     cublasStatus_t retStatus;
     cudaError_t cudaStat;
 
     /* Input:
+     *  handle      cublas handle
      *  gA          GPU pointer to A
      *  mA          Number or rows in A
      *  nA          Number of columns in A
@@ -41,26 +43,35 @@ void mexFunction( int nlhs, mxArray *plhs[],
      *  gC          GPU pointer to C     
      */
     
-    if (nrhs != 8) {
-        mexErrMsgTxt("gpuaxuSmul requires 4 input arguments");
+    if (nrhs != 9) {
+        mexErrMsgTxt("gpuaxuSmul requires 9 input arguments");
     } else if (nlhs != 1) {
         mexErrMsgTxt("gpuauxSmul requires 1 output argument");
     }
     
+    /* Get cublas handle */
+    hptr=(uint64_t) mxGetScalar(prhs[0]);
+    handle = (cublasHandle_t) hptr;
+    
+    #ifdef DEBUG 
+    mexPrintf("[%s,%d] using handle %" PRIu64 "\n", __FILE__,__LINE__,(uint64_t)handle);    
+    #endif
+
+
     /* Get pointers to matrices on the GPU */
-    gptr=(uint64_t) mxGetScalar(prhs[0]);
+    gptr=(uint64_t) mxGetScalar(prhs[1]);
     gA = (cuComplex*) gptr;
-    mA=(int) mxGetScalar(prhs[1]);
-    nA=(int) mxGetScalar(prhs[2]);
+    mA=(int) mxGetScalar(prhs[2]);
+    nA=(int) mxGetScalar(prhs[3]);
     
     #ifdef DEBUG
     mexPrintf("[%s,%d] gA=%" PRIu64 " mA=%d  nA=%d\n", __FILE__,__LINE__,(uint64_t)gA, mA, nA);
     #endif
     
-    gptr=(uint64_t) mxGetScalar(prhs[3]);
+    gptr=(uint64_t) mxGetScalar(prhs[4]);
     gB=(cuComplex*) gptr;
-    mB=(int) mxGetScalar(prhs[4]);
-    nB=(int) mxGetScalar(prhs[5]);
+    mB=(int) mxGetScalar(prhs[5]);
+    nB=(int) mxGetScalar(prhs[6]);
 
     #ifdef DEBUG
     mexPrintf("[%s,%d] gB=%" PRIu64 " mB=%d  nB=%d\n", __FILE__,__LINE__,(uint64_t)gB, mB, nB);
@@ -72,28 +83,14 @@ void mexFunction( int nlhs, mxArray *plhs[],
     beta.y = (float)0.0;
 
     /* M->mA K->nA  L->mB   N-> nB */
-        
-    /* STARTUP   CUBLAS */
-    TIC;
-    retStatus = cublasCreate(&handle);
-    if (retStatus != CUBLAS_STATUS_SUCCESS) {
-        printf("[%s,%d] an error occured in cublasInit\n",__FILE__,__LINE__);
-    } 
-    #ifdef DEBUG 
-    else {
-        printf("[%s,%d] cublasInit worked\n",__FILE__,__LINE__);
-    }
-    #endif    
-    TOCM("init");
-    /*
-     */
-    
+           
     /* Allocate C on the GPU */
     TIC;    
     cudaStat = cudaMalloc((void**)&gC,mA*nB*sizeof(cuComplex));
     TOCM("Allocate C");
     if (cudaStat != cudaSuccess) {
-        mexPrintf ("[%s,%d] device memory allocation failed",__FILE__,__LINE__);
+        mexPrintf ("[%s,%d] device memory allocation failed\n",__FILE__,__LINE__);
+        mexErrMsgTxt("Allocation error"); 
         //return EXIT_FAILURE; 
     }
     
@@ -114,16 +111,6 @@ void mexFunction( int nlhs, mxArray *plhs[],
     (*((uint64_t*)mxGetPr(plhs[0]))) = (uint64_t) gC;
     #ifdef DEBUG
     mexPrintf("[%s,%d] return result\n", __FILE__,__LINE__);
-    #endif
-    
-    
-    /* Shutdown */
-    TIC;
-    cublasDestroy(handle);
-    TOCM("shutdown");
-    #ifdef DEBUG
-    mexPrintf("[%s,%d] shutdown\n", __FILE__,__LINE__);
-    #endif
-
+    #endif   
 }
 
