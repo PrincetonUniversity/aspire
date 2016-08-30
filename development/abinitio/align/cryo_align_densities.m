@@ -105,7 +105,8 @@ projs2=permute(projs2,[2,1,3]);
 
 % Estimate rotations of the projections of volume 2.
 log_message('Aligning volumes.')
-[Rests,dxests]=cryo_orient_projections_gpu(projs2,vol1masked,Nprojs,[],verbose,0);
+%[Rests,dxests]=cryo_orient_projections_gpu(projs2,vol1masked,Nprojs,[],verbose,0);
+[Rests,dxests]=cryo_orient_projections(projs2,vol1masked,Nprojs,[],verbose,0);
 
 % Assess quality of the alignment. Use Rests and trueRs to estimate the
 % matrix aligning the two volumes. The close this matrix to an orthogonal

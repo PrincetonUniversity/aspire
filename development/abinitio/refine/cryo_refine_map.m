@@ -3,7 +3,8 @@ function cryo_refine_map(projs_mrc,vol_mrc,map_out_step1,map_out_step2,mat_out)
 vol=ReadMRC(vol_mrc);
 projs=ReadMRC(projs_mrc);
 t_orient=tic;
-[R1,shift1]=cryo_orient_projections_gpu_2(projs,vol,-1,[],1,1,4);
+%[R1,shift1]=cryo_orient_projections_gpu_2(projs,vol,-1,[],1,1,4);
+[R1,shift1]=cryo_orient_projections(projs,vol,[],[],1,1);
 t_orient=toc(t_orient);
 
 log_message('First step of refinement took %7.2f seconds',t_orient);
