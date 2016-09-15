@@ -82,9 +82,9 @@ projections=zeros(N,N,K);
 
 parfor k=1:K
 
-  if((mod(k,1000))==0)
-		sprintf('%d projections done',k)
-  end
+%   if((mod(k,1000))==0)
+% 		sprintf('%d projections done',k)
+%   end
     R=q_to_rot(q(:,k));
     Rt=R.';
     
