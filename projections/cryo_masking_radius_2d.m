@@ -2,14 +2,14 @@ function rmin=cryo_masking_radius_2d(P,verbose)
 %
 % CRYO_MASKING_RADIUS   Estimate masking radius of a projection.
 %
-% rmin=cryo_masking_radius(P)
+% rmin=cryo_masking_radius_2d(P)
 %   Automatically estimate the masking radius of the projection image P.
 %   The function searches for the smallest centered circle such that all
 %   samples outside the circle are noise pixels. This circle is the
 %   bounding circle of the molecule.
 %   The function returns the radius of the bounding circle.
 %
-% rmin=cryo_masking_radius(P,verbose)
+% rmin=cryo_masking_radius_2d(P,verbose)
 %   Plot progress/debug figures. Default is verbose=0.
 %
 % Yoel Shkolnisky, October 2016.
@@ -32,7 +32,7 @@ end
 % reference noise samples.
 noise_radius = floor(p/2)-1; % Pixels outside this radius are considered 
                              % noise pixels
-c=(p-1)/2; % Center of the image
+c=(p+1)/2; % Center of the image
 [rmap,cmap]=ndgrid(1:p,1:p); % The i'th pixel in the image is 
     % P(rmap(i),cmap(i)). rmap and cmap are used to easily find the pixels
     % whose 2D coordinates satisfy some condition. See next line.
@@ -62,7 +62,7 @@ if ~H
     return;
 end
 
-rmin=p; % The smaller bouding radius detected.
+rmin=p; % The smallest bouding radius detected.
 
 % Uncomment the following three lines if you want to search for a
 % non-centered bounding circle. This runs a bit slower. Also remember to
@@ -160,15 +160,16 @@ for cntrx=c
     end
 end
 
-
+cx=c;
+cy=x;
 if verbose
     % Plot the final detected circle
     imagesc(P);
     axis image;
     hold on;
     th = 0:pi/50:2*pi;
-    xunit = rmin * cos(th) + cntrx;
-    yunit = rmin * sin(th) + cntry;
+    xunit = rmin * cos(th) + cx;
+    yunit = rmin * sin(th) + cy;
     
     % Don't plot parts of the circle that fall outside the image.
     xunit(xunit<=0)=1; xunit(xunit>p)=p;
