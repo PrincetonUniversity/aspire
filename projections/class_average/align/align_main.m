@@ -1,17 +1,20 @@
 function [ shifts, corr, averagesfname, norm_variance ] = align_main( data, angle, class_VDM, refl, FBsPCA_data, k, max_shifts, list_recon,tmpdir)
 % Function for aligning images with its k nearest neighbors to generate
 % class averages.
-%   Input: 
-%       data: LxLxP matrix. P projection images of size LxL pixels.
+%   Usage:
+%       [shifts, corr, averagesfname, norm_variance] = align_main(data, ...
+%           angle, class_VDM, refl, FBsPCA_data, k, max_shifts, list_recon, tmpdir)
+%   Input:
+%       data: An imagestackReader object containing the images to be aligned
 %       angle: Pxl (l>=k) matrix. Rotational alignment angle
 %       class_VDM: Pxl matrix. Nearest neighbor list
 %       refl: Pxl matrix. 1: no reflection. 2: reflection
 %       FBsPCA_data: Fourier-Bessel steerable PCA data with r_max, UU,
-%       Coeff, Mean, Freqs
+%          Coeff, Mean, Freqs (see Initial_classification)
 %       k: number of nearest neighbors for class averages
 %       max_shifts: maximum number of pixels to check for shift
 %       list_recon: indices for images to compute class averages
-%       tmpdir  temporary folder for intermetidate files. Must be empty.
+%       tmpdir: temporary folder for intermetidate files. Must be empty.
 %   Output:
 %       shifts: Pxk matrix. Relative shifts for k nearest neighbors
 %       corr: Pxk matrix. Normalized cross correlation of each image with
