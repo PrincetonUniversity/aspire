@@ -62,7 +62,7 @@ toc_VDM = toc(tic_VDM);
 disp('Finished VDM classification...');
 % align and generate class averages
 tic_align = tic;
-[ shifts, corr, average, norm_variance ] = align_main( images, angle, class_VDM, class_VDM_refl, FBsPCA_data, k_VDM_out, max_shift, list_recon );
+[ shifts, corr, average, norm_variance ] = align_main_inmem( images, angle, class_VDM, class_VDM_refl, FBsPCA_data, k_VDM_out, max_shift, list_recon );
 toc_align = toc(tic_align);
 disp('Finished alignment and class averaging...');
 % Check Classification result
