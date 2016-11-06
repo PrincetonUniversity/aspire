@@ -31,13 +31,27 @@ if ps==0
   parpool('local',12);
 end
 
+ns = unique(n);
 
-parfor i=1:size(B, 1)
-    r0=r*R_ns(i);
-    [ F ]=besselj(n(i), r0); %this is the radial function
-    Y=exp(sqrt(-1)*n(i)*theta);
-    Phi_ns(:, :, i)=1/(N*sqrt(pi)*abs(besselj(n(i)+1, R_ns(i))))*F.*Y;
-end;
+[r_unique, ~, r_I] = unique(r(:));
+
+for k = 1:numel(ns)
+	nk = ns(k);
+	Y = exp(i*nk*theta(:));
+
+	mask = find(n==nk);
+
+	r0 = r_unique*R_ns(mask(:))';
+	F = besselj(nk, r0);
+	F = F(r_I,:);
+
+	phik = bsxfun(@times, Y, F);
+	phik = bsxfun(@times, phik, 1./(N*sqrt(pi)*abs(besselj(nk+1, R_ns(mask(:))'))));
+
+	phik = reshape(phik, [size(theta) numel(mask)]);
+
+	Phi_ns(:,:,mask) = phik;
+end
 
 Phi_ns=reshape(Phi_ns, (2*N+1)^2, size(B, 1));
 Phi_ns=Phi_ns(r<=1, :);
