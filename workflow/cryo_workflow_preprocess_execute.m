@@ -23,35 +23,42 @@ matname=fullfile(workflow.info.working_dir,'preprocess_info'); % mat file
     % to save intermediate data.
 
 % Load data
-nprojs=str2double(workflow.preprocess.nprojs);
-log_message('Loading data %d projections from %s',nprojs,workflow.info.rawdata);
+%nprojs=str2double(workflow.preprocess.nprojs);
+%log_message('Loading data %d projections from %s',nprojs,workflow.info.rawdata);
 %projs=ReadMRC(workflow.info.rawdata,1,nprojs);
 %szprojs=size(projs);
 
-rawdataReader=imagestackReader(workflow.info.rawdata);
+% Create backup of the raw data
+log_message('Creating backup of raw data.');
+SRCname=tempmrcname; % SRC stands for "source".
+log_message('Copying raw data from %s to temporary file %s',workflow.info.rawdata,SRCname);
+copyfile(workflow.info.rawdata,SRCname);
+
+rawdataReader=imagestackReader(SRCname);
 szprojs=rawdataReader.dim;
 if szprojs(1)~=szprojs(2)
     error('Input projections must be square.')
 end
 
 
-
 % Phaseflip
 if str2double(workflow.preprocess.phaseflip)
+    log_message('Start phaseflipping...')
     if ~exist(workflow.preprocess.ctfdata,'file')
         error('Cannot read STAR file %s',workflow.preprocess.ctfdata);
     end
     log_message('Reading CTF data %s',workflow.preprocess.ctfdata);
     CTFdata=readSTAR(workflow.preprocess.ctfdata);
-    log_message('Phaseflipping');
     %PFprojs=cryo_phaseflip(CTFdata,projs);
-    PFfname=tempname; %PF stands for phaseflipped
-    log_message('Using temporary file %s',PFfname);
-    cryo_phaseflip_outofcore(CTFdata,workflow.info.rawdata,PFfname);
+    PFfname=tempmrcname; %PF stands for phaseflipped
+    log_message('Phaseflipped images will be saved to temporary file %s',PFfname);
+    log_message('Running cryo_phaseflip_outofcore');
+    cryo_phaseflip_outofcore(CTFdata,SRCname,PFfname);
+    log_message('Finished phaseflipping')
 else
     log_message('Skipping phaseflip');
-    %PFprojs=projs;
-    PFfname=workflow.info.rawdata; % No phaseflip so continute with the raw data file.
+    % Copy raw images to temporary file
+    PFfname=SRCname; % No phaseflip so continute with the raw data file.
 end
 
 %PFprojs=ReadMRC(PFfname);
@@ -60,13 +67,16 @@ end
 % Crop
 if str2double(workflow.preprocess.do_crop)
     croppeddim=str2double(workflow.preprocess.croppeddim);
+    log_message('Start cropping...');
     log_message('Cropping to %dx%d',croppeddim, croppeddim);
     % PFCprojs=cryo_crop(PFprojs,[croppeddim croppeddim],1); 
-    PFCfname=tempname; % PFC stands for phaseflipped+cropped
-    log_message('Using temporary file %s',PFCfname);
-    cryo_crop_outofcore(PFname,PFCfname,[croppeddim croppeddim])
+    PFCfname=tempmrcname; % PFC stands for phaseflipped+cropped
+    log_message('Cropped images will be saved to temporary file %s',PFCfname);
+    log_message('Running cryo_crop_outofcore');
+    cryo_crop_outofcore(PFfname,PFCfname,[croppeddim croppeddim])
+    log_message('Finished cropping');    
     
-    delete(PFname);
+    delete(PFfname);
 else
     log_message('Skipping cropping');
     %PFCprojs=PFprojs;
@@ -77,12 +87,15 @@ end
 % Downsample
 pixelscaling=1; % How much pixel size is changed due to downsampling.
 if str2double(workflow.preprocess.do_downsample)
+    log_message('Start downsampling...');
     downsampleddim=str2double(workflow.preprocess.downsampleddim);
     log_message('Downsampling to %dx%d',downsampleddim, downsampleddim);
     %PFDprojs=cryo_downsample(PFCprojs,[downsampleddim downsampleddim],1); 
-    PFCDfname=tempname; %PFCD stands for phaseflipped+cropped+downsampled
-    log_message('Using temporary file %s',PFCDfname);
+    PFCDfname=tempmrcname; %PFCD stands for phaseflipped+cropped+downsampled
+    log_message('Downsampled images will be saved to temporary file %s',PFCDfname);
+    log_message('Running cryo_downsample_outofcore');
     cryo_downsample_outofcore(PFCfname,PFCDfname,[downsampleddim downsampleddim]);
+    log_message('Finished downsampling');
     
     PFCReader=imagestackReader(PFCfname);
     originaldim=PFCReader.dim(1);
@@ -98,24 +111,27 @@ end
 
 % Normalize images
 if str2double(workflow.preprocess.do_normalize)
-    log_message('Normalize background');
+    log_message('Start normalize background...');
     % n=size(PFDprojs,1);
     % PFDprojs=cryo_normalize_background(PFDprojs,round(n/2)-10);
 
     PFCDReader=imagestackReader(PFCDfname);
     n=PFCDReader.dim(1);
-    PFCDNfname=tempname; % phaseflipped+cropped+downsampled+normalized
-    log_message('Using temporary file %s',PFCDNfname);
+    PFCDNfname=tempmrcname; % phaseflipped+cropped+downsampled+normalized
+    log_message('Normalized images will be saved to temporary file %s',PFCDNfname);
+    log_message('Running cryo_normalize_background_outofcore');
     cryo_normalize_background_outofcore(PFCDfname,PFCDNfname,round(n/2)-10);
+    log_message('Finished normalizing');
     
     delete(PFCDfname);
 else
-    log_message('Skipping background normaliztion.');
+    log_message('Skipping background normaliztion');
     PFCDNfname=PFCDfname;
 end
 
 % Prewhiten
 if str2double(workflow.preprocess.do_prewhiten)
+    log_message('Starting prewhitening...');
     % Estimate noise PSD and prewhiten
     log_message('Estimating noise power spectrum');     
     % n=size(PFDprojs,1);
@@ -138,20 +154,21 @@ if str2double(workflow.preprocess.do_prewhiten)
     close(h);
     
     
-    log_message('Prewhitening images');
+    %log_message('Prewhitening images');
     %prewhitened_projs = Prewhiten_image2d(PFDprojs, psd);
     %fname=sprintf('phaseflipped_downsampled_prewhitened.mrc');
     %WriteMRC(single(prewhitened_projs),1,fullfile(workflow.info.working_dir,fname));
 
-    PFCDNWfname=tempname;
+    PFCDNWfname=tempmrcname;
         % phaseflipped+cropped+downsampled+normalized+whitened
-    log_message('Using temporary file %s',PFCDNWfname);
+    log_message('Prewhitened images will be saved to temporary file %s',PFCDNWfname);
+    log_message('Running cryo_prewhiten_outofcore');
     cryo_prewhiten_outofcore(PFCDNfname,PFCDNWfname,psd);
-    log_message('Finished prewhitening images');
+    log_message('Finished prewhitening');
     
     % Compute power spectrum of the prewhitened images - just to verification
     % Normalize projections to norm 1
-    log_message('Compute power spectrum of prewhitened projections - for verifying that power spectrum is white');
+    log_message('Computing power spectrum of prewhitened projections - for verifying that power spectrum is white');
     
     %psd_white=cryo_noise_estimation(prewhitened_projs);
     psd_white = cryo_noise_estimation_outofcore(PFCDNWfname);
@@ -174,16 +191,20 @@ end
 %clear PFDprojs
 
 % Global phase flip
+log_message('Starting global phaseflip...') 
 %[prewhitened_projs,doflip]=cryo_globalphaseflip(prewhitened_projs);
 fname=sprintf('phaseflipped_downsampled_prewhitened.mrc');
 PFCDNWGfname=fullfile(workflow.info.working_dir,fname);
 doflip=cryo_globalphaseflip_outofcore(PFCDNWfname ,PFCDNWGfname);
 
 if doflip
-    log_message('Applying global phase flip');
+    log_message('Phase of images was flipped');
+else
+    log_message('No need to global phase flip. Phase of images not flipped');
 end
+log_message('Images copied (even if not globally phase flipped) to %s',PFCDNWGfname);
+log_message('Finished global phaseflip...')
 
-% XXX
 % Split into groups
 PFCDNWGReader=imagestackReader(PFCDNWGfname);
 K=PFCDNWGReader.dim(3);
@@ -191,7 +212,8 @@ K=PFCDNWGReader.dim(3);
 shuffleidx=1:K;
 if fieldexist(workflow,'preprocess','do_shuffle') && ...
         str2double(workflow.preprocess.do_shuffle)==1
-    log_message('Shuffling data');
+    log_message('Images will be shuffled prior to splitting to groups');
+    log_message('Shuffled order of images saved to variable ''shuffleidx'' in %s',matname);
     shuffleidx=randperm(K);
 end
 
@@ -205,10 +227,11 @@ end
 numgroups=str2double(workflow.preprocess.numgroups);
 K2=floor(K/numgroups);
 
+log_message('Start splitting to %d groups',numgroups);
 for groupid=1:numgroups
     fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrc',groupid);
     fullfilename=fullfile(workflow.info.working_dir,fname);
-    log_message('Saving group %d',groupid);    
+    log_message('Saving group %d into file %s',groupid,fullfilename);
     %WriteMRC(single(prewhitened_projs(:,:,shuffleidx((groupid-1)*K2+1:groupid*K2))),1,fullfilename);
     
     groupstack=imagestackWriter(fullfilename,1,K2);
@@ -217,9 +240,11 @@ for groupid=1:numgroups
         groupstack.append(proj);
     end
     groupstack.close;
+    
     % Write indices of the raw images in this group
-    fname=sprintf('raw_indices_group%d.mrc',groupid);
+    fname=sprintf('raw_indices_group%d.dat',groupid);
     fullfilename=fullfile(workflow.info.working_dir,fname);
+    log_message('Indices of raw images in group %d are saved to %s',groupid,fullfilename);
     fid=fopen(fullfilename,'w');
     if fid<0
         error('Failed to open %s',fullfilename);
@@ -231,7 +256,7 @@ for groupid=1:numgroups
     % Generate CTF data for the downsampled images in STAR format.
     % XXX This code is ratherslow due to the cell arrays - optimize.
     if ~isempty(workflow.preprocess.ctfdata)
-        log_message('Generating CTF for downsampled images');
+        log_message('Generating CTF for downsampled images of group %d',groupid);
         CTFdownsampled=createSTARdata(K2,'rlnVoltage','rlnDefocusU','rlnDefocusV',...
             'rlnDefocusAngle','rlnSphericalAberration',...
             'rlnAmplitudeContrast','pixA','phaseflipped');
@@ -247,8 +272,8 @@ for groupid=1:numgroups
         workflow.preprocess.pixAdownsampled=pixAdownsampled;
         tree=struct2xml(workflow);
         save(tree,workflow_fname);
-        log_message('Pixels size of original images %d Angstroms',pixA);
-        log_message('Pixels size of downsampled images %d Angstroms',pixAdownsampled);
+        log_message('Pixel size of original images %4.2f Angstroms',pixA);
+        log_message('Pixel size of downsampled images %4.2f Angstroms',pixAdownsampled);
         
         log_message('Create CTF data for downsampled images');
         printProgressBarHeader;
@@ -273,8 +298,10 @@ for groupid=1:numgroups
         
         fname=sprintf('ctfs_group%d.star',groupid);
         fullfilename=fullfile(workflow.info.working_dir,fname);
+        log_message('Saving CTF data for group %d to %s',groupid,fullfilename);
         writeSTAR(CTFdownsampled,fullfilename);
-        log_message('Finished saving CTF data of downsampled images into %s',fullfilename);
+        %log_message('Finished saving CTF data of downsampled images into %s',fullfilename);
+
         %     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %     % Generate filter reponse of the CTFs of the downsampled images.
         %     % Can be used for testing the above code.
@@ -318,14 +345,17 @@ for groupid=1:numgroups
         
         % Save CTF parameters of raw images in each group. We don't save the
         % reponse for each image since these images may be very large.
+        
         CTFraw=CTFdata;
         CTFraw.data=CTFraw.data(shuffleidx((groupid-1)*K2+1:groupid*K2));
         fname=sprintf('ctfs_raw_group%d.star',groupid);
         fullfilename=fullfile(workflow.info.working_dir,fname);
+        log_message('Save CTF parameters of raw images group %d into %s',groupid,fullfilename);
         writeSTAR(CTFraw,fullfilename);
         
     end
 end
+log_message('Finished splitting to groups');
 %clear prewhitened_projs
 
 log_message('Workflow file: %s',workflow_fname);
