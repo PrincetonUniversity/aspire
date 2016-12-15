@@ -159,6 +159,7 @@ else
 end
 
 if ~skipprecomp
+    tic;
     log_message('Precomputing and saving common line tables.');
     log_message('The tables would be used in future calls to the function.');
     log_message('Patience please...');

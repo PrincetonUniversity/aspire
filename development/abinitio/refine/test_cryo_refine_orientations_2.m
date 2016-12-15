@@ -1,3 +1,5 @@
+clear;
+
 vol1=ReadMRC('vol_nn50_nm5000_group1.mrc');
 projs1=ReadMRC('phaseflipped_cropped_downsampled_prewhitened_group1.mrc');
 t_orient=tic;
