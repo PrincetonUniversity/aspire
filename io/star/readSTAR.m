@@ -35,6 +35,10 @@ dataidx=1;   % How many data rows were read.
 
 % Get size of fname
 finfo = dir(fname);
+
+if isempty(finfo)
+    error('Cannot find %s',fname);
+end
 fsize = finfo.bytes;
 bytesread=0;
 

@@ -51,22 +51,28 @@ for groupid=1:numgroups
     log_message('Finished align_main');         
 
     
-    [~,classcoreidx]=sort(norm_variance); % classcoreidx are the
-    % indices of the most consistent class averages. The
-    % corresponding phaseflipped images will be used for
-    % reconstruction.
+%     [~,classcoreidx]=sort(norm_variance); % classcoreidx are the
+%     % indices of the most consistent class averages. The
+%     % corresponding phaseflipped images will be used for
+%     % reconstruction.
+
+    % Sort the resulting class averages by their constrast.
+    averages_constrast=cryo_image_constrast_outofcore(unsortedaveragesfname);
+    [~,classcoreidx]=sort(averages_constrast,'descend'); % Only averages with highest 
+    %  will be used for reconstruction.
     
     
     % Print how many unique raw images are involved in the top i'th
-    % percentile of class averages (sorted by norm_variance). Also print
-    % for each row the norm_variance of the i'th percentile class average.
-    log_message('Number of raw projection in each the each percentile of averages (percentile,num means, num unique raw, norm_variance)');
+    % percentile of class averages (sorted by averages_contrast). Also
+    % print for each row the norm_variance of the i'th percentile class
+    % average. 
+    log_message('Number of raw projection in each the each percentile of averages (percentile,num means, num unique raw, constrast)');
     nprojs=prewhitened_projs.dim(3);
-    for k=1:10;
+    for k=1:10
         nmeans=round(nprojs*k/10);
         ii=class_VDM(classcoreidx(1:nmeans),:);
         nrawprojs=numel(unique(ii));
-        log_message('\t%3d%%\t %7d \t %7d \t %4.2e',k*10,nmeans,nrawprojs,norm_variance(classcoreidx(nmeans)));
+        log_message('\t%3d%%\t %7d \t %7d \t %4.2e',k*10,nmeans,nrawprojs,averages_constrast(classcoreidx(nmeans)));
     end
     
     % Determine if global phase flip is required
@@ -101,7 +107,7 @@ for groupid=1:numgroups
     
     reloadname=sprintf('averages_info_nn%02d_group%d',nnavg,groupid);
     save(fullfile(workflow.info.working_dir,reloadname),...
-        'shifts','corr','norm_variance','classcoreidx','VDM_angles',...
+        'shifts','corr','averages_constrast','classcoreidx','VDM_angles',...
         'class_VDM', 'class_VDM_refl','doflip');
     
     delete(fullfile(tmpdir,'*')); % Clean the temp directory.

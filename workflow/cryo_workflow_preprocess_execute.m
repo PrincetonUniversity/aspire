@@ -206,7 +206,9 @@ log_message('Images copied (even if not globally phase flipped) to %s',PFCDNWGfn
 log_message('Finished global phaseflip...')
 
 % Split into groups
-PFCDNWGReader=imagestackReader(PFCDNWGfname);
+PFCDNWGReader=imagestackReader(PFCDNWGfname,1); % Cache size is 1 since we 
+        % expect to shuffle the images which would result in many cache
+        % flush.
 K=PFCDNWGReader.dim(3);
 %K=size(prewhitened_projs,3);
 shuffleidx=1:K;
@@ -236,7 +238,7 @@ for groupid=1:numgroups
     
     groupstack=imagestackWriter(fullfilename,1,K2);
     for k=1:K2
-        proj=PFCDNWGReader.getImage((groupid-1)*K2+k);
+        proj=PFCDNWGReader.getImage(shuffleidx((groupid-1)*K2+k));
         groupstack.append(proj);
     end
     groupstack.close;
