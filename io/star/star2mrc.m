@@ -26,6 +26,7 @@ datablocks=readSTAR(starname);
 
 N=numel(datablocks.data); % Number of images to read
 stackwriter=imagestackWriter(mrcname,1000,N);
+prev_micrographname=[]; % Name of previously loaded micrograph
 
 % Read images appearing in the star file
 log_message('Copying images to MRC %s',mrcname);
@@ -38,8 +39,13 @@ for i=1:N
     idx=str2double(keyparts{1});
     micrographname=keyparts{2};
     
-    fname=fullfile(basedir,micrographname);
-    im=ReadMRC(fname,idx,1);
+    if ~strcmp(micrographname,prev_micrographname)
+        prev_micrographname=micrographname;
+        fname=fullfile(basedir,micrographname);
+        micrographreader=imagestackReader(fname,1000);
+    end
+                    
+    im=micrographreader.getImage(idx);
     stackwriter.append(im);
 end
 stackwriter.close;
