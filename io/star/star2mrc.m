@@ -46,6 +46,9 @@ for i=1:N
     end
                     
     im=micrographreader.getImage(idx);
+    if mod(size(im,1),2)==0
+       im=im(1:end-1,1:end-1);
+    end	
     stackwriter.append(im);
 end
 stackwriter.close;

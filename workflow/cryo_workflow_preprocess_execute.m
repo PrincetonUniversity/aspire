@@ -55,6 +55,8 @@ if str2double(workflow.preprocess.phaseflip)
     log_message('Running cryo_phaseflip_outofcore');
     cryo_phaseflip_outofcore(CTFdata,SRCname,PFfname);
     log_message('Finished phaseflipping')
+    
+    delete(SRCname);
 else
     log_message('Skipping phaseflip');
     % Copy raw images to temporary file
@@ -204,6 +206,8 @@ else
 end
 log_message('Images copied (even if not globally phase flipped) to %s',PFCDNWGfname);
 log_message('Finished global phaseflip...')
+
+delete(PFCDNWfname);
 
 % Split into groups
 PFCDNWGReader=imagestackReader(PFCDNWGfname,1); % Cache size is 1 since we 
@@ -357,6 +361,9 @@ for groupid=1:numgroups
         
     end
 end
+
+delete(PFCDNWGfname);
+
 log_message('Finished splitting to groups');
 %clear prewhitened_projs
 

@@ -85,10 +85,10 @@ for groupid=1:numgroups
     flipflag=(-2)*doflip+1;
     
     % Save averages sorted by norm variance    
-    log_message('Sorting averages %s',fname);
     fname=sprintf('averages_nn%02d_group%d.mrc',nnavg,groupid);
     fname=fullfile(workflow.info.working_dir,fname);
-        
+    log_message('Sorting averages %s',fname);
+            
     average=imagestackReader(unsortedaveragesfname,100);
     sortedaverages=imagestackWriter(fname,1,average.dim(3),100);
     for k=1:numel(classcoreidx)
