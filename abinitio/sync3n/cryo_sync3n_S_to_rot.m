@@ -1,4 +1,4 @@
-function [R, eigenvalues, orthogonality_error] = cryo_sync3n_S_to_rot... 
+function [R, evalues, orthogonality_error] = cryo_sync3n_S_to_rot... 
     (S, n_eigs, W, ORTHOGONALITY_THRESHOLD)
 % CRYO_SYNC3N_S_TO_ROT  Extract rotations from synchronization matrix.
 %
@@ -63,55 +63,45 @@ function [R, eigenvalues, orthogonality_error] = cryo_sync3n_S_to_rot...
 
 %(S, n_eigs, W, ORTHOGONALITY_THRESHOLD)
 
-N=size(S,1)/3;
+N = size(S,1)/3;
 
-if nargin==3
-    if isscalar(W)
-        ORTHOGONALITY_THRESHOLD=W;
-    end
-end
-
-if nargin<4
-   W=ones(N);
-end
-
-
-if nargin<3
-    ORTHOGONALITY_THRESHOLD=-1; % Ignore
-end
-
-if nargin==1
-    n_eigs=3;
-end
+if ~exist('n_eigs','var'); n_eigs=3; end
+if ~exist('W','var'); W=ones(N); end
+if ~exist('ORTHOGONALITY_THRESHOLD','var'); ORTHOGONALITY_THRESHOLD=1; end % default: ignore
 
 % Input validation
 if n_eigs < 3
     error('n_eigs must be >= 3 integer! otherwise H cannot be deduced from Sync Matrix. Currently n_eigs = %d', n_eigs);
 end
 
-
 % Prepare weights for the blocks of the matrix S.
 D = mean(W,2); % We use mean and not sum so that after normalizing W the 
                % sum of its rows will be N, as required.
-Dhalf=D;
-Dhalf(abs(Dhalf)>1.0e-13)=Dhalf.^-0.5; % vector of (row sums)^-0.5
-Dhalf(abs(Dhalf)<=1.0e-13)=0; % vector of (row sums)^-0.5
-Dhalf=diag(Dhalf);
+nulls = abs(D)<1.0e-13;
+Dhalf = D;
+Dhalf(~nulls) = Dhalf(~nulls).^-0.5;
+Dhalf(nulls) = 0;
+Dhalf = diag(Dhalf);
 
 % Assert Rows Normalization
 W_normalized = (Dhalf.^2)*W;
 nzidx = sum(W_normalized,2) ~= 0; % do not consider erased rows
-assert(norm(sum(W_normalized(nzidx,:),2)-N)<1.0e-10, 'Weights Matrix Normalization Error');
+err = norm(sum(W_normalized(nzidx,:),2)-N); % GGG maybe max(sum) should be taken?
+if err > 1e-10
+    warning('Large Weights Matrix Normalization Error: %f', err);
+end
+%assert(norm(sum(W_normalized(nzidx,:),2)-N)<1.0e-9, 'Weights Matrix Normalization Error');
 
-W=kron(W,ones(3));  % Make W of size 3Nx3N
-Dhalf=diag(kron(diag(Dhalf),ones(3,1))); % Make Dhalf of size 3Nx3N
+W = kron(W,ones(3));  % Make W of size 3Nx3N
+Dhalf = diag(kron(diag(Dhalf),ones(3,1))); % Make Dhalf of size 3Nx3N
 
 % Compute eigenvectors
 [evecs, evalues] = eigs( Dhalf * (W.*S) * Dhalf , n_eigs);
 
 % eigs() returns eigenvalues sorted by absolute value. we wish to sort
 % the first 3 by real value, and the rest by either real or absolute value.
-% the choice between both cases is used only for computing the spectral gap, and not for the reconstruction itself.
+% the choice between both cases is used only for computing the spectral gap,
+% and not for the reconstruction itself.
 SORT_EIGS_BY_ABS_VALUE = false; % false = dont count large negative eigenvalues.
 evalues = diag(evalues);
 [~,ids] = sort(evalues, 'descend'); % (assert 3 largest eigenvalues are first)
@@ -125,14 +115,13 @@ if n_eigs > 3
         evecs(:,4:end) = evecs(:,3+ids);
     end
 end
-eigenvalues = evalues;
 
 % Print eigenvalues
 log_message( '3NX3N Sync Matrix First %d Eigenvalues:\n%s', n_eigs, num2str(evalues') );
 if n_eigs>=4
     log_message('Spectral gap: 3rd_eig/4th_eig = %.2f', evalues(3)/evalues(4));
 else
-    log_message('Cannot compute spectral gap. Use n_eigs>=4');
+    log_message('Cannot compute spectral gap: Need to use n_eigs>=4');
 end
 % Cancel symmetrization
 % till now we used a symmetrized variant of the weighted Sync matrix,
@@ -157,7 +146,7 @@ for i = 1:N
     [U,~,V] = svd(R(:,:,i));
     tmp = U*V.';
     orthogonality_error(i) = norm(R(:,:,i)-tmp,'fro'); % distance from orthogonality
-    if (orthogonality_error(i) > ORTHOGONALITY_THRESHOLD) && (ORTHOGONALITY_THRESHOLD>0)
+    if (ORTHOGONALITY_THRESHOLD>0) && (orthogonality_error(i) > ORTHOGONALITY_THRESHOLD)
         % count non orthogonal rotation
         non_orthogonal_counter = non_orthogonal_counter + 1;
     end

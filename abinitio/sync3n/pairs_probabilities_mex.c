@@ -1,7 +1,8 @@
 /*
 
 Pairs Probabilities
-[ln_f_ind, ln_f_arb] = pairs_probabilities_mex(N, R_pairs, verbose, P2,A,a,B,b,x0)
+[ln_f_ind, ln_f_arb, cores_used] = pairs_probabilities_mex...
+    (N, R_pairs, P2,A,a,B,b,x0, n_threads, verbose);
 
 Background:
 Common lines between images derive the relative rotations between the images (Rij)
@@ -36,19 +37,21 @@ can be derived by Bayes Theorem.
 Input:
 N - number of projections
 R_pairs - relative rotations matrices (3 X 3 X N-choose-2)
-verbose - how detailed to print information - unused by now
 P2,A,a,B,b,x0 - scalar parameters of the probabilistic model
+n_threads - how many cores to use (if available)
+verbose - how detailed to print information - unused by now
 
 Output:
 ln_f_ind - ln(the probability of a pair ij to have the observed triangles scores,
 given it has an indicative common line) (N-choose-2 X 1)
 ln_f_arb - ln(the probability of a pair ij to have the observed triangles scores,
 given it has an arbitrary common line) (N-choose-2 X 1)
+cores_used - how many cores were used in practice
 
 Compilation (with inline functions):
 mex CFLAGS="\$CFLAGS -std=c99" pairs_probabilities_mex.c
 
-Written by Ido Greenberg, 2015
+Written by Ido Greenberg, 2016
 
 */
 
@@ -56,11 +59,24 @@ Written by Ido Greenberg, 2015
 #include <matrix.h>
 #include <time.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
 #include <mex.h>
+#include <pthread.h>
 
 
 /* from i,j indeces to the common index in the N-choose-2 sized array */
 #define PAIR_IDX(N,I,J) ((2*N-I-1)*I/2+J-I-1)
+
+struct ThreadData {
+	unsigned int start, stop;
+	unsigned long N;
+	double *R_pairs;
+	double P2,A,a,B,b,x0;
+	double *ln_f_ind;
+	double *ln_f_arb;
+	int (*ALTS)[4][3];
+};
 
 inline void mult_3x3(double *out, double *R1, double *R2) {
 /* 3X3 matrices multiplication: out = R1*R2 */
@@ -72,12 +88,17 @@ inline void mult_3x3(double *out, double *R1, double *R2) {
 	}
 }
 
-inline void JRJ(double *R) {
-/* multiple 3X3 matrix by J from both sizes: R = JRJ */
-	R[2]=-R[2];
-	R[5]=-R[5];
-	R[6]=-R[6];
-	R[7]=-R[7];
+inline void JRJ(double *R, double *A) {
+/* multiple 3X3 matrix by J from both sizes: A = JRJ */
+	A[0]=R[0];
+	A[1]=R[1];
+	A[2]=-R[2];
+	A[3]=R[3];
+	A[4]=R[4];
+	A[5]=-R[5];
+	A[6]=-R[6];
+	A[7]=-R[7];
+	A[8]=R[8];
 }
 
 inline double diff_norm_3x3(const double *R1, const double *R2) {
@@ -88,94 +109,60 @@ inline double diff_norm_3x3(const double *R1, const double *R2) {
 	return norm;
 }
 
+void* looper(struct ThreadData* data) {
 
-void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
-/* main */
+unsigned int start = data->start;
+unsigned int stop = data->stop;
+unsigned long N = data->N;
+double *R_pairs = data->R_pairs;
+double P2 = data->P2;
+double A = data->A;
+double a = data->a;
+double B = data->B;
+double b = data->b;
+double x0 = data->x0;
+double *ln_f_ind = data->ln_f_ind;
+double *ln_f_arb = data->ln_f_arb;
+int (*ALTS)[4][3] = data->ALTS;
 
-/* output */
-#define LN_F_IND plhs[0]
-#define LN_F_ARB plhs[1]
-
-/* input */
-int N = mxGetScalar(prhs[0]);
-double *R_pairs = mxGetPr(mxDuplicateArray(prhs[1]));
-int verbose = mxGetScalar(prhs[2]);
-double P2 = mxGetScalar(prhs[3]);
-double A = mxGetScalar(prhs[4]);
-double a = mxGetScalar(prhs[5]);
-double B = mxGetScalar(prhs[6]);
-double b = mxGetScalar(prhs[7]);
-double x0 = mxGetScalar(prhs[8]);
-
-/* initialization */
-int N_pairs = N*(N-1)/2;
-LN_F_IND = mxCreateDoubleMatrix(N_pairs,1,mxREAL);
-double *ln_f_ind = mxGetPr(LN_F_IND);
-LN_F_ARB = mxCreateDoubleMatrix(N_pairs,1,mxREAL);
-double *ln_f_arb = mxGetPr(LN_F_ARB);
-int ij,jk,ik;
-unsigned int i,j,k,l;
-int ALTS[2][4][3];
+unsigned int i,j,k,ij,jk,ik;
 double s_ij_jk,s_ij_ik,s_ik_jk;
 double *Rij, *Rjk, *Rik;
+double JRijJ[9], JRjkJ[9], JRikJ[9];
 double c[4];
 double tmp[9];
 int best_i;
 double best_val, alt_ij_jk, alt_ik_jk, alt_ij_ik;
 double f_ij_jk, f_ik_jk, f_ij_ik;
 
-/* initialize alternatives */
-/* when we find the best J-configuration, we also compare it to the alternative 2nd best one.
- * this comparison is done for every pair in the triplete independently. to make sure that the
- * alternative is indeed different in relation to the pair, we document the differences between
- * the configurations in advance:
- * ALTS(:,best_conf,pair) = the two configurations in which J-sync differs from best_conf in relation to pair */
-ALTS[0][0][0]=1; ALTS[0][1][0]=0; ALTS[0][2][0]=0; ALTS[0][3][0]=1; ALTS[1][0][0]=2; ALTS[1][1][0]=3; ALTS[1][2][0]=3; ALTS[1][3][0]=2;
-ALTS[0][0][1]=2; ALTS[0][1][1]=2; ALTS[0][2][1]=0; ALTS[0][3][1]=0; ALTS[1][0][1]=3; ALTS[1][1][1]=3; ALTS[1][2][1]=1; ALTS[1][3][1]=1;
-ALTS[0][0][2]=1; ALTS[0][1][2]=0; ALTS[0][2][2]=1; ALTS[0][3][2]=0; ALTS[1][0][2]=3; ALTS[1][1][2]=2; ALTS[1][2][2]=3; ALTS[1][3][2]=2;
-
-/* initialize scores */
-for (i=0; i<N_pairs; i++) {ln_f_ind[i] = 0;}
-for (i=0; i<N_pairs; i++) {ln_f_arb[i] = 0;}
-
-/* loop all triangles */
-for (i=0; i<(N-2); i++) {
+for (i=start; i<stop; i++) {
 	for (j=i+1; j<(N-1); j++) {
 		ij = PAIR_IDX(N,i,j);
-		jk = PAIR_IDX(N,j,j);
-		ik = ij;
+
 		for (k=j+1; k<N; k++) {
-			jk++;
-			ik++;
+			jk = PAIR_IDX(N,j,k);
+			ik = PAIR_IDX(N,i,k);
 			
-			/* align current pointers */
+			/* compute configurations matches scores */
 			Rij = R_pairs + 9*ij;
 			Rjk = R_pairs + 9*jk;
 			Rik = R_pairs + 9*ik;
 			
-			/* compute configurations matches scores */
-            
-            /* configuration 0 */
-            mult_3x3(tmp,Rij,Rjk);
+			JRJ(Rij, JRijJ);
+			JRJ(Rjk, JRjkJ);
+			JRJ(Rik, JRikJ);
+			
+			mult_3x3(tmp,Rij,Rjk);
 			c[0] = diff_norm_3x3(tmp,Rik);
 			
-            /* configuration 1 */
-            JRJ(Rij);
-			mult_3x3(tmp,Rij,Rjk);
+			mult_3x3(tmp,JRijJ,Rjk);
 			c[1] = diff_norm_3x3(tmp,Rik);
-			JRJ(Rij);
 			
-            /* configuration 2 */
-            JRJ(Rjk);
-			mult_3x3(tmp,Rij,Rjk);
+			mult_3x3(tmp,Rij,JRjkJ);
 			c[2] = diff_norm_3x3(tmp,Rik);
-			JRJ(Rjk);
 			
-            /* configuration 3 */
-            JRJ(Rik);
 			mult_3x3(tmp,Rij,Rjk);
-			c[3] = diff_norm_3x3(tmp,Rik);
-			JRJ(Rik);
+			c[3] = diff_norm_3x3(tmp,JRikJ);
 			
 			/* find best match */
 			best_i=0; best_val=c[0];
@@ -183,7 +170,7 @@ for (i=0; i<(N-2); i++) {
 			if (c[2]<best_val) {best_i=2; best_val=c[2];}
 			if (c[3]<best_val) {best_i=3; best_val=c[3];}
 			
-			/* for each pair in the triangle, find the best alternative */
+			/* for each triangle side, find the best alternative */
 			alt_ij_jk = c[ALTS[0][best_i][0]];
 			if (c[ALTS[1][best_i][0]] < alt_ij_jk) {alt_ij_jk = c[ALTS[1][best_i][0]];}
 			alt_ik_jk = c[ALTS[0][best_i][1]];
@@ -195,8 +182,8 @@ for (i=0; i<(N-2); i++) {
 			s_ij_jk = 1 - sqrt(best_val/alt_ij_jk);
 			s_ik_jk = 1 - sqrt(best_val/alt_ik_jk);
 			s_ij_ik = 1 - sqrt(best_val/alt_ij_ik);
-            
-            /* update probabilities calculations */
+			
+			/* update probabilities calculations */
             
             /* the probability of a pair ij to have the observed triangles scores,
             given it has an indicative common line */
@@ -217,6 +204,133 @@ for (i=0; i<(N-2); i++) {
 			ln_f_arb[ik] += f_ik_jk + f_ij_ik;
 			
 		}
+	}
+}
+
+return NULL;
+
+}
+
+
+void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[]) {
+/* main */
+
+/* output */
+#define LN_F_IND plhs[0]
+#define LN_F_ARB plhs[1]
+#define CORES_USED plhs[2]
+
+/* input */
+unsigned long N = mxGetScalar(prhs[0]);
+double *R_pairs = mxGetPr(mxDuplicateArray(prhs[1]));
+double P2 = mxGetScalar(prhs[2]);
+double A = mxGetScalar(prhs[3]);
+double a = mxGetScalar(prhs[4]);
+double B = mxGetScalar(prhs[5]);
+double b = mxGetScalar(prhs[6]);
+double x0 = mxGetScalar(prhs[7]);
+unsigned int n_threads = mxGetScalar(prhs[8]);
+int verbose = mxGetScalar(prhs[9]);
+
+/* initialization */
+unsigned long N_pairs = N*(N-1)/2;
+unsigned long long N_triplets = N*(N-1)*(N-2)/6;
+LN_F_IND = mxCreateDoubleMatrix(N_pairs,1,mxREAL);
+double *ln_f_ind = mxGetPr(LN_F_IND);
+LN_F_ARB = mxCreateDoubleMatrix(N_pairs,1,mxREAL);
+double *ln_f_arb = mxGetPr(LN_F_ARB);
+CORES_USED = mxCreateDoubleMatrix(1,1,mxREAL);
+double *cores_used = mxGetPr(CORES_USED);
+double **split_ln_f_ind;
+double **split_ln_f_arb;
+unsigned int i,k,start,stop;
+int ALTS[2][4][3];
+unsigned long long tasks_per_thread, n_tasks;
+unsigned int n_threads_max;
+struct ThreadData *data;
+pthread_t *thread;
+
+/* initialize alternatives */
+/* when we find the best J-configuration, we also compare it to the alternative 2nd best one.
+ * this comparison is done for every pair in the triplete independently. to make sure that the
+ * alternative is indeed different in relation to the pair, we document the differences between
+ * the configurations in advance:
+ * ALTS(:,best_conf,pair) = the two configurations in which J-sync differs from best_conf in relation to pair */
+ALTS[0][0][0]=1; ALTS[0][1][0]=0; ALTS[0][2][0]=0; ALTS[0][3][0]=1; ALTS[1][0][0]=2; ALTS[1][1][0]=3; ALTS[1][2][0]=3; ALTS[1][3][0]=2;
+ALTS[0][0][1]=2; ALTS[0][1][1]=2; ALTS[0][2][1]=0; ALTS[0][3][1]=0; ALTS[1][0][1]=3; ALTS[1][1][1]=3; ALTS[1][2][1]=1; ALTS[1][3][1]=1;
+ALTS[0][0][2]=1; ALTS[0][1][2]=0; ALTS[0][2][2]=1; ALTS[0][3][2]=0; ALTS[1][0][2]=3; ALTS[1][1][2]=2; ALTS[1][2][2]=3; ALTS[1][3][2]=2;
+
+/* initialize scores */
+for (i=0; i<N_pairs; i++) {ln_f_ind[i] = 0;}
+for (i=0; i<N_pairs; i++) {ln_f_arb[i] = 0;}
+
+/* choose number of threads */
+n_threads_max = sysconf(_SC_NPROCESSORS_ONLN);
+if (n_threads <= 0 || n_threads > n_threads_max) {
+	n_threads = n_threads_max;
+}
+cores_used[0] = (double) n_threads;
+tasks_per_thread = (N_triplets+n_threads-1)/n_threads;
+if (verbose >= 1) {
+	mexPrintf("Number of available cores: %d\n", n_threads_max);
+	mexPrintf("Number of cores used: %d\n", n_threads);
+}
+
+/* allocate arrays */
+data = (struct ThreadData *) mxMalloc(sizeof(struct ThreadData)*n_threads);
+thread = (pthread_t *) mxMalloc(sizeof(pthread_t)*n_threads);
+split_ln_f_ind = (double **) mxMalloc(sizeof(double *)*n_threads);
+split_ln_f_arb = (double **) mxMalloc(sizeof(double *)*n_threads);
+
+/* initialize ThreadData */
+stop = 0;
+for (k=0; k<n_threads; k++) {
+	/* copy basic data */
+	data[k].N = N;
+	data[k].R_pairs = R_pairs;
+	data[k].P2 = P2;
+	data[k].A = A;
+	data[k].a = a;
+	data[k].B = B;
+	data[k].b = b;
+	data[k].x0 = x0;
+	data[k].ALTS = ALTS;
+	
+	/* allocate split output arrays */
+	split_ln_f_ind[k] = (double *) mxMalloc(sizeof(double)*N_pairs);
+	for (i=0; i<N_pairs; i++) {split_ln_f_ind[k][i] = 0;}
+	data[k].ln_f_ind = split_ln_f_ind[k];
+	split_ln_f_arb[k] = (double *) mxMalloc(sizeof(double)*N_pairs);
+	for (i=0; i<N_pairs; i++) {split_ln_f_arb[k][i] = 0;}
+	data[k].ln_f_arb = split_ln_f_arb[k];
+	
+	/* compute loop limits */
+	start = stop;
+	n_tasks = 0;
+	for (i=start; i<N-2; i++) {
+		n_tasks += (N-i-1)*(N-i-2)/2;
+		if (n_tasks>=tasks_per_thread) {break;}
+	}
+	i++;
+	stop = i; if (stop>N-2) {stop=N-2;}
+	data[k].start = start;
+	data[k].stop = stop;
+}
+
+/* launch threads */
+for (k=0; k<n_threads; k++) {
+	pthread_create(&thread[k], NULL, looper, &data[k]);
+}
+
+for (k=0; k<n_threads; k++) {
+	pthread_join(thread[k], NULL);
+}
+
+/* summarize results */
+for (k=0; k<n_threads; k++) {
+	for (i=0; i<N_pairs; i++) {
+		ln_f_ind[i] += split_ln_f_ind[k][i];
+		ln_f_arb[i] += split_ln_f_arb[k][i];
 	}
 }
 
