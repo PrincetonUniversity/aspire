@@ -84,10 +84,13 @@ save(sprintf('%s/J_sync', BASE_PATH),...
 log_message('Stage Done: J Synchronization');
 
 % S Weighting
-W = ones(N); % Default weights are all one (no weights)
 if S_WEIGHTS
     % Estimate weights for the 3x3 blocks of S
     [W, Pij, scores_hist] = cryo_sync3n_syncmatrix_weights(Rij0);
+else
+    W = ones(N); % Default weights are all one (no weights)
+    Pij = [];
+    scores_hist = struct();
 end
 
 save(sprintf('%s/weights', BASE_PATH),...
@@ -138,7 +141,7 @@ if exist('REF_VOL','var') && ~isempty(REF_VOL)
     WriteMRC(v_aligned, 1, sprintf('%s/vol_ref-aligned.mrc',BASE_PATH));
     % FSC
     [res,fc] = fsc(v_ref, v_aligned);
-    [~, fighandle] = plot_fsc(fsc);
+    [~, fighandle] = plot_fsc(fc);
     
     save(sprintf('%s/resolution', BASE_PATH),...
         'res','fc');
@@ -148,6 +151,6 @@ end
 
 % Finish
 memory_usage(whos);
-log_message('Reconstruction Done.');
+log_message('Reconstruction Done.\n');
 
 end
