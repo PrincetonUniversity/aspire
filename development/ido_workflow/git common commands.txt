@@ -1,0 +1,26 @@
+working dir + add -> index (stage)
+index + commit -> head
+
+git clone <repo url>.git
+git pull
+git push origin <branch>
+
+git status
+git branch
+git log
+grep -rni "GGG" . | grep -v "Binary file"
+
+git add <filename>
+git add *
+git commit -m "..."
+
+git checkout <branch>
+git checkout -b <branch>
+	new branch
+
+git merge <branch>
+	resolve is done manually after merge (git marks where it's required),
+	then add is used to merge the conflicts
+git diff <source_branch> <target_branch>
+
+git tag <tag_name> 1b2e1d63ff
