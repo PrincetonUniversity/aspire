@@ -39,7 +39,7 @@ function [W, Pij, scores_hist, cum_scores] = cryo_sync3n_syncmatrix_weights (Rij
 % Written by Ido Greenberg, 2016
 
 %% Configuration
-PERMITTED_INCONSISTENCY = 1.5; % Consistency condition is: mean(Pij)/PERMITTED_INCONSISTENCY < P < mean(Pij)*PERMITTED_INCONSISTENCY.
+PERMITTED_INCONSISTENCY = 1000; % Consistency condition is: mean(Pij)/PERMITTED_INCONSISTENCY < P < mean(Pij)*PERMITTED_INCONSISTENCY.
 P_DOMAIN_LIMIT = 0.7; % Forced domain of P is [Pmin,Pmax], with Pmin=P_DOMAIN_LIMIT*Pmax.
 MAX_ITERATIONS = 12; % Maximum iterations for P estimation.
 MIN_P_PERMITTED = 0.04; % When P is that small, stop trying to synchronize P with Pij, since we have no chance.
