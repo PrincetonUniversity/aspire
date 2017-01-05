@@ -73,7 +73,7 @@ end
 h = 1/hist_intervals;
 hist_x = ((h/2):h:(1-h/2))'; % x-values of the histogram
 A = (N*(N-1)*(N-2)/2)/hist_intervals*(a+1); % normalization factor of one component of the histogram
-start_values = [0, 0.5, 2.5, 0.78]; % B, P, b, x0
+start_values = [0, 0.5, 2.5, 0.78];%0.78]; % B, P, b, x0 % GGG try to guess initial x0 automatically by local minimum; try to fit b(x0) to remove DoF; consider normalize B explicitly to remove DoF.
 B0 = start_values(2)*(N*(N-1)*(N-2)/2) /... % normalization of 2nd component: B = P*N_delta/sum(f), where f is the component formula
     sum(((1-hist_x).^start_values(3)).*exp(-start_values(3)/(1-start_values(4)).*(1-hist_x)));
 start_values(1) = B0;

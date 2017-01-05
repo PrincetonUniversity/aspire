@@ -3,7 +3,7 @@ function [] = main_wrapper(n, DATA_SET, Ns, NN, S_WEIGHTS, J_WEIGHTS, GROUPS)
 
 % input
 if ~exist('n','var') || isempty(n); n=89; end
-if ~exist('DATA_SET','var') || isempty(DATA_SET); DATA_SET=sprintf('80s_%d_complete',n); end
+if ~exist('DATA_SET','var') || isempty(DATA_SET); DATA_SET=sprintf('80s_%d',n); end
 if ~exist('Ns','var') || isempty(Ns); Ns=[1000]; end
 if ~exist('NN','var') || isempty(NN); NN=[2]; end
 if ~exist('S_WEIGHTS','var') || isempty(S_WEIGHTS); S_WEIGHTS=[1]; end

@@ -11,7 +11,7 @@ if ~exist('GROUPS','var') || isempty(GROUPS); GROUPS=[1]; end
 
 % enviromental params
 BASE_PATH = '/home/idog/matlab/aspire_merge/output';
-DATA_SET = sprintf('80s_%d_complete',n);
+DATA_SET = sprintf('80s_%d',n);
 
 % iterate
 fprintf('\nN\tnn\tS_w\tJ_w\tg\tresolution [A]\n\n');

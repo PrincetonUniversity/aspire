@@ -45,7 +45,7 @@ open_log(sprintf('%s/stdout.txt', BASE_PATH));
 log_message('\nBeginning reconstruction...');
 log_message('Source for Synced {Rij}: %s', SOURCE_PATH);
 log_message('Output path: %s', BASE_PATH);
-log_message('N=%d projection-images of size %dx%d', N,n,n);
+log_message('N=%d projection-images of size %dx%d\n', N,n,n);
 log_flush();
 
 
@@ -68,7 +68,7 @@ log_flush();
 
 save(sprintf('%s/absolute_rotations', BASE_PATH),...
     'rotations','S_eigs');
-log_message('Stage Done: Absolute Rotations');
+log_message('Stage Done: Absolute Rotations\n');
 log_flush();
 
 
@@ -96,7 +96,7 @@ end
 v = real(v);
 
 WriteMRC(v,1,sprintf('%s/vol.mrc', BASE_PATH));
-log_message('Stage Done: Density Map Reconstruction');
+log_message('Stage Done: Density Map Reconstruction\n');
 log_flush();
 
 
@@ -115,12 +115,12 @@ if exist('REF_VOL','var') && ~isempty(REF_VOL)
     save(sprintf('%s/resolution', BASE_PATH),...
         'res','fc');
     log_message('Stage Done: Alignment vs. Reference');
-    log_message('Resolution vs. Reference:\t%.2f [A]', res);
+    log_message('Resolution vs. Reference:\t%.2f [A]\n', res);
 end
 
 % Finish
 memory_usage(whos);
-log_message('Reconstruction Done.');
+log_message('Reconstruction Done.\n');
 close_log();
 
 end

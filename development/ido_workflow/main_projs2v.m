@@ -39,7 +39,7 @@ save(sprintf('%s/configuration', BASE_PATH),...
 log_message('\nBeginning reconstruction...');
 log_message('Source data: %s', SOURCE_FILE);
 log_message('Output path: %s', BASE_PATH);
-log_message('N=%d projection-images of size %dx%d', N,n,n);
+log_message('N=%d projection-images of size %dx%d\n', N,n,n);
 log_flush();
 
 % Clear Images
@@ -61,7 +61,7 @@ save(sprintf('%s/projections', BASE_PATH),...
 
 save(sprintf('%s/common_lines', BASE_PATH),...
     'clstack');
-log_message('Stage Done: Common Lines');
+log_message('Stage Done: Common Lines\n');
 log_flush();
 
 
@@ -91,10 +91,13 @@ log_message('Stage Done: J Synchronization');
 log_flush();
 
 % S Weighting
-W = ones(N); % Default weights are all one (no weights)
 if S_WEIGHTS
     % Estimate weights for the 3x3 blocks of S
     [W, Pij, scores_hist] = cryo_sync3n_syncmatrix_weights(Rij0);
+else
+    W = ones(N); % Default weights are all one (no weights)
+    Pij = [];
+    scores_hist = struct();
 end
 
 save(sprintf('%s/weights', BASE_PATH),...
@@ -107,7 +110,7 @@ log_flush();
 
 save(sprintf('%s/absolute_rotations', BASE_PATH),...
     'rotations','S_eigs');
-log_message('Stage Done: Absolute Rotations');
+log_message('Stage Done: Absolute Rotations\n');
 log_flush();
 
 
@@ -135,7 +138,7 @@ end
 v = real(v);
 
 WriteMRC(v,1,sprintf('%s/vol.mrc', BASE_PATH));
-log_message('Stage Done: Density Map Reconstruction');
+log_message('Stage Done: Density Map Reconstruction\n');
 log_flush();
 
 
@@ -149,17 +152,17 @@ if exist('REF_VOL','var') && ~isempty(REF_VOL)
     WriteMRC(v_aligned, 1, sprintf('%s/vol_ref-aligned.mrc',BASE_PATH));
     % FSC
     [res,fc] = fsc(v_ref, v_aligned);
-    [~, fighandle] = plot_fsc(fsc);
+    [~, fighandle] = plot_fsc(fc);
     
     save(sprintf('%s/resolution', BASE_PATH),...
         'res','fc');
     log_message('Stage Done: Alignment vs. Reference');
-    log_message('Resolution vs. Reference:\t%.2f [A]', res);
+    log_message('Resolution vs. Reference:\t%.2f [A]\n', res);
 end
 
 % Finish
 memory_usage(whos);
-log_message('Reconstruction Done.');
+log_message('Reconstruction Done.\n');
 close_log();
 
 end
