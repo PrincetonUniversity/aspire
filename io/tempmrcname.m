@@ -8,11 +8,6 @@ function fname=tempmrcname
 %
 % Yoel Shkolnisky, December 2016
 
-temporarydir='/scratch/aspire_temp';
-if ~exist(temporarydir,'dir')
-    log_message('Creating temporary dir %s',temporarydir);
-    mkdir(temporarydir);
-end
-
+temporarydir=tempmrcdir;
 [~,name]=fileparts(tempname);
 fname=fullfile(temporarydir,[name '.mrc']);
