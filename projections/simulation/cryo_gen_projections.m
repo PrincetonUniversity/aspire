@@ -1,6 +1,14 @@
 function [projections, noisy_projections, shifts, q] = ...
-    cryo_gen_projections(n,K,SNR,max_shift,shift_step,ref_shifts,ref_q,precision)
+    cryo_gen_projections(n,K,SNR,vol_path,max_shift,shift_step,ref_shifts,ref_q,precision)
 %
+% This is a variant (written by Ido Greenberg) of cryo_gen_projections
+% (written by Yoel Shkolnisky), which allows loading mrc files as well as
+% mat files. It also allows defining different file name than the default
+% 'cleanrib'.
+% 
+% new input: saved_volume - volume path to load
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Simulate projections. 
 % Same functionality as gen_projections_v2, but uses the new simulation
 % code.
@@ -75,7 +83,15 @@ if ~exist('shift_step','var')
 end
 
 % Generate clean projections
-load cleanrib
+if ~exist('vol_path','var') || isempty(vol_path)
+    load cleanrib
+else
+    if numel(strfind(vol_path,'.mrc'))>0
+        volref = complex(double(ReadMRC(vol_path)));
+    else
+        load(vol_path);
+    end
+end
 projections=cryo_project(volref,q,n,precision);
 
 

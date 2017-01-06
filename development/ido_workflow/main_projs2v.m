@@ -1,7 +1,7 @@
 
 function v = main_projs2v (...
-    SOURCE_FILE, BASE_PATH, N,...
-    MOLEC_RADIUS, N_THETA, MAX_SHIFT, SHIFT_STEP,...
+    SOURCE_FILE, BASE_PATH, N, MOLEC_RADIUS,...
+    N_THETA, FILTER_RADIUS, MAX_SHIFT, SHIFT_STEP,...
     VOTING_TICS_WIDTH, J_WEIGHTS, S_WEIGHTS,...
     P_PERMITTED_INCONSISTENCY, REF_VOL)
 % CryoEM: reconstruct a 3D volume by its 2D projections images
@@ -23,7 +23,8 @@ log_flush();
 % Necessary input: SOURCE_FILE, BASE_PATH, N
 if ~exist('MOLEC_RADIUS','var') || isempty(MOLEC_RADIUS); MOLEC_RADIUS=0.4; end
 if ~exist('N_THETA','var') || isempty(N_THETA); N_THETA=360; end
-if ~exist('MAX_SHIFT','var') || isempty(MAX_SHIFT); MAX_SHIFT=floor(10*n/89); end
+if ~exist('FILTER_RADIUS','var') || isempty(FILTER_RADIUS); FILTER_RADIUS=4; end
+if ~exist('MAX_SHIFT','var') || isempty(MAX_SHIFT); MAX_SHIFT=floor(6*n/89); end
 if ~exist('SHIFT_STEP','var') || isempty(SHIFT_STEP); SHIFT_STEP=1; end
 if ~exist('VOTING_TICS_WIDTH','var') || isempty(VOTING_TICS_WIDTH); VOTING_TICS_WIDTH=3; end
 if ~exist('J_WEIGHTS','var') || isempty(J_WEIGHTS); J_WEIGHTS=true; end
@@ -56,8 +57,9 @@ save(sprintf('%s/projections', BASE_PATH),...
 
 % Common lines
 [clstack,corrstack,~] =...
-    cryo_clmatrix_gpu(npf, size(npf,3), 0, MAX_SHIFT, SHIFT_STEP, 0);
-%     cryo_clmatrix_multi_gpu_opt(npf, size(npf,3), shifts.MAX_SHIFT, shifts.SHIFT_STEP, 5, n_cls, 1);
+    cryo_clmatrix_gpu(npf, size(npf,3), 0, MAX_SHIFT, SHIFT_STEP, FILTER_RADIUS); % cls map filter
+%     cryo_clmatrix_multi_gpu_opt(npf, size(npf,3), shifts.MAX_SHIFT,
+%     shifts.SHIFT_STEP, 5, n_cls, 1); % multi cls
 
 save(sprintf('%s/common_lines', BASE_PATH),...
     'clstack');

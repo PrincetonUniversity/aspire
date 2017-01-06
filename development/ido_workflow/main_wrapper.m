@@ -14,8 +14,9 @@ if ~exist('GROUPS','var') || isempty(GROUPS); GROUPS=[1]; end
 BASE_PATH = '/home/idog/matlab/aspire_merge/output';
 
 % general conf
-N_THETA = 360;
 MOLEC_RADIUS = 0.3;
+N_THETA = 144;
+FILTER_RADIUS = 4;
 MAX_SHIFT = round(6*n/89);
 SHIFT_STEP = max(ceil(MAX_SHIFT/20),1);
 VOTING_TICS_WIDTH = 1;
@@ -42,8 +43,8 @@ for N = Ns
                     
                     % run
                     main_projs2v (...
-                        source_file, base_path, N,...
-                        MOLEC_RADIUS, N_THETA, MAX_SHIFT, SHIFT_STEP,...
+                        source_file, base_path, N, MOLEC_RADIUS,...
+                        N_THETA, FILTER_RADIUS, MAX_SHIFT, SHIFT_STEP,...
                         VOTING_TICS_WIDTH, J_weights, S_weights,...
                         P_PERMITTED_INCONSISTENCY, REF_VOL);
                     
