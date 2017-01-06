@@ -32,3 +32,11 @@ In addition, I need technical help with the following:
 
 
 - create git infrastructural guide: store the common commands I need, check how to resolve, etc.
+
+
+- multicls and averaged maps: did it go along together? where is the relevant code? what should I merge exactly? what results did I have? who to use the lab environment within aspire?
+	- aspire_merge/output has nothing about nn00
+	- multicls seems to have several cryo_clstack_... files in functions/, though I'm not sure any of them uses averaged maps.
+	- if it was combined multicls and averaged maps, then multicls has several mains with flow corresponding to multicls, and they should be used.
+	- no laboratory staff in multicls.
+	- yes laboratory staff in aspire_merge - and they should be used both for the averaged maps opt AND for the params opt (radius, shifts etc.). look for old documentations as well - mail to yoel, maybe some excel.

@@ -15,9 +15,9 @@ BASE_PATH = '/home/idog/matlab/aspire_merge/output';
 
 % general conf
 N_THETA = 360;
-MOLEC_RADIUS = 0.4;
-SHIFT_STEP = 1;
-MAX_SHIFT = floor(10*n/89);
+MOLEC_RADIUS = 0.3;
+MAX_SHIFT = round(6*n/89);
+SHIFT_STEP = max(ceil(MAX_SHIFT/20),1);
 VOTING_TICS_WIDTH = 1;
 P_PERMITTED_INCONSISTENCY = 1.5;
 REF_VOL = sprintf('/home/idog/matlab/aspire_merge/output/vol_80s_%d.mrc', n);
