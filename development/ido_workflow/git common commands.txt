@@ -23,4 +23,6 @@ git merge <branch>
 	then add is used to merge the conflicts
 git diff <source_branch> <target_branch>
 
-git tag <tag_name> 1b2e1d63ff
+git tag
+git show <tag_name>
+git tag -a <tag_name> -m "..."
