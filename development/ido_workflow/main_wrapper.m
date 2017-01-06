@@ -7,11 +7,11 @@ if ~exist('DATA_SET','var') || isempty(DATA_SET); DATA_SET=sprintf('80s_%d',n); 
 if ~exist('Ns','var') || isempty(Ns); Ns=[1000]; end
 if ~exist('NN','var') || isempty(NN); NN=[2]; end
 if ~exist('S_WEIGHTS','var') || isempty(S_WEIGHTS); S_WEIGHTS=[1]; end
-if ~exist('J_WEIGHTS','var') || isempty(J_WEIGHTS); J_WEIGHTS=[0]; end
+if ~exist('J_WEIGHTS','var') || isempty(J_WEIGHTS); J_WEIGHTS=[1]; end
 if ~exist('GROUPS','var') || isempty(GROUPS); GROUPS=[1]; end
 
 % environmental params
-BASE_PATH = '/home/idog/matlab/aspire_merge/output';
+BASE_PATH = '/home/idog/matlab/results/cls_map_filter';
 
 % general conf
 MOLEC_RADIUS = 0.3;
