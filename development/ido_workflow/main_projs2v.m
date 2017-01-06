@@ -2,8 +2,8 @@
 function v = main_projs2v (...
     SOURCE_FILE, BASE_PATH, N,...
     MOLEC_RADIUS, N_THETA, MAX_SHIFT, SHIFT_STEP,...
-    VOTING_TICS_WIDTH, J_EIGS, J_WEIGHTS,...
-    S_WEIGHTS, REF_VOL)
+    VOTING_TICS_WIDTH, J_WEIGHTS, S_WEIGHTS,...
+    P_PERMITTED_INCONSISTENCY, REF_VOL)
 % CryoEM: reconstruct a 3D volume by its 2D projections images
 % 
 % Main wrapper written by Ido Greenberg, 2016
@@ -25,17 +25,17 @@ if ~exist('MOLEC_RADIUS','var') || isempty(MOLEC_RADIUS); MOLEC_RADIUS=0.4; end
 if ~exist('N_THETA','var') || isempty(N_THETA); N_THETA=360; end
 if ~exist('MAX_SHIFT','var') || isempty(MAX_SHIFT); MAX_SHIFT=floor(10*n/89); end
 if ~exist('SHIFT_STEP','var') || isempty(SHIFT_STEP); SHIFT_STEP=1; end
-if ~exist('VOTING_TICS_WIDTH','var') || isempty(VOTING_TICS_WIDTH); VOTING_TICS_WIDTH=1; end % GGG reconsider...
-if ~exist('J_EIGS','var') || isempty(J_EIGS); J_EIGS=4; end
+if ~exist('VOTING_TICS_WIDTH','var') || isempty(VOTING_TICS_WIDTH); VOTING_TICS_WIDTH=3; end
 if ~exist('J_WEIGHTS','var') || isempty(J_WEIGHTS); J_WEIGHTS=true; end
-if ~exist('REF_VOL','var') || isempty(REF_VOL); REF_VOL=''; end
 if ~exist('S_WEIGHTS','var') || isempty(S_WEIGHTS); S_WEIGHTS=true; end
+if ~exist('P_PERMITTED_INCONSISTENCY','var') || isempty(P_PERMITTED_INCONSISTENCY); P_PERMITTED_INCONSISTENCY=1.5; end
+if ~exist('REF_VOL','var') || isempty(REF_VOL); REF_VOL=''; end
 
 save(sprintf('%s/configuration', BASE_PATH),...
     'SOURCE_FILE', 'BASE_PATH', 'N', 'n',...
     'MOLEC_RADIUS', 'N_THETA', 'MAX_SHIFT', 'SHIFT_STEP',...
-    'VOTING_TICS_WIDTH', 'J_EIGS', 'J_WEIGHTS', 'REF_VOL',...
-    'S_WEIGHTS');
+    'VOTING_TICS_WIDTH', 'J_WEIGHTS', 'S_WEIGHTS',...
+    'P_PERMITTED_INCONSISTENCY', 'REF_VOL');
 log_message('\nBeginning reconstruction...');
 log_message('Source data: %s', SOURCE_FILE);
 log_message('Output path: %s', BASE_PATH);
@@ -79,7 +79,7 @@ log_flush();
 % J-synchronization
 verbose = 2;
 [J_sync,J_significance,J_eigs,J_sync_iterations,~] = ...
-cryo_sync3n_Jsync_power_method (Rij0, J_EIGS, J_WEIGHTS, verbose);
+cryo_sync3n_Jsync_power_method (Rij0, J_WEIGHTS, verbose);
 Rij = cryo_sync3n_flip_handedness(J_sync, Rij0);
 
 % Build 3NX3N Matrix S
@@ -93,7 +93,8 @@ log_flush();
 % S Weighting
 if S_WEIGHTS
     % Estimate weights for the 3x3 blocks of S
-    [W, Pij, scores_hist] = cryo_sync3n_syncmatrix_weights(Rij0);
+    [W, Pij, scores_hist] = cryo_sync3n_syncmatrix_weights(...
+        Rij0, P_PERMITTED_INCONSISTENCY);
 else
     W = ones(N); % Default weights are all one (no weights)
     Pij = [];

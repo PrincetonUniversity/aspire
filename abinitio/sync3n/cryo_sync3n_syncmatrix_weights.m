@@ -1,5 +1,6 @@
 
-function [W, Pij, scores_hist, cum_scores] = cryo_sync3n_syncmatrix_weights (Rij)
+function [W, Pij, scores_hist, cum_scores] = cryo_sync3n_syncmatrix_weights...
+    (Rij, PERMITTED_INCONSISTENCY)
 %TRIANGLES_SYNC synchronize J-multiplications between all triplets of
 % relative rotations {Rij,Rjk,Rki}, and evaluate the probability of every
 % relative rotation to be indicative ("good", rather than arbitrary).
@@ -24,6 +25,7 @@ function [W, Pij, scores_hist, cum_scores] = cryo_sync3n_syncmatrix_weights (Rij
 % 
 % Input:
 %   Rij (3x3x(N-choose-2)): relative rotations between viewing directions.
+%   PERMITTED_INCONSISTENCY: Consistency condition is: mean(Pij)/PERMITTED_INCONSISTENCY < P < mean(Pij)*PERMITTED_INCONSISTENCY.
 % 
 % Output:
 %   W (NxN): weights matrix (later we will have S <- S.*W).
@@ -39,7 +41,7 @@ function [W, Pij, scores_hist, cum_scores] = cryo_sync3n_syncmatrix_weights (Rij
 % Written by Ido Greenberg, 2016
 
 %% Configuration
-PERMITTED_INCONSISTENCY = 1.5; % Consistency condition is: mean(Pij)/PERMITTED_INCONSISTENCY < P < mean(Pij)*PERMITTED_INCONSISTENCY.
+if ~exist('PERMITTED_INCONSISTENCY','var'); PERMITTED_INCONSISTENCY=1.5; end
 P_DOMAIN_LIMIT = 0.7; % Forced domain of P is [Pmin,Pmax], with Pmin=P_DOMAIN_LIMIT*Pmax.
 MAX_ITERATIONS = 12; % Maximum iterations for P estimation.
 MIN_P_PERMITTED = 0.04; % When P is that small, stop trying to synchronize P with Pij, since we have no chance.

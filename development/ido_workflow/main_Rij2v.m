@@ -18,15 +18,15 @@ N_THETA = conf.N_THETA;
 MAX_SHIFT = conf.MAX_SHIFT;
 SHIFT_STEP = conf.SHIFT_STEP;
 VOTING_TICS_WIDTH = conf.VOTING_TICS_WIDTH;
-J_EIGS = conf.J_EIGS;
 J_WEIGHTS = conf.J_WEIGHTS;
+P_PERMITTED_INCONSISTENCY = conf.P_PERMITTED_INCONSISTENCY;
 if ~exist('REF_VOL','var') || isempty(REF_VOL); REF_VOL=conf.REF_VOL; end
 n = conf.n;
 
 save(sprintf('%s/configuration', BASE_PATH),...
     'SOURCE_PATH', 'BASE_PATH', 'N', 'n',...
     'MOLEC_RADIUS', 'N_THETA', 'MAX_SHIFT', 'SHIFT_STEP',...
-    'VOTING_TICS_WIDTH', 'J_EIGS', 'J_WEIGHTS', 'REF_VOL',...
+    'VOTING_TICS_WIDTH', 'J_WEIGHTS', 'REF_VOL',...
     'S_WEIGHTS');
 
 % Load the relevant results from the reconstruction until Rij Synchronization
@@ -55,7 +55,8 @@ log_flush();
 W = ones(N); % Default weights are all one (no weights)
 if S_WEIGHTS
     % Estimate weights for the 3x3 blocks of S
-    [W, Pij, scores_hist] = cryo_sync3n_syncmatrix_weights(Rij0);
+    [W, Pij, scores_hist] = cryo_sync3n_syncmatrix_weights(...
+        Rij0, P_PERMITTED_INCONSISTENCY);
 end
 
 save(sprintf('%s/weights', BASE_PATH),...

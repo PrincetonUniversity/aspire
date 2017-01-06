@@ -19,6 +19,7 @@ MOLEC_RADIUS = 0.4;
 SHIFT_STEP = 1;
 MAX_SHIFT = floor(10*n/89);
 VOTING_TICS_WIDTH = 1;
+P_PERMITTED_INCONSISTENCY = 1.5;
 REF_VOL = sprintf('/home/idog/matlab/aspire_merge/output/vol_80s_%d.mrc', n);
 
 % iterate
@@ -43,8 +44,8 @@ for N = Ns
                     main_projs2v (...
                         source_file, base_path, N,...
                         MOLEC_RADIUS, N_THETA, MAX_SHIFT, SHIFT_STEP,...
-                        VOTING_TICS_WIDTH, [], J_weights, REF_VOL,...
-                        S_weights);
+                        VOTING_TICS_WIDTH, J_weights, S_weights,...
+                        P_PERMITTED_INCONSISTENCY, REF_VOL);
                     
                 end
             end

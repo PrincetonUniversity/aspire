@@ -1,5 +1,5 @@
 function [J_sync,J_significance,eigenvalues,itr,dd] =...
-    cryo_sync3n_Jsync_power_method (Rij , n_eigs , scores_as_entries , verbose , measure_time )
+    cryo_sync3n_Jsync_power_method (Rij , scores_as_entries , verbose , measure_time )
 %SIGNS_POWER_METHOD J-synchronization.
 
 %cryo_sync3n_Jsync_power_method (Rij , n_eigs , scores_as_entries , verbose , measure_time )
@@ -46,12 +46,12 @@ assert(N==round(N));  % Make sure we got an integer.
 
 
 % input validation
-if (n_eigs <= 0); error('n_eigs must be positive integer!'); end
 if ~exist('verbose','var'); verbose=0; end
 if ~exist('measure_time','var'); measure_time=false; end
 pairs_scores = []; % currently disabled. intended to allow certain weighting of the J-sync matrix.
 
 % constants
+n_eigs = 4;
 epsilon = 1e-2;
 MAX_ITERATIONS = 100;
 if verbose >= 2
