@@ -1,10 +1,10 @@
-function c=cryo_image_constrast_outofcore(stackname,r)
+function c=cryo_image_contrast_outofcore(stackname,r)
 %
-% CRYO_IMAGE_CONTRAST_OUTOFCORE     Estimate image constrast
+% CRYO_IMAGE_CONTRAST_OUTOFCORE     Estimate image contrast
 %
-% snr=cryo_image_constrast(stackname,r)
-%   Estimate the constrast of each image in an image stack. Only pixels
-%   within a radius r of the center are used to computing the constrast (to
+% snr=cryo_image_contrast(stackname,r)
+%   Estimate the contrast of each image in an image stack. Only pixels
+%   within a radius r of the center are used to computing the contrast (to
 %   eliminate noise pixels at the "corners"). The contrast of an image is
 %   defined as the standard deviation of the pixels within radius r of the
 %   image.
@@ -12,7 +12,7 @@ function c=cryo_image_constrast_outofcore(stackname,r)
 % snr=cryo_estimate_snr(projs)
 %   Use radius r which equals to half of the image side.    
 %   
-% See also cryo_image_constrast
+% See also cryo_image_contrast
 %
 % Yoel Shkolnisky, December 2016.
 

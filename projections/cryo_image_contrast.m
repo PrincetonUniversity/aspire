@@ -1,10 +1,10 @@
-function c=cryo_image_constrast(projs,r)
+function c=cryo_image_contrast(projs,r)
 %
-% CRYO_IMAGE_CONTRAST     Estimate image constrast
+% CRYO_IMAGE_CONTRAST     Estimate image contrast
 %
-% snr=cryo_image_constrast(projs,r)
-%   Estimate the constrast of each image in an image stack. Only pixels
-%   within a radius r of the center are used to computing the constrast (to
+% snr=cryo_image_contrast(projs,r)
+%   Estimate the contrast of each image in an image stack. Only pixels
+%   within a radius r of the center are used to computing the contrast (to
 %   eliminate noise pixels at the "corners"). The contrast of an image is
 %   defined as the standard deviation of the pixels within radius r of the
 %   image.
@@ -13,10 +13,10 @@ function c=cryo_image_constrast(projs,r)
 %   Use radius r which equals to half of the image side.    
 %   
 % Example: 
-%   % Show 5 images with highest constrast and 5 images with the lowest
-%   % constrast
+%   % Show 5 images with highest contrast and 5 images with the lowest
+%   % contrast
 %   projs=ReadMRC('projs.mrc');
-%   c=cryo_image_constrast(projs);
+%   c=cryo_image_contrast(projs);
 %   [~,ii]=sort(c);
 %   viewstack(projs(:,:,[ii(1:5),ii(end-4:end)]),5,2)
 %
