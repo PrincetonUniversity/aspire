@@ -9,7 +9,7 @@ function c=cryo_image_contrast(projs,r)
 %   defined as the standard deviation of the pixels within radius r of the
 %   image.
 %
-% snr=cryo_estimate_snr(projs)
+% snr=cryo_image_contrast(projs)
 %   Use radius r which equals to half of the image side.    
 %   
 % Example: 
