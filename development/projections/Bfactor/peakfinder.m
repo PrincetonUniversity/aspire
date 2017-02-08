@@ -133,13 +133,13 @@ end
 if nargin < 5 || isempty(includeEndpoints)
     includeEndpoints = true;
 else
-    includeEndpoints = boolean(includeEndpoints);
+    includeEndpoints = logical(includeEndpoints);
 end
 
 if nargin < 5 || isempty(interpolate)
     interpolate = false;
 else
-    interpolate = boolean(interpolate);
+    interpolate = logical(interpolate);
 end
 
 x0 = extrema*x0(:); % Make it so we are finding maxima regardless
