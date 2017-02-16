@@ -28,8 +28,8 @@ if ~exist('SHIFT_STEP','var') || isempty(SHIFT_STEP); SHIFT_STEP=1; end
 if ~exist('VOTING_TICS_WIDTH','var') || isempty(VOTING_TICS_WIDTH); VOTING_TICS_WIDTH=1; end % GGG reconsider...
 if ~exist('J_EIGS','var') || isempty(J_EIGS); J_EIGS=4; end
 if ~exist('J_WEIGHTS','var') || isempty(J_WEIGHTS); J_WEIGHTS=true; end
-if ~exist('REF_VOL','var') || isempty(REF_VOL); REF_VOL=''; end
 if ~exist('S_WEIGHTS','var') || isempty(S_WEIGHTS); S_WEIGHTS=true; end
+if ~exist('REF_VOL','var') || isempty(REF_VOL); REF_VOL=''; end
 
 save(sprintf('%s/configuration', BASE_PATH),...
     'SOURCE_FILE', 'BASE_PATH', 'N', 'n',...

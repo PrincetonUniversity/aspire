@@ -39,12 +39,12 @@ if ~exist('scores_hist','var'); scores_hist=[]; end
 
 % Histogram Analysis Constants
 hist_intervals = 100; % number of intervals in the scores histogram
-a = 2.2; % empirical constant factor in the theoretical formula of the scores distribution
+a = 2.03; % empirical constant factor in the theoretical formula of the scores distribution
 % NOTE: original analysis found 'a' to equal 2.2. other variants of the code used 2.0 and 2.5.
 % The value is supposed to be global, though it might slightly depend on N
 % due to biases of the voting algorithm. 2.5 seemed optimal at some
-% experiment of N~100.
-peak2sigma = 2.43e-2; % empirical relation between the location of the peak of the histigram, and the mean error in the common lines estimations
+% experiment of N~100. 2.03 was found at new analysis with N=500.
+peak2sigma = 2.31e-2; % empirical relation between the location of the peak of the histigram, and the mean error in the common lines estimations
 
 % Initialization
 N=(1+sqrt(1+8*size(Rij,3)))/2; % Extract N from the number of relative rotations.
@@ -73,7 +73,7 @@ end
 h = 1/hist_intervals;
 hist_x = ((h/2):h:(1-h/2))'; % x-values of the histogram
 A = (N*(N-1)*(N-2)/2)/hist_intervals*(a+1); % normalization factor of one component of the histogram
-start_values = [0, 0.5, 2.5, 0.78];%0.78]; % B, P, b, x0 % GGG try to guess initial x0 automatically by local minimum; try to fit b(x0) to remove DoF; consider normalize B explicitly to remove DoF.
+start_values = [0, 0.3^3, 2.5, 0.9];%0.78]; % B, P, b, x0 % GGG try to guess initial x0 automatically by local minimum; try to fit b(x0) to remove DoF; consider normalize B explicitly to remove DoF.
 B0 = start_values(2)*(N*(N-1)*(N-2)/2) /... % normalization of 2nd component: B = P*N_delta/sum(f), where f is the component formula
     sum(((1-hist_x).^start_values(3)).*exp(-start_values(3)/(1-start_values(4)).*(1-hist_x)));
 start_values(1) = B0;
@@ -81,8 +81,8 @@ start_values(1) = B0;
 % Fit the distribution
 conf = fitoptions('Method','NonlinearLeastSquares',...
     'Robust','LAR',...
-    'Lower',[0, Pmin^3, 2, 0],... % B, P, b, x0
-    'Upper',[Inf, Pmax^3, Inf, 1],... % GGG: [100*B0, Pmax^3, 1e2, 1],... % bounded domains to force convergence of fit()
+    'Lower',[B0/30, 0.1^3, 2, 0.5],... % B, P, b, x0
+    'Upper',[100*B0, 0.7^3, 3.5, 1],... % GGG: [100*B0, Pmax^3, 1e2, 1],... % bounded domains to force convergence of fit()
     'Startpoint',start_values);
 ft = fittype(['(1-P)*' num2str(A) '*(1-x)^' num2str(a) ' + P*B*((1-x)^b)*exp(-b/(1-x0)*(1-x))'],'options',conf);
 [c,gof] = fit(hist_x, scores_hist, ft);
