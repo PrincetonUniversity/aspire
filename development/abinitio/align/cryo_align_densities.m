@@ -40,6 +40,9 @@ if ~exist('Nprojs','var')
     Nprojs=100;  % Number of projections to use for alignment.
 end
 
+%% Set verbose logging state
+logstate=log_silent(~verbose);
+
 %% Validate input
 % Input volumes must be 3-dimensional, where all dimensions must be equal.
 % This restriction can be remove, but then, the calculation of nr (radial
@@ -280,3 +283,6 @@ if refgiven
     gamma_ref_degrees=gamma_ref*180/pi;
     log_message('\t Reference \t %5.3f degrees',gamma_ref_degrees);
 end
+
+%% Restore log state
+log_silent(logstate);

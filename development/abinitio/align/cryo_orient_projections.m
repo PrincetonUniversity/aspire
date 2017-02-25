@@ -25,7 +25,7 @@ if any(szvol-szvol(1))
 end
 
 if ~exist('verbose','var')
-    verbose=1;
+    verbose=0;
 end
 
 currentsilentmode=log_silent(verbose==0);
@@ -125,7 +125,7 @@ log_message('Using %d candidate rotations.',Nrots);
 
 log_message('Loading precomputed tables.');
 %Ctbldir=fileparts(mfilename('fullpath'));
-Ctbldir=tempdir;
+Ctbldir=tempmrcdir;
 Ctblfname=fullfile(Ctbldir,'cryo_orient_projections_tables_cpu.mat');
 skipprecomp=0;
 if exist(Ctblfname,'file')
