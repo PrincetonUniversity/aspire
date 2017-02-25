@@ -39,16 +39,16 @@ function [W, Pij, scores_hist, cum_scores] = cryo_sync3n_syncmatrix_weights (Rij
 % Written by Ido Greenberg, 2016
 
 %% Configuration
-PERMITTED_INCONSISTENCY = 2; % Consistency condition is: mean(Pij)/PERMITTED_INCONSISTENCY < P < mean(Pij)*PERMITTED_INCONSISTENCY.
+PERMITTED_INCONSISTENCY = 1.5; % Consistency condition is: mean(Pij)/PERMITTED_INCONSISTENCY < P < mean(Pij)*PERMITTED_INCONSISTENCY.
 P_DOMAIN_LIMIT = 0.7; % Forced domain of P is [Pmin,Pmax], with Pmin=P_DOMAIN_LIMIT*Pmax.
-MAX_ITERATIONS = 10; % Maximum iterations for P estimation.
+MAX_ITERATIONS = 12; % Maximum iterations for P estimation.
 MIN_P_PERMITTED = 0.04; % When P is that small, stop trying to synchronize P with Pij, since we have no chance.
 
 %% Get initial estimation for Pij
 
 % get estimation
 scores_hist = struct;
-[P, scores_hist.sigma, scores_hist.Rsquare, Pij, scores_hist.hist, cum_scores] =...
+[P, scores_hist.sigma, scores_hist.Rsquare, Pij, scores_hist.hist, scores_hist.fit, cum_scores] =...
     triangles_scores(Rij);
 
 % are P and Pij consistent?
@@ -83,7 +83,7 @@ while inconsistent
     %prev_too_high = too_high;
     
     % get estimation
-    [P, scores_hist.sigma, scores_hist.Rsquare, Pij, ~, ~] = ...
+    [P, scores_hist.sigma, scores_hist.Rsquare, Pij, ~, scores_hist.fit, ~] = ...
         triangles_scores(Rij, scores_hist.hist, Pmin, Pmax);
     
     % are P and Pij consistent?
@@ -100,8 +100,7 @@ while inconsistent
     % define limits for next P estimation
     if too_high
         if P < MIN_P_PERMITTED
-            warning('Triangles Scores are too bad distributed, whatever small P we force.');
-            break;
+            error('Triangles Scores are too bad distributed, whatever small P we force.');
         end
         Pmax = Pmax*P_DOMAIN_LIMIT;
         Pmin = Pmax*P_DOMAIN_LIMIT;
@@ -116,7 +115,8 @@ scores_hist.P = P;
 
 %% Fill weights matrix
 
-W = eye(N); % $$$ why ones instead of zeros on the diagonal?
+N = 0.5*(1+sqrt(1+8*size(Rij,3)));
+W = zeros(N);
 idx = 0; % pair index
 
 for i = 1:N

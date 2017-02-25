@@ -32,15 +32,11 @@ function [J_sync,J_significance,eigenvalues,itr,dd] =...
 %       J-synchronization matrix.
 % eigenvalues   Top n_eigs eigenvalues of the J_synchronization matrix.
 % itr   Number of iterations required for the power method to converege.
-% XXX How did you determine convergence? XXX
+% GGG Yoel's question: How did you determine convergence?
 % dd    Magnitude of last change in the estimated eigenvector.
 %
 %
-% Function renamed from
-%   signs_power_method ( N , Rij , n_eigs , scores_as_entries , verbose , measure_time )
-% Paramter N was remove.
-%
-% Written by Ido Greenberg, 2015
+% Written by Ido Greenberg, 2015.
 % Revised by Yoel Shkolnisky, March 2016.
 
 N=(1+sqrt(1+8*size(Rij,3)))/2; % Extract N from the number of relative rotaitons in Rij.
@@ -53,6 +49,7 @@ assert(N==round(N));  % Make sure we got an integer.
 if (n_eigs <= 0); error('n_eigs must be positive integer!'); end
 if ~exist('verbose','var'); verbose=0; end
 if ~exist('measure_time','var'); measure_time=false; end
+pairs_scores = []; % currently disabled. intended to allow certain weighting of the J-sync matrix.
 
 % constants
 epsilon = 1e-2;
@@ -80,13 +77,14 @@ itr = 0;
 if measure_time; t = toc; end
 while itr < MAX_ITERATIONS && dd > epsilon
     itr = itr + 1;
-    vec_new = signs_times_v_mex(N,Rij,vec,n_eigs,scores_as_entries);
+    [vec_new,n_cores] = signs_times_v_mex(N,Rij,vec,n_eigs,scores_as_entries,pairs_scores,0);
     vec_new = reshape(vec_new,size(vec));
     [vec_new,eigenvalues] = qr(vec_new,0);
     dd = norm(vec_new(:,1)-vec(:,1));
     vec = vec_new;
     if verbose >= 2
-        log_message('Iteration %02d: ||curr_evec-last_evec|| = %.3f', itr, dd);
+        log_message('Iteration %02d (%02d cores used):\t||curr_evec-last_evec|| = %.3f',...
+            itr, n_cores, dd);
     end
 end
 if measure_time; t=(toc-t)/60; end

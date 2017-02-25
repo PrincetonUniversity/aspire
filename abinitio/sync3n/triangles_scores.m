@@ -1,5 +1,5 @@
 
-function [P, sigma, Rsquare, Pij, scores_hist, cum_scores] =...
+function [P, sigma, Rsquare, Pij, scores_hist, scores_fit, cum_scores] =...
     triangles_scores(Rij, scores_hist, Pmin, Pmax, verbose)
 % Triangles Scores
 % [P, sigma, Rsquare, Pij, scores_hist, cum_scores, plotted] =
@@ -39,8 +39,11 @@ if ~exist('scores_hist','var'); scores_hist=[]; end
 
 % Histogram Analysis Constants
 hist_intervals = 100; % number of intervals in the scores histogram
-a = 2.0; % empirical constant factor in the theoretical formula of the scores distribution
-% NOTE: 'a' was 2.0 in the original version, but 2.5 seems better, at least for N~100
+a = 2.2; % empirical constant factor in the theoretical formula of the scores distribution
+% NOTE: original analysis found 'a' to equal 2.2. other variants of the code used 2.0 and 2.5.
+% The value is supposed to be global, though it might slightly depend on N
+% due to biases of the voting algorithm. 2.5 seemed optimal at some
+% experiment of N~100.
 peak2sigma = 2.43e-2; % empirical relation between the location of the peak of the histigram, and the mean error in the common lines estimations
 
 % Initialization
@@ -55,11 +58,13 @@ if Pmax>1; Pmax=1; end
 if ~isempty(scores_hist)
     cum_scores = [];
 else
-    [cum_scores, scores_hist] = triangles_scores_mex(N, Rij, hist_intervals, 0);
+    [cum_scores, scores_hist, n_cores_1] = triangles_scores_mex...
+        (N, Rij, hist_intervals, 0, 1, 0);
 
     % Normalize cumulated scores
-    %cum_scores = ( cum_scores/(2*(N-2)) ).^0.5; % mean squares
-    cum_scores = cum_scores/(2*(N-2)); % mean
+    cum_scores = cum_scores/(2*(N-2));
+    
+    if verbose; log_message('Cores used for P computation: %d', n_cores_1); end
 end
 
 %% Histogram decomposition: P & sigma evaluation
@@ -68,7 +73,7 @@ end
 h = 1/hist_intervals;
 hist_x = ((h/2):h:(1-h/2))'; % x-values of the histogram
 A = (N*(N-1)*(N-2)/2)/hist_intervals*(a+1); % normalization factor of one component of the histogram
-start_values = [0, 0.5, 2.5, 0.9]; % B, P, b, x0
+start_values = [0, 0.5, 2.5, 0.78];%0.78]; % B, P, b, x0 % GGG try to guess initial x0 automatically by local minimum; try to fit b(x0) to remove DoF; consider normalize B explicitly to remove DoF.
 B0 = start_values(2)*(N*(N-1)*(N-2)/2) /... % normalization of 2nd component: B = P*N_delta/sum(f), where f is the component formula
     sum(((1-hist_x).^start_values(3)).*exp(-start_values(3)/(1-start_values(4)).*(1-hist_x)));
 start_values(1) = B0;
@@ -77,7 +82,7 @@ start_values(1) = B0;
 conf = fitoptions('Method','NonlinearLeastSquares',...
     'Robust','LAR',...
     'Lower',[0, Pmin^3, 2, 0],... % B, P, b, x0
-    'Upper',[100*B0, Pmax^3, 1e2, 1],... % bounded domains to force convergence of fit()
+    'Upper',[Inf, Pmax^3, Inf, 1],... % GGG: [100*B0, Pmax^3, 1e2, 1],... % bounded domains to force convergence of fit()
     'Startpoint',start_values);
 ft = fittype(['(1-P)*' num2str(A) '*(1-x)^' num2str(a) ' + P*B*((1-x)^b)*exp(-b/(1-x0)*(1-x))'],'options',conf);
 [c,gof] = fit(hist_x, scores_hist, ft);
@@ -89,24 +94,8 @@ peak = c.x0;
 sigma = (1-peak)/peak2sigma;
 
 if verbose
-    fprintf('Estimated CL Errors P,STD:\t%.1f%%\t%.1f\n\tR-squared:\t%.2f\n',100*P,sigma,Rsquare);
+    log_message('Estimated CL Errors P,STD:\t%.1f%%\t%.1f\n\tR-squared:\t%.2f',100*P,sigma,Rsquare);
 end
-
-% % Check validity of estimated P, and plot histogram if needed
-% plotted = false;
-% if PLOT && P >= required_P
-%     figure;
-%     title('Triangles Scores');
-%     hold on;
-%     h = bar(hist_x,scores_hist,'facecolor','c');
-%     %set(get(h,'child'),'facea',0.4);
-%     hplot = plot(c);
-%     set(hplot, 'linewidth',1.5);
-%     xlabel('');
-%     ylabel('');
-%     legend('hide');
-%     plotted = true;
-% end
 
 %% Local histograms analysis
 % calculate the probability Pij of every relative rotation Rij to be
@@ -118,7 +107,7 @@ B=c.B/((N*(N-1)*(N-2)/2)/hist_intervals); % distribution 2nd component normaliza
 b=c.b; x0=c.x0; % distribution parameters as empirically derived from the histogram
 
 % Calculate probabilities
-[ln_f_ind, ln_f_arb] = pairs_probabilities_mex(N, Rij, 0, P^2,A,a,B,b,x0);
+[ln_f_ind, ln_f_arb, n_cores_2] = pairs_probabilities_mex(N, Rij, P^2,A,a,B,b,x0, 0, 0);
 Pij = 1 ./ (1 + (1-P)/P*exp(ln_f_arb-ln_f_ind));
 
 % Fix singular output
@@ -128,8 +117,11 @@ if any(isnan(Pij))
 end
 
 %% Summary
+scores_fit.c = c;
+scores_fit.gof = gof;
 if verbose
-    fprintf('Common lines probabilities to be indicative <Pij>=%.1f%%\n', 100*mean(Pij));
+    log_message('Cores used for Pij computation: %d', n_cores_2);
+    log_message('Common lines probabilities to be indicative <Pij>=%.1f%%', 100*mean(Pij));
 end
 
 end
