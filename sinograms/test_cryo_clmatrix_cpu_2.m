@@ -1,4 +1,4 @@
-% Test the function cryo_clmatrix.
+% Test the function cryo_clmatrix_cpu.
 %
 % Generate clean projections, find common lines, and compare the detected
 % common lines to the true ones.
@@ -43,7 +43,7 @@ max_shift_1d=max(max_shift_1d,2); % For an even image we must test for
 open_log(0);
 
 % Find common lines.
-clstack = cryo_clmatrix(pf,K,1,max_shift_1d,shift_step_1d);
+clstack = cryo_clmatrix_cpu(pf,K,1,max_shift_1d,shift_step_1d);
 prop=comparecl( clstack, ref_clstack, n_theta, thetaTol);
 
 % Print percentage of correct common lines.

@@ -49,7 +49,7 @@ clstack_ref=clmatrix_cheat_q(q_ref,n_theta);
 % Search for common lines in the presence of shifts
 open_log(0);
 [clstack,corrstack,shift_equations1,shift_equations_map,clstack_mask]=...
-    cryo_clmatrix_gpu(pf,n_projs,1,ceil(2*sqrt(2)*max_shift),shift_step);
+    cryo_clmatrix(pf,n_projs,1,ceil(2*sqrt(2)*max_shift),shift_step);
 
 % Print the percentage of correctly detected commonlines. Shoule be very
 % close to 100%.

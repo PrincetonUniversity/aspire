@@ -37,7 +37,7 @@ for snridx=1:numel(SNRlist)
     % Find common lines from projections
     max_shift=0;
     shift_step=1;
-    clstack = cryo_clmatrix_gpu(npf,K,1,max_shift,shift_step);
+    clstack = cryo_clmatrix(npf,K,1,max_shift,shift_step);
     prop=comparecl( clstack, ref_clstack, n_theta, 10 );
     fprintf('Percentage of correct common lines: %f%%\n\n',prop*100);
     results(snridx).clrate=prop;

@@ -1,5 +1,5 @@
 function [clstack,corrstack,shift_equations,shift_equations_map,clstack_mask]=...
-    cryo_clmatrix(pf,NK,verbose,max_shift,shift_step,map_filter_radius,...
+    cryo_clmatrix_cpu(pf,NK,verbose,max_shift,shift_step,map_filter_radius,...
     ref_clmatrix,ref_shifts_2d)
 %
 %
@@ -74,7 +74,7 @@ function [clstack,corrstack,shift_equations,shift_equations_map,clstack_mask]=..
 %             gives a factor of 2 in performance.
 %   15/06/13  Replace repmat with bsxfnu when comparing shifted lines. This
 %             should be faster and makes the code easier to port to GPU.
-
+%   28/2/17   Rename cryo_clmatrix to cryo_clmatrix_cpu.
 
 initstate;
 msg=[];

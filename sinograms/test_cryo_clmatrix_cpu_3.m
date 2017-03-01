@@ -1,4 +1,4 @@
-% Print a table of detection rates using cryo_clmatrix
+% Print a table of detection rates using cryo_clmatrix_cpu
 %
 % Yoel Shkolnisky, June 2016.
 
@@ -23,7 +23,7 @@ for k=1:6
     max_shift1d = ceil(2*sqrt(2)*max_shift2d);
     shift_step = 1;
     [ clstack,corrstack, shift_equations,shift_equations_map]...
-                        = cryo_clmatrix( npf,K,1,max_shift1d,shift_step,10 );
+                        = cryo_clmatrix_cpu( npf,K,1,max_shift1d,shift_step,10 );
     prop=comparecl( clstack, ref_clmatrix, n_theta, 10 );
     fprintf('correctness of common lines: %f\n\n',prop);
     fprintf('-----------------------------------------------------------------\n');
