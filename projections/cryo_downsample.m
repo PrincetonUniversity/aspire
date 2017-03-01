@@ -77,11 +77,11 @@ end;
 if nargin<4
     mask=1;
 else
-    mask=Crop(mask,szout);  % scaling down: force it to the output size
+    mask=cryo_crop(mask,szout);  % scaling down: force it to the output size
 end;
 % elseif down
 % else
-%     mask=Crop(mask,szin); % scaling up: use input size
+%     mask=cryo_crop(mask,szin); % scaling up: use input size
 % end;
 
 % ns=(szin-szout)/2;  % shift
@@ -109,7 +109,7 @@ switch ndim
                     progressTicFor(i,nim);
                 end
                 x=fftshift(fftn(in(:,:,:,i)));
-                fx=Crop(x,szout).*mask;
+                fx=cryo_crop(x,szout).*mask;
                 if ~copy
                     out(:,:,:,i)=ifftn(ifftshift(fx))*(prod(szout)/prod(szin));
                 end;
@@ -120,7 +120,7 @@ switch ndim
                     progressTicFor(i,nim);
                 end
                 x=fftshift(fftn(in(:,:,:,i)));               
-                fx=Crop(x,szout).*mask;
+                fx=cryo_crop(x,szout).*mask;
                 out(:,:,:,i)=ifftn(ifftshift(fx))*(prod(szout)/prod(szin));
             end;
         end;
@@ -130,7 +130,7 @@ switch ndim
                 if showprogress
                     progressTicFor(i,nim);
                 end                
-                fx=Crop(fftshift(fftn(in(:,:,i))),szout).*mask;
+                fx=cryo_crop(fftshift(fftn(in(:,:,i))),szout).*mask;
                 if ~copy
                     out(:,:,i)=ifftn(ifftshift(fx))*(prod(szout)./prod(szin));
                 end;
@@ -140,7 +140,7 @@ switch ndim
                 if showprogress
                     progressTicFor(i,nim);
                 end                
-                fx=Crop(fftshift(fftn(in(:,:,i))),szout).*mask;
+                fx=cryo_crop(fftshift(fftn(in(:,:,i))),szout).*mask;
                 out(:,:,i)=ifftn(ifftshift(fx))*(prod(szout)/prod(szin));
             end;
         end;
@@ -151,7 +151,7 @@ switch ndim
                 if showprogress
                     progressTicFor(i,nim);
                 end                
-                fx=Crop(fftshift(fft(in(:,i))),szout).*mask;
+                fx=cryo_crop(fftshift(fft(in(:,i))),szout).*mask;
                 if ~copy
                     out(:,i)=ifft(ifftshift(fx))*(prod(szout)/prod(szin));
                 end;
@@ -161,7 +161,7 @@ switch ndim
                 if showprogress
                     progressTicFor(i,nim);
                 end                
-                fx=Crop(fftshift(fft(in(:,i))),szout).*mask;
+                fx=cryo_crop(fftshift(fft(in(:,i))),szout).*mask;
                 out(:,i)=ifft(ifftshift(fx))*(szout/szin);
             end;
         end;
