@@ -24,6 +24,13 @@ numgroups=str2double(workflow.preprocess.numgroups);
 nmeans=str2double(workflow.abinitio.nmeans);
 nnavg=str2double(workflow.abinitio.nnavg);
 
+if isfield(workflow.abinitio,'algo')
+    algo=str2double(workflow.abinitio.algo);
+else
+    algo=1; % Use sync3N by default
+    log_message('workflow.abinitio.algo not found. Using sync3N for abinitio reconstruction.');
+end
+
 for groupid=1:numgroups
     reloadname=sprintf('averages_info_nn%02d_group%d',nnavg,groupid);
     reloadname=fullfile(workflow.info.working_dir,reloadname);
@@ -51,26 +58,78 @@ for groupid=1:numgroups
     max_shift=15;
     shift_step=1;
     [clstack,~,~,~]=...
-        cryo_clmatrix_gpu(pf,K,1,max_shift,shift_step);
+        cryo_clmatrix(pf,K,1,max_shift,shift_step);
     
     log_message('Saving common lines');
     matname=sprintf('abinitio_info_nn%d_nm%d_group%d',nnavg,nmeans,groupid);
     save(fullfile(workflow.info.working_dir,matname),...
         'n_theta','n_r','clstack','max_shift','shift_step');
+   
     
-    log_message('Starting buliding synchronization matrix');
-    S=cryo_syncmatrix_vote(clstack,n_theta);
-    log_message('Finished buliding synchronization matrix');
-    
-    rotations=cryo_syncrotations(S);
+    % Orientation assigment
+    if algo==1
+        % Use sync3N
+        VOTING_TICS_WIDTH=1;
+        J_EIGS=4;
+        J_WEIGHTS=true;
+        S_WEIGHTS=true;
+        
+        % Estimate relative rotations
+        [Rij0, r_valid_ks, r_good_ks, peak_width] = cryo_sync3n_estimate_all_Rijs...
+            (clstack, n_theta, VOTING_TICS_WIDTH);
+        
+        log_message('Stage Done: Relative Rotations');
+        
+        % J-synchronization
+        verbose = 2;
+        [J_sync,J_significance,J_eigs,J_sync_iterations,~] = ...
+            cryo_sync3n_Jsync_power_method (Rij0, J_EIGS, J_WEIGHTS, verbose);
+        Rij = cryo_sync3n_flip_handedness(J_sync, Rij0);
+        
+        % Build 3NX3N Matrix S
+        S = cryo_sync3n_syncmatrix(Rij);
+        
+        log_message('Stage Done: J Synchronization');
+        
+        % S Weighting
+        if S_WEIGHTS
+            % Estimate weights for the 3x3 blocks of S
+            [W, Pij, scores_hist] = cryo_sync3n_syncmatrix_weights(Rij0);
+        else
+            W = ones(N); % Default weights are all one (no weights)
+            Pij = [];
+            scores_hist = struct();
+        end
+        
+        log_message('Stage Done: Probabilistic Weighting');
+        
+        % Estimate rotations from S
+        [rotations, S_eigs, ~] = cryo_sync3n_S_to_rot (S,10,W);
+                
+        d_str=sprintf('%7.2f ',S_eigs);
+        log_message('Top 10 eigenvalues of (weighted) sync matrix are %s',d_str);
+        
+    elseif algo==2
+        % Use sync2N
+        log_message('Starting buliding synchronization matrix');
+        S=cryo_syncmatrix_vote(clstack,n_theta);
+        log_message('Finished buliding synchronization matrix');
+        
+        rotations=cryo_syncrotations(S);
+                
+        d=eigs(S,10);
+        d_str=sprintf('%7.2f ',d);
+        log_message('Top 10 eigenvalues of sync matrix are %s',d_str);
+    elseif algo==3
+        % Use LUD
+        rotations = est_orientations_LUD(clstack, n_theta);
+    else
+        error('Invalid vaule for ''algo''.');
+    end
     
     save(fullfile(workflow.info.working_dir,matname),...
         'rotations','S','-append');
-    
-    d=eigs(S,10);
-    d_str=sprintf('%7.2f ',d);
-    log_message('Top 10 eigenvalues of sync matrix are %s',d_str);
-    
+
     clerr=cryo_syncconsistency(rotations,clstack,n_theta);
     h=figure;
     hist(clerr(:,3),360);
@@ -147,38 +206,38 @@ for groupid=1:numgroups
     % % % % %     v1=real(v1);
     % % % % %
     
-    % Reconstruct from the raw images used to generate the averages.
-    % All raw images of all class averages are used.
-    reloadname=sprintf('averages_info_nn%02d_group%d',nnavg,groupid);
-    reloadname=fullfile(workflow.info.working_dir,reloadname);
-    alignment_data=load(reloadname);
-    
-    averaging_data.rotations=rotations;
-    averaging_data.est_shifts=est_shifts;
-    averaging_data.nnavg=nnavg;
-    
-    log_message('Estimating shifts for raw projecitons');
-    [estR_raw,est_shifts_raw,rawimageindices]=cryo_assign_orientations_to_raw_projections(...
-        alignment_data,averaging_data);
-    
-    fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrc',groupid);
-    fullfilename=fullfile(workflow.info.working_dir,fname);
-    log_message('Loading prewhitened projection from %s',fname);
-    prewhitened_projs=ReadMRC(fullfilename);
-    
-    n=size(average,1);
-    [ v1, ~, ~ ,~, ~, ~] = recon3d_firm(...
-        prewhitened_projs(:,:,rawimageindices),estR_raw,-est_shifts_raw,...
-        1e-6,100, zeros(n,n,n));
-    ii1=norm(imag(v1(:)))/norm(v1(:));
-    log_message('Relative norm of imaginary components = %e\n',ii1);
-    v1=real(v1);
-    volname=sprintf('vol_raw_nn%d_nm%d_group%d.mrc',nnavg,nmeans,groupid);
-    WriteMRC(v1,1,fullfile(workflow.info.working_dir,volname));
-    log_message('Saved %s',volname);
-    
-    save(fullfile(workflow.info.working_dir,matname),...
-        'estR_raw','est_shifts_raw','rawimageindices','-append');
+%     % Reconstruct from the raw images used to generate the averages.
+%     % All raw images of all class averages are used.
+%     reloadname=sprintf('averages_info_nn%02d_group%d',nnavg,groupid);
+%     reloadname=fullfile(workflow.info.working_dir,reloadname);
+%     alignment_data=load(reloadname);
+%     
+%     averaging_data.rotations=rotations;
+%     averaging_data.est_shifts=est_shifts;
+%     averaging_data.nnavg=nnavg;
+%     
+%     log_message('Estimating shifts for raw projecitons');
+%     [estR_raw,est_shifts_raw,rawimageindices]=cryo_assign_orientations_to_raw_projections(...
+%         alignment_data,averaging_data);
+%     
+%     fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrc',groupid);
+%     fullfilename=fullfile(workflow.info.working_dir,fname);
+%     log_message('Loading prewhitened projection from %s',fname);
+%     prewhitened_projs=ReadMRC(fullfilename);
+%     
+%     n=size(average,1);
+%     [ v1, ~, ~ ,~, ~, ~] = recon3d_firm(...
+%         prewhitened_projs(:,:,rawimageindices),estR_raw,-est_shifts_raw,...
+%         1e-6,100, zeros(n,n,n));
+%     ii1=norm(imag(v1(:)))/norm(v1(:));
+%     log_message('Relative norm of imaginary components = %e\n',ii1);
+%     v1=real(v1);
+%     volname=sprintf('vol_raw_nn%d_nm%d_group%d.mrc',nnavg,nmeans,groupid);
+%     WriteMRC(v1,1,fullfile(workflow.info.working_dir,volname));
+%     log_message('Saved %s',volname);
+%     
+%     save(fullfile(workflow.info.working_dir,matname),...
+%         'estR_raw','est_shifts_raw','rawimageindices','-append');
     
     %     % Reconstruct downsampled volume with CTF correction
     %     fname=sprintf('ctfs_effective_nn%02d_group%d.mrc',nnavg,groupid);
