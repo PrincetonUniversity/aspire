@@ -1,5 +1,5 @@
 function cryo_workflow_abinitio_execute(workflow_fname)
-% CRYO_WORKFLOW_CLASSIFY_EXECUTE  Reconstruct abinitio models
+% CRYO_WORKFLOW_ABINITO_EXECUTE  Reconstruct abinitio models
 %
 % cryo_workflow_abinitio_execute(workflow_fname)
 %   Generate abinitio models from precomputed class averages according to

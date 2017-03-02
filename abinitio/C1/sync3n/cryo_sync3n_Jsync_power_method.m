@@ -100,6 +100,7 @@ if verbose >= 1
     log_message('Outer J Synchronization:\n\titerations needed: %d', itr);
     if measure_time; log_message('\ttime consumed: %f [min]', t); end
     log_message('\tsigns matrix eigenvalues (in practice vs. theoretical):');
+    log_message('Note: theoretical values are in the noiseless case with no weights (scores_as_entries=0).');
     log_message('\t\t%.0f\t(%.0f)', eigenvalues(1), 2*N-4);
     for i=2:min(n_eigs,5); log_message('\t\t%.0f\t(%.0f)', eigenvalues(i), N-4); end
 end
