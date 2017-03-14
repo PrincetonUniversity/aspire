@@ -82,7 +82,7 @@ function install_fftw(url, location)
 
 	status = system(['./configure ' ...
 	                 '--prefix=' fullfile(location, 'fftw3') ' ' ...
-	                 '--enable-openmp --enable-shared']);
+	                 '--enable-openmp --enable-shared --enable-threads']);
 	if status ~= 0
 		error('''configure'' failed');
 	end
