@@ -94,11 +94,19 @@ function install_chemnitz_nfft(url, location, fftw_location)
 
 	cd(nfft_root);
 
-	status = system(['./configure ' ...
-	                 '--prefix=' fullfile(location, 'nfft') ' ' ...
-	                 '--enable-openmp ' ...
-	                 '--with-matlab=' matlabroot ' ' ...
-	                 '--with-fftw3=' fftw_location]);
+	cmd = ['./configure ' ...
+	         '--prefix=' fullfile(location, 'nfft') ' ' ...
+	         '--enable-openmp ' ...
+	         '--with-fftw3=' fftw_location ' '];
+
+	if ~isoctave()
+	    cmd = [cmd '--with-matlab=' matlabroot];
+	else
+	    cmd = [cmd '--with-octave=' matlabroot];
+	end
+
+	status = system(cmd);
+
 	if status ~= 0
 		error('''configure'' failed');
 	end
