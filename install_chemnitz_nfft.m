@@ -23,7 +23,7 @@
 function install_chemnitz_nfft(url, location, fftw_location)
 	if nargin < 1 || isempty(url)
 		url = ['https://www-user.tu-chemnitz.de/~potts/nfft/download/' ...
-		       'nfft-3.3.1.tar.gz'];
+		       'nfft-3.3.2.tar.gz'];
 	end
 
 	if nargin < 2 || isempty(location)
