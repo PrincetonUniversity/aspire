@@ -77,8 +77,11 @@ function install_chemnitz_nfft(url, location, fftw_location)
 		unzipped_files = untarred_files;
 	end
 
-	nfft_dir = fileparts(unzipped_files{1});
+	nfft_dir = fileparts(unzipped_files{1});    
 	ind = find(nfft_dir=='/', 1);
+    if isempty(ind) %'/' not found
+        ind=length(nfft_dir)+1;
+    end
 	nfft_dir = nfft_dir(1:ind-1);
 
 	nfft_root = fullfile(fileparts(filepath), nfft_dir);
@@ -87,7 +90,7 @@ function install_chemnitz_nfft(url, location, fftw_location)
 
 	status = system(['./configure ' ...
 	                 '--prefix=' fullfile(location, 'nfft') ' ' ...
-	                 '--enable-openmp ' ...
+	                 '--enable-openmp --disable-applications ' ...
 	                 '--with-matlab=' matlabroot ' ' ...
 	                 '--with-fftw3=' fftw_location]);
 	if status ~= 0
