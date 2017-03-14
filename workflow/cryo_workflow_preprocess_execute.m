@@ -221,6 +221,8 @@ if fieldexist(workflow,'preprocess','do_shuffle') && ...
     log_message('Images will be shuffled prior to splitting to groups');
     log_message('Shuffled order of images saved to variable ''shuffleidx'' in %s',matname);
     shuffleidx=randperm(K);
+else
+    log_message('Images will NOT be shuffled prior to splitting to groups');
 end
 
 % Save the indcies of the images after shuffling.
