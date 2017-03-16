@@ -29,7 +29,7 @@
 %
 % Use new FB coefficients, new Init_class function
 % Tejal April 17, 2016
-
+% New align_main: Tejal March 2017
 fname='clean_data.mat'
 if exist(fname,'file')==2
 	data=load('clean_data.mat')
