@@ -1,4 +1,4 @@
-function [ shifts, corr, averagesfname, norm_variance ] = align_main( data, angle, class_VDM, refl, FBsPCA_data, k, max_shifts, list_recon,tmpdir)
+function [ shifts, corr, averagesfname, norm_variance ] = align_main( data, angle, class_VDM, refl, FBsPCA_data, k, max_shifts, list_recon,recon_sPCA, tmpdir)
 % Function for aligning images with its k nearest neighbors to generate
 % class averages.
 %   Input: 
@@ -29,8 +29,8 @@ N=floor(L/2);
 [x, y]=meshgrid(-N:N, -N:N);
 r=sqrt(x.^2+y.^2);
 
-r_max = FBsPCA_data.r_max;
-UU = FBsPCA_data.UU;
+r_max = FBsPCA_data.R;
+UU = FBsPCA_data.U;
 Coeff = FBsPCA_data.Coeff;
 Mean = FBsPCA_data.Mean;
 Freqs = FBsPCA_data.Freqs;
@@ -83,7 +83,7 @@ if numel(filelist)>2
 end
 
 printProgressBarHeader;
-parfor j=1:length(list_recon)
+for j=1:length(list_recon)
     progressTic(j,length(list_recon));
 
     
@@ -99,12 +99,14 @@ parfor j=1:length(list_recon)
     
     %Build denoised images from FBsPCA
     %reconstruct the images.
-    tmp = 2*real(UU(:, Freqs~=0)*Coeff(Freqs~=0, list_recon(j)));
-    tmp = tmp + UU(:, Freqs==0)*real(Coeff(Freqs==0, list_recon(j)));
-    I = zeros(L);
-    I(r<=r_max)=tmp;
-    I = I+Mean;
-    I = mask_fuzzy(I, r_max-5);
+    %tmp = 2*real(UU(:, Freqs~=0)*Coeff(Freqs~=0, list_recon(j)));
+    %tmp = tmp + UU(:, Freqs==0)*real(Coeff(Freqs==0, list_recon(j)));
+    tmp=recon_sPCA(:,:,list_recon(j));
+    I=tmp;
+   %I = zeros(L);
+   %I(r<=r_max)=tmp;
+   %I = I+Mean;
+   %I = mask_fuzzy(I, r_max-5);
     
     for i=1:k
         if (refl_j(i)==2)

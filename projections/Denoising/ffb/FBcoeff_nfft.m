@@ -50,9 +50,8 @@ pos_k = cell(num_pool, 1);
 %disp('Setting OMP_NUM_THREADS to 1 for nufft')
 %setenv('OMP_NUM_THREADS', '1');
 
-
 parfor i = 1:num_pool
-      tmp = data{i};
+    tmp = data{i};
     tmp = tmp(orig-R:orig+R-1, orig-R : orig+R-1, :);
     tmp2 = cryo_pft_nfft(tmp, Precomp);
     pf_f = scale*fft(tmp2, [], 2); %1D FFT on concentric rings

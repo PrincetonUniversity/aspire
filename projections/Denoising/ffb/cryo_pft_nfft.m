@@ -38,22 +38,23 @@ N2 = P.nL;
 N=[N1;N2];
 freqs = P.freqs;
 M = length(freqs);
-plan=nfft(2,N,M); % create plan of class type nfft
-plan.x=-freqs; % set nodes in plan
+%plan=nfft(2,N,M); % create plan of class type nfft
+%plan.x=-freqs; % set nodes in plan
 %disp('nfft precompute plan')
-nfft_precompute_psi(plan); % precomputations
+%nfft_precompute_psi(plan); % precomputations
 
 n_theta = P.n_theta;
 n_r = P.n_r;
 n_proj = size(p, 3);
-p = reshape(p, N1*N2, n_proj);
+%p = reshape(p, N1*N2, n_proj);
 pf=zeros(M, n_proj);
 
 %disp('nfft before trafo')
 for i = 1:n_proj
-    plan.fhat = p(:, i); % set Fourier coefficients
-    nfft_trafo(plan); % compute nonequispaced Fourier transform
-    pf(:, i)=plan.f; % get samples
+    %plan.fhat = p(:, i); % set Fourier coefficients
+    %nfft_trafo(plan); % compute nonequispaced Fourier transform
+    %pf(:, i)=plan.f; % get samples
+    pf(:,i)=nufft2(p(:,:,i),permute(-freqs,[2 1])*2*pi);	
 end;
 %disp('nfft after trafo')
 
