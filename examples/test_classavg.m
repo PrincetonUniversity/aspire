@@ -92,7 +92,7 @@ end
 
 list_recon = [1:size(images_fl, 3)];
 
-tmp_dir='~/tmpdir/'
+tmp_dir=tempmrcdir;
 max_shift=0;
 tic_align = tic;
 [ shifts, corr, averagesfname, norm_variance ] = align_main( allims, rot_f_vdm, class_VDM, class_VDM_refl, sPCA_data, k_VDM_out, max_shift, list_recon, recon_spca, tmp_dir);
