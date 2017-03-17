@@ -11,7 +11,7 @@ tic_basis=tic;
 timing.basis=toc(tic_basis);
 num_pool=5;
 
-sprintf('Computing sPCA coefficients')
+disp('Computing sPCA coefficients')
 [ timing, coeff, mean_coeff, sPCA_coeff, U, D ] = jobscript_FFBsPCA(images, R, noise_v_r, basis, sample_points, num_pool);
 
 sPCA_data.U = U;
