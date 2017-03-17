@@ -30,11 +30,11 @@
 % Use new FB coefficients, new Init_class function
 % Tejal April 17, 2016
 % New align_main: Tejal March 2017
-fname='clean_data.mat'
+fname='clean_data.mat';
 if exist(fname,'file')==2
-	data=load('clean_data.mat')
+	data=load('clean_data.mat');
 else
-	gen_simulation_data
+	gen_simulation_data;
 end
 
 
@@ -66,9 +66,9 @@ k_VDM_out = n_nbor; % number of nearest neighbors search for
 % Initial classification with sPCA (new, fast code)
 [ images_fl ] = Phase_Flip(images, defocus_group, CTF); %phase flipping 
 
-str=which('gen_simulation_data.m')
-[pathstr,~,~]=fileparts(str)
-fname=fullfile(pathstr,'simulation','noisy_data_fl.mrc')
+str=which('gen_simulation_data.m');
+[pathstr,~,~]=fileparts(str);
+fname=fullfile(pathstr,'simulation','noisy_data_fl.mrc');
 WriteMRC(real(images_fl),1,fname);
 allims=imagestackReader(fname);
 
