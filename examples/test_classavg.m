@@ -92,7 +92,8 @@ end
 
 list_recon = [1:size(images_fl, 3)];
 
-tmp_dir='~/tmpdir/'
+
+[tmp_dir]=fmtinput('Please enter the destination path to an empty folder for class averaged images. The default destination is your home directory','~/.','%s');
 max_shift=0;
 tic_align = tic;
 [ shifts, corr, averagesfname, norm_variance ] = align_main( allims, rot_f_vdm, class_VDM, class_VDM_refl, sPCA_data, k_VDM_out, max_shift, list_recon, recon_spca, tmp_dir);
