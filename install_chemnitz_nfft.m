@@ -2,7 +2,7 @@
 %
 % Usage
 %    install_chemnitz_nfft();
-%    install_chemnitz_nfft(url, location, fftw_location);
+%    install_chemnitz_nfft(url, location);
 %
 % Input
 %    url: The url from which the package should be downloaded. By default,
@@ -13,8 +13,6 @@
 %
 %    location: The location in which the package should be installed. By
 %       default, this is the subfolder 'extern' of the ASPIRE root folder.
-%    fftw_location: The location of the FFTW3 package needed to compile NFFT.
-%       By default, the location is 'extern/fftw3'.
 %
 % Description
 %    This function downloads and compiles the NFFT library from TU Chemnitz,
@@ -23,7 +21,7 @@
 function install_chemnitz_nfft(url, location, fftw_location)
 	if nargin < 1 || isempty(url)
 		url = ['https://www-user.tu-chemnitz.de/~potts/nfft/download/' ...
-		       'nfft-3.3.2.tar.gz'];
+		       'nfft-3.3.1.tar.gz'];
 	end
 
 	if nargin < 2 || isempty(location)
@@ -34,11 +32,6 @@ function install_chemnitz_nfft(url, location, fftw_location)
 	if nargin < 3 || isempty(fftw_location)
 		aspire_root = fileparts(mfilename('fullpath'));
 		fftw_location = fullfile(aspire_root, 'extern', 'fftw3');
-	end
-
-	if ~exist(fftw_location, 'dir')
-		fprintf('FFTW3 not installed. Installing...\n');
-		install_fftw();
 	end
 
 	fprintf('Installing the TU Chemnitz NFFT package.\n');
@@ -84,29 +77,22 @@ function install_chemnitz_nfft(url, location, fftw_location)
 		unzipped_files = untarred_files;
 	end
 
-	nfft_dir = fileparts(unzipped_files{1});
+	nfft_dir = fileparts(unzipped_files{1});    
 	ind = find(nfft_dir=='/', 1);
-	if ~isempty(ind)
-		nfft_dir = nfft_dir(1:ind-1);
-	end
+    if isempty(ind) %'/' not found
+        ind=length(nfft_dir)+1;
+    end
+	nfft_dir = nfft_dir(1:ind-1);
 
 	nfft_root = fullfile(fileparts(filepath), nfft_dir);
 
 	cd(nfft_root);
 
-	cmd = ['./configure ' ...
-	         '--prefix=' fullfile(location, 'nfft') ' ' ...
-	         '--enable-openmp --disable-applications ' ...
-	         '--with-fftw3=' fftw_location ' '];
-
-	if ~isoctave()
-	    cmd = [cmd '--with-matlab=' matlabroot];
-	else
-	    cmd = [cmd '--with-octave=' matlabroot];
-	end
-
-	status = system(cmd);
-
+	status = system(['./configure ' ...
+	                 '--prefix=' fullfile(location, 'nfft') ' ' ...
+	                 '--enable-openmp --disable-applications ' ...
+	                 '--with-matlab=' matlabroot ' ' ...
+	                 '--with-fftw3=' fftw_location]);
 	if status ~= 0
 		error('''configure'' failed');
 	end

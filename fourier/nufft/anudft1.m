@@ -21,6 +21,6 @@ function sig = anudft1(sig_f, fourier_pts, sz)
 	sig = zeros(N, 1);
 
 	for k = 1:size(grid, 2)
-		sig(k) = exp(i*(grid(k)*fourier_pts'))*sig_f(:);
+		sig(k) = exp(i*(grid(k)'*fourier_pts))*sig_f(:);
 	end
 end
