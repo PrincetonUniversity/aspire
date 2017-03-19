@@ -80,7 +80,7 @@ disp('Phase flipped');
 disp('Starting fast steerable PCA to compress and denoise images')
 [sPCA_data, sPCA_coeff_cell, basis, recon_spca]=data_sPCA(images_fl,  noise_v_r);
 [mse_spca] = calc_MSE_v6(recon_spca, data.projections(:,:,1:K),sPCA_data.R);
-disp('Relative MSE of denoised images after PCA is %f',mse_spca)
+sprintf('Relative MSE of denoised images after PCA is %f',mse_spca)
 tic_init=tic;
 [ class_f, class_refl_f, rot_f, corr_f,  timing_f ] = Initial_classification_FD(sPCA_data, n_nbor, isrann );
 toc_init=toc(tic_init);
@@ -91,10 +91,6 @@ if(use_VDM)
 	[ class_VDM, class_VDM_refl, rot_f_vdm ] = VDM(class_f, ones(size(class_f)), rot_f, class_refl_f, k_VDM_in, VDM_flag, k_VDM_out);
 	toc_VDM = toc(tic_VDM);
 	disp('Finished VDM classification...');
-	% Check Classification result
-	[ d_f, error_rot_f ] = check_simulation_results(class_VDM, class_VDM_refl, rot_f_vdm, q); % should use minus sign for init class, no minus sign for VDM 
-else
-	[ d_f, error_rot_f ] = check_simulation_results(class_f, class_refl_f, -rot_f, q); % should use minus sign for init class, no minus sign for VDM 
 end
 
 list_recon = [1:size(images_fl, 3)];
