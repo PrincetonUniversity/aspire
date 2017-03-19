@@ -225,17 +225,4 @@ end
 %     %     figure; scatter(locs,zeros(1,numel(locs)));
 %
 % end
-
-
-
-
-
-
-
-
-
-
-
-
-
 end

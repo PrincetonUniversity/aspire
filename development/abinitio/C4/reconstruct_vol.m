@@ -61,11 +61,6 @@ end
 
 function vol = reconstruct3d(npf,projs,rots,max_shift,shift_step)
 
-% %TODO: Gabi remove me
-% rots_gt = zeros(3,3,params.K);
-% for i=1:params.K
-%     rots_gt(:,:,i) = q_to_rot(params.refq(:,i))';
-% end
 [est_shifts,~] = cryo_estimate_shifts(npf,rots,ceil(2*sqrt(2)*max_shift),...
                                       shift_step,10000,[],1);
 % [est_shifts,~] = cryo_estimate_shifts(npf,rots,nshifts,params.shift_step,10000,[],0);
@@ -85,11 +80,7 @@ n = size(projs,1);
 %     rots,[], 1e-6, 100, zeros(n,n,n));
 
 
-
-
 vol = real(vol);
-
-
 
 % [vol,~,~,~,~,~] = recon3d_firm(projs,...
 %     rots,[], 1e-6, 30, zeros(89,89,89));

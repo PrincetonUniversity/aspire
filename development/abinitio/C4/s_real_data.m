@@ -1,24 +1,17 @@
 tic;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Parameters
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-n_theta = 360; % number of rays in every projection
-n_r     = 89;  % number of radial points in every radial line
-is_reconstructVol = true;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                           CODE
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 initstate; 
 open_log(0);
 
 projs = ReadMRC('/mnt/ix2/backup/datasets/10005/output/averages_nn100_group1.mrc');
-projs(:,:,5001:end) = [];
+projs(:,:,101:end) = [];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 1  : Computing polar Fourier transform of projections
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 masked_projs = mask_fuzzy(projs,28);
 
+n_theta = 360; % number of rays in every projection
+n_r     = 89;  % number of radial points in every radial line
 [npf,~] = cryo_pft(masked_projs,n_r,n_theta,'single');
 
 npf = gaussian_filter_imgs(npf);
@@ -26,9 +19,8 @@ npf = gaussian_filter_imgs(npf);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 2  : detect a single pair of common-lines between each pair of images
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[~,~,nImages] = size(npf);
 log_message('detecting common-lines');
-clmatrix = cryo_clmatrix_gpu(npf,nImages,1); 
+clmatrix = cryo_clmatrix_gpu(npf,size(npf,3),1); 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 3  : detect self-common-lines in each image
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -63,12 +55,6 @@ vis  = estimate_third_rows(vijs,viis);
 % step 9  : in-plane rotations angles estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 [rots,in_plane_rotations] = estimate_inplane_rotations2(npf,vis);
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% step 10  : Results Analysis
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-rot_alligned = rots;
-mse = Inf;
-err_in_degrees = Inf;
 
 %% TODO : add this code
 % 
@@ -85,10 +71,6 @@ err_in_degrees = Inf;
 % [h1,h2]=cryo_plot_viewing_directions(rot_alligned);
 % [h1,h2]=cryo_plot_viewing_directions(rots2);
 %
-
 run_time = toc
 
-if is_reconstructVol
-    rot_alligned = rots;
-    estimatedVol = reconstruct_vol(projs,npf,rot_alligned);
-end
+estimatedVol = reconstruct_vol(projs,npf,rots);    
