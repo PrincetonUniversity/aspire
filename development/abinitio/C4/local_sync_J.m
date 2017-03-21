@@ -1,4 +1,4 @@
-function [vijs,viis,npf,projs,refq,ref_shifts] = local_sync_J(Rijs,Riis,npf,...
+function [vijs,viis,im_inds_to_remove,pairwise_inds_to_remove,npf,projs,refq,ref_shifts] = local_sync_J(Rijs,Riis,npf,...
                                 projs,is_remove_non_rank1,remov_percent,refq,ref_shifts)
 
 % Local J-synchronization of all relative orientations.
@@ -36,6 +36,9 @@ function [vijs,viis,npf,projs,refq,ref_shifts] = local_sync_J(Rijs,Riis,npf,...
 %                  the outer-product vi*vi^{T} between the
 %                  third row of matrix Ri with itself. Each such estimate
 %                  might have a spurious J independently of other estimates
+%  im_inds_to_remove The image indexes that are removed since they induce
+%                    too many non rank-1 matrices
+%  pairwise_inds_to_remove 
 %   npf            Only if provided in input. Returns the input npf where
 %                  all images that correspond to image indexes to remove are removed
 %   projs          Only if provided in input. Returns the input projs where
@@ -210,7 +213,11 @@ if is_remove_non_rank1
     if exist('ref_shifts','var') && ~isempty(ref_shifts)
         assert(size(ref_shifts,1) == nImages);
         ref_shifts(im_inds_to_remove,:) = [];
-    end    
+    end
+else
+    % nothing to remove
+    im_inds_to_remove = [];
+    pairwise_inds_to_remove = [];
 end
 
 % if ~params.real_data && params.debug && isfield(params,'inds_err_Rii')

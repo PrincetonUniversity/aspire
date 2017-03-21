@@ -11,13 +11,9 @@ end
 log_message('reconstructing volume');
 
 [noisy_projs_replicated,npf_replicated]  = replicate_projs(noisy_projs,npf);
-if ~exist('results','dir')
-    mkdir('results');
-end
 rot_alligned_g_duplicated = g_duplicate_rots(rot_alligned);
 
 estimatedVol = reconstruct3d(npf_replicated,noisy_projs_replicated,rot_alligned_g_duplicated,max_shift,shift_step);
-WriteMRC(estimatedVol,1,'results/1.mrc');
 
 end
 

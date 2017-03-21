@@ -6,11 +6,10 @@ open_log(0);
 %% Load and display projections
 % The MAT file p100_c4_shifted contains 100 projections of size 65x65. The
 % orientations (given as quaternions) used to generate these projections
-% are stored in the the variable "refq". The shift introduced into each
-% projection is stored in the variable "ref_shifts". The projections were
-% shifted by random integer shifts of up to +/- 5 pixels, with steps of 0.5
-% pixel.
-load p100_c4_shifted;
+% are stored in the the variable "refq". The projection were generated using the following command:
+% [projs,refq] = generate_c4_images(100,100000000,65,'GAUSSIAN',0,1);
+
+load p100_c4_gaussian_no_shifts;
 viewstack(projs,5,5);   % Display the proejctions.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 1  : Computing polar Fourier transform of projections
@@ -26,7 +25,7 @@ npf = gaussian_filter_imgs(npf);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 2  : detect a single pair of common-lines between each pair of images
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-max_shift  = 5; % number of shifts to consider
+max_shift  = 0; % number of shifts to consider
 shift_step = 0.5; % the shift step (see Yoel's technical report)
 clmatrix = cryo_clmatrix_gpu(npf,size(npf,3),1,max_shift,shift_step); 
 cl_detection_rate(clmatrix,n_theta,refq);
@@ -56,8 +55,8 @@ Rijs = cryo_c4_estimate_all_Rijs(clmatrix,n_theta,refq);
 is_remove_non_rank1 = true;
 non_rank1_remov_percent = 0.25;
 [vijs,viis,im_inds_to_remove,pairwise_inds_to_remove,...
-    npf,projs,refq,ref_shifts] = local_sync_J(Rijs,Riis,npf,...
-                                projs,is_remove_non_rank1,non_rank1_remov_percent,refq,ref_shifts);
+    npf,projs,refq] = local_sync_J(Rijs,Riis,npf,...
+                                projs,is_remove_non_rank1,non_rank1_remov_percent,refq);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 7  : outer J-synchronization
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -84,4 +83,4 @@ inplane_rot_res = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 estimatedVol = reconstruct_vol(projs,npf,rot_alligned,max_shift,shift_step);
 
-WriteMRC(estimatedVol,1,'example1_shifted.mrc');
+WriteMRC(estimatedVol,1,'example1_no_shifts.mrc');
