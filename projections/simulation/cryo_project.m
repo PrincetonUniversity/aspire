@@ -74,8 +74,6 @@ if N>nv+1 % For compaibility with gen_projections, allow one pixel aliasing.
     assert(norm(imag(volume(:)))/norm(volume(:))<1.0e-5);
     nv=N; % The new volume size
 end
-prepdata=nufft_t_3d_prepare_2(volume,precision);
-
 
 K=size(q,2);
 projections=zeros(N,N,K);
@@ -97,9 +95,7 @@ parfor k=1:K
     P = I * n_x' + J * n_y';
     P= -2*pi*P/nv;
    
-    
-    %    projection_fourier = nufft_t_3d(volume,P,'single');
-    projection_fourier = nufft_t_3d_execute_2(P,prepdata);
+    projection_fourier = nufft3(volume, -P);
     
     if mod(n,2)==0
         projection_fourier = projection_fourier.*exp(1i.*sum(P,2)./2);
