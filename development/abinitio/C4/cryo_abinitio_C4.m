@@ -102,7 +102,7 @@ if ~max_shift_given
     max_shift = ceil(size(projs,1)*0.15); % max_shift is 15% of the image size
 end
 log_message('detecting common-lines');
-clmatrix = cryo_clmatrix_gpu(npf,nImages,1,max_shift,shift_step); 
+clmatrix = cryo_clmatrix(npf,nImages,1,max_shift,shift_step); 
 save(outparams,'clmatrix','max_shift','shift_step','-append');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 3  : detect self-common-lines in each image
@@ -141,22 +141,7 @@ save(outparams,'vis','-append');
 rots = estimate_inplane_rotations2(npf,vis,0.25,max_shift,shift_step);
 save(outparams,'rots','-append');
 
-%% TODO : add this code
-% 
-% pixA = 3.49;
-% 
-% vol1 = ReadMRC('ip3_nn_30_group1_randims.mrc');
-% vol2 = ReadMRC('ip3_nn_30_group2_randims.mrc');
-% 
-% [Rest,estdx,vol2aligned] = cryo_align_densities(vol1,vol2,0,1,[],0,50);
-% 
-% plotFSC(vol1,vol2aligned,0.143,pixA);
-% 
-% 
-% [h1,h2]=cryo_plot_viewing_directions(rot_alligned);
-% [h1,h2]=cryo_plot_viewing_directions(rots2);
-%
-estimatedVol = reconstruct_vol(projs,npf,rots);   
+estimatedVol = reconstruct(projs,rots,n_r,n_theta,max_shift,shift_step);   
 WriteMRC(estimatedVol,1,outvol);
 % 
 % 
