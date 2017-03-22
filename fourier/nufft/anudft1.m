@@ -1,7 +1,7 @@
 % ANUDFT1 Adjoint non-uniform discrete Fourier transform (1D)
 %
 % Usage
-%    sig = anudft1(sig_f, fourier_pts);
+%    sig = anudft1(sig_f, fourier_pts, sz);
 %
 % Input
 %    sig_f: An Fourier transform calculated at the frequencies specified
@@ -9,6 +9,7 @@
 %    fourier_pts: The frequencies in Fourier space at which the adjoint Fourier
 %       transform is to be calculated. These are in the form of a vector of
 %       length K with values in the range [-pi, pi].
+%    sz: The desired size of the output signal.
 %
 % Output
 %    sig: The adjoint Fourier transform of sig_f at frequencies fourier_pts.

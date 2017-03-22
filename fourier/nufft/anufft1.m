@@ -9,6 +9,7 @@
 %    fourier_pts: The frequencies in Fourier space at which the adjoint Fourier
 %       transform is to be calculated. These are in the form of a vector of
 %       length K with values in the range [-pi, pi].
+%    sz: The desired size of the output signal.
 %
 % Output
 %    sig: The adjoint Fourier transform of sig_f at frequencies fourier_pts.

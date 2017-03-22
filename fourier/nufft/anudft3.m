@@ -1,7 +1,7 @@
 % ANUDFT3 Adjoint non-uniform discrete Fourier transform (3D)
 %
 % Usage
-%    vol = anudft3(vol_f, fourier_pts);
+%    vol = anudft3(vol_f, fourier_pts, sz);
 %
 % Input
 %    vol_f: A volume Fourier transform calculated at the frequencies specified
@@ -9,6 +9,7 @@
 %    fourier_pts: The frequencies in Fourier space at which the adjoint Fourier
 %       transform is to be calculated. These are arranged as a K-by-3 array,
 %       with values in the range [-pi, pi].
+%    sz: The desired size of the output volume.
 %
 % Output
 %    vol: The adjoint Fourier transform of vol_f at frequencies fourier_pts.
