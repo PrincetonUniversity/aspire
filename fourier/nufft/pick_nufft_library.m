@@ -25,7 +25,7 @@ function lib_code = pick_nufft_library(sz)
 		sz = sz(1);
 	end
 
-	if ~all(mod(sz, 2)==0)
+	if ~all(mod(sz, 2)==0) || any(sz<10)
 		lib_codes(lib_codes==3) = [];
 	end
 
