@@ -45,7 +45,7 @@ n_proj = size(p, 3);
 pf=zeros(M, n_proj);
 
 for i = 1:n_proj
-    pf(:,i)=nufft2(p(:,:,i),permute(-freqs,[2 1])*2*pi);	
+    pf(:,i)=nufft2(p(:,:,i),-freqs*2*pi);
 end;
 
 pf = reshape(pf, n_r, n_theta, n_proj);
