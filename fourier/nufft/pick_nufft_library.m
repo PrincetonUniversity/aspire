@@ -34,4 +34,10 @@ function lib_code = pick_nufft_library(sz)
 	end
 
 	lib_code = lib_codes(1);
+
+	if lib_code == 1
+		warning(['Using naive DFT implementation for non-uniform discrete ' ...
+			'Fourier transform. Please install an NUFFT library by running ' ...
+			'''install_cims_nufft'' or ''install_chemnitz_nfft''.']);
+	end
 end
