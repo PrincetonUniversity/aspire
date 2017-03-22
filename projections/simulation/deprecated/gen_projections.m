@@ -211,7 +211,6 @@ if (precomp==0)
     J=J(:);
 %    projections = zeros(2*N-1,2*N-1,K);
     projections = zeros(N,N,K);
-    prepdata=nufft_t_3d_prepare_2(volume,'single');
 
     % Go concurrent
     poolreopen; 
@@ -220,7 +219,7 @@ if (precomp==0)
         P = I * n_x(:,k)' + J * n_y(:,k)';
         P= -2*pi*P/(n+1);
         
-        projection_fourier = nufft_t_3d_execute_2(P,prepdata);
+        projection_fourier = nufft3(volume, -P);
         projection_fourier = reshape(projection_fourier, N, N);
 
         % zero pad for upsampling
