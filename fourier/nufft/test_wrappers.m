@@ -1,6 +1,8 @@
 N = 10;
 M = 87;
 
+old_libs = get_nufft_libraries();
+
 fprintf('Testing NUFFT wrappers\n');
 
 fprintf('N = %d, M = %d\n', N, M);
@@ -206,4 +208,4 @@ fprintf('%-40s%15g\n', 'error anufft1 ''chemnitz'':', err1_a1d);
 fprintf('%-40s%15g\n', 'error anufft1 ''cims'':', err2_a1d);
 fprintf('%-40s%15g\n', 'error anufft1 ''dft'':', err3_a1d);
 
-
+set_nufft_libraries(old_libs);
