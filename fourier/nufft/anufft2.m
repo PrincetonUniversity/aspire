@@ -19,6 +19,10 @@
 %    anudft2
 
 function im = anufft2(im_f, fourier_pts, sz)
+	if numel(sz) ~= 2
+		error('Input ''sz'' must have two elements.');
+	end
+
 	p = nufft_initialize(sz, size(fourier_pts, 1));
 
 	p = nufft_set_points(p, fourier_pts);

@@ -13,6 +13,16 @@
 function sig_f = nufft_transform(plan, sig)
 	dims = numel(plan.sz);
 
+	sig_sz = size(sig);
+
+	if sig_sz(2) == 1
+		sig_sz = sig_sz(1);
+	end
+
+	if ~all(sig_sz==plan.sz)
+		error('Input ''sig'' must be of size plan.sz.');
+	end
+
 	precision = class(sig);
 
 	if plan.lib_code == 1

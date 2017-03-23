@@ -18,6 +18,14 @@
 %    anudft1
 
 function sig = anufft1(sig_f, fourier_pts, sz)
+	if numel(sz) == 2 && sz(2) == 1
+		sz = sz(1);
+	end
+
+	if numel(sz) ~= 1
+		error('Input ''sz'' must be a scalar.');
+	end
+
 	p = nufft_initialize(sz, size(fourier_pts, 1));
 
 	p = nufft_set_points(p, fourier_pts);

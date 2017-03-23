@@ -11,6 +11,12 @@
 %       sion.
 
 function plan = nufft_set_points(plan, fourier_pts)
+	dims = numel(plan.sz);
+
+	if ~all(size(fourier_pts)==[plan.num_pts dims])
+		error('Frequencies ''fourier_pts'' array must be of the size N-by-d.');
+	end
+
 	plan.fourier_pts = fourier_pts;
 
 	if plan.lib_code == 3

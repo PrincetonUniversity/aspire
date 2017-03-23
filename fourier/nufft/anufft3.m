@@ -19,6 +19,10 @@
 %    anudft3
 
 function vol = anufft3(vol_f, fourier_pts, sz)
+	if numel(sz) ~= 3
+		error('Input ''sz'' must have three elements.');
+	end
+
 	p = nufft_initialize(sz, size(fourier_pts, 1));
 
 	p = nufft_set_points(p, fourier_pts);
