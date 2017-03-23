@@ -3,6 +3,9 @@ M = 87;
 
 old_libs = get_nufft_libraries();
 
+nudft_warning = warning('query', 'aspire:using-nudft');
+warning('off', nudft_warning.identifier);
+
 fprintf('Testing NUFFT wrappers\n');
 
 fprintf('N = %d, M = %d\n', N, M);
@@ -209,3 +212,4 @@ fprintf('%-40s%15g\n', 'error anufft1 ''cims'':', err2_a1d);
 fprintf('%-40s%15g\n', 'error anufft1 ''dft'':', err3_a1d);
 
 set_nufft_libraries(old_libs);
+warning(nudft_warning.state, nudft_warning.identifier);
