@@ -81,7 +81,7 @@ core_length=ceil(total_length/ps);
 parfor core=1:ps
     core_ind= ((core-1)*core_length+1):min(core*core_length,total_length);
     core_ind=core_ind(:);
-    v_b_temp = anufft3(pfs(core_ind), omega(core_ind,:), Nd);
+    v_b_temp = anufft3(pfs(core_ind), omega(core_ind,:)', Nd);
     v_b=v_b+v_b_temp;
     kernel_temp=zeros(n*2,n*2,n*2);
     if precomp==0
@@ -95,7 +95,7 @@ parfor core=1:ps
                 shift = -shift+n_shift;
                 kernel_temp(idx1,idx2,idx3) = anufft3( ...
                     exp(1i*(omega(core_ind,:)*shift(:))), ...
-                    omega(core_ind,:), Nd);
+                    omega(core_ind,:)', Nd);
             end
         end
         kernel=kernel+kernel_temp;
