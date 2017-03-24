@@ -4,10 +4,10 @@
 %    vol = anufft3(vol_f, fourier_pts, sz);
 %
 % Input
-%    vol_f: An array containing the Fourier transform of a volume at certain
-%       points.
+%    vol_f: An array containing the Fourier transform of a volume at K
+%       frequencies.
 %    fourier_pts: The points in Fourier space where the Fourier transform is to
-%       be calculated, arranged as an N-by-3 array. These need to be in the
+%       be calculated, arranged as a K-by-3 array. These need to be in the
 %       range [-pi, pi] in each dimension.
 %    sz: The size of the resulting volume.
 %
@@ -23,7 +23,7 @@ function vol = anufft3(vol_f, fourier_pts, sz)
 		error('Input ''sz'' must have three elements.');
 	end
 
-	p = nufft_initialize(sz, size(fourier_pts, 1));
+	p = nufft_initialize(sz, size(fourier_pts, 2));
 
 	p = nufft_set_points(p, fourier_pts);
 

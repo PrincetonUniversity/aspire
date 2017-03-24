@@ -4,10 +4,10 @@
 %    im = anufft2(im_f, fourier_pts, sz);
 %
 % Input
-%    im_f: An array containing the Fourier transform of an image at certain
-%       points.
+%    im_f: An array containing the Fourier transform of an image at K
+%       frequencies.
 %    fourier_pts: The points in Fourier space where the Fourier transform is to
-%       be calculated, arranged as an N-by-2 array. These need to be in the
+%       be calculated, arranged as a 2-by-K array. These need to be in the
 %       range [-pi, pi] in each dimension.
 %    sz: The size of the resulting image.
 %
@@ -23,7 +23,7 @@ function im = anufft2(im_f, fourier_pts, sz)
 		error('Input ''sz'' must have two elements.');
 	end
 
-	p = nufft_initialize(sz, size(fourier_pts, 1));
+	p = nufft_initialize(sz, size(fourier_pts, 2));
 
 	p = nufft_set_points(p, fourier_pts);
 

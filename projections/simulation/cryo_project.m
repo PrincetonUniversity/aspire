@@ -95,7 +95,7 @@ parfor k=1:K
     P = I * n_x' + J * n_y';
     P= -2*pi*P/nv;
    
-    projection_fourier = nufft3(volume, -P);
+    projection_fourier = nufft3(volume, -P');
     
     if mod(n,2)==0
         projection_fourier = projection_fourier.*exp(1i.*sum(P,2)./2);

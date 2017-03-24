@@ -6,7 +6,7 @@
 % Input
 %    vol: An N-by-N-by-N array containing the voxel structure of a volume.
 %    fourier_pts: The points in Fourier space where the Fourier transform is to
-%       be calculated, arranged as an N-by-3 array. These need to be in the
+%       be calculated, arranged as a 3-by-K array. These need to be in the
 %       range [-pi, pi] in each dimension.
 %
 % Output
@@ -16,7 +16,7 @@
 %    nudft3
 
 function vol_f = nufft3(vol, fourier_pts)
-	p = nufft_initialize(size(vol), size(fourier_pts, 1));
+	p = nufft_initialize(size(vol), size(fourier_pts, 2));
 
 	p = nufft_set_points(p, fourier_pts);
 
