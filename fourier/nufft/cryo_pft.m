@@ -70,6 +70,6 @@ poolreopen;
 pf=zeros(n_r,n_theta,n_proj);
 parfor k=1:n_proj
     tmp=p(:,:,k);
-    tmp = nufft2(tmp, -freqs);
+    tmp = nufft2(tmp, -freqs');
     pf(:,:,k)=reshape(tmp,n_r,n_theta);   
 end
