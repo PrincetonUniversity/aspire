@@ -66,7 +66,7 @@ end
 % precomputed interpolation weights once for the give polar grid. This is
 % used below for computing the polar Fourier transform of all slices
 
-pf=zeros(n_r,n_theta,n_proj);
+pf=zeros([n_r,n_theta,n_proj],class(p));
 parfor k=1:n_proj
     tmp=p(:,:,k);
     tmp = nufft2(tmp, -freqs');
