@@ -1,5 +1,5 @@
 function [shifts, corr, averages, norm_variance] = align_main_inmem( ...
-    images, angle, class_VDM, refl, FBsPCA_data, k, max_shifts, list_recon)
+    images, angle, class_VDM, refl, FBsPCA_data, k, max_shifts, list_recon, recon_sPCA)
 
 % Function for aligning images with its k nearest neighbors to generate
 % class averages. Wrapper for the align_main function providing in-memory
@@ -18,6 +18,7 @@ function [shifts, corr, averages, norm_variance] = align_main_inmem( ...
 %       k: number of nearest neighbors for class averages
 %       max_shifts: maximum number of pixels to check for shift
 %       list_recon: indices for images to compute class averages
+%       recon_sPCA: reconstructed images after sPCA step
 %   Output:
 %       shifts: Pxk matrix. Relative shifts for k nearest neighbors
 %       corr: Pxk matrix. Normalized cross correlation of each image with
@@ -34,7 +35,7 @@ function [shifts, corr, averages, norm_variance] = align_main_inmem( ...
     mkdir(tmpdir);
 
     [shifts, corr, ave_filename, norm_variance] = align_main(data, angle, ...
-        class_VDM, refl, FBsPCA_data, k, max_shifts, list_recon, tmpdir);
+        class_VDM, refl, FBsPCA_data, k, max_shifts, list_recon, recon_sPCA, tmpdir);
 
     averages = ReadMRC(ave_filename);
 
