@@ -219,7 +219,7 @@ if (precomp==0)
         P = I * n_x(:,k)' + J * n_y(:,k)';
         P= -2*pi*P/(n+1);
         
-        projection_fourier = nufft3(volume, -P);
+        projection_fourier = nufft3(volume, -P');
         projection_fourier = reshape(projection_fourier, N, N);
 
         % zero pad for upsampling

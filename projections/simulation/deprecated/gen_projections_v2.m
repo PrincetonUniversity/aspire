@@ -223,7 +223,7 @@ if (precomp==0)
         P= -2*pi*P/(n);
 
         
-        projection_fourier = nufft3(volume, -P);
+        projection_fourier = nufft3(volume, -P');
         projection_fourier = reshape(projection_fourier, N, N);
 
         % zero pad for upsampling

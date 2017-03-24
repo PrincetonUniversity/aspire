@@ -1,12 +1,17 @@
 N = 10;
 M = 87;
 
+old_libs = get_nufft_libraries();
+
+nudft_warning = warning('query', 'aspire:using-nudft');
+warning('off', nudft_warning.identifier);
+
 fprintf('Testing NUFFT wrappers\n');
 
 fprintf('N = %d, M = %d\n', N, M);
 
 vol = randn(N*ones(1, 3))+i*randn(N*ones(1, 3));
-fourier_pts = 2*pi*(rand(M, 3)-0.5);
+fourier_pts = 2*pi*(rand(3, M)-0.5);
 
 set_nufft_libraries('chemnitz');
 tt = tic;
@@ -73,7 +78,7 @@ fprintf('%-40s%15g\n', 'error anufft3 ''cims'':', err2_a3d);
 fprintf('%-40s%15g\n', 'error anufft3 ''dft'':', err3_a3d);
 
 im = randn(N*ones(1, 2))+i*randn(N*ones(1, 2));
-fourier_pts = 2*pi*(rand(M, 2)-0.5);
+fourier_pts = 2*pi*(rand(2, M)-0.5);
 
 set_nufft_libraries('chemnitz');
 tt = tic;
@@ -140,7 +145,7 @@ fprintf('%-40s%15g\n', 'error anufft2 ''cims'':', err2_a2d);
 fprintf('%-40s%15g\n', 'error anufft2 ''dft'':', err3_a2d);
 
 sig = randn(N, 1)+i*randn(N, 1);
-fourier_pts = 2*pi*(rand(M, 1)-0.5);
+fourier_pts = 2*pi*(rand(1, M)-0.5);
 
 set_nufft_libraries('chemnitz');
 tt = tic;
@@ -206,4 +211,5 @@ fprintf('%-40s%15g\n', 'error anufft1 ''chemnitz'':', err1_a1d);
 fprintf('%-40s%15g\n', 'error anufft1 ''cims'':', err2_a1d);
 fprintf('%-40s%15g\n', 'error anufft1 ''dft'':', err3_a1d);
 
-
+set_nufft_libraries(old_libs);
+warning(nudft_warning.state, nudft_warning.identifier);
