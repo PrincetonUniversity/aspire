@@ -40,6 +40,9 @@ if ~exist('Nprojs','var')
     Nprojs=100;  % Number of projections to use for alignment.
 end
 
+%% Set verbose logging state
+logstate=log_silent(~verbose);
+
 %% Validate input
 % Input volumes must be 3-dimensional, where all dimensions must be equal.
 % This restriction can be remove, but then, the calculation of nr (radial
@@ -105,7 +108,8 @@ projs2=permute(projs2,[2,1,3]);
 
 % Estimate rotations of the projections of volume 2.
 log_message('Aligning volumes.')
-[Rests,dxests]=cryo_orient_projections_gpu(projs2,vol1masked,Nprojs,[],verbose,0);
+%[Rests,dxests]=cryo_orient_projections_gpu(projs2,vol1masked,Nprojs,[],verbose,0);
+[Rests,dxests]=cryo_orient_projections(projs2,vol1masked,Nprojs,[],verbose,0);
 
 % Assess quality of the alignment. Use Rests and trueRs to estimate the
 % matrix aligning the two volumes. The close this matrix to an orthogonal
@@ -279,3 +283,6 @@ if refgiven
     gamma_ref_degrees=gamma_ref*180/pi;
     log_message('\t Reference \t %5.3f degrees',gamma_ref_degrees);
 end
+
+%% Restore log state
+log_silent(logstate);

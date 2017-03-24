@@ -52,7 +52,8 @@ end
 % time since last message was more than a second. Otherwise use the old
 % prefix string.
 current_time=clock;
-if etime(current_time,log_last_prefix_time)>1
+timediff=etime(current_time,log_last_prefix_time);
+if timediff>1
     log_prefix=datestr(clock);
     log_last_prefix_time=current_time;
 end
@@ -62,7 +63,9 @@ if ~isempty(str) % '' stand for "print newline without a timestamp".
     msg=[log_prefix ' ' str newline];
 end
 
-if log_current_line>log_max_lines
+if (log_current_line>log_max_lines) || (timediff>30)
+    % Flush if cache full or last message was written more than 30 seconds
+    % ago. Change in the future to flush log at least every 30 seconds.
     log_flush;
 end
 

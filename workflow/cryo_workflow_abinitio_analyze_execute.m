@@ -50,7 +50,7 @@ for groupid=2:numgroups
 
     % Plot FSC
     [resA,h]=plotFSC(vol1,vol2aligned,0.143,pixA);
-    log_message('FSC resolution of group 1 and group %d is %d Angstroms',...
+    log_message('FSC resolution of group 1 and group %d is %5.2f Angstroms',...
         groupid,resA);
     
     fscFIGname=fullfile(workflow.info.working_dir,...
@@ -63,46 +63,46 @@ for groupid=2:numgroups
     
 end
 
-%% Align volumes reconstructed from phaseflipped raw projections
-log_message('Align volumes reconstructed from raw projections');
-
-% Load first volume
-vol1fname=sprintf('vol_raw_nn%d_nm%d_group%d.mrc',nnavg,nmeans,1);
-vol1fname=fullfile(workflow.info.working_dir,vol1fname);
-log_message('Loading %s',vol1fname);
-vol1=ReadMRC(vol1fname);
-
-% Align all remainging volumes agains the first.
-for groupid=2:numgroups
-    % Load second volume
-    vol2fname=sprintf('vol_raw_nn%d_nm%d_group%d.mrc',nnavg,nmeans,groupid);   
-    vol2fname=fullfile(workflow.info.working_dir,vol2fname);
-    log_message('Loading %s',vol2fname);
-    vol2=ReadMRC(vol2fname);
-    
-    % Align vol1 and vol2 
-    [~,~,vol2aligned]=cryo_align_densities(vol1,vol2,pixA,1);
-
-    % Save aligned volume
-    vol2fname=sprintf('vol_raw_nn%d_nm%d_group%d_aligned.mrc',nnavg,nmeans,groupid);
-    vol2fname=fullfile(workflow.info.working_dir,vol2fname);
-    WriteMRC(vol2aligned,1,vol2fname);
-
-    % Plot FSC
-    [resA,h]=plotFSC(vol1,vol2aligned,0.143,pixA);
-    log_message('FSC resolution of group 1 and group %d is %d Angstroms',...
-        groupid,resA);
-    
-    fscFIGname=fullfile(workflow.info.working_dir,...
-        sprintf('fsc_raw_nn%d_nm_%d_group1to%d.fig',nnavg,nmeans,groupid));
-    fscEPSname=fullfile(workflow.info.working_dir,...
-        sprintf('fsc_raw_nn%d_nm_%d_group1to%d.eps',nnavg,nmeans,groupid));
-    hgsave(fscFIGname);
-    print('-depsc',fscEPSname);
-    close(h);
-    
-end
-
+% %% Align volumes reconstructed from phaseflipped raw projections
+% log_message('Align volumes reconstructed from raw projections');
+% 
+% % Load first volume
+% vol1fname=sprintf('vol_raw_nn%d_nm%d_group%d.mrc',nnavg,nmeans,1);
+% vol1fname=fullfile(workflow.info.working_dir,vol1fname);
+% log_message('Loading %s',vol1fname);
+% vol1=ReadMRC(vol1fname);
+% 
+% % Align all remainging volumes agains the first.
+% for groupid=2:numgroups
+%     % Load second volume
+%     vol2fname=sprintf('vol_raw_nn%d_nm%d_group%d.mrc',nnavg,nmeans,groupid);   
+%     vol2fname=fullfile(workflow.info.working_dir,vol2fname);
+%     log_message('Loading %s',vol2fname);
+%     vol2=ReadMRC(vol2fname);
+%     
+%     % Align vol1 and vol2 
+%     [~,~,vol2aligned]=cryo_align_densities(vol1,vol2,pixA,1);
+% 
+%     % Save aligned volume
+%     vol2fname=sprintf('vol_raw_nn%d_nm%d_group%d_aligned.mrc',nnavg,nmeans,groupid);
+%     vol2fname=fullfile(workflow.info.working_dir,vol2fname);
+%     WriteMRC(vol2aligned,1,vol2fname);
+% 
+%     % Plot FSC
+%     [resA,h]=plotFSC(vol1,vol2aligned,0.143,pixA);
+%     log_message('FSC resolution of group 1 and group %d is %5.2f Angstroms',...
+%         groupid,resA);
+%     
+%     fscFIGname=fullfile(workflow.info.working_dir,...
+%         sprintf('fsc_raw_nn%d_nm_%d_group1to%d.fig',nnavg,nmeans,groupid));
+%     fscEPSname=fullfile(workflow.info.working_dir,...
+%         sprintf('fsc_raw_nn%d_nm_%d_group1to%d.eps',nnavg,nmeans,groupid));
+%     hgsave(fscFIGname);
+%     print('-depsc',fscEPSname);
+%     close(h);
+%     
+% end
+% 
 % %% Align CTF corrected volumes
 % 
 % % Load first volume
@@ -133,7 +133,7 @@ end
 %         
 %         % Plot FSC
 %         [resA,h]=plotFSC(vol1,vol2aligned,0.143,pixA);
-%         log_message('FSC resolution of group 1 and group %d is %d Angstroms',...
+%         log_message('FSC resolution of group 1 and group %d is %5.2f Angstroms',...
 %             groupid,resA);
 %         
 %         fscFIGname=fullfile(workflow.info.working_dir,...
@@ -149,16 +149,27 @@ end
 %% Plot viewing directions
 log_message('Plot viewing directions');
 
-for groupid=2:numgroups
+for groupid=1:numgroups
     matname=sprintf('abinitio_info_nn%d_nm%d_group%d',nnavg,nmeans,groupid);
     matname=fullfile(workflow.info.working_dir,matname);
     s=load(matname,'rotations');
-    [~,h2]=cryo_plot_viewing_directions(s.rotations);
+    [h1,h2]=cryo_plot_viewing_directions(s.rotations);
+    
+    
+    figure(h1);
+    rotFIGname=fullfile(workflow.info.working_dir,...
+        sprintf('rotations_nn%d_nm_%d_group%d_polar.fig',nnavg,nmeans,groupid));
+    rotEPSname=fullfile(workflow.info.working_dir,...
+        sprintf('rotations_nn%d_nm_%d_group%d_polar.eps',nnavg,nmeans,groupid));
+    hgsave(rotFIGname);
+    print('-depsc',rotEPSname);
+    close(h1);
+    
     figure(h2);
     rotFIGname=fullfile(workflow.info.working_dir,...
-        sprintf('rotations_nn%d_nm_%d_group1to%d.fig',nnavg,nmeans,groupid));
+        sprintf('rotations_nn%d_nm_%d_group%d_S2.fig',nnavg,nmeans,groupid));
     rotEPSname=fullfile(workflow.info.working_dir,...
-        sprintf('rotations_nn%d_nm_%d_group1to%d.eps',nnavg,nmeans,groupid));
+        sprintf('rotations_nn%d_nm_%d_group%d_S2.eps',nnavg,nmeans,groupid));
     hgsave(rotFIGname);
     print('-depsc',rotEPSname);
     close(h2);

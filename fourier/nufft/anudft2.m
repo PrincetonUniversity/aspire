@@ -1,7 +1,7 @@
 % ANUDFT2 Adjoint non-uniform discrete Fourier transform (2D)
 %
 % Usage
-%    im = anudft2(im_f, fourier_pts);
+%    im = anudft2(im_f, fourier_pts, sz);
 %
 % Input
 %    im_f: An image Fourier transform calculated at the frequencies specified
@@ -9,6 +9,7 @@
 %    fourier_pts: The frequencies in Fourier space at which the adjoint Fourier
 %       transform is to be calculated. These are arranged as a 2-by-K array,
 %       with values in the range [-pi, pi].
+%    sz: The desired size of the output image.
 %
 % Output
 %    im: The adjoint Fourier transform of im_f at frequencies fourier_pts.

@@ -72,7 +72,9 @@ function install_fftw(url, location)
 
 	fftw_dir = fileparts(unzipped_files{1});
 	ind = find(fftw_dir=='/', 1);
-	fftw_dir = fftw_dir(1:ind-1);
+	if ~isempty(ind)
+		fftw_dir = fftw_dir(1:ind-1);
+	end
 
 	fftw_root = fullfile(fileparts(filepath), fftw_dir);
 
@@ -80,7 +82,7 @@ function install_fftw(url, location)
 
 	status = system(['./configure ' ...
 	                 '--prefix=' fullfile(location, 'fftw3') ' ' ...
-	                 '--enable-openmp --enable-shared']);
+	                 '--enable-openmp --enable-shared --enable-threads']);
 	if status ~= 0
 		error('''configure'' failed');
 	end

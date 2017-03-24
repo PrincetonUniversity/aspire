@@ -142,6 +142,7 @@ end
 % Generate candidate rotations. The rotation corresponding to the given
 % projection will be searched month these rotatios.
 candidate_rots=genRotationsGrid(75);
+%candidate_rots=genRotationsGrid(50);
 %candidate_rots(:,:,1)=Rref;
 Nrots=size(candidate_rots,3);
 
@@ -152,7 +153,7 @@ log_message('Using %d candidate rotations.',Nrots);
 
 log_message('Loading precomputed tables.');
 %Ctbldir=fileparts(mfilename('fullpath'));
-Ctbldir=tempdir;
+Ctbldir=tempmrcdir;
 Ctblfname=fullfile(Ctbldir,'cryo_orient_projections_tables_gpu.mat');
 skipprecomp=0;
 if exist(Ctblfname,'file')

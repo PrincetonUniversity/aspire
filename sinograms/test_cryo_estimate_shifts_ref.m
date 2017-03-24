@@ -2,7 +2,7 @@
 %
 % The verifies the the shift_equations generated bby
 % cryo_estimate_shifts_ref as well as its estimated shifts are precisely
-% those estimated from cryo_clmatrix_gpu.
+% those estimated from cryo_clmatrix.
 %
 % This test code also shows how to compute rotations from quaternions, and
 % how to compute a reference common lines matrix.
@@ -35,7 +35,7 @@ clstack_ref=clmatrix_cheat_q(refq,n_theta);
 % Search for common lines in the presence of shifts
 open_log(0);
 [clstack,corrstack,shift_equations,shift_equations_map,clstack_mask]=...
-    cryo_clmatrix_gpu(pf,nprojs,1,ceil(2*sqrt(2)*max_shift),shift_step);
+    cryo_clmatrix(pf,nprojs,1,ceil(2*sqrt(2)*max_shift),shift_step);
 
 % Print the percentage of correctly detected commonlines. Shoule be very
 % close to 100%.
@@ -52,7 +52,7 @@ fprintf('MSE of the estimated rotations: %f\n\n',mse); %Show be close to zero.
 % The printed MSE should be exactly as the one two lines above.
 fprintf('MSE between reference and registered estimated rotations: %f\n\n',mse);
 
-%% Estimate shifts from equations computed by cryo_clmatrix_gpu
+%% Estimate shifts from equations computed by cryo_clmatrix
 est_shifts=shift_equations(:,1:end-1)\shift_equations(:,end);
 est_shifts=transpose(reshape(est_shifts,2,nprojs));
 

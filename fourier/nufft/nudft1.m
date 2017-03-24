@@ -6,8 +6,8 @@
 % Input
 %    sig: A vector of length containing a signal.
 %    fourier_pts: The frequencies in Fourier space at which the Fourier trans-
-%       form is to be calculated. These are arranged as a vector of length K,
-%       with values in the range [-pi, pi].
+%       form is to be calculated. These are arranged as a vector of size
+%       1-by-K with values in the range [-pi, pi].
 %
 % Output
 %    sig_f: The Fourier transform of sig calculated at the specified freq-
@@ -24,6 +24,6 @@ function sig_f = nudft1(sig, fourier_pts)
 	grid = ceil([-N/2:N/2-1]);
 
 	for k = 1:size(fourier_pts, 2)
-		sig_f(k) = exp(-i*(fourier_pts(:,k)'*grid))*sig(:);
+		sig_f(k) = exp(-i*(fourier_pts(k)*grid))*sig(:);
 	end
 end

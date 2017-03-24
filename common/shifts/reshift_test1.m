@@ -32,7 +32,7 @@ n_r=100;
 [pf,sampling_freqs]=cryo_pft(projs,n_r,L,'single');  % take Fourier transform of projections   
 
 open_log(0);
-[clmatrix,clcorr,shift_equations,shift_equations_map]=cryo_clmatrix_gpu(pf,K,1,16,1);
+[clmatrix,clcorr,shift_equations,shift_equations_map]=cryo_clmatrix(pf,K,1,16,1);
 
 map2=zeros(K);
 idx=1;

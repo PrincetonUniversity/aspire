@@ -19,8 +19,8 @@ traversedirrectorytree(aspirePath,@runmakemex);
 cd(fullfile(aspirePath,'extern','SDPLR-1.03-beta'));
 mexinstall;
 
-cd(fullfile(aspirePath,'extern','cvx'));
-cvx_setup;
+% cd(fullfile(aspirePath,'extern','cvx'));
+% cvx_setup;
 
 
 cd(currPath);

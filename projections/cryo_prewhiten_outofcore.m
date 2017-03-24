@@ -50,7 +50,7 @@ fnz=filter(nzidx);
 
 outstack=imagestackWriter(outstackname,1,n);
 
-fprintf('Whitening...\n');
+%fprintf('Whitening...\n');
 printProgressBarHeader;
 for i=1:n
     progressTic(i,n);

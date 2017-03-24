@@ -80,16 +80,16 @@ fprintf('Max shift error in integral pixels (in each coordinate) = (%d,%d)\n',..
 
 % Check precomputed tables
 % Compare refernce and CPU tables
-tables_ref=load(fullfile(tempdir,'cryo_orient_projections_tables_ref.mat'));
-tables_cpu=load(fullfile(tempdir,'cryo_orient_projections_tables_cpu.mat'));
+tables_ref=load(fullfile(tempmrcdir,'cryo_orient_projections_tables_ref.mat'));
+tables_cpu=load(fullfile(tempmrcdir,'cryo_orient_projections_tables_cpu.mat'));
 assert(all(tables_ref.Cjk(:)==tables_cpu.Cjk(:)));
 assert(all(tables_ref.Ckj(:)==tables_cpu.Ckj(:)));
 assert(all(tables_ref.Mkj(:)==tables_cpu.Mkj(:)));
 assert(all(tables_ref.qrefs(:)==tables_cpu.qrefs(:)));
 
 % Compare refernce and GPU tables
-tables_ref=load(fullfile(tempdir,'cryo_orient_projections_tables_ref.mat'));
-tables_gpu=load(fullfile(tempdir,'cryo_orient_projections_tables_gpu.mat'));
+tables_ref=load(fullfile(tempmrcdir,'cryo_orient_projections_tables_ref.mat'));
+tables_gpu=load(fullfile(tempmrcdir,'cryo_orient_projections_tables_gpu.mat'));
 assert(all(tables_ref.Cjk(:)==tables_gpu.Cjk(:)));
 assert(all(tables_ref.Ckj(:)==tables_gpu.Ckj(:)));
 assert(all(tables_ref.Mkj(:)==tables_gpu.Mkj(:)));

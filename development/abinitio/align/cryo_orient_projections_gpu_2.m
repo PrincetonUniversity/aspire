@@ -154,7 +154,7 @@ log_message('Using %d candidate rotations.',Nrots);
 
 log_message('Loading precomputed tables.');
 %Ctbldir=fileparts(mfilename('fullpath'));
-Ctbldir=tempdir;
+Ctbldir=tempmrcdir;
 Ctblfname=fullfile(Ctbldir,'cryo_orient_projections_tables_gpu.mat');
 skipprecomp=0;
 if exist(Ctblfname,'file')

@@ -36,7 +36,7 @@ mask(I<radius_of_mask) = -1;  % Create a mask.
 noise_idx = find(mask~=-1);   % Get points coordinate
 
 %% Estimate power spectrum.
-log_message('Measuring power spectrum from background pixels...');
+%log_message('Measuring power spectrum from background pixels...');
 [P,R, R2] = cryo_epsdS( projections,noise_idx,floor(p/3),verbose );
 P=real(P);
 end

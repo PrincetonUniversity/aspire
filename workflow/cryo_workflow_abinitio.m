@@ -34,16 +34,22 @@ available_nns=sort(unique(available_nns)); % Available nnavg values.
 % Convert available_nns into a cell array for use as input in
 % multichoice_question.
 cell_nn=cell(numel(available_nns),1);
-for k=1:numel(available_nns);
+for k=1:numel(available_nns)
     cell_nn{k}=num2str(available_nns(k));
 end
 message=sprintf('Averaging value (nnavg) to use ');
 nnavg=multichoice_question(message,cell_nn,available_nns,num2str(available_nns(end)));
 
+% Choose reconstruction algorithm
+message='Which abinitio reconstruction algorithm to use?';
+algo=multichoice_question(message,{'sync3N','sync2N','LUD'},[ 1, 2, 3],'sync3N');
+
+
 %% Update workflow struct
 
 workflow.abinitio.nmeans=nmeans; % Number of means to use to abinitio reconstruction.
 workflow.abinitio.nnavg=nnavg;   % nnavg to use to abinitio reconstruction.
+workflow.abinitio.algo=algo;
 
 tree=struct2xml(workflow);
 save(tree,workflow_fname); 

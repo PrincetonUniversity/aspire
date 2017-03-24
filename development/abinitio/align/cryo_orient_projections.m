@@ -25,7 +25,7 @@ if any(szvol-szvol(1))
 end
 
 if ~exist('verbose','var')
-    verbose=1;
+    verbose=0;
 end
 
 currentsilentmode=log_silent(verbose==0);
@@ -125,7 +125,7 @@ log_message('Using %d candidate rotations.',Nrots);
 
 log_message('Loading precomputed tables.');
 %Ctbldir=fileparts(mfilename('fullpath'));
-Ctbldir=tempdir;
+Ctbldir=tempmrcdir;
 Ctblfname=fullfile(Ctbldir,'cryo_orient_projections_tables_cpu.mat');
 skipprecomp=0;
 if exist(Ctblfname,'file')
@@ -159,6 +159,7 @@ else
 end
 
 if ~skipprecomp
+    tic;
     log_message('Precomputing and saving common line tables.');
     log_message('The tables would be used in future calls to the function.');
     log_message('Patience please...');
@@ -215,7 +216,7 @@ Rests=zeros(3,3,size(projs,3));
 dxs=zeros(2,size(projs,3));
 
 t_total=tic;
-for projidx=1:size(projs,3)
+parfor projidx=1:size(projs,3)
     log_message('Orienting projection %d/%d.',projidx,size(projs,3));   
     t_cpu=tic;
 

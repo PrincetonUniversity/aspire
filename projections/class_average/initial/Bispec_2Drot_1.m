@@ -15,13 +15,13 @@ function [ Coeff_b,  toc_bispec ] = Bispec_2Drot( Coeff, Freqs )
 %           Timing for bispectrum computation.
 %
 %   Zhizhen Zhao Aug 2013
-%   Updated April 2016
+%   Tejal Updated April 2016
 tic_bispec=tic;
 alpha=1/3; %modify the amplitude for each component.
 n_im = size(Coeff, 2);
 Coeff_norm=(abs(Coeff(Freqs~=0, :))).^(alpha);
 Coeff_norm=log(Coeff_norm + 1e-15);
-sprintf('Adding epsilon to zero coefficients before taking log, in Bispec_2Drot_1') % Tejal April 18, 16
+%Adding epsilon to zero coefficients before taking log, Tejal April 18, 16
 check=isinf(Coeff_norm);
 assert(max(check(:))~=1);
 clear check
