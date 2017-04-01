@@ -19,11 +19,17 @@ workflow=convert(tree);
 %% Execute classification
 open_log(fullfile(workflow.info.working_dir,workflow.info.logfile));
 
+log_message('Starting cryo_workflow_classify_execute');
+log_message('Loaded XML file %s (MD5: %s)',workflow_fname,MD5(workflow_fname));
+
 numgroups=str2double(workflow.preprocess.numgroups); 
 
 for groupid=1:numgroups
     % Read prewhitened projections
     fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrc',groupid);
+    
+    log_message('Loading %s (MD5: %s)',fname,MD5(fname));
+    
     fullfilename=fullfile(workflow.info.working_dir,fname);
     prewhitened_projs=ReadMRC(fullfilename);
     n=size(prewhitened_projs,1);
@@ -43,9 +49,11 @@ for groupid=1:numgroups
         str2double(workflow.classification.k_VDM_out));
     disp('Finished VDM classification...');
     
-    matname=fullfile(workflow.info.working_dir,sprintf('VDM_data_%d',groupid));
+    matname=fullfile(workflow.info.working_dir,sprintf('VDM_data_%d.mat',groupid));
     save(matname,'class','class_refl','rot','FBsPCA_data','class_VDM',...
         'class_VDM_refl','class_VDM_refl','VDM_angles');
+    
+    log_message('Saved %s (MD5: %s)',matname,MD5(matname));
 end
 
 log_message('Workflow file: %s',workflow_fname);

@@ -19,7 +19,10 @@ workflow=convert(tree);
 %% Execute preprocessing
 open_log(fullfile(workflow.info.working_dir,workflow.info.logfile));
 
-matname=fullfile(workflow.info.working_dir,'preprocess_info'); % mat file
+log_message('Starting cryo_workflow_preprocess_execute');
+log_message('Loaded XML file %s (MD5: %s)',workflow_fname,MD5(workflow_fname));
+
+matname=fullfile(workflow.info.working_dir,'preprocess_info.mat'); % mat file
     % to save intermediate data.
 
 % Load data
@@ -29,6 +32,8 @@ matname=fullfile(workflow.info.working_dir,'preprocess_info'); % mat file
 %szprojs=size(projs);
 
 % Create backup of the raw data
+log_message('Using raw data %s (MD5: %s)',...
+    workflow.info.rawdata,MD5(workflow.info.rawdata));
 log_message('Creating backup of raw data.');
 SRCname=tempmrcname; % SRC stands for "source".
 log_message('Copying raw data from %s to temporary file %s',workflow.info.rawdata,SRCname);
@@ -40,14 +45,16 @@ if szprojs(1)~=szprojs(2)
     error('Input projections must be square.')
 end
 
-
 % Phaseflip
 if str2double(workflow.preprocess.phaseflip)
     log_message('Start phaseflipping...')
     if ~exist(workflow.preprocess.ctfdata,'file')
         error('Cannot read STAR file %s',workflow.preprocess.ctfdata);
     end
-    log_message('Reading CTF data %s',workflow.preprocess.ctfdata);
+    log_message('Reading CTF data %s (MD5: %s)',...
+        workflow.preprocess.ctfdata,...
+        MD5(workflow.preprocess.ctfdata));
+    
     CTFdata=readSTAR(workflow.preprocess.ctfdata);
     %PFprojs=cryo_phaseflip(CTFdata,projs);
     PFfname=tempmrcname; %PF stands for phaseflipped
@@ -204,7 +211,8 @@ if doflip
 else
     log_message('No need to global phase flip. Phase of images not flipped');
 end
-log_message('Images copied (even if not globally phase flipped) to %s',PFCDNWGfname);
+log_message('Images copied (even if not globally phase flipped) to %s (MD5: %s)'...
+    ,PFCDNWGfname,MD5(PFCDNWGfname));
 log_message('Finished global phaseflip...')
 
 delete(PFCDNWfname);
@@ -247,18 +255,21 @@ for groupid=1:numgroups
         proj=PFCDNWGReader.getImage(shuffleidx((groupid-1)*K2+k));
         groupstack.append(proj);
     end
-    groupstack.close;
+    groupstack.close;    
+    log_message('Saved group %d into file %s (MD5: %s)',...
+        groupid,fullfilename,MD5(fullfilename));
     
     % Write indices of the raw images in this group
     fname=sprintf('raw_indices_group%d.dat',groupid);
-    fullfilename=fullfile(workflow.info.working_dir,fname);
-    log_message('Indices of raw images in group %d are saved to %s',groupid,fullfilename);
+    fullfilename=fullfile(workflow.info.working_dir,fname);    
     fid=fopen(fullfilename,'w');
     if fid<0
         error('Failed to open %s',fullfilename);
     end
     fprintf(fid,'%d\n',shuffleidx((groupid-1)*K2+1:groupid*K2));
     fclose(fid);
+    log_message('Indices of raw images in group %d are saved to %s (MD5: %s)'...
+        ,groupid,fullfilename,MD5(fullfilename));
     
     
     % Generate CTF data for the downsampled images in STAR format.
@@ -368,6 +379,8 @@ delete(PFCDNWGfname);
 
 log_message('Finished splitting to groups');
 %clear prewhitened_projs
+
+log_message('Data save into MAT file %s (MD5: %s)',matname,MD5(matname));
 
 log_message('Workflow file: %s',workflow_fname);
 log_message('Use this file name when calling subsequent funtions.');

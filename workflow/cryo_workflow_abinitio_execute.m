@@ -20,6 +20,9 @@ workflow=convert(tree);
 
 open_log(fullfile(workflow.info.working_dir,workflow.info.logfile));
 
+log_message('Starting cryo_workflow_abinitio_execute');
+log_message('Loaded XML file %s (MD5: %s)',workflow_fname,MD5(workflow_fname));
+
 numgroups=str2double(workflow.preprocess.numgroups);
 nmeans=str2double(workflow.abinitio.nmeans);
 nnavg=str2double(workflow.abinitio.nnavg);
@@ -32,12 +35,15 @@ else
 end
 
 for groupid=1:numgroups
-    reloadname=sprintf('averages_info_nn%02d_group%d',nnavg,groupid);
+    reloadname=sprintf('averages_info_nn%02d_group%d.mat',nnavg,groupid);
     reloadname=fullfile(workflow.info.working_dir,reloadname);
-    log_message('Loading %s',reloadname);
+    log_message('Loading %s (MD5: %s)',reloadname,MD5(reloadname));
     load(reloadname);
     fname=sprintf('averages_nn%02d_group%d.mrc',nnavg,groupid);
-    average=ReadMRC(fullfile(workflow.info.working_dir,fname));
+    fname=fullfile(workflow.info.working_dir,fname);
+    log_message('Reading averages from %s (MD5: %s)',fname, MD5(fname));
+    
+    average=ReadMRC(fname);
     average=average(:,:,1:nmeans);
     
     K=size(average,3);
@@ -61,10 +67,9 @@ for groupid=1:numgroups
         cryo_clmatrix(pf,K,1,max_shift,shift_step);
     
     log_message('Saving common lines');
-    matname=sprintf('abinitio_info_nn%d_nm%d_group%d',nnavg,nmeans,groupid);
-    save(fullfile(workflow.info.working_dir,matname),...
-        'n_theta','n_r','clstack','max_shift','shift_step');
-   
+    matname=sprintf('abinitio_info_nn%d_nm%d_group%d.mat',nnavg,nmeans,groupid);
+    matname=fullfile(workflow.info.working_dir,matname);
+    save(matname,'n_theta','n_r','clstack','max_shift','shift_step');
     
     % Orientation assigment
     if algo==1
@@ -127,8 +132,7 @@ for groupid=1:numgroups
         error('Invalid vaule for ''algo''.');
     end
     
-    save(fullfile(workflow.info.working_dir,matname),...
-        'rotations','S','-append');
+    save(matname,'rotations','S','-append');
 
     clerr=cryo_syncconsistency(rotations,clstack,n_theta);
     h=figure;
@@ -145,8 +149,9 @@ for groupid=1:numgroups
     [est_shifts,~]=cryo_estimate_shifts(pf,rotations,max_shift,shift_step,10000,[],0);
     log_message('Finished estimating shifts');
     
-    save(fullfile(workflow.info.working_dir,matname),'est_shifts','-append');
-    
+    save(matname,'est_shifts','-append');
+    log_message('Saved %s (MD5: %s)',matname,MD5(matname));
+
     % Reconstruct downsampled volume with no CTF correction
     n=size(average,1);
     [ v1, ~, ~ ,~, ~, ~] = recon3d_firm( average,...
@@ -155,8 +160,9 @@ for groupid=1:numgroups
     log_message('Relative norm of imaginary components = %e\n',ii1);
     v1=real(v1);
     volname=sprintf('vol_nn%d_nm%d_group%d.mrc',nnavg,nmeans,groupid);
-    WriteMRC(v1,1,fullfile(workflow.info.working_dir,volname));
-    log_message('Saved %s',volname);
+    volname=fullfile(workflow.info.working_dir,volname);
+    WriteMRC(v1,1,volname);
+    log_message('Saved %s (MD5: %s)',volname,MD5(volname));
     
     % % % % %     % Reconstruct from the raw projections corresponding to each average.
     % The following code uses one raw projection for each class averages.
@@ -264,3 +270,5 @@ end
 log_message('Workflow file: %s\n',workflow_fname);
 log_message('Use this file name when calling subsequent funtions.\n');
 log_message('Call next cryo_workflow_abinitio_analyze(''%s'')\n',workflow_fname);
+
+close_log;

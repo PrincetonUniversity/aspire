@@ -20,21 +20,26 @@ workflow=convert(tree);
 
 open_log(fullfile(workflow.info.working_dir,workflow.info.logfile));
 
+log_message('Starting cryo_workflow_classmeans_execute');
+log_message('Loaded XML file %s (MD5: %s)',workflow_fname,MD5(workflow_fname));
+
 nnavg=str2double(workflow.classmeans.nnavg);
 numgroups=str2double(workflow.preprocess.numgroups);
 
 for groupid=1:numgroups
     fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrc',groupid);
     fullfilename=fullfile(workflow.info.working_dir,fname);
-    log_message('Loading prewhitened projection from %s',fname);
+    
+    log_message('Loading prewhitened projections from %s (MD5: %s)',fname,MD5(fname));
+
     %prewhitened_projs=ReadMRC(fullfilename);
     
     % Since we are loading all nearest neighbors of an image, there will be
     % many cache misses. So no point in have a large chache.
     prewhitened_projs=imagestackReader(fullfilename,1);
     
-    matname=fullfile(workflow.info.working_dir,sprintf('VDM_data_%d',groupid));
-    log_message('Loading %s',matname);
+    matname=fullfile(workflow.info.working_dir,sprintf('VDM_data_%d.mat',groupid));
+    log_message('Loading %s (MD5: %s)',matname,MD5(matname));
     load(matname);
     
     log_message('Starting align_main');
@@ -87,7 +92,7 @@ for groupid=1:numgroups
     % Save averages sorted by norm variance    
     fname=sprintf('averages_nn%02d_group%d.mrc',nnavg,groupid);
     fname=fullfile(workflow.info.working_dir,fname);
-    log_message('Sorting averages %s',fname);
+    log_message('Writing sorted averages (by contrast) into %s',fname);
             
     average=imagestackReader(unsortedaveragesfname,100);
     sortedaverages=imagestackWriter(fname,1,average.dim(3),100);
@@ -97,6 +102,8 @@ for groupid=1:numgroups
         sortedaverages.append(im);        
     end
     sortedaverages.close;
+    
+    log_message('Saved averages in %s (MD5: %s)',fname,MD5(fname))
 %    average=average(:,:,classcoreidx);
 %    [average,doflip]=cryo_globalphaseflip(average); % Check if a global phase flip should be applied
    
@@ -105,10 +112,12 @@ for groupid=1:numgroups
 %     log_message('Saving %s',fname);
 %     WriteMRC(single(average),1,fname);
     
-    reloadname=sprintf('averages_info_nn%02d_group%d',nnavg,groupid);
+    reloadname=sprintf('averages_info_nn%02d_group%d.mat',nnavg,groupid);
     save(fullfile(workflow.info.working_dir,reloadname),...
         'shifts','corr','averages_contrast','classcoreidx','VDM_angles',...
         'class_VDM', 'class_VDM_refl','doflip');
+    
+    log_message('Saving %s (MD5: %s)',reloadname,MD5(reloadname));
     
     delete(fullfile(tmpdir,'*')); % Clean the temp directory.
 %     
@@ -156,3 +165,4 @@ log_message('Workflow file: %s\n',workflow_fname);
 log_message('Use this file name when calling subsequent funtions.\n');
 log_message('Call next cryo_workflow_abinitio(''%s'')\n',workflow_fname);
 
+close_log;
