@@ -1,4 +1,4 @@
-function [estR,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA,verbose,Rref,forcereflect,Nprojs)
+function [estR,estdx,vol2aligned,reflect]=cryo_align_densities_C4(vol1,vol2,pixA,verbose,Rref,forcereflect,Nprojs)
 % CRYO_ALIGN_DENSITIES  Align two denisity maps
 %
 % [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2)
@@ -37,7 +37,8 @@ if ~exist('verbose','var')
 end
 
 if ~exist('Nprojs','var')
-    Nprojs=100;  % Number of projections to use for alignment.
+    %Nprojs=100;  % Number of projections to use for alignment.
+    Nprojs=6; % For debug
 end
 
 %% Set verbose logging state
@@ -111,6 +112,9 @@ log_message('Aligning volumes.')
 %[Rests,dxests]=cryo_orient_projections_gpu(projs2,vol1masked,Nprojs,[],verbose,0);
 [Rests,dxests]=cryo_orient_projections(projs2,vol1masked,Nprojs,[],verbose,0);
 
+log_message('Refining alignment.');
+Rests=cryo_refine_orientations(projs2,vol1masked,Rests,dxests,1,-1);
+
 % Assess quality of the alignment. Use Rests and trueRs to estimate the
 % matrix aligning the two volumes. The close this matrix to an orthogonal
 % matrix, the better the alignment. 
@@ -123,54 +127,94 @@ log_message('Aligning volumes.')
 % to trueRs and Rests, respectively).
 % 2. There is reflection, in which case R_{i} = O J \tilde{R}_{i} J.
 %
-% We estimate O in both cases and choose the one for which the resulting O
-% is more orthogonal.
-R1=zeros(3);
-Omat=zeros(3);
+% We estimate O in both cases and choose the one which is more consistent,
+% as defined below.
+Omat=zeros(3,3,Nprojs);
+OmatJ=zeros(3,3,Nprojs);
 J3=diag([1 1 -1]);
 for k=1:Nprojs
-    R1=R1+trueRs(:,:,k)*Rests(:,:,k).';
-    Omat=Omat+trueRs(:,:,k)*(J3*Rests(:,:,k)*J3).';
+    Omat(:,:,k)=trueRs(:,:,k)*Rests(:,:,k).';
+    OmatJ(:,:,k)=trueRs(:,:,k)*(J3*Rests(:,:,k)*J3).';
 end
-R1=R1./Nprojs;
-Omat=Omat./Nprojs;
 
-s1=svd(R1); s2=svd(Omat);
-no1=max(s1)/min(s1); %Non orthogonality (actually, the condition number)
-no2=max(s2)/min(s2);
+% The description in the above comment is not completely accurate, since
+% for a C4 symmetric molecule the equations are either
+%       R_{i} = O g^{s_{i}} \tilde{R}_{i}
+% or
+%       R_{i} = O g^{s_{i}} J \tilde{R}_{i} J,
+% where g is rotation by 90 degrees around the z axis, and s_{i} \in
+% {0,1,2,3}. 
+% Thus, to estimate O we first need to estimate si for i=1,...,Nprojs.
+% To that end (assume no reflection; the case with reflection is similar),
+% we note that if we defined Oi=R_{i} \tilde{R}_{i} then
+%   O_{i}.'*O_{j} = g^{s_{j}-s_{i}}.
+% Thus, we estimate all relative rotation angles s_{j}-s_{i} and
+% synchronize for s_{i}, i=1,...,Nprojs.
+% We estimate the angles s_{i} with and without reflection, and later
+% choose the better option.
 
+% Construct the matrix consisting s_{j}-s_{i}, with and without reflection.
+thetaij=zeros(Nprojs,Nprojs);
+thetaJij=zeros(Nprojs,Nprojs);
+for k1=1:Nprojs
+    for k2=1:Nprojs
+        Oij=Omat(:,:,k1).'*Omat(:,:,k2);
+        thetaij(k1,k2)=atan2(Oij(2,1),Oij(1,1));
+        OijJ=OmatJ(:,:,k1).'*OmatJ(:,:,k2);
+        thetaJij(k1,k2)=atan2(OijJ(2,1),OijJ(1,1));
+    end
+end
+
+% Estimate s_{i}, i=1,...,Nprojs, using synchronization.
+% The matrix T (or TJ) below should be rank 1 and encode the s_{i} above.
+% No reflection:
+T=exp(1i.*thetaij); T=(T+T')/2; % Enforce symmetry
+[U,s]=eig(T); s=diag(s); [s,ii]=sort(s,'descend'); U=U(:,ii);
+% With reflection:
+TJ=exp(1i.*thetaJij); TJ=(TJ+TJ')/2;
+[UJ,sJ]=eig(TJ); sJ=diag(sJ); [sJ,ii]=sort(sJ,'descend'); UJ=UJ(:,ii);
+
+% Print the first singular values of both synchronization matrices. Only
+% one of them should be rank-1. In fact, at this point we can figure out if
+% the two volumes are reflected with respect to each other or not. However,
+% we make this decision later in the code.
 if verbose
-    log_message('Singular values of aligning matrix:');
-    log_message('\t without reflection (%7.4f,%7.4f,%7.4f); condition number = %7.4f',s1(1),s1(2),s1(3),no1);
-    log_message('\t with    reflection (%7.4f,%7.4f,%7.4f); condition number = %7.4f',s2(1),s2(2),s2(3),no2);
+    log_message('First 6 singular values of synchronization matrix:');
+    log_message('\t without reflection (%4.2e, %4.2e, %4.2e, %4.2e, %4.2e, %4.2e)',...
+            s(1),s(2),s(3),s(4),s(5),s(6));
+    log_message('\t with    reflection (%4.2e, %4.2e, %4.2e, %4.2e, %4.2e, %4.2e)',...
+            sJ(1),sJ(2),sJ(3),sJ(4),sJ(5),sJ(6));
+    log_message('In the noiseless case the synchronization matrix should be rank-1.');
 end
 
+% The angle of the entries of the top eigenvector reveals s_{i}.
+theta=angle(U(:,1));
+thetaJ=angle(UJ(:,1));
 
-log_message('Refining alignment.');
-Rests=cryo_refine_orientations(projs2,vol1masked,Rests,dxests,1,-1);
-
-
-% There are two possibilties:
-% 1. There is no reflection between vol1 and vol2, in which case they are
-% related by rotation only, that is R_{i} = O \tilde{R}_{i}, where R_{i}
-% and tilde{R}_{i} are the rotations are the rotations of the projections
-% in the coordinates systems of vol2 and vol1, respectively (corresponding
-% to trueRs and Rests, respectively).
-% 2. There is reflection, in which case R_{i} = O J \tilde{R}_{i} J.
-%
-% We estimate O in both cases and choose the one for which the resulting O
-% is more orthogonal.
-R1=zeros(3);
-Omat=zeros(3);
-J3=diag([1 1 -1]);
+% Construct the group elements g^{-s_{i}} above.
+G=zeros(3,3,Nprojs);
+GJ=zeros(3,3,Nprojs);
 for k=1:Nprojs
-    R1=R1+trueRs(:,:,k)*Rests(:,:,k).';
-    Omat=Omat+trueRs(:,:,k)*(J3*Rests(:,:,k)*J3).';
+    G(:,:,k)=[cos(theta(k)) -sin(theta(k)) 0;...
+              sin(theta(k))  cos(theta(k)) 0;...
+                  0           0      1];
+    GJ(:,:,k)=[cos(thetaJ(k)) -sin(thetaJ(k)) 0;...
+              sin(thetaJ(k))  cos(thetaJ(k)) 0;...
+                  0           0      1];
 end
-R1=R1./Nprojs;
-Omat=Omat./Nprojs;
 
-s1=svd(R1); s2=svd(Omat);
+% Estimate the two candidate orthogonal transformations.
+% Only one of them would be orthogonal, depending if we have or not
+% reflection between the volumes.
+for k=1:Nprojs
+    Omat(:,:,k)=Omat(:,:,k)*(G(:,:,k));
+    OmatJ(:,:,k)=OmatJ(:,:,k)*(GJ(:,:,k));
+end
+
+Omat=mean(Omat,3);
+OmatJ=mean(OmatJ,3);
+
+s1=svd(Omat); s2=svd(OmatJ);
 no1=max(s1)/min(s1); %Non orthogonality (actually, the condition number)
 no2=max(s2)/min(s2);
 
@@ -180,17 +224,17 @@ if verbose
     log_message('\t with    reflection (%7.4f,%7.4f,%7.4f); condition number = %7.4f',s2(1),s2(2),s2(3),no2);
 end
 
-if min(no1,no2)>1.2 % The condition number of the estimated rotation is 
+if no1>1.2 % The condition number of the estimated rotation is 
        % larger than 1.2, that is, no rotation was recovered. This
        % threshold was set arbitrarily.
        warning('Alignment failed.');
 end
 
 reflect=0; % Do we have reflection?
-R=R1;
+R=Omat;
 if no2<no1 || forcereflect
     reflect=1;
-    R=Omat;
+    R=OmatJ;
     
     if verbose
         log_message('**** Reflection detected ****');
@@ -198,16 +242,16 @@ if no2<no1 || forcereflect
 end
     
 [U,~,V]=svd(R); % Project R to the nearest rotation.
-Omat=U*V.';
-assert(det(Omat)>0);
-Omat=Omat([2 1 3],[2 1 3]);
+Rest=U*V.';
+assert(det(Rest)>0);
+Rest=Rest([2 1 3],[2 1 3]);
 
 
 if verbose
     log_message('Estimated rotation:');
-    log_message('%7.4f %7.4f  %7.4f',Omat(1,1),Omat(1,2),Omat(1,3));
-    log_message('%7.4f %7.4f  %7.4f',Omat(2,1),Omat(2,2),Omat(2,3));
-    log_message('%7.4f %7.4f  %7.4f',Omat(3,1),Omat(3,2),Omat(3,3));
+    log_message('%7.4f %7.4f  %7.4f',Rest(1,1),Rest(1,2),Rest(1,3));
+    log_message('%7.4f %7.4f  %7.4f',Rest(2,1),Rest(2,2),Rest(2,3));
+    log_message('%7.4f %7.4f  %7.4f',Rest(3,1),Rest(3,2),Rest(3,3));
     
     if refgiven
         tmp=Rref;
@@ -216,6 +260,8 @@ if verbose
             %tmp=J3*tmp*J3;
             % Seems it should be tmp=J2*tmp*J3, but I did not look into
             % that.
+            % Currently I don't compare between estimated and reference
+            % parameters in case of reflection.
         end
         log_message('Reference rotation:');
         log_message('%7.4f %7.4f  %7.4f',tmp(1,1),tmp(1,2),tmp(1,3));
@@ -225,13 +271,26 @@ if verbose
             %log_message('Reference rotation was J-conjugated');
         end
         
-        log_message('Estimation error (Frobenius norm) = %5.3e', norm(Omat-tmp,'fro'));
+        % The difference between the estimated and reference rotation
+        % should be an element of the rotation group C4, that is
+        %       Rref.'=g^{s}Rest.'
+        g=[0 -1 0; 1 0 0; 0 0 1];
+        m=10;
+        s=0;
+        for k=0:3
+            d=norm(Rest.'-g^k*tmp.','fro');
+            if d<m
+                s=k;
+                m=d;
+            end
+        end
+        log_message('Estimation error (Frobenius norm) up to C4 element ||Rest.'' - g^s Rref.''||= %5.3e for s=%d', m,s);
     end
 end
+estR=Rest;
 
-
-vol2maskedaligned=fastrotate3d(vol2masked,Omat.'); % Rotate the masked vol2 back.
-vol2aligned=fastrotate3d(vol2,Omat.'); % Rotate the original vol2 back.
+vol2maskedaligned=fastrotate3d(vol2masked,Rest.'); % Rotate the masked vol2 back.
+vol2aligned=fastrotate3d(vol2,Rest.'); % Rotate the original vol2 back.
 
 if reflect
     vol2maskedaligned=flip(vol2maskedaligned,3);
@@ -248,7 +307,6 @@ vol2aligned=reshift_vol(vol2aligned,estdx);
 
 timing=toc(timing);
 
-estR=Omat;
 
 % Compute correlations
 c_masked=corr(vol1masked(:),vol2maskedaligned(:)); % Masked volumes
@@ -269,8 +327,10 @@ else
 end
 
 if refgiven
+    % Rotate Rest by the estimated C4 element to best align it with Rref.
+    Rest=(g^(-s)*Rest.').';
     [rotaxis_ref,gamma_ref]=rot_to_axisangle(Rref);
-    [rotaxis,gamma]=rot_to_axisangle(Omat.');
+    [rotaxis,gamma]=rot_to_axisangle(Rest);
     
     log_message('Rotation axis:');
     log_message('\t Estimated \t [%5.3f , %5.3f, %5.3f]',...
@@ -283,6 +343,7 @@ if refgiven
     gamma_ref_degrees=gamma_ref*180/pi;
     log_message('\t Reference \t %5.3f degrees',gamma_ref_degrees);
 end
+
 
 %% Restore log state
 log_silent(logstate);

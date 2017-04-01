@@ -1,16 +1,22 @@
-function viewstack(projs,nrows,ncols)
+function viewstack(projs,nrows,ncols,showlabels)
 %
 % Display the first nrows*ncols projections from the stack projs.
 %
 % Input:
-%   nrows   Number of rows to display.
-%   ncols   Number of columns to display.
+%   nrows       Number of rows to display.
+%   ncols       Number of columns to display.
+%   showlabels  Nonzero to show image numbering labels (default 1).
 %
 % Example:
 %   [projs, noisy_projs, ~, ref_q] = gen_projections(10,1/8,0,1);
 %   viewstack(projs,5,5)
 %
 % Yoel Shkolnisky, July 2013.
+
+if ~exist('showlabels','var')
+    showlabels=1;
+end
+    
 
 sz=size(projs);
 borderwidth=2;
@@ -59,23 +65,25 @@ imagesc(img);
 axis off
 axis image
 
-% Add text labels
-idx=1;
-colloc=borderwidth+1;
-for k=1:ncols
-    rowloc=borderwidth+1;
-    for j=1:nrows
-        if idx>sz(3) % No more images left
-            continue;
+if showlabels
+    % Add text labels
+    idx=1;
+    colloc=borderwidth+1;
+    for k=1:ncols
+        rowloc=borderwidth+1;
+        for j=1:nrows
+            if idx>sz(3) % No more images left
+                continue;
+            end
+            ht=text(colloc+3,rowloc+3,num2str(idx));
+            set(ht,'FontUnits','normalized');
+            set(ht,'FontWeight','bold');
+            %set(ht,'FontSize',40);
+            set(ht,'Color','b');
+            set(ht,'BackgroundColor','y');
+            rowloc=rowloc+sz(1)+borderwidth;
+            idx=idx+1;
         end
-        ht=text(colloc+3,rowloc+3,num2str(idx));
-        set(ht,'FontUnits','normalized');
-        set(ht,'FontWeight','bold');
-        %set(ht,'FontSize',40);
-        set(ht,'Color','b');
-        set(ht,'BackgroundColor','y');
-        rowloc=rowloc+sz(1)+borderwidth;
-        idx=idx+1;
+        colloc=colloc+sz(1)+borderwidth;
     end
-    colloc=colloc+sz(1)+borderwidth;
 end
