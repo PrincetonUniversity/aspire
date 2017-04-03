@@ -14,6 +14,8 @@ function [ mean_image, denoised] = denoise_images_analytical(U, fn, mean_coeff, 
 %	mean_image: mean image in real space on a Cartesian grid of size L0 x L0
 %	denoised: denoised images in real space on a Cartesian grid L0 x L0
 % Update 10/15 Zhizhen Zhao
+% Updated Tejal
+% See Fast sPCA paper
 
 max_ang_freqs = size(U, 1)-1; %Should be the maximum angular frequency
 L = 2*R;
@@ -36,16 +38,25 @@ tmp = reshape(tmp, L^2, size(tmp, 3));
 mean_Im = reshape(tmp*mean_coeff, L, L);
 mean_Im = real(mean_Im);
 
+if(size(eig_im{1},2)~=0)
 tmp1 = eig_im{1};
 tmp1 = reshape(tmp1, L^2, size(tmp1, 3));
-
+end
 
 
 denoised = zeros(L0, L0, n_max);
 for K = 1:n_max
+
+%% Added this condition to fix the case when k=0 component is not picked
+%Tejal
+
+if(size(eig_im{1},2)~=0)
 tmp2 = tmp1*Coeff{1}(:, K);
 tmp2 = reshape(tmp2, L, L);
 I = mean_Im + real(tmp2);
+else
+I = mean_Im;
+end
 
 for k = 1:max_ang_freqs
     if size(U{k+1},2)~=0 
