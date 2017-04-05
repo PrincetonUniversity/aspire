@@ -296,6 +296,7 @@ for j=1:Nrefs
         gCjk_cell{j}=gCjk(gidx,j);
         grefprojs_cell{j}=grefprojs_hat(:,gCjk_cell{j},j);
 end
+gshift_phases=gshift_phases.';
 
 corrs=zeros(size(projs,3),2); % Statistics on common-lines matching.
 
@@ -327,7 +328,7 @@ for projidx=1:size(projs,3)
         % One more optimization:
         gU=gproj_hat(:,gCkj_cell{j});
         gV=bsxfun(@times,conj(gU),grefprojs_cell{j});
-        gW=real(gshift_phases.'*gV);
+        gW=real(gshift_phases*gV);
         cvals(j,idx_cell{j})=gather(max(gW));
 
     end
@@ -401,8 +402,8 @@ for projidx=1:size(projs,3)
     % % end of reference code
 
     if trueRs~=-1
-        log_message('\t Frobenius error norm of estimated rotation is %5.2e.',...
-            norm(candidate_rots(:,:,bestRidx)-trueRs(:,:,projidx),'fro')/3);
+        log_message('\t Frobenius error norm of estimated rotation of projection %d is %5.2e.',...
+            projidx,norm(candidate_rots(:,:,bestRidx)-trueRs(:,:,projidx),'fro')/3);
     end
     
     % Now that we have the best shift, the the corresponding 2D shift of the
