@@ -36,6 +36,7 @@ for k=1:size(projs,3)
     projs(:,:,k)=p;
 end
 
+projs=cryo_globalphaseflip(projs);
 
 % n=szprojs(1);
 % log_message('Resampling refence volume from %d to %d',szvol(1),n);

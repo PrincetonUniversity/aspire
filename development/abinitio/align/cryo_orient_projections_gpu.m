@@ -1,24 +1,28 @@
-function [Rests,dxs]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs,verbose,preprocess)
+function [Rests,dxs,corrs]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs,verbose,preprocess)
 % CRYO_ORIENT_PROJECTION Find the orientation of a projection image.
 %
-% [Rests,dxs]=cryo_orient_projection(proj,vol) 
+% [Rests,dxs,corrs]=cryo_orient_projection(proj,vol) 
 %   Given a stack of projections projs and a volume vol, estimate the
 %   orientation of each projection in the stack. That is, estimate the
 %   orientations in which we need to project vol to get projs.
 %   the projection in the volume. Returns the estimated orientations Rest
-%   and the translation dxs.
+%   and translation dxs, as well as array corrs of correlations of matches.
+%   The array corrs is of dimensions size(projs,3)x2, where the i'th entry of the first column contains the correlation of the common lines between the i'th image and all reference images induced by the best matching rotation. The i'th entry of the second column contains the mean matching correlation over all tested rotations.
 %
-% [Rests,dxs]=cryo_orient_projections_gpu(projs,vol,Nrefs)
+% [Rests,dxs,corrs]=cryo_orient_projections_gpu(projs,vol,Nrefs)
 %   The function estimates the orientation parameters of the projections
 %   projs using their common lines with Nrefs reference projections of vol.
 %   By default, Nrefs is 1.5 times the dimension of vol.
 %
-% [Rests,dxs]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs)
+% [Rests,dxs,corrs]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs)
 %   Provide the true rotations trueRs for debugging. Use empty array ([])
 %   to ignore this parameter.
 %
-% [Rests,dxs]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs,verbose)
-%   Set verbose to 0 to supress screen printouts (default is 1).
+% [Rests,dxs,corrs]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs,verbose)
+%     0 - No screen printouts; 
+%     1 - One line progress (not writteing to log); 
+%     2 - Detailed progress.
+%   Default is 1.
 %
 % [Rests,dxs]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs,verbose,preprocess)
 %   If preprocess is nonzero (default is 1) the projections and volme are
@@ -278,28 +282,79 @@ gCjk=gpuArray(single(Cjk));
 grefprojs_hat=gpuArray(single(refprojs_hat));
 gshift_phases=gpuArray(single(shift_phases));
 
+
+% Precompute all pointers for extracting commong lines.
+idx_cell=cell(Nrefs,1);
+gCkj_cell=cell(Nrefs,1);    
+gCjk_cell=cell(Nrefs,1);    
+grefprojs_cell=cell(Nrefs,1);
+for j=1:Nrefs
+        idx=find(Mkj(:,j)~=0);
+        idx_cell{j}=idx;
+        gidx=gpuArray(single(idx));
+        gCkj_cell{j}=gCkj(gidx,j);
+        gCjk_cell{j}=gCjk(gidx,j);
+        grefprojs_cell{j}=grefprojs_hat(:,gCjk_cell{j},j);
+end
+
+corrs=zeros(size(projs,3),2); % Statistics on common-lines matching.
+
+progress_msg=[]; % String use to print progress message.
+
 t_total=tic;
 for projidx=1:size(projs,3)
-    log_message('Orienting projection %d/%d.',projidx,size(projs,3));   
+    if verbose==2
+    	log_message('Orienting projection %d/%d.',projidx,size(projs,3));   
+    end
     t_gpu=tic;
 
     gproj_hat=gpuArray(single(projs_hat(:,:,projidx)));   
     cvals=zeros(Nrefs,Nrots);
     for j=1:Nrefs
-        idx=find(Mkj(:,j)~=0);
-        gidx=gpuArray(single(idx));
-        gU=gproj_hat(:,gCkj(gidx,j));
-        gV=bsxfun(@times,conj(gU),grefprojs_hat(:,gCjk(gidx,j),j));
+%         idx=find(Mkj(:,j)~=0);
+%         gidx=gpuArray(single(idx));
+%         gU=gproj_hat(:,gCkj(gidx,j));
+%         gV=bsxfun(@times,conj(gU),grefprojs_hat(:,gCjk(gidx,j),j));
+%         gW=real(gshift_phases.'*gV);
+%         cvals(j,idx)=gather(max(gW));
+        
+%         % Optimized version of the above code.
+%         gU=gproj_hat(:,gCkj_cell{j});
+%         gV=bsxfun(@times,conj(gU),grefprojs_hat(:,gCjk_cell{j},j));
+%         gW=real(gshift_phases.'*gV);
+%         cvals(j,idx_cell{j})=gather(max(gW));
+        
+        % One more optimization:
+        gU=gproj_hat(:,gCkj_cell{j});
+        gV=bsxfun(@times,conj(gU),grefprojs_cell{j});
         gW=real(gshift_phases.'*gV);
-        cvals(j,idx)=gather(max(gW));
+        cvals(j,idx_cell{j})=gather(max(gW));
+
     end
     
     scores=sum(cvals)./sum(cvals>0);
     [bestRscore,bestRidx]=max(scores);
-    t_gpu=toc(t_gpu);   
-    log_message('\t Best correlation = %5.3f.',bestRscore);
-    log_message('\t Mean correlation = %5.3f.',mean(scores));
-    log_message('\t Took %5.2f seconds.',t_gpu);
+    meanRscore=mean(scores);
+    
+    t_gpu=toc(t_gpu);
+    if verbose==1
+        if mod(projidx,50)==0
+            bs=char(repmat(8,1,numel(progress_msg)));
+            fprintf('%s',bs);
+            progress_msg=sprintf(...
+                'Orienting projection %d/%d (corr:best=%7.4f, mean=%7.4f, b/m=%7.2f)  t=%5.2f secs',...
+                projidx,size(projs,3),bestRscore,meanRscore,bestRscore/meanRscore,t_gpu);
+            fprintf('%s',progress_msg);
+        end
+        
+    elseif verbose==2
+        log_message('\t Best correlation = %5.3f.',bestRscore);
+        log_message('\t Mean correlation = %5.3f.',meanRscore);
+        log_message('\t Took %5.2f seconds.',t_gpu);
+    end
+    
+    corrs(projidx,1)=bestRscore;
+    corrs(projidx,2)=meanRscore;
     
     % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %     % Non GPU code - uncomment if no GPU exist.
