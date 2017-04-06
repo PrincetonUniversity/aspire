@@ -40,5 +40,8 @@ function [shifts, corr, averages, norm_variance] = align_main_inmem( ...
     averages = ReadMRC(ave_filename);
 
     delete(ave_filename);
+    if isoctave()
+        confirm_recursive_rmdir(false, 'local');
+    end
     rmdir(tmpdir, 's');
 end
