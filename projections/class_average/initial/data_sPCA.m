@@ -24,6 +24,7 @@ end
 
 
 uniq_freq=unique(basis.ang_freqs);
+freqs1 = [];
 so_far=0;
 for i=1:max(uniq_freq)
  if size_vec(i)~=0
