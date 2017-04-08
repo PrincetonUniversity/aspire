@@ -12,7 +12,7 @@ projs=cryo_gen_projections(n,K,SNR);
 projs=single(projs);
 
 % Write to disk.
-outstack=imagestackWriter('tmp.mrc',1,K,102); % Cache size that does not divide K.
+outstack=imagestackWriter('tmp.mrc',K,1,102); % Cache size that does not divide K.
 outstack.append(projs);
 outstack.close;
 

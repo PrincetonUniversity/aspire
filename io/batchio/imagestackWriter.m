@@ -22,16 +22,20 @@ properties
     end
     
     methods
-        function obj = imagestackWriter(filename,pixA,numslices,cachesize,mrcmode)
+        function obj = imagestackWriter(filename,numslices,pixA,cachesize,mrcmode)
             % Constructor
             % filename  Name of MRC file to store the images on disk.
-            % pixA      Pixel size of the images.
             % numslices Total number of slices that will be written to the
             %           stack. The current implementation of the MRC io
             %           functions requires to know this number in advance.
+            % pixA      Pixel size of the images.
             % cachesize Number of images to store in memory.
             % mrcmode   Encoding used to the MRC file (0: uint8, 1: int16,
             %           2: single (default), 6: uint16).
+            
+            if ~exist('pixA','var')
+                pixA=1;
+            end
             
             if ~exist('cachesize','var') || isempty(cachesize)
                 cachesize=1;
@@ -39,6 +43,7 @@ properties
             if ~exist('mrcmode','var')
                 mrcmode=2;
             end
+                        
             
             obj.filename=filename;
             obj.cachesize=cachesize;

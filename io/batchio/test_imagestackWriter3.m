@@ -15,12 +15,12 @@ blocksize=1000;
 nimages=0;
 hash1=0;
 fname='tmp.mrc';
-outstack=imagestackWriter(fname,1,K,102); % Cache size that does not divide K.
+outstack=imagestackWriter(fname,K,1,102); % Cache size that does not divide K.
 
 
 % Create a huge data set
 Nblocks=round(K/blocksize);
-for k=1:Nblocks;
+for k=1:Nblocks
     % Generate the next block of images
     fprintf('Writing block of images %3d/%d\n',k,Nblocks);
     projs=cryo_gen_projections(n,blocksize,SNR);
@@ -54,7 +54,7 @@ hash2=0;
 projs=zeros(n,n,blocksize);
 
 idx=1;
-for k=1:Nblocks;
+for k=1:Nblocks
     fprintf('Reading block of images %3d/%d\n',k,Nblocks);
     for j=1:blocksize
         projs(:,:,j)=stack.getImage(idx);

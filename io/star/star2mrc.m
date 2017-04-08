@@ -25,7 +25,7 @@ log_message('Loading %s',starname);
 datablocks=readSTAR(starname);
 
 N=numel(datablocks.data); % Number of images to read
-stackwriter=imagestackWriter(mrcname,1000,N);
+stackwriter=imagestackWriter(mrcname,N,1,1000);
 prev_micrographname=[]; % Name of previously loaded micrograph
 
 % Read images appearing in the star file

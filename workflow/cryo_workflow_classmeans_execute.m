@@ -95,7 +95,7 @@ for groupid=1:numgroups
     log_message('Writing sorted averages (by contrast) into %s',fname);
             
     average=imagestackReader(unsortedaveragesfname,100);
-    sortedaverages=imagestackWriter(fname,1,average.dim(3),100);
+    sortedaverages=imagestackWriter(fname,average.dim(3),1,100);
     for k=1:numel(classcoreidx)
         im=average.getImage(classcoreidx(k));
         im=im.*flipflag;

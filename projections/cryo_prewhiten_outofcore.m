@@ -48,7 +48,7 @@ filter=(filter+fliplr(filter))./2;
 nzidx=find(filter>100*delta);
 fnz=filter(nzidx);
 
-outstack=imagestackWriter(outstackname,1,n);
+outstack=imagestackWriter(outstackname,n,1);
 
 %fprintf('Whitening...\n');
 printProgressBarHeader;
