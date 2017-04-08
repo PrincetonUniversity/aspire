@@ -26,7 +26,7 @@ properties
         
     methods
         function obj = imagestackReader(MRCname,cachesize,precision,verbose)
-            % Construct and image stack object corresponding to a given
+            % Construct an image stack object corresponding to a given
             % MRC filename.
             % cachesize     Number of images to store in memory
             % precision     'single' (default) or' double.
