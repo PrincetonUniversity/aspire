@@ -39,13 +39,14 @@ methods
         end
                 
         obj=obj@imagestackReader(MRCname,2*cachesize,precision,verbose);
+        obj.dim(3)=obj.dim(3)/2;
     end
     
     function im=getImage(obj,idx)
         % Get image with index idx from the image stack.
         % If image is not in stack, flush entire stack and read images
         % from disk, starting with image idx. idx can be a vector.
-        im=zeros(obj.dim(1),obj.dim(2),numel(idx));
+        im=zeros(obj.dim(1),obj.dim(2),numel(idx),obj.precision);
         
         for k=1:numel(idx)
             imr=getImage@imagestackReader(obj,2*idx(k)-1);

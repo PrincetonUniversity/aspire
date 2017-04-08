@@ -32,6 +32,7 @@ methods
         end
         
         obj=obj@imagestackWriter(filename,2*numslices,pixA,2*cachesize,mrcmode);
+        obj.numslices=numslices;
     end
     
     % Append image to the stack.

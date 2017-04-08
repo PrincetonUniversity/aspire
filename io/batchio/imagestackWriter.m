@@ -7,7 +7,7 @@ classdef imagestackWriter < handle
 %
 % Yoel Shkolnisky, May 2016.
 
-properties
+    properties
         filename            % Name of the filename containing the image.
         fid                 % Handle to open MRC file.
         imagebuf            % Buffer of images not yet written.
@@ -19,6 +19,12 @@ properties
         headerwritten       % Was a head already written to the MRC file.
         pixA                % Pixel size in Angstrom
         mrcmode             % MRC data type. Default is 2 (single precision);
+    end
+    
+    properties (Access=private)
+        physical_numslices  % Number of slices actually written to the 
+            % file. Different from numslices if complex-valued data is
+            % written.
     end
     
     methods
@@ -49,6 +55,7 @@ properties
             obj.cachesize=cachesize;
             obj.ncache=0;
             obj.numslices=numslices;
+            obj.physical_numslices=numslices;
             obj.nwritten=0;
             obj.headerwritten=0;
             obj.pixA=pixA;
@@ -88,7 +95,7 @@ properties
                 org=-floor(sz/2);  % Default origin
                 % Send the first image as it is used to extract image params.
                 obj.fid=WriteMRCHeader(images(:,:,1),obj.pixA,...
-                    obj.filename,obj.numslices,org,obj.mrcmode);
+                    obj.filename,obj.physical_numslices,org,obj.mrcmode);
                 
                 obj.headerwritten=1;
                 obj.dim=sz;
@@ -109,7 +116,7 @@ properties
                 obj.ncache=obj.ncache+1;
                 obj.imagebuf(:,:,obj.ncache)=images(:,:,k);
                 obj.nwritten=obj.nwritten+1;
-                if obj.nwritten>obj.numslices
+                if obj.nwritten>obj.physical_numslices
                     error('Trying to add more images than set for this stack.');
                 end
                 
