@@ -32,6 +32,7 @@ matname=fullfile(workflow.info.working_dir,'preprocess_info.mat'); % mat file
 %szprojs=size(projs);
 
 % Create backup of the raw data
+log_message('Computing MD5 of %s',workflow.info.rawdata);
 log_message('Using raw data %s (MD5: %s)',...
     workflow.info.rawdata,MD5(workflow.info.rawdata));
 log_message('Creating backup of raw data.');
@@ -250,7 +251,7 @@ for groupid=1:numgroups
     log_message('Saving group %d into file %s',groupid,fullfilename);
     %WriteMRC(single(prewhitened_projs(:,:,shuffleidx((groupid-1)*K2+1:groupid*K2))),1,fullfilename);
     
-    groupstack=imagestackWriter(fullfilename,1,K2);
+    groupstack=imagestackWriter(fullfilename,K2,1);
     for k=1:K2
         proj=PFCDNWGReader.getImage(shuffleidx((groupid-1)*K2+k));
         groupstack.append(proj);
