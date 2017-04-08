@@ -66,6 +66,10 @@ properties
             % Write the given images into the MRC file (writing is delayed
             % until cache is full).
             
+            if ~isreal(images)
+                error('Images to write must be real-valued. For complex-valued images use imagestackWriterComplex');
+            end
+            
             % Verify dimensions of images.
             sz=size(images);
             nimages=1;
