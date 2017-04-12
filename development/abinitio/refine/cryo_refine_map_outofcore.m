@@ -1,4 +1,4 @@
-function cryo_refine_map_iter_outofcore(projs_fname,vol_fname,map_out_step1,map_out_step2,mat_out)
+function cryo_refine_map_outofcore(projs_fname,vol_fname,map_out_step1,map_out_step2,mat_out)
 %
 % XXX Add convergence
 % XXX Add CTF

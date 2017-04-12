@@ -53,7 +53,7 @@ WriteMRC(projs,1,projs_fname);
 map_out_step1=fullfile(tempmrcdir,'map_out_step1');
 map_out_step2=fullfile(tempmrcdir,'map_out_step2');
 mat_out=fullfile(tempmrcdir,'mat_out');
-cryo_refine_map_iter(projs_fname,vol_fname,map_out_step1,map_out_step2,mat_out,30)
+cryo_refine_map(projs_fname,vol_fname,map_out_step1,map_out_step2,mat_out,30)
 
 
 %% Test result

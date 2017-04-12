@@ -50,10 +50,10 @@ plotFSC(v1,v2alignedtov1,0.143,pixA);
 map_out_step1_g1=fullfile(tempmrcdir,'map_out_step1_g1');
 map_out_step2_g1=fullfile(tempmrcdir,'map_out_step2_g1');
 mat_out_g1=fullfile(tempmrcdir,'mat_out_g1');
-cryo_refine_map_iter(projs_g1,vol_g1,map_out_step1_g1,map_out_step2_g1,mat_out_g1)
+cryo_refine_map(projs_g1,vol_g1,map_out_step1_g1,map_out_step2_g1,mat_out_g1)
 
 % Refine g2
-map_out_step1_g2=fullfile(tempmrcdir,'map_out_step1_g2');
-map_out_step2_g2=fullfile(tempmrcdir,'map_out_step2_g2');
+map_out_step1_g2=fullfile(tempmrcdir,'map_out_step1_g2_5');
+map_out_step2_g2=fullfile(tempmrcdir,'map_out_step2_g2_5');
 mat_out_g2=fullfile(tempmrcdir,'mat_out_g2');
-cryo_refine_map_iter(projs_g2,vol_g2,map_out_step1_g2,map_out_step2_g2,mat_out_g2)
+cryo_refine_map(projs_g2,vol_g2,map_out_step1_g2,map_out_step2_g2,mat_out_g2)

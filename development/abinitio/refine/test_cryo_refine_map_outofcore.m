@@ -53,13 +53,13 @@ WriteMRC(projs,1,projs_fname);
 map_out_step1=fullfile(tempmrcdir,'incore_step1');
 map_out_step2=fullfile(tempmrcdir,'incore_step2');
 mat_out=fullfile(tempmrcdir,'incore_out');
-cryo_refine_map_iter(projs_fname,vol_fname,map_out_step1,map_out_step2,mat_out)
+cryo_refine_map(projs_fname,vol_fname,map_out_step1,map_out_step2,mat_out)
 
 %% Refined out-of-core
 map_out_step1=fullfile(tempmrcdir,'outofcore_step1');
 map_out_step2=fullfile(tempmrcdir,'outofcore_step2');
 mat_out=fullfile(tempmrcdir,'outcore_out');
-cryo_refine_map_iter_outofcore(projs_fname,vol_fname,map_out_step1,map_out_step2,mat_out)
+cryo_refine_map_outofcore(projs_fname,vol_fname,map_out_step1,map_out_step2,mat_out)
 
 %% Compare result
 currentsilentmode=log_silent(1);
