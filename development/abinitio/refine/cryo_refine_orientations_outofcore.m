@@ -1,4 +1,4 @@
-function [rots_refined,shifts_refined,errvec]=cryo_refine_orientations(projs,vol,rots,shifts,verbose,Nrefs,true_Rs,true_shifts)
+function [rots_refined,shifts_refined,errvec]=cryo_refine_orientations_outofcore(projs_fname,vol,rots,shifts,verbose,Nrefs,true_Rs,true_shifts)
 %(proj_hat,R,refprojs_hat,Rrefs,L,estdx)
 
 if ~exist('Nrefs','var') || isempty(Nrefs)
@@ -14,8 +14,10 @@ if ~exist('true_shifts','var') || isempty(true_shifts)
     true_shifts=-1;
 end
 
+projsreader=imagestackReader(projs_fname);
+szprojs=projsreader.dim;
 
-if size(projs,1)~=size(projs,2)
+if szprojs(1)~=szprojs(2)
     error('Projections to orient must be square.');
 end
 
@@ -28,11 +30,11 @@ if ~exist('verbose','var')
     verbose=1;
 end
 
-if size(projs,1)~=szvol(1)
-    error('Projections (projs) and volume (vol) must has same dimensions.');
+if szprojs(1)~=szvol(1)
+    error('Projections and volume must has same dimensions.');
 end
 
-Nprojs=size(projs,3);
+Nprojs=szprojs(3);
 if size(rots,3)~=Nprojs
     error('Number of rotations (rots) must be equal to the number of projections.');
 end
@@ -68,19 +70,23 @@ end
 % Compute polar Fourier transform of the projecitons.
 n_r=ceil(szvol(1)/2);
 projs_ref_hat=cryo_pft(projs_ref,n_r,L,'single');
-projs_hat=cryo_pft(projs,n_r,L,'single'); % XXX No reason to recompute that. Just get it as parameter.
-projs_hat=single(projs_hat);
+%projs_hat=cryo_pft(projs,n_r,L,'single'); % XXX No reason to recompute that. Just get it as parameter.
+projs_hat_fname=tempmrcname;
+cryo_pft_outofcore(projs_fname,projs_hat_fname,n_r,L);
+
 
 rots_refined=zeros(size(rots));
 shifts_refined=zeros(size(shifts));
 errvec=zeros(Nprojs,4);
 
+projs_hat_reader=imagestackReaderComplex(projs_hat_fname);
 printProgressBarHeader;
 parfor k=1:Nprojs
     progressTic(k,Nprojs);
     dx=shifts(:,k); 
     R=rots(:,:,k);
-    [rots_refined(:,:,k),shifts_refined(:,k),~]=optimize_orientation(projs_hat(:,:,k),R,projs_ref_hat,Rrefs,L,dx);
+    proj_hat=projs_hat_reader.getImage(k);
+    [rots_refined(:,:,k),shifts_refined(:,k),~]=optimize_orientation(proj_hat,R,projs_ref_hat,Rrefs,L,dx);
 
 %     if (numel(true_Rs)>1) || (numel(true_shifts)>1)            
 %         fprintf('k=%d/%d\n',k,Nprojs);

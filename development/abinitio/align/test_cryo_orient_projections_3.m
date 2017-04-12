@@ -1,9 +1,9 @@
 % Test the function cryo_orient_projections_gpu using a density map from
 % EMDB.
 %
-% This script is suppose to see if we can match projections at one
-% resolution to a density map at another resolution.  Currently this does
-% not work will. See DDD below.
+% This script tests if we can match projections at one resolution to a
+% density map at another resolution.  Currently this does
+% not work. See DDD below.
 %
 % Yoel Shkolnisky, June 2016.
 

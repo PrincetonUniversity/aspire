@@ -1,41 +1,5 @@
-function [Rests,dxs,corrs]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs,verbose,preprocess)
-% CRYO_ORIENT_PROJECTION Find the orientation of a projection image.
-%
-% [Rests,dxs,corrs]=cryo_orient_projection(proj,vol) 
-%   Given a stack of projections projs and a volume vol, estimate the
-%   orientation of each projection in the stack. That is, estimate the
-%   orientations in which we need to project vol to get projs.
-%   the projection in the volume. Returns the estimated orientations Rest
-%   and translation dxs, as well as array corrs of correlations of matches.
-%   The array corrs is of dimensions size(projs,3)x2, where the i'th entry of the first column contains the correlation of the common lines between the i'th image and all reference images induced by the best matching rotation. The i'th entry of the second column contains the mean matching correlation over all tested rotations.
-%
-% [Rests,dxs,corrs]=cryo_orient_projections_gpu(projs,vol,Nrefs)
-%   The function estimates the orientation parameters of the projections
-%   projs using their common lines with Nrefs reference projections of vol.
-%   By default, Nrefs is 1.5 times the dimension of vol.
-%
-% [Rests,dxs,corrs]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs)
-%   Provide the true rotations trueRs for debugging. Use empty array ([])
-%   to ignore this parameter.
-%
-% [Rests,dxs,corrs]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs,verbose)
-%     0 - No screen printouts; 
-%     1 - One line progress (not writteing to log); 
-%     2 - Detailed progress.
-%   Default is 1.
-%
-% [Rests,dxs]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs,verbose,preprocess)
-%   If preprocess is nonzero (default is 1) the projections and volme are
-%   preprocessed. See cryo_orient_projections_auxpreprocess for details of
-%   the preprocessing.
-%
-% To do:
-%   1. Normalize rays properly (remove DC).
-%   2. Filter volume and projections to the same value.
-%   3. What correlation  should we expect as a function of SNR?
-%
-% Yoel Shkolnisky, August 2015.
-% Revised: Yoel Shkolnisky, June 2016.
+function [Rests,dxs,corrs]=cryo_orient_projections_gpu_outofcore(projs_fname,vol,Nrefs,trueRs,verbose,preprocess)
+% XXX FIX
 
 if ~exist('Nrefs','var') || isempty(Nrefs)
     Nrefs=-1; % Default number of references to use to orient the given 
@@ -46,7 +10,9 @@ if ~exist('trueRs','var') || isempty(trueRs)
     trueRs=-1;
 end
 
-if size(projs,1)~=size(projs,2)
+projsreader=imagestackReader(projs_fname,100);
+szprojs=projsreader.dim;
+if szprojs(1)~=szprojs(2)
     error('Projections to orient must be square.');
 end
 
@@ -68,7 +34,7 @@ end
 
 if preprocess
     log_message('Preprocessing volume and projections');
-    [vol,projs]=cryo_orient_projections_auxpreprocess(vol,projs);
+    [vol,processed_projs_fname]=cryo_orient_projections_auxpreprocess_outofcore(vol,projs_fname);
 else
     log_message('Skipping preprocessing of volume and projections');
 end
@@ -110,8 +76,11 @@ n_r=ceil(szvol(1)/2);
 log_message('Computing polar Fourier transforms.');
 log_message('Using n_r=%d L=%d.',n_r,L);
 refprojs_hat=cryo_pft(refprojs,n_r,L,'single');
-projs_hat=cryo_pft(projs,n_r,L,'single');
-projs_hat=single(projs_hat);
+
+% Compute polar Fourier transform of the processed projections
+projs_hat_fname=tempmrcname;
+cryo_pft_outofcore(processed_projs_fname,projs_hat_fname,n_r,L);
+%projs_hat=cryo_pft(projs,n_r,L,'single');
 
 
 % % if bandpass
@@ -136,12 +105,16 @@ for k=1:Nrefs
     refprojs_hat(:,:,k)=pf;
 end
 
-for k=1:size(projs,3)
-    proj_hat=projs_hat(:,:,k);
-% %     proj_hat=bsxfun(@times,proj_hat,H);
-    proj_hat=cryo_raynormalize(proj_hat);
-    projs_hat(:,:,k)=proj_hat;
-end
+% projs_hat=single(cryo_pft(mrc2mat(processed_projs_fname),n_r,L,'single'));
+% for k=1:size(projs,3)
+%     proj_hat=projs_hat(:,:,k);
+% % %     proj_hat=bsxfun(@times,proj_hat,H);
+%     proj_hat=cryo_raynormalize(proj_hat);
+%     projs_hat(:,:,k)=proj_hat;
+% end
+projs_hat_normalized_fname=tempmrcname;
+cryo_raynormalize_outofcore(projs_hat_fname,projs_hat_normalized_fname);
+delete(projs_hat_fname);
 
 
 % Generate candidate rotations. The rotation corresponding to the given
@@ -252,7 +225,7 @@ if ~skipprecomp
 end
 
 % Setup shift search parameters
-max_shift=round(size(projs,1)*0.1);
+max_shift=round(szprojs(1)*0.1);
 rmax=n_r;
 shift_step=0.5;
 n_shifts=ceil(2*max_shift/shift_step+1); % Number of shifts to try.
@@ -274,8 +247,8 @@ end
 % its agreement with the reference projections, and choose the best
 % matching rotation.
 
-Rests=zeros(3,3,size(projs,3));
-dxs=zeros(2,size(projs,3));
+Rests=zeros(3,3,size(projsreader,3));
+dxs=zeros(2,size(projsreader,3));
 
 
 gCkj=gpuArray(single(Ckj));
@@ -299,18 +272,19 @@ for j=1:Nrefs
 end
 gshift_phases=gshift_phases.';
 
-corrs=zeros(size(projs,3),2); % Statistics on common-lines matching.
+corrs=zeros(size(projsreader,3),2); % Statistics on common-lines matching.
 
 progress_msg=[]; % String use to print progress message.
 
 t_total=tic;
-for projidx=1:size(projs,3)
+projs_hat=imagestackReaderComplex(projs_hat_normalized_fname);
+for projidx=1:szprojs(3)
     if verbose==2
-    	log_message('Orienting projection %d/%d.',projidx,size(projs,3));   
+    	log_message('Orienting projection %d/%d.',projidx,size(projsreader,3));   
     end
     t_gpu=tic;
-
-    gproj_hat=gpuArray(single(projs_hat(:,:,projidx)));   
+    currproj=projs_hat.getImage(projidx);
+    gproj_hat=gpuArray(single(currproj));   
     cvals=zeros(Nrefs,Nrots);
     for j=1:Nrefs
 %         idx=find(Mkj(:,j)~=0);
@@ -345,7 +319,7 @@ for projidx=1:size(projs,3)
             fprintf('%s',bs);
             progress_msg=sprintf(...
                 'Orienting projection %d/%d (corr:best=%7.4f, mean=%7.4f, b/m=%7.2f)  t=%5.2f secs',...
-                projidx,size(projs,3),bestRscore,meanRscore,bestRscore/meanRscore,t_gpu);
+                projidx,size(projsreader,3),bestRscore,meanRscore,bestRscore/meanRscore,t_gpu);
             fprintf('%s',progress_msg);
         end
         
@@ -415,7 +389,7 @@ for projidx=1:size(projs,3)
     idx=find(Mkj(bestRidx,:)==1);
     for j=idx
         pfj=bsxfun(@times,refprojs_hat(:,Cjk(bestRidx,j),j),shift_phases);
-        c=real(projs_hat(:,Ckj(bestRidx,j),projidx)'*pfj);
+        c=real(currproj(:,Ckj(bestRidx,j))'*pfj);
         [~,sidx]=max(c);
         
         shift_alpha=(Ckj(bestRidx,j)-1)*dtheta;  % Angle of common ray in projection k.
@@ -433,6 +407,6 @@ if verbose==1
     fprintf('\n');
 end
 log_message('Total time for orienting %d projections is %5.2f seconds.',...
-    size(projs,3),t_total);
+    size(projsreader,3),t_total);
 
 log_silent(currentsilentmode);
