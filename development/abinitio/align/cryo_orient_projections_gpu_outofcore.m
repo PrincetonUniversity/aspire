@@ -247,8 +247,8 @@ end
 % its agreement with the reference projections, and choose the best
 % matching rotation.
 
-Rests=zeros(3,3,size(projsreader,3));
-dxs=zeros(2,size(projsreader,3));
+Rests=zeros(3,3,projsreader.dim(3));
+dxs=zeros(2,projsreader.dim(3));
 
 
 gCkj=gpuArray(single(Ckj));
@@ -272,7 +272,7 @@ for j=1:Nrefs
 end
 gshift_phases=gshift_phases.';
 
-corrs=zeros(size(projsreader,3),2); % Statistics on common-lines matching.
+corrs=zeros(projsreader.dim(3),2); % Statistics on common-lines matching.
 
 progress_msg=[]; % String use to print progress message.
 
@@ -280,7 +280,7 @@ t_total=tic;
 projs_hat=imagestackReaderComplex(projs_hat_normalized_fname);
 for projidx=1:szprojs(3)
     if verbose==2
-    	log_message('Orienting projection %d/%d.',projidx,size(projsreader,3));   
+    	log_message('Orienting projection %d/%d.',projidx,projsreader.dim(3));   
     end
     t_gpu=tic;
     currproj=projs_hat.getImage(projidx);
@@ -319,7 +319,7 @@ for projidx=1:szprojs(3)
             fprintf('%s',bs);
             progress_msg=sprintf(...
                 'Orienting projection %d/%d (corr:best=%7.4f, mean=%7.4f, b/m=%7.2f)  t=%5.2f secs',...
-                projidx,size(projsreader,3),bestRscore,meanRscore,bestRscore/meanRscore,t_gpu);
+                projidx,projsreader.dim(3),bestRscore,meanRscore,bestRscore/meanRscore,t_gpu);
             fprintf('%s',progress_msg);
         end
         
@@ -407,6 +407,6 @@ if verbose==1
     fprintf('\n');
 end
 log_message('Total time for orienting %d projections is %5.2f seconds.',...
-    size(projsreader,3),t_total);
+    projsreader.dim(3),t_total);
 
 log_silent(currentsilentmode);
