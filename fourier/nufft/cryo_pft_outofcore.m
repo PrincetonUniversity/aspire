@@ -51,11 +51,42 @@ n=in.dim(1);
 n_proj=in.dim(3);
 precomp=nufft_t_2d_prepare(freqs,n,precision);
 
-pf=imagestackWriterComplex(outstack,n_proj);
-for k=1:n_proj
-    tmp=in.getImage(k);
-%    tmp=(2/n_uv)^2*nufft_t_v3(tmp,precomp);    
-    tmp=nufft_t_2d_execute(tmp,precomp);    
-    pf.append(reshape(tmp,n_r,n_theta));   
+% Get the current parallel pool to query for the number of available
+% workers. If no pool exists, create one.
+cp=gcp;
+nWorkers=cp.NumWorkers;
+
+% Create temporary file to hold the partial PFT computed by each of the
+% workers.
+fnames=cell(nWorkers,1);
+for worker=1:nWorkers
+    fnames{worker}=tempmrcname;
 end
-pf.close;
+
+% Each worker processes chuncksize images.
+chuncksize=ceil(n_proj/nWorkers);
+
+parfor worker=1:nWorkers
+    % Determine the indices of the images to be processed by the current
+    % worker.
+    idx=(worker-1)*chuncksize+1:min(chuncksize*worker,n_proj);    
+    
+    pf=imagestackWriterComplex(fnames{worker},numel(idx),100);
+    for k=1:numel(idx)
+        tmp=in.getImage(idx(k));
+        tmp=nufft_t_2d_execute(tmp,precomp);    
+        pf.append(reshape(tmp,n_r,n_theta));   
+    end
+    pf.close;
+end
+
+% Merge all temporary files into a single file.
+stackwriter=imagestackWriterComplex(outstack,n_proj,100);
+for worker=1:nWorkers
+    stackreader=imagestackReaderComplex(fnames{worker});
+    for k=1:stackreader.dim(3)
+        pf=stackreader.getImage(k);
+        stackwriter.append(pf);
+    end
+end
+stackwriter.close;
