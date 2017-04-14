@@ -24,7 +24,7 @@ log_message('Map resampled successully');
 
 
 %% Project map
-Nprojs=1000;  % Number of projections to generate
+Nprojs=100;  % Number of projections to generate
 q=qrand(Nprojs);  % Generate random orientations for the images
 log_message('Generating %d projections of size %dx%d',Nprojs,n_orig,n_orig);
 projs=cryo_project(map,q,n_orig);  % Generate projections of map
@@ -49,22 +49,24 @@ WriteMRC(map_downsampled,1,vol_fname);
 projs_fname=tempmrcname;
 WriteMRC(projs,1,projs_fname);
 
+maxiter=5;
+
 %% Refine in-core
 map_out_step1=fullfile(tempmrcdir,'incore_step1');
 map_out_step2=fullfile(tempmrcdir,'incore_step2');
 mat_out=fullfile(tempmrcdir,'incore_out');
-cryo_refine_map(projs_fname,vol_fname,map_out_step1,map_out_step2,mat_out)
+cryo_refine_map(projs_fname,vol_fname,map_out_step1,map_out_step2,mat_out,maxiter)
 
 %% Refined out-of-core
 map_out_step1=fullfile(tempmrcdir,'outofcore_step1');
 map_out_step2=fullfile(tempmrcdir,'outofcore_step2');
 mat_out=fullfile(tempmrcdir,'outcore_out');
-cryo_refine_map_outofcore(projs_fname,vol_fname,map_out_step1,map_out_step2,mat_out)
+cryo_refine_map_outofcore(projs_fname,vol_fname,map_out_step1,map_out_step2,mat_out,maxiter)
 
 %% Compare result
 currentsilentmode=log_silent(1);
 match=1;
-for k=1:5
+for k=1:maxiter
     vol_incore=ReadMRC(fullfile(tempmrcdir,sprintf('incore_step2_%d.mrc',k)));
     vol_outofcore=ReadMRC(fullfile(tempmrcdir,sprintf('outofcore_step2_%d.mrc',k)));
     err=norm(vol_incore(:)-vol_outofcore(:))/norm(vol_incore(:));

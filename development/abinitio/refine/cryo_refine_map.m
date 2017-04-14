@@ -1,9 +1,4 @@
 function cryo_refine_map(projs_mrc,vol_mrc,map_out_step1,map_out_step2,mat_out,maxiter,tol)
-%
-% XXX Add convergence
-% XXX Add CTF
-% XXX Do we need filtering during assignment of orientations?
-% XXX Create function cryo_mask(vol,radius,isstack)
 
 if ~exist('maxiter','var')
     maxiter=5;
@@ -12,25 +7,39 @@ end
 if ~exist('tol','var')
     tol=10;
 end
+cr_threshold=0.8;
 
-log_message('Using maxiter=%d tol=%4.2f degrees',maxiter,tol);
-log_message('Iterations stop when maxiter reached or the rotations of the');
-log_message('current iteration deviate from the rotations of the previous');
-log_message('iteatrion by a maximum of tol degrees');
+log_message('Using maxiter=%d, tol=%4.2f degrees, correlation threshold=%d;',maxiter,tol,cr_threshold);
+log_message('Iterations stop when maxiter reached or the rotations of the current iteration deviate from the rotations of the previous');
+log_message('iteatrion by a less than tol degrees, or the correlation between volumes of two consecutive iterations is at least as specified.');
     
-
+log_message('Loading initial volume %s',vol_mrc');
 vol=ReadMRC(vol_mrc);
+log_message('Volume loaded');
+
+log_message('Loading projections %s',projs_mrc);
 projs=ReadMRC(projs_mrc);
+log_message('Projections loaded');
 
 szvol=size(vol);
 szprojs=size(projs);
 
-projs=cryo_globalphaseflip(projs);
+log_message('Applying global phase-flip to initial volume');
 vol=cryo_globalphaseflip_vol(vol);
+log_message('Volume phase-flipped');
+
+log_message('Applying global phase-flip projections');
+projs=cryo_globalphaseflip(projs);
+log_message('Projections phase-flipped');
 
 
+log_message('Dimensions of volume %dx%dx%d]',szvol(1),szvol(2),szvol(3));
+log_message('Dimensions of projections %dx%d (%d projections)',szvol(1),szvol(2),szvol(3));
 if szvol(1)~=szprojs(1)
+    log_message('Volume and projections have differnt dimensions. Resampling initial volume to size %dx%dx%d',...
+        szprojs(1),szprojs(1),szprojs(1));
     vol=cryo_downsample(vol,[szprojs(1),szprojs(1),szprojs(1)]);
+    log_message('Initial volume resampled');
 end
 
 R1=zeros(3,3,szprojs(3),maxiter);
@@ -43,17 +52,17 @@ iter=1;
 roterr=10*tol;
 cr=0;
 
-while iter<=maxiter && roterr>tol && cr<0.8
+while iter<=maxiter && roterr>tol && cr<cr_threshold
     
     log_message('******** Starting iteration %d/%d ********',iter,maxiter);
     
+    log_message('Start orienting projections with respect to reference volume');
     t_orient=tic;
     %[R1,shift1]=cryo_orient_projections_gpu_2(projs,vol,-1,[],1,1,4);
     [R1(:,:,:,iter),shift1(:,:,iter)]=cryo_orient_projections_gpu(projs,vol,-1,[],1,1);
     %[R1,shift1]=cryo_orient_projections(projs,vol,[],[],1,1);
     t_orient=toc(t_orient);
-    
-    log_message('First step of refinement took %7.2f seconds',t_orient);
+    log_message('Finished orienting projections. Took %7.2f seconds',t_orient);
     
 %     log_message('Reconstructing from the projections and their etimated orientation parameters');
 %     n=size(projs,1);
@@ -66,14 +75,18 @@ while iter<=maxiter && roterr>tol && cr<0.8
 %     WriteMRC(v1,1,fname);
     
     %poolreopen(8);
+    log_message('Start refining orientations');
     [R_refined1(:,:,:,iter),shifts_refined1(:,:,iter),errs1(:,:,iter)]=cryo_refine_orientations(...
         projs,vol,R1(:,:,:,iter),shift1(:,:,iter),1,-1);
-    
-    log_message('Reconstructing from the projections and their refined orientation parameters');
+    log_message('Finished refining orientations');
+
+    log_message('Start reconstructing from the projections and their refined orientation parameters');
     n=size(projs,1);
     rotations=R_refined1(:,:,:,iter);
     dx=shifts_refined1(:,:,iter);
     [ v1_refined, ~, ~ ,~, ~, ~] = recon3d_firm( projs,rotations,-dx.', 1e-8, 100, zeros(n,n,n));
+    log_message('Finished reconstruction');
+    
     ii1=norm(imag(v1_refined(:)))/norm(v1_refined(:));
     log_message('Relative norm of imaginary components = %e\n',ii1);
     v1_refined=real(v1_refined);
@@ -85,25 +98,24 @@ while iter<=maxiter && roterr>tol && cr<0.8
     save(fname)
     
     vol=v1_refined;
-
     
     if iter>=2
         dd=diag(dist_between_rot(R_refined1(:,:,:,iter),R_refined1(:,:,:,iter-1)))/pi*180;
         dd=sort(dd);
-        log_message('Percentiles of assignment errors (in degrees):');
+        log_message('Statistics for iteration %d:',iter)
+        log_message('\t Percentiles of assignment errors (in degrees):');
         str=sprintf('%4d\t',10:10:100);
-        log_message('%s',str);
+        log_message('\t%s',str);
         str=sprintf('%4.2f\t',dd(floor((10:10:100)/100*numel(dd))));
-        log_message('%s',str);
+        log_message('\t %s',str);
         roterr=max(dd);
         
         str=sprintf('%s_%d.mrc',map_out_step2,iter-1);
         vol_prev=ReadMRC(str);
         cr=corr(vol(:),vol_prev(:));
-        log_message('Correlation of reconstruction of iteration %d with iteration %d is %4.2f',...
+        log_message('\t Correlation of reconstruction of iteration %d with iteration %d is %4.2f',...
             iter,iter-1,cr);
     end
         
     iter=iter+1;
 end
-
