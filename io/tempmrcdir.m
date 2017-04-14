@@ -37,7 +37,7 @@ confname=fullfile(ASIPRE_ROOT,'tmpdir.cfg');
 
 tmpdir='scratch'; % Default root of temporary files
 if exist(confname,'file')
-    log_message('Loading name for root of temporary folders from %s',confname);
+    %log_message('Loading name for root of temporary folders from %s',confname);
     fid=fopen(confname,'r');
     tmpdir=fscanf(fid,'%s');
     fclose(fid);
