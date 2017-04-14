@@ -10,6 +10,14 @@ if ~exist('trueRs','var') || isempty(trueRs)
     trueRs=-1;
 end
 
+if ~exist('verbose','var')
+    verbose=1;
+end
+
+if ~exist('preprocess','var')
+    preprocess=1; % Default is to apply preprocessing
+end
+
 projsreader=imagestackReader(projs_fname,100);
 szprojs=projsreader.dim;
 if szprojs(1)~=szprojs(2)
@@ -21,21 +29,30 @@ if any(szvol-szvol(1))
     error('Volume must have all dimensions equal.');
 end
 
-if ~exist('verbose','var')
-    verbose=1;
+if szvol(1)~=szprojs(1)
+    error('Volume and projections must have matching dimensions')
 end
 
 currentsilentmode=log_silent(verbose==0);
 
+processed_projs_fname=tempmrcname;
 % Preprocess projections and referece volume.
-if ~exist('preprocess','var')
-    preprocess=1; % Default is to apply preprocessing
-end
-
 if preprocess
-    log_message('Preprocessing volume and projections');
-    [vol,processed_projs_fname]=cryo_orient_projections_auxpreprocess_outofcore(vol,projs_fname);
+    log_message('Start preprocessing volume and projections');    
+    n=szvol(1);
+    vol=cryo_mask(vol,0,floor(0.45*n),floor(0.05*n));     % Mask volume     
+
+    % Mask projections
+    outstack=imagestackWriter(processed_projs_fname,szprojs(3));
+    for k=1:projsreader.dim(3)
+        p=projsreader.getImage(k);
+        p=cryo_mask(p,1,floor(0.45*n),floor(0.05*n));
+        outstack.append(p);
+    end
+    outstack.close;
+    log_message('Preprocessing done');
 else
+    copyfile(projs_fname,processed_projs_fname);
     log_message('Skipping preprocessing of volume and projections');
 end
 

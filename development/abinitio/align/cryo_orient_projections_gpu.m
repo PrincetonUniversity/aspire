@@ -46,6 +46,14 @@ if ~exist('trueRs','var') || isempty(trueRs)
     trueRs=-1;
 end
 
+if ~exist('verbose','var')
+    verbose=1;
+end
+
+if ~exist('preprocess','var')
+    preprocess=1; % Default is to apply preprocessing
+end
+
 if size(projs,1)~=size(projs,2)
     error('Projections to orient must be square.');
 end
@@ -55,25 +63,22 @@ if any(szvol-szvol(1))
     error('Volume must have all dimensions equal.');
 end
 
-if ~exist('verbose','var')
-    verbose=1;
+if szvol(1)~=size(projs,1)
+    error('Volume and projections must have matching dimensions')
 end
 
 currentsilentmode=log_silent(verbose==0);
 
 % Preprocess projections and referece volume.
-if ~exist('preprocess','var')
-    preprocess=1; % Default is to apply preprocessing
-end
-
 if preprocess
-    log_message('Preprocessing volume and projections');
-    [vol,projs]=cryo_orient_projections_auxpreprocess(vol,projs);
+    log_message('Start preprocessing volume and projections');    
+    n=szvol(1);
+    vol=cryo_mask(vol,0,floor(0.45*n),floor(0.05*n));     % Mask volume     
+    projs=cryo_mask(projs,1,floor(0.45*n),floor(0.05*n)); % Mask projections
+    log_message('Preprocessing done');
 else
     log_message('Skipping preprocessing of volume and projections');
 end
-
-szvol=size(vol); % The dimensions of vol may have changed after preprocessing.
 
 if Nrefs==-1
     %Nrefs=round(szvol(1)*1.5);
