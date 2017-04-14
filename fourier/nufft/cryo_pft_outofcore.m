@@ -44,11 +44,11 @@ end
 %   Fourier transform of the projections. The first column is omega_x, the
 %   second is omega_y. 
 
-in=imagestackReader(instack);
+imreader=imagestackReader(instack);
 % precomputed interpolation weights once for the give polar grid. This is
 % used below for computing the polar Fourier transform of all slices
-n=in.dim(1);
-n_proj=in.dim(3);
+n=imreader.dim(1);
+n_projs=imreader.dim(3);
 precomp=nufft_t_2d_prepare(freqs,n,precision);
 
 % Get the current parallel pool to query for the number of available
@@ -64,16 +64,16 @@ for worker=1:nWorkers
 end
 
 % Each worker processes chuncksize images.
-chuncksize=ceil(n_proj/nWorkers);
+chuncksize=ceil(n_projs/nWorkers);
 
 parfor worker=1:nWorkers
     % Determine the indices of the images to be processed by the current
     % worker.
-    idx=(worker-1)*chuncksize+1:min(chuncksize*worker,n_proj);    
+    idx=(worker-1)*chuncksize+1:min(chuncksize*worker,n_projs);    
     
     pf=imagestackWriterComplex(fnames{worker},numel(idx),100);
     for k=1:numel(idx)
-        tmp=in.getImage(idx(k));
+        tmp=imreader.getImage(idx(k));
         tmp=nufft_t_2d_execute(tmp,precomp);    
         pf.append(reshape(tmp,n_r,n_theta));   
     end
@@ -81,12 +81,12 @@ parfor worker=1:nWorkers
 end
 
 % Merge all temporary files into a single file.
-stackwriter=imagestackWriterComplex(outstack,n_proj,100);
+pf=imagestackWriterComplex(outstack,n_projs,100);
 for worker=1:nWorkers
     stackreader=imagestackReaderComplex(fnames{worker});
     for k=1:stackreader.dim(3)
-        pf=stackreader.getImage(k);
-        stackwriter.append(pf);
+        fim=stackreader.getImage(k);
+        pf.append(fim);
     end
 end
-stackwriter.close;
+pf.close;
