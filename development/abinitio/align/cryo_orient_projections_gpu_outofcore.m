@@ -429,3 +429,7 @@ log_message('Total time for orienting %d projections is %5.2f seconds.',...
     projsreader.dim(3),t_total);
 
 log_silent(currentsilentmode);
+
+% Remove temporary files
+delete(projs_hat_fname);
+delete(processed_projs_fname);

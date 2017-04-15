@@ -32,12 +32,12 @@ szprojs=projs.dim;
 
 
 log_message('Dimensions of volume %dx%dx%d]',szvol(1),szvol(2),szvol(3));
-log_message('Dimensions of projections %dx%d (%d projections)',szvol(1),szvol(2),szvol(3));
+log_message('Dimensions of projections %dx%d (%d projections)',szprojs(1),szprojs(2),szprojs(3));
 if szvol(1)~=szprojs(1)
     log_message('Volume and projections have differnt dimensions. Resampling initial volume to size %dx%dx%d',...
         szprojs(1),szprojs(1),szprojs(1));
     vol=cryo_downsample(vol,[szprojs(1),szprojs(1),szprojs(1)]);
-    log_message('Initial volume resampled');
+    log_message('Initial volume resampled to %dx%dx%d',szprojs(1),szprojs(1),szprojs(1));
 end
 
 R1=zeros(3,3,szprojs(3),maxiter);
@@ -115,3 +115,6 @@ while iter<=maxiter && roterr>tol && cr<cr_threshold
         
     iter=iter+1;
 end
+
+% Remove temporary files
+delete(projs_fname_phaseflipped)

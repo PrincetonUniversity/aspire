@@ -121,3 +121,6 @@ parfor k=1:Nprojs
 end
 
 log_silent(currentsilentmode);
+
+% Remove temporary files
+delete(projs_hat_fname);
