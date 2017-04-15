@@ -39,7 +39,7 @@ log_message('Computing polar Fourier transform done');
 log_message('refprojs_hat MD5 %s',MD5var(refprojs_hat));
 
 % Normalize polar Fourier transforms
-log_message('Start normalizing Fourier transform of reference projections (cryo_raynormalize');
+log_message('Start normalizing Fourier transform of reference projections (cryo_raynormalize)');
 for k=1:Nrefs
     pf=refprojs_hat(:,:,k);    
 % %     pf=bsxfun(@times,pf,H);
