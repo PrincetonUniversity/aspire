@@ -52,8 +52,9 @@ if preprocess
     outstack.close;
     log_message('Preprocessing done');
 else
+    log_message('Normalizing done');
     copyfile(projs_fname,processed_projs_fname);
-    log_message('Skipping preprocessing of volume and projections');
+    log_message('Creating copy of projections file %s',projs_fname);
 end
 
 szvol=size(vol); % The dimensions of vol may have changed after preprocessing.
@@ -62,14 +63,39 @@ if Nrefs==-1
     %Nrefs=round(szvol(1)*1.5);
     Nrefs=100;
 end
+log_message('Using Nrefs=%d reference projections for alignment',Nrefs);
+
+% Set the angular resolution for common lines calculations. The resolution
+% L is set such that the distance between two rays that are 2*pi/L apart
+% is one pixel at the outermost radius. Make L even.
+% L=ceil(2*pi/atan(2/szvol(1)));
+% if mod(L,2)==1 % Make n_theta even
+%     L=L+1;
+% end
+L=360;
+
+% Compute polar Fourier transform of the processed projections
+n_r=ceil(szvol(1)/2);
+projs_hat_fname=tempmrcname;
+log_message('Start computing polar Fourier transforms of input projections. Using n_r=%d L=%d.',n_r,L);
+cryo_pft_outofcore(processed_projs_fname,projs_hat_fname,n_r,L);
+log_message('Computing polar Fourier transform done');
+
+log_message('Start normalizing Fourier transform of input projections (cryo_raynormalize');
+projs_hat_normalized_fname=tempmrcname;
+cryo_raynormalize_outofcore(projs_hat_fname,projs_hat_normalized_fname);
+delete(projs_hat_fname);
+log_message('Normalizing done');
+
 
 % Generate Nrefs references projections of the given volume using random
 % orientations.
-log_message('Generating %d reference projections.',Nrefs);
+log_message('Start generating %d reference projections of size %dx%d.',Nrefs,szvol(1),szvol(1));
 initstate;
 qrefs=qrand(Nrefs);
 refprojs=cryo_project(vol,qrefs,szvol(1));
 refprojs=permute(refprojs,[2 1 3]);
+log_message('Generating reference projections done');
 
 % Save the orientations used to generate the proejctions. These would be
 % used to calculate common lines between the projection to orient and the
@@ -80,42 +106,14 @@ for k=1:Nrefs
     Rrefs(:,:,k)=(q_to_rot(qrefs(:,k))).';
     Rrefsvec(:,3*(k-1)+1:3*k)=Rrefs(:,:,k);
 end
-
-% Set the angular resolution for common lines calculations. The resolution
-% L is set such that the distance between two rays that are 2*pi/L apart
-% is one pixel at the outermost radius. Make L even.
-% L=ceil(2*pi/atan(2/szvol(1)));
-% if mod(L,2)==1 % Make n_theta even
-%     L=L+1;
-% end
-L=360;
  
-% Compute polar Fourier transform of the projecitons.
-n_r=ceil(szvol(1)/2);
-log_message('Computing polar Fourier transforms.');
-log_message('Using n_r=%d L=%d.',n_r,L);
+% Compute polar Fourier transform of reference projecitons.
+log_message('Start computing polar Fourier transforms of reference projections. Using n_r=%d L=%d.',n_r,L);
 refprojs_hat=cryo_pft(refprojs,n_r,L,'single');
-
-% Compute polar Fourier transform of the processed projections
-projs_hat_fname=tempmrcname;
-cryo_pft_outofcore(processed_projs_fname,projs_hat_fname,n_r,L);
-%projs_hat=cryo_pft(projs,n_r,L,'single');
-
-
-% % if bandpass
-% %     % Bandpass filter all projection, by multiplying the shift_phases the the
-% %     % filter H. Then H will be applied to all projections when applying the
-% %     % phases below.
-% %     rk2=(0:n_r-1).';
-% %     H=fuzzymask(n_r,1,floor(n_r*0.4),ceil(n_r*0.1),(n_r+1)/2).*sqrt(rk2);
-% %     H=H./norm(H);    
-% % else 
-% %     H=1;
-% % end
-
+log_message('Computing polar Fourier transform done');
 
 % Normalize polar Fourier transforms
-log_message('Normalizing projections.');
+log_message('Start normalizing Fourier transform of reference projections (cryo_raynormalize');
 for k=1:Nrefs
     pf=refprojs_hat(:,:,k);    
 % %     pf=bsxfun(@times,pf,H);
@@ -123,18 +121,7 @@ for k=1:Nrefs
     pf=cryo_raynormalize(pf);
     refprojs_hat(:,:,k)=pf;
 end
-
-% projs_hat=single(cryo_pft(mrc2mat(processed_projs_fname),n_r,L,'single'));
-% for k=1:size(projs,3)
-%     proj_hat=projs_hat(:,:,k);
-% % %     proj_hat=bsxfun(@times,proj_hat,H);
-%     proj_hat=cryo_raynormalize(proj_hat);
-%     projs_hat(:,:,k)=proj_hat;
-% end
-projs_hat_normalized_fname=tempmrcname;
-cryo_raynormalize_outofcore(projs_hat_fname,projs_hat_normalized_fname);
-delete(projs_hat_fname);
-
+log_message('Normalizing done');
 
 % Generate candidate rotations. The rotation corresponding to the given
 % projection will be searched month these rotatios.
@@ -143,7 +130,7 @@ candidate_rots=genRotationsGrid(75);
 %candidate_rots(:,:,1)=Rref;
 Nrots=size(candidate_rots,3);
 
-log_message('Using %d candidate rotations.',Nrots);
+log_message('Using %d candidate rotations for alignment.',Nrots);
 
 % Compute the common lines between the candidate rotations and all
 % reference projections. Load if possible.
