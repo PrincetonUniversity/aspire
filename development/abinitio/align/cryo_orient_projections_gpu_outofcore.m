@@ -431,5 +431,4 @@ log_message('Total time for orienting %d projections is %5.2f seconds.',...
 log_silent(currentsilentmode);
 
 % Remove temporary files
-delete(projs_hat_fname);
 delete(processed_projs_fname);
