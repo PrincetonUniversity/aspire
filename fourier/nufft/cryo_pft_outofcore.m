@@ -90,3 +90,9 @@ for worker=1:nWorkers
     end
 end
 pf.close;
+
+% Delete temporary files
+for worker=1:nWorkers
+    delete(fnames{worker});
+end
+
