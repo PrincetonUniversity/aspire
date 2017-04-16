@@ -8,7 +8,4 @@ function md5HEXstr=MD5var(data)
 %
 % Yoel Shkolnisky, April 2017
 
-opt.Input='array';
-opt.Format='hex';
-opt.Method='MD5';
-md5HEXstr=DataHash(data,opt);
+md5HEXstr=GetMD5(data,'Array','hex');
