@@ -1,4 +1,5 @@
-Nprojs=100;
+% Compute the polar Fourier transform outside cryo_refine_orientations_outofcore
+Nprojs=1000;
 q=qrand(Nprojs);  % Generate Nprojs projections to orient.
 voldata=load('cleanrib');
 projs=cryo_project(voldata.volref,q);
@@ -17,26 +18,34 @@ end
 
 % Estimate rotations of the projections
 t_orient=tic;
-[Rs,shifts]=cryo_orient_projections_gpu(projshifted,voldata.volref,-1,trueRs,1,0);
+[Rs,shifts]=cryo_orient_projections_gpu(projshifted,voldata.volref,-1,trueRs,0,0);
 t_orient=toc(t_orient);
 fprintf('Assigning orientations took %5.1f seconds\n',t_orient);
 
-% Refine orientations in-core 
-t_refined=tic;
-[R_refined1,shifts_refined1,errs1]=cryo_refine_orientations(...
-    projshifted,0,voldata.volref,Rs,shifts,1,-1,trueRs,true_shifts);
-t_refined=toc(t_refined);
-fprintf('Refining orientations %5.1f seconds\n',t_refined);
-
-% Refine orientations in-core 
+% Refine orientations out-of-core
 projs_fname=tempmrcname;
 imstackwriter=imagestackWriter(projs_fname,Nprojs);
 imstackwriter.append(projshifted);
 imstackwriter.close;
 
 t_refined=tic;
-[R_refined2,shifts_refined2,errs2]=cryo_refine_orientations_outofcore(...
+% XXX Note that L=360 is set by the following function internally. It is
+% better to pass it as a parameter to match the L value below.
+[R_refined1,shifts_refined1,errs1]=cryo_refine_orientations_outofcore(...
     projs_fname,0,voldata.volref,Rs,shifts,1,-1,trueRs,true_shifts);
+t_refined=toc(t_refined);
+fprintf('Refining orientations %5.1f seconds\n',t_refined);
+
+
+% Compute polar Fourier transform of the projecitons.
+L=360;
+n_r=ceil(size(voldata.volref,1)/2);
+projs_hat_fname=tempmrcname;
+cryo_pft_outofcore(projs_fname,projs_hat_fname,n_r,L);
+
+t_refined=tic;
+[R_refined2,shifts_refined2,errs2]=cryo_refine_orientations_outofcore(...
+    projs_hat_fname,1,voldata.volref,Rs,shifts,1,-1,trueRs,true_shifts);
 t_refined=toc(t_refined);
 fprintf('Refining orientations %5.1f seconds\n',t_refined);
 
@@ -47,3 +56,4 @@ fprintf('Difference in shifts = %e\n',norm(shifts_refined1(:)-shifts_refined2(:)
 fprintf('Difference in errors = %d\n',norm(errs1(:)-errs2(:))/norm(errs1(:)));
 
 delete(projs_fname);
+delete(projs_hat_fname);

@@ -14,7 +14,7 @@ log_message('Relative norm of imaginary components = %e\n',ii1);
 v1=real(v1);
 
 [R_refined1,shifts_refined1,errs1]=cryo_refine_orientations(...
-    projs1,vol1,R1,shift1,1,-1);
+    projs1,0,vol1,R1,shift1,1,-1);
 
 log_message('Reconstructing from the projections and their refined orientation parameters');
 n=size(projs1,1);
@@ -41,7 +41,7 @@ log_message('Relative norm of imaginary components = %e\n',ii2);
 v2=real(v2);
 
 [R_refined2,shifts_refined2,errs2]=cryo_refine_orientations(...
-    projs2,vol2,R2,shift2,1,-1);
+    projs2,0,vol2,R2,shift2,1,-1);
 
 log_message('Reconstructing from the projections and their refined orientation parameters');
 n=size(projs2,1);

@@ -72,7 +72,7 @@ log_message('Start computing polar Fourier transforms of input projections. Usin
 projs_hat=cryo_pft(projs,n_r,L,'single');
 projs_hat=single(projs_hat);
 log_message('Computing polar Fourier transform done');
-log_message('projs_hat MD5 %s',MD5var(projs_hat));
+%log_message('projs_hat MD5 %s',MD5var(projs_hat));
 
 
 log_message('Start normalizing Fourier transform of input projections (cryo_raynormalize)');
@@ -83,7 +83,7 @@ for k=1:size(projs,3)
     projs_hat(:,:,k)=proj_hat;
 end
 log_message('Normalizing done');
-log_message('projs_hat MD5 %s',MD5var(projs_hat));
+%log_message('projs_hat MD5 %s',MD5var(projs_hat));
 
 max_shift=round(size(projs,1)*0.1);
 shift_step=0.5;

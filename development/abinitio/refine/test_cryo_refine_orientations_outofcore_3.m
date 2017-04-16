@@ -1,3 +1,4 @@
+% Compute the polar Fourier transform outside cryo_refine_orientations_outofcore
 Nprojs=100;
 q=qrand(Nprojs);  % Generate Nprojs projections to orient.
 voldata=load('cleanrib');
@@ -22,9 +23,13 @@ t_orient=toc(t_orient);
 fprintf('Assigning orientations took %5.1f seconds\n',t_orient);
 
 % Refine orientations in-core 
+L=360;
+n_r=ceil(size(projshifted,1)/2);
+projsFT=cryo_pft(projshifted,n_r,L);
+projsFT=single(projsFT);
 t_refined=tic;
 [R_refined1,shifts_refined1,errs1]=cryo_refine_orientations(...
-    projshifted,0,voldata.volref,Rs,shifts,1,-1,trueRs,true_shifts);
+    projsFT,1,voldata.volref,Rs,shifts,1,-1,trueRs,true_shifts);
 t_refined=toc(t_refined);
 fprintf('Refining orientations %5.1f seconds\n',t_refined);
 
@@ -34,9 +39,16 @@ imstackwriter=imagestackWriter(projs_fname,Nprojs);
 imstackwriter.append(projshifted);
 imstackwriter.close;
 
+% Compute polar Fourier transform of the projecitons.
+L=360;
+n_r=ceil(size(voldata.volref,1)/2);
+
+projs_hat_fname=tempmrcname;
+cryo_pft_outofcore(projs_fname,projs_hat_fname,n_r,L);
+
 t_refined=tic;
 [R_refined2,shifts_refined2,errs2]=cryo_refine_orientations_outofcore(...
-    projs_fname,0,voldata.volref,Rs,shifts,1,-1,trueRs,true_shifts);
+    projs_hat_fname,1,voldata.volref,Rs,shifts,1,-1,trueRs,true_shifts);
 t_refined=toc(t_refined);
 fprintf('Refining orientations %5.1f seconds\n',t_refined);
 
@@ -47,3 +59,4 @@ fprintf('Difference in shifts = %e\n',norm(shifts_refined1(:)-shifts_refined2(:)
 fprintf('Difference in errors = %d\n',norm(errs1(:)-errs2(:))/norm(errs1(:)));
 
 delete(projs_fname);
+delete(projs_hat_fname);

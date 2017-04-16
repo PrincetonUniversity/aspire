@@ -147,7 +147,7 @@ end
 
 
 log_message('Refining alignment.');
-Rests=cryo_refine_orientations(projs2,vol1masked,Rests,dxests,1,-1);
+Rests=cryo_refine_orientations(projs2,0,vol1masked,Rests,dxests,1,-1);
 
 
 % There are two possibilties:
