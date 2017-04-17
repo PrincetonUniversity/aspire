@@ -153,7 +153,8 @@ while iter<=maxiter && roterr>tol && cr<cr_threshold
     vol=v1_refined;
     
     if iter>=2
-        dd=diag(dist_between_rot(R_refined1(:,:,:,iter),R_refined1(:,:,:,iter-1)))/pi*180;
+        %dd=diag(dist_between_rot(R_refined1(:,:,:,iter),R_refined1(:,:,:,iter-1)))/pi*180;
+        dd=rot_dist(R_refined1(:,:,:,iter),R_refined1(:,:,:,iter-1))/pi*180;
         dd=sort(dd);
         log_message('Statistics for iteration %d:',iter)
         log_message('\t Percentiles of assignment errors (in degrees):');
