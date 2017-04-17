@@ -40,15 +40,8 @@ processed_projs_fname=tempmrcname;
 if preprocess
     log_message('Start preprocessing projections');    
     n=szvol(1);
-
     % Mask projections
-    outstack=imagestackWriter(processed_projs_fname,szprojs(3));
-    for k=1:projsreader.dim(3)
-        p=projsreader.getImage(k);
-        p=cryo_mask(p,1,floor(0.45*n),floor(0.05*n));
-        outstack.append(p);
-    end
-    outstack.close;
+    cryo_mask_outofcore(projs_fname,processed_projs_fname,floor(0.45*n),floor(0.05*n));
     log_message('Preprocessing done');
 else
     log_message('Normalizing done');

@@ -69,6 +69,7 @@ else
     projs_hat=cryo_pft(projs,n_r,L,'single'); % XXX No reason to recompute that. Just get it as parameter.
     projs_hat=single(projs_hat);
 end
+log_message('projs_hat MD5 %s',MD5var(projs_hat));
 
 % Generate reference projections
 initstate;
@@ -84,6 +85,7 @@ end
 n_r=size(projs_hat,1);
 L=size(projs_hat,2);
 projs_ref_hat=cryo_pft(projs_ref,n_r,L,'single');
+log_message('projs_ref_hat MD5 %s',MD5var(projs_ref_hat));
 
 rots_refined=zeros(size(rots));
 shifts_refined=zeros(size(shifts));

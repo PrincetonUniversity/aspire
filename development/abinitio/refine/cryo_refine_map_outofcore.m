@@ -39,6 +39,44 @@ if szvol(1)~=szprojs(1)
     vol=cryo_downsample(vol,[szprojs(1),szprojs(1),szprojs(1)]);
     log_message('Initial volume resampled to %dx%dx%d',szprojs(1),szprojs(1),szprojs(1));
 end
+log_message('vol MD5 %s',MD5var(vol));
+
+szvol=size(vol); % Dimensions of volume may have changed due to resampling
+% Preprocess projections and referece volume.
+log_message('Start preprocessing projections');
+n=szvol(1);
+projs_fname_normalized=tempmrcname;
+cryo_mask_outofcore(projs_fname_phaseflipped,projs_fname_normalized,floor(0.45*n),floor(0.05*n)); % Mask projections
+log_message('Preprocessing done');
+delete(projs_fname_phaseflipped);
+
+Nrefs=100;
+log_message('Using Nrefs=%d reference projections for alignment',Nrefs);
+
+% Set the angular resolution for common lines calculations. The resolution
+% L is set such that the distance between two rays that are 2*pi/L apart
+% is one pixel at the outermost radius. Make L even.
+% L=ceil(2*pi/atan(2/szvol(1)));
+% if mod(L,2)==1 % Make n_theta even
+%     L=L+1;
+% end
+L=360;
+
+% Compute polar Fourier transform of the processed projections
+n_r=ceil(szvol(1)/2);
+log_message('Start computing polar Fourier transforms of input projections. Using n_r=%d L=%d.',n_r,L);
+projs_fname_pft=tempmrcname;
+cryo_pft_outofcore(projs_fname_normalized,projs_fname_pft,n_r,L);
+log_message('Computing polar Fourier transform done');
+
+projs_fname_pft_n=tempmrcname;
+log_message('Start normalizing Fourier transform of input projections (cryo_raynormalize)');
+cryo_raynormalize_outofcore(projs_fname_pft,projs_fname_pft_n);
+log_message('Normalizing done');
+delete(projs_fname_pft);
+
+max_shift=round(szprojs(1)*0.1);
+shift_step=0.5;
 
 R1=zeros(3,3,szprojs(3),maxiter);
 shift1=zeros(2,szprojs(3),maxiter);
@@ -56,7 +94,8 @@ while iter<=maxiter && roterr>tol && cr<cr_threshold
     
     log_message('Start orienting projections with respect to reference volume');
     t_orient=tic;
-    [R1(:,:,:,iter),shift1(:,:,iter)]=cryo_orient_projections_gpu_outofcore(projs_fname_phaseflipped,vol,-1,[],1,1);
+    [R1(:,:,:,iter),shift1(:,:,iter)]=cryo_orient_projections_gpu_outofcore_worker(projs_fname_pft_n,vol,Nrefs,...
+        max_shift,shift_step,[],1);
     t_orient=toc(t_orient);
     log_message('Finished orienting projections. Took %7.2f seconds',t_orient);
     
@@ -73,14 +112,14 @@ while iter<=maxiter && roterr>tol && cr<cr_threshold
     %poolreopen(8);
     log_message('Start refining orientations');
     [R_refined1(:,:,:,iter),shifts_refined1(:,:,iter),errs1(:,:,iter)]=cryo_refine_orientations_outofcore(...
-        projs_fname_phaseflipped,vol,R1(:,:,:,iter),shift1(:,:,iter),1,-1);
+        projs_fname_pft_n,1,vol,R1(:,:,:,iter),shift1(:,:,iter),1,-1);
     log_message('Finished refining orientations');
 
     log_message('Start reconstructing from the projections and their refined orientation parameters');
     n=size(projs,1);
     rotations=R_refined1(:,:,:,iter);
     dx=shifts_refined1(:,:,iter);
-    [ v1_refined, ~, ~ ,~, ~, ~] = recon3d_firm_outofcore( projs_fname_phaseflipped,rotations,-dx.', 1e-8, 100, zeros(n,n,n));
+    [ v1_refined, ~, ~ ,~, ~, ~] = recon3d_firm_outofcore(projs_fname_normalized,rotations,-dx.', 1e-8, 100, zeros(n,n,n));
     log_message('Finished reconstruction');    
 
     ii1=norm(imag(v1_refined(:)))/norm(v1_refined(:));
@@ -117,4 +156,5 @@ while iter<=maxiter && roterr>tol && cr<cr_threshold
 end
 
 % Remove temporary files
-delete(projs_fname_phaseflipped)
+delete(projs_fname_normalized);
+delete(projs_fname_pft_n)
