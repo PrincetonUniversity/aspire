@@ -44,7 +44,7 @@ if isempty(max_it), max_it=100; end
 if isempty(x0), x0 = zeros(n,n,n); end
 
 if ~exist('bufsize','var')
-    group_size=100;
+    group_size=1000;
 else
     BYTES_PER_FLOAT=4; % We are using single precision.
     group_size=max(ceil(bufsize/(BYTES_PER_FLOAT*n*n)),10); % User at least 100 images.
@@ -54,6 +54,7 @@ v_b = 0;
 kernel = 0;
 
 for i = 1 : group_size : n_proj
+    disp(i);
     ind=i:min(i+group_size-1, n_proj);
     sub_projections=projreader.getImage(ind);
     sub_inv_rot_matrices=inv_rot_matrices(:,:,ind);
@@ -65,7 +66,7 @@ for i = 1 : group_size : n_proj
         projs_fourier= FFT_projections( sub_projections,sub_shifts);
     end
     
-    [sub_v_b,sub_kernel] = precomp( projs_fourier,sub_inv_rot_matrices);
+    [sub_v_b,sub_kernel] = precomp_parallel( projs_fourier,sub_inv_rot_matrices);
     v_b = v_b + sub_v_b;
     kernel = kernel + sub_kernel;
     
