@@ -56,6 +56,7 @@ function im = anufft2(im_f, fourier_pts, sz)
 			double(im_f(:)), 1, epsilon, sz(1), sz(2));
 		im = reshape(im, sz);
 	elseif lib_code == 1
+        warning('NUFFT:directImplementation','Using direct (very slow) NUFFT. Call install_cims_nufft');
 		im = anudft2(im_f, fourier_pts, sz);
 	else
 		error('invalid library code');

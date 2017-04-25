@@ -18,7 +18,7 @@
 function im_f = nufft2(im, fourier_pts)
 	persistent p_plan p_sz p_num_pts;
 
-	epsilon = 1e-10;
+	epsilon = 1e-8;
 	sz = size(im);
 
 	lib_code = pick_nufft_library(sz);
@@ -53,6 +53,7 @@ function im_f = nufft2(im, fourier_pts)
 			fourier_pts(1,:), fourier_pts(2,:), ...
 			-1, epsilon, sz(1), sz(2), double(im(:)));
 	elseif lib_code == 1
+        warning('NUFFT:directImplementation','Using direct (very slow) NUFFT. Call install_cims_nufft');
 		im_f = nudft2(im, fourier_pts);
 	else
 		error('invalid library code');

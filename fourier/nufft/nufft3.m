@@ -53,6 +53,7 @@ function vol_f = nufft3(vol, fourier_pts)
 			fourier_pts(1,:), fourier_pts(2,:), fourier_pts(3,:), ...
 			-1, epsilon, sz(1), sz(2), sz(3), double(vol(:)));
 	elseif lib_code == 1
+        warning('NUFFT:directImplementation','Using direct (very slow) NUFFT. Call install_cims_nufft');
 		vol_f = nudft3(vol, fourier_pts);
 	else
 		error('invalid library code');
