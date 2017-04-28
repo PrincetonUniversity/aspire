@@ -24,7 +24,8 @@ function cryo_abinitio_C4(instack,outvol,outparams,...
 %
 % Example:
 % cryo_abinitio_C4('/mnt/ix2/backup/datasets/10005/output/averages_nn100_group1.mrc','vol.mrc','molec_c4.mat')
-%
+% cryo_abinitio_C4('/home/yoel/Desktop/tmp/10059/output/averages_nn50_group1.mrc','vol.mrc','molec_c4.mat')
+
 
 % Check input and set default parameters
 if ~exist('n_theta','var')
@@ -58,20 +59,8 @@ end
 %% Load projections
 projs = ReadMRC(instack);
 
-if n_projs_given
-    if n_projs == -1
-        nImages = size(projs,3);
-    elseif n_projs <= 0 
-        error('n_projs must be either positive number, or -1 for using all images');
-    else
-        assert(n_projs <= size(projs,3));
-        nImages = n_projs;
-    end
-else % not provided as a parameter so use everything
-    nImages = size(projs,3);
-end
-
-projs = projs(:,:,1:nImages);
+projs = projs(:,:,floor(linspace(1,size(projs,3),n_projs)));
+nImages = size(projs,3);
 
 log_message('projections loaded. Using %d projections of size %d x %d',nImages,size(projs,1),size(projs,2));
 if size(projs,1)~=size(projs,2)
@@ -102,7 +91,7 @@ if ~max_shift_given
     max_shift = ceil(size(projs,1)*0.15); % max_shift is 15% of the image size
 end
 log_message('detecting common-lines');
-clmatrix = cryo_clmatrix(npf,nImages,1,max_shift,shift_step); 
+clmatrix = cryo_clmatrix(npf,nImages,0,max_shift,shift_step); 
 save(outparams,'clmatrix','max_shift','shift_step','-append');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 3  : detect self-common-lines in each image
@@ -124,7 +113,7 @@ save(outparams,'Rijs','-append');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 [vijs,viis,im_inds_to_remove,pairwise_inds_to_remove,...
     npf,projs] = local_sync_J(Rijs,Riis,npf,projs);
-save(outparams,'vijs','viis','im_inds_to_remove','pairwise_inds_to_remove','-append');
+save(outparams,'npf','vijs','viis','im_inds_to_remove','pairwise_inds_to_remove','-append');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 7  : outer J-synchronization
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -138,9 +127,10 @@ save(outparams,'vis','-append');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 9  : in-plane rotations angles estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-rots = estimate_inplane_rotations2(npf,vis,0.25,max_shift,shift_step);
+rots = estimate_inplane_rotations4(npf,vis,1,max_shift,shift_step);
 save(outparams,'rots','-append');
 
+% estimatedVol = reconstruct_vol(projs,npf,rot_alligned,max_shift,shift_step);
 estimatedVol = reconstruct(projs,rots,n_r,n_theta,max_shift,shift_step);   
 WriteMRC(estimatedVol,1,outvol);
 % 

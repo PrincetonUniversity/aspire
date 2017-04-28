@@ -91,27 +91,31 @@ for i = 1:nImages
     for s=1:nshifts
         npf_i_shifted(:,:,s) = bsxfun(@times,npf_i,shift_phases(:,s));
     end
-        
+    
     npf_i_shifted(1,:) = 0; % ignoring dc term
     % normalize each ray to be of norm 1
     npf_i_shifted = bsxfun(@rdivide,npf_i_shifted,...
-                                 sqrt(sum((abs(npf_i_shifted)).^2)));
-                             
+        sqrt(sum((abs(npf_i_shifted)).^2)));
+    
     Npf_i_shifted = gpuArray(single(npf_i_shifted));
+    
+    % for performance purposes we precalculate this once per each image i.
+    % If it were for readibility it would be better to put this in the inner
+    % loop.
+    Ri_tilde = Ris_tilde(:,:,i);
+    % calculate R_i_tilde*R_theta_ij for all possible R_theta_ijs
+    tmp = multiprod(Ri_tilde.',R_theta_ij);
     
     for j = i+1:nImages
         
         t1 = clock;
         counter = counter+1;
         
-        Ri_tilde = Ris_tilde(:,:,i);
-        Rj_tilde = Ris_tilde(:,:,j);
-        
-        
         npf_j = npf_normalized(:,:,j);
         
-        % calculate R_i_tilde*R_theta_ij for all possible R_theta_ijs
-        tmp = multiprod(Ri_tilde.',R_theta_ij);
+        
+        Rj_tilde = Ris_tilde(:,:,j);
+        
         % to each of the previous computed matrices we multiply it by Rj_tilde
         Us  = multiprod(tmp,Rj_tilde);
         

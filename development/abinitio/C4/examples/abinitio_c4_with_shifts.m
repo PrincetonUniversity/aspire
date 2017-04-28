@@ -10,7 +10,12 @@ open_log(0);
 % projection is stored in the variable "ref_shifts". The projections were
 % shifted by random integer shifts of up to +/- 5 pixels, with steps of 0.5
 % pixel.
-load p100_c4_shifted;
+
+max_shift  = 8; % number of shifts to consider
+shift_step = 0.5; % the shift step (see Yoel's technical report)
+[projs,refq,ref_shifts] = generate_c4_images(200,10000000,65,'GAUSSIAN',max_shift,shift_step);
+
+% load p100_c4_shifted;
 viewstack(projs,5,5);   % Display the proejctions.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 1  : Computing polar Fourier transform of projections
@@ -26,8 +31,6 @@ npf = gaussian_filter_imgs(npf);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 2  : detect a single pair of common-lines between each pair of images
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-max_shift  = 5; % number of shifts to consider
-shift_step = 0.5; % the shift step (see Yoel's technical report)
 clmatrix = cryo_clmatrix_gpu(npf,size(npf,3),1,max_shift,shift_step); 
 cl_detection_rate(clmatrix,n_theta,refq);
 
@@ -72,8 +75,9 @@ vis  = estimate_third_rows(vijs,viis);
 % step 9  : in-plane rotations angles estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 inplane_rot_res = 1;
-[rots,in_plane_rotations] = estimate_inplane_rotations2(npf,vis,inplane_rot_res,max_shift,shift_step);
+[rots,in_plane_rotations] = estimate_inplane_rotations3(npf,vis,inplane_rot_res,max_shift,shift_step);
 
+toc
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 10  : Results Analysis
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -82,6 +86,6 @@ inplane_rot_res = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 11  : Reconstructing volume
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% estimatedVol = reconstruct_vol(projs,npf,rot_alligned,max_shift,shift_step);
-estimatedVol = reconstruct(projs,rot_alligned,n_r,n_theta,max_shift,shift_step);   
-WriteMRC(estimatedVol,1,'example1_shifted.mrc');
+% estimatedVol = reconstruct_vol(projs,npf,rots,max_shift,shift_step);
+estimatedVol = reconstruct(projs,rots,n_r,n_theta,max_shift,shift_step);   
+WriteMRC(estimatedVol,1,'example1.mrc');

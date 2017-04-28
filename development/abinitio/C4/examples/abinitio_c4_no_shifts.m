@@ -7,7 +7,7 @@ open_log(0);
 % The MAT file p100_c4_shifted contains 100 projections of size 65x65. The
 % orientations (given as quaternions) used to generate these projections
 % are stored in the the variable "refq". The projection were generated using the following command:
-% [projs,refq] = generate_c4_images(100,100000000,65,'GAUSSIAN',0,1);
+% [projs,refq] = generate_c4_images(300,100000000,65,'GAUSSIAN',0,1);
 
 load p100_c4_gaussian_no_shifts;
 viewstack(projs,5,5);   % Display the proejctions.
@@ -73,6 +73,7 @@ vis  = estimate_third_rows(vijs,viis);
 inplane_rot_res = 1;
 [rots,in_plane_rotations] = estimate_inplane_rotations2(npf,vis,inplane_rot_res,max_shift,shift_step);
 
+toc
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 10  : Results Analysis
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -81,6 +82,6 @@ inplane_rot_res = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 11  : Reconstructing volume
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-estimatedVol = reconstruct(projs,rot_alligned,n_r,n_theta,max_shift,shift_step);   
+% estimatedVol = reconstruct(projs,rots,n_r,n_theta,max_shift,shift_step);   
 
-WriteMRC(estimatedVol,1,'example1_no_shifts.mrc');
+% WriteMRC(estimatedVol,1,'example1_no_shifts.mrc');

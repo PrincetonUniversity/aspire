@@ -35,7 +35,7 @@ if ~exist('equator_res_fact','var')
     equator_res_fact = 10;
 end
 
-if ~exist('is_detect_equator_ims','var')
+if ~exist('is_handle_equator_ims','var')
     is_handle_equator_ims = true;
 end
 
@@ -119,13 +119,15 @@ for i=1:nImages
     g_pi_half_shifted = bsxfun(@rdivide,g_pi_half_shifted,norms);
     
     Corr = g_npf_i.'*g_pi_half_shifted;
-    corr = gather(Corr);
-    corr = reshape(corr,[n_theta,n_theta/2,nshifts]);
     
-    corr = bsxfun(@times,corr,good_diffs);
+    Corr = reshape(Corr,[n_theta,n_theta/2,nshifts]);
     
-    [correlation,idx] = max(real(corr(:)));
+    Corr = bsxfun(@times,Corr,good_diffs);
     
+    [Correlation,Idx] = max(real(Corr(:)));
+    
+    correlation = gather(Correlation);
+    idx = gather(Idx);
     [sc1, scl3, shift] = ind2sub([n_theta, n_theta/2, nshifts],idx);
     sclmatrix(:,i) = [sc1, scl3]';
     correlations(i) = correlation;
