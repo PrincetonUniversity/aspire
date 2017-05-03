@@ -13,7 +13,7 @@ projs=cryo_gen_projections(n,K,SNR);
 projs=single(projs);
 
 % Write to disk.
-outstack=imagestackWriter('tmp.mrc',1,K,50);
+outstack=imagestackWriter('tmp.mrc',K,1,50);
 outstack.append(projs);
 outstack.close;
 

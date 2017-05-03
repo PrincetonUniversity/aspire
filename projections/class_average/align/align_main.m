@@ -44,7 +44,7 @@ end;
 shifts=zeros(length(list_recon), k+1);
 corr=zeros(length(list_recon), k+1);
 %average=zeros(L, L, length(list_recon));
-%average=imagestackWriter('/tmp/align_main_tmp.mrc',1,length(list_recon),100);
+%average=imagestackWriter('/tmp/align_main_tmp.mrc',length(list_recon),1,100);
 norm_variance=zeros(length(list_recon), 1);
 
 %generate grid. Precompute phase for shifts
@@ -153,7 +153,7 @@ end
 averagesfname=tempname;
 [~, averagesfname]=fileparts(averagesfname);
 averagesfname=fullfile(tmpdir,averagesfname);
-stack=imagestackWriter(averagesfname,1,numel(list_recon),100);
+stack=imagestackWriter(averagesfname,numel(list_recon),1,100);
 for j=1:length(list_recon)
     mrcname=sprintf('average%d.mrc',j);
     mrcname=fullfile(tmpdir,mrcname);

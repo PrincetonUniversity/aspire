@@ -52,7 +52,7 @@ log_message('Generating %d projections of size %dx%d',Nprojs,n,n);
 
 %debugprojs=zeros(n,n,Nprojs);
 fname=sprintf('projs_%d.mrc',n);
-outstack=imagestackWriter(fname,1,Nprojs,chunksize); 
+outstack=imagestackWriter(fname,Nprojs,1,chunksize); 
 
 idx=0; % How many projectioned were generated so far.
 while idx<Nprojs

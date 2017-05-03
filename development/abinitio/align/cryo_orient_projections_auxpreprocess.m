@@ -26,16 +26,17 @@ end
 % Mask and filter the volume
 n=size(vol,1);
 vol=vol.*fuzzymask(n,3,floor(0.45*n),floor(0.05*n));
-vol=GaussFilt(vol,0.3);
+%vol=GaussFilt(vol,0.3);
 
 % Mask and filter the projections
 for k=1:size(projs,3)
     p=projs(:,:,k);
     p=p.*fuzzymask(n,2,floor(0.45*n),floor(0.05*n));
-    p=GaussFilt(p,0.3);
+    %p=GaussFilt(p,0.3);
     projs(:,:,k)=p;
 end
 
+projs=cryo_globalphaseflip(projs);
 
 % n=szprojs(1);
 % log_message('Resampling refence volume from %d to %d',szvol(1),n);

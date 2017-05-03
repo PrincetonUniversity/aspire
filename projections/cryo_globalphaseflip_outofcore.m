@@ -76,7 +76,7 @@ end
 
 if nargin==2
     % Also write the flipped projections to the output file
-    outstack=imagestackWriter(outstackname,1,K,100);
+    outstack=imagestackWriter(outstackname,K,1,100);
     flag=(-2)*doflip+1; % Sign multiplier for the images
     for idx=1:K
         proj=instack.getImage(idx);

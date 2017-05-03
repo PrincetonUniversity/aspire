@@ -59,10 +59,11 @@ end
 % Set the angular resolution for common lines calculations. The resolution
 % L is set such that the distance between two rays that are 2*pi/L apart
 % is one pixel at the outermost radius. Make L even.
-L=ceil(2*pi/atan(2/szvol(1)));
-if mod(L,2)==1 % Make n_theta even
-    L=L+1;
-end
+%L=ceil(2*pi/atan(2/szvol(1)));
+% if mod(L,2)==1 % Make n_theta even
+%     L=L+1;
+% end
+L=360;
 log_message('Using angular resolution L=%d.',L);
  
 % Compute polar Fourier transform of the projecitons.
