@@ -1,4 +1,4 @@
-function cryo_refine_map(projs_mrc,vol_mrc,map_out_step1,map_out_step2,mat_out,maxiter,tol)
+function cryo_refine_map_outofcore(projs_fname,vol_fname,map_out_step1,map_out_step2,mat_out,maxiter,tol)
 
 if ~exist('maxiter','var')
     maxiter=5;
@@ -12,25 +12,23 @@ cr_threshold=0.8;
 log_message('Using maxiter=%d, tol=%4.2f degrees, correlation threshold=%d;',maxiter,tol,cr_threshold);
 log_message('Iterations stop when maxiter reached or the rotations of the current iteration deviate from the rotations of the previous');
 log_message('iteatrion by a less than tol degrees, or the correlation between volumes of two consecutive iterations is at least as specified.');
-    
-log_message('Loading initial volume %s',vol_mrc');
-vol=ReadMRC(vol_mrc);
+
+log_message('Loading initial volume %s',vol_fname');    
+vol=ReadMRC(vol_fname);
 log_message('Volume loaded');
-
-log_message('Loading projections %s',projs_mrc);
-projs=ReadMRC(projs_mrc);
-log_message('Projections loaded');
-
 szvol=size(vol);
-szprojs=size(projs);
 
 log_message('Applying global phase-flip to initial volume');
 vol=cryo_globalphaseflip_vol(vol);
 log_message('Volume phase-flipped');
 
 log_message('Applying global phase-flip projections');
-projs=cryo_globalphaseflip(projs);
+projs_fname_phaseflipped=tempmrcname;
+cryo_globalphaseflip_outofcore(projs_fname,projs_fname_phaseflipped);
 log_message('Projections phase-flipped');
+
+projs=imagestackReader(projs_fname_phaseflipped,100);
+szprojs=projs.dim;
 
 
 log_message('Dimensions of volume %dx%dx%d]',szvol(1),szvol(2),szvol(3));
@@ -58,9 +56,7 @@ while iter<=maxiter && roterr>tol && cr<cr_threshold
     
     log_message('Start orienting projections with respect to reference volume');
     t_orient=tic;
-    %[R1,shift1]=cryo_orient_projections_gpu_2(projs,vol,-1,[],1,1,4);
-    [R1(:,:,:,iter),shift1(:,:,iter)]=cryo_orient_projections_gpu(projs,vol,-1,[],1,1);
-    %[R1,shift1]=cryo_orient_projections(projs,vol,[],[],1,1);
+    [R1(:,:,:,iter),shift1(:,:,iter)]=cryo_orient_projections_gpu_outofcore(projs_fname_phaseflipped,vol,-1,[],1,1);
     t_orient=toc(t_orient);
     log_message('Finished orienting projections. Took %7.2f seconds',t_orient);
     
@@ -76,17 +72,17 @@ while iter<=maxiter && roterr>tol && cr<cr_threshold
     
     %poolreopen(8);
     log_message('Start refining orientations');
-    [R_refined1(:,:,:,iter),shifts_refined1(:,:,iter),errs1(:,:,iter)]=cryo_refine_orientations(...
-        projs,vol,R1(:,:,:,iter),shift1(:,:,iter),1,-1);
+    [R_refined1(:,:,:,iter),shifts_refined1(:,:,iter),errs1(:,:,iter)]=cryo_refine_orientations_outofcore(...
+        projs_fname_phaseflipped,vol,R1(:,:,:,iter),shift1(:,:,iter),1,-1);
     log_message('Finished refining orientations');
 
     log_message('Start reconstructing from the projections and their refined orientation parameters');
     n=size(projs,1);
     rotations=R_refined1(:,:,:,iter);
     dx=shifts_refined1(:,:,iter);
-    [ v1_refined, ~, ~ ,~, ~, ~] = recon3d_firm( projs,rotations,-dx.', 1e-8, 100, zeros(n,n,n));
-    log_message('Finished reconstruction');
-    
+    [ v1_refined, ~, ~ ,~, ~, ~] = recon3d_firm_outofcore( projs_fname_phaseflipped,rotations,-dx.', 1e-8, 100, zeros(n,n,n));
+    log_message('Finished reconstruction');    
+
     ii1=norm(imag(v1_refined(:)))/norm(v1_refined(:));
     log_message('Relative norm of imaginary components = %e\n',ii1);
     v1_refined=real(v1_refined);

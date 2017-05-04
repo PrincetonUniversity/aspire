@@ -17,6 +17,11 @@ cryo_workflow_abinitio_analyze_validate(workflow_fname);
 tree=xmltree(workflow_fname);
 workflow=convert(tree);
 
+open_log(fullfile(workflow.info.working_dir,workflow.info.logfile));
+
+log_message('Starting cryo_workflow_abinitio_execute_analyze');
+log_message('Loaded XML file %s (MD5: %s)',workflow_fname,MD5(workflow_fname));
+
 % Set workflow parameters
 numgroups=str2double(workflow.preprocess.numgroups);
 nmeans=str2double(workflow.abinitio.nmeans);
@@ -29,7 +34,7 @@ log_message('Align volumes reconstructed from averages');
 % Load first volume
 vol1fname=sprintf('vol_nn%d_nm%d_group%d.mrc',nnavg,nmeans,1);
 vol1fname=fullfile(workflow.info.working_dir,vol1fname);
-log_message('Loading %s',vol1fname);
+log_message('Loading %s (MD5: %s)',vol1fname,MD5(vol1fname));
 vol1=ReadMRC(vol1fname);
 
 % Align all remainging volumes agains the first.
@@ -37,7 +42,7 @@ for groupid=2:numgroups
     % Load second volume
     vol2fname=sprintf('vol_nn%d_nm%d_group%d.mrc',nnavg,nmeans,groupid);
     vol2fname=fullfile(workflow.info.working_dir,vol2fname);
-    log_message('Loading %s',vol2fname);    
+    log_message('Loading %s (MD5: %s)',vol2fname,MD5(vol2fname));    
     vol2=ReadMRC(vol2fname);
     
     % Align vol1 and vol2 
@@ -47,6 +52,7 @@ for groupid=2:numgroups
     vol2fname=sprintf('vol_nn%d_nm%d_group%d_aligned.mrc',nnavg,nmeans,groupid);
     vol2fname=fullfile(workflow.info.working_dir,vol2fname);
     WriteMRC(vol2aligned,1,vol2fname);
+    log_message('Saved %s (MD5: %s))',vol2fname,MD5(vol2fname));
 
     % Plot FSC
     [resA,h]=plotFSC(vol1,vol2aligned,0.143,pixA);
@@ -58,7 +64,9 @@ for groupid=2:numgroups
     fscEPSname=fullfile(workflow.info.working_dir,...
         sprintf('fsc_nn%d_nm_%d_group1to%d.eps',nnavg,nmeans,groupid));
     hgsave(fscFIGname);
-    print('-depsc',fscEPSname);
+    log_message('Saved %s',fscFIGname);
+    print('-depsc',fscEPSname);   
+    log_message('Saved %s',fscEPSname);
     close(h);
     
 end
@@ -150,8 +158,9 @@ end
 log_message('Plot viewing directions');
 
 for groupid=1:numgroups
-    matname=sprintf('abinitio_info_nn%d_nm%d_group%d',nnavg,nmeans,groupid);
+    matname=sprintf('abinitio_info_nn%d_nm%d_group%d.mat',nnavg,nmeans,groupid);
     matname=fullfile(workflow.info.working_dir,matname);
+    log_message('Loading %s (MD5: %s)',matname,MD5(matname));
     s=load(matname,'rotations');
     [h1,h2]=cryo_plot_viewing_directions(s.rotations);
     
@@ -162,7 +171,9 @@ for groupid=1:numgroups
     rotEPSname=fullfile(workflow.info.working_dir,...
         sprintf('rotations_nn%d_nm_%d_group%d_polar.eps',nnavg,nmeans,groupid));
     hgsave(rotFIGname);
+    log_message('Saved %s',rotFIGname);
     print('-depsc',rotEPSname);
+    log_message('Saved %s',rotEPSname);
     close(h1);
     
     figure(h2);
@@ -171,7 +182,10 @@ for groupid=1:numgroups
     rotEPSname=fullfile(workflow.info.working_dir,...
         sprintf('rotations_nn%d_nm_%d_group%d_S2.eps',nnavg,nmeans,groupid));
     hgsave(rotFIGname);
+    log_message('Saved %s',rotFIGname);
     print('-depsc',rotEPSname);
+    log_message('Saved %s',rotEPSname);
     close(h2);
 end
 
+close_log;
