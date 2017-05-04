@@ -25,7 +25,7 @@ assert(n_ == nchoosek(nImages,2));
 % the outer product vij
 V = zeros(3*nImages,3*nImages);
 for i=1:nImages
-    V((i-1)*3+1:i*3,(i-1)*3+1:i*3) = viis(:,:,i);
+%     V((i-1)*3+1:i*3,(i-1)*3+1:i*3) = viis(:,:,i);
     for j=i+1:nImages
         ind = uppertri_ijtoind(i,j,nImages);
         V((i-1)*3+1:i*3,(j-1)*3+1:j*3) = vijs(:,:,ind);
@@ -33,6 +33,10 @@ for i=1:nImages
 end
 
 V = V + V.'; % since vij^{T} = vji
+
+for i=1:nImages
+    V((i-1)*3+1:i*3,(i-1)*3+1:i*3) = viis(:,:,i);
+end
 
 [v, d] = eigs(V, 20, 'la');
 [evals, ind] = sort(diag(d), 'descend');
