@@ -27,10 +27,9 @@ numgroups=str2double(workflow.preprocess.numgroups);
 for groupid=1:numgroups
     % Read prewhitened projections
     fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrc',groupid);
-    
-    log_message('Loading %s (MD5: %s)',fname,MD5(fname));
-    
+        
     fullfilename=fullfile(workflow.info.working_dir,fname);
+    log_message('Loading %s (MD5: %s)',fullfilename,MD5(fullfilename));
     prewhitened_projs=ReadMRC(fullfilename);
     n=size(prewhitened_projs,1);
     prewhitened_projs=double(prewhitened_projs); % Convert to double for VDM below.
