@@ -27,3 +27,5 @@ t_refined=tic;
 t_refined=toc(t_refined);
 fprintf('Refining orientations %5.1f seconds\n',t_refined);
 
+% Somehow show that the errors get smaller after refinement, e.g.,
+median(errs)

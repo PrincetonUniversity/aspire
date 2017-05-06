@@ -66,7 +66,7 @@ for i = 1 : group_size : n_proj
         projs_fourier= FFT_projections( sub_projections,sub_shifts);
     end
     
-    [sub_v_b,sub_kernel] = precomp_parallel( projs_fourier,sub_inv_rot_matrices);
+    [sub_v_b,sub_kernel] = precomp( projs_fourier,sub_inv_rot_matrices);
     v_b = v_b + sub_v_b;
     kernel = kernel + sub_kernel;
     

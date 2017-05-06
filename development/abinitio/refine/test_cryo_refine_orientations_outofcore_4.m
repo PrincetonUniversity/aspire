@@ -42,10 +42,13 @@ L=360;
 n_r=ceil(size(voldata.volref,1)/2);
 projs_hat_fname=tempmrcname;
 cryo_pft_outofcore(projs_fname,projs_hat_fname,n_r,L);
+projs_hat_normalized_fname=tempmrcname;
+cryo_raynormalize_outofcore(projs_hat_fname,projs_hat_normalized_fname); 
+    % Fourier transformed projections are assumed to be normalized.
 
 t_refined=tic;
 [R_refined2,shifts_refined2,errs2]=cryo_refine_orientations_outofcore(...
-    projs_hat_fname,1,voldata.volref,Rs,shifts,1,-1,trueRs,true_shifts);
+    projs_hat_normalized_fname,1,voldata.volref,Rs,shifts,1,-1,trueRs,true_shifts);
 t_refined=toc(t_refined);
 fprintf('Refining orientations %5.1f seconds\n',t_refined);
 
@@ -57,3 +60,4 @@ fprintf('Difference in errors = %d\n',norm(errs1(:)-errs2(:))/norm(errs1(:)));
 
 delete(projs_fname);
 delete(projs_hat_fname);
+delete(projs_hat_normalized_fname);

@@ -36,6 +36,7 @@ L=360;
 n_r=ceil(size(projshifted,1)/2);
 projsFT=cryo_pft(projshifted,n_r,L);
 projsFT=single(projsFT);
+projsFT=cryo_raynormalize(projsFT);
 t_refined=tic;
 [R_refined2,shifts_refined2,errs2]=cryo_refine_orientations(...
     projsFT,1,voldata.volref,Rs,shifts,1,-1,trueRs,true_shifts);

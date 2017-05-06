@@ -22,6 +22,9 @@ end
 if ~isFT
     projsreader=imagestackReader(projs_fname); % Read real-space projections
 else
+    % The Fourier transformsed projecitons are assumed to be normalized
+    % using cryo_raynormalize. This is not enforced here to save time with
+    % large datasets.
     projsreader=imagestackReaderComplex(projs_fname);
 end
     
@@ -73,6 +76,10 @@ else
     
     projs_hat_fname=tempmrcname;
     cryo_pft_outofcore(projs_fname,projs_hat_fname,n_r,L);
+    projs_hat_normalized_fname=tempmrcname;
+    cryo_raynormalize_outofcore(projs_hat_fname,projs_hat_normalized_fname);
+    delete(projs_hat_fname);
+    projs_hat_fname=projs_hat_normalized_fname;
 end
 
 
@@ -91,6 +98,7 @@ projs_hat_reader=imagestackReaderComplex(projs_hat_fname);
 n_r=projs_hat_reader.dim(1);
 L=projs_hat_reader.dim(2);
 projs_ref_hat=cryo_pft(projs_ref,n_r,L,'single');
+projs_ref_hat=cryo_raynormalize(projs_ref_hat);
 
 rots_refined=zeros(size(rots));
 shifts_refined=zeros(size(shifts));
