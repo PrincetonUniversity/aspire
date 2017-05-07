@@ -52,6 +52,7 @@ function sig = anufft1(sig_f, fourier_pts, sz)
 			fourier_pts(1,:), ...
 			double(sig_f(:)), 1, epsilon, sz(1));
 	elseif lib_code == 1
+        warning('NUFFT:directImplementation','Using direct (very slow) NUFFT. Call install_cims_nufft');
 		sig = anudft1(sig_f, fourier_pts, sz);
 	else
 		error('invalid library code');

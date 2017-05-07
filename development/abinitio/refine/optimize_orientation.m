@@ -4,20 +4,23 @@ function [Rest,estdx,optout]=optimize_orientation(proj_hat,R,refprojs_hat,Rrefs,
 % and translation parameters by finding its common lines with reference
 % (Fourier transformed) projections refprojs_har whose rotations Rrefs are
 % known.
+%
+% NOTE: proj_hat and refprojs_hat are assumed to be already normalized
+% using cryo_raynormalize.
 
 % Create initial guess vector
 [psi,theta,phi]=rot2xyz(R);
 X0=[ psi; theta; phi; estdx(:) ];
 X0=double(X0);
 
-Nrefs=size(refprojs_hat,3);
-for k=1:Nrefs
-    pf=refprojs_hat(:,:,k);    
-    pf=cryo_raynormalize(pf);
-    refprojs_hat(:,:,k)=pf;
-end
-
-proj_hat=cryo_raynormalize(proj_hat);
+% Nrefs=size(refprojs_hat,3);
+% for k=1:Nrefs
+%     pf=refprojs_hat(:,:,k);    
+%     pf=cryo_raynormalize(pf);
+%     refprojs_hat(:,:,k)=pf;
+% end
+% 
+% proj_hat=cryo_raynormalize(proj_hat);
 
 f = @(X)evalRmatchaux(X,proj_hat,refprojs_hat,Rrefs,L);
 

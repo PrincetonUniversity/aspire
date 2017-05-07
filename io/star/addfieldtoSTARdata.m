@@ -11,7 +11,7 @@ function datablock=addfieldtoSTARdata(datablock,fieldname,fieldvals)
 % Example:
 % CTFdata=readSTAR('ctffile.star');
 % CTFdata=addfieldtoSTARdata(CTFdata,'pixA',1.23)
-% writeSTAR('ctffile_new.star');
+% writeSTAR(CTFdata,'ctffile_new.star');
 %   
 % Yoel Shkolnisky, August 2015.
 

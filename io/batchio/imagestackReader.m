@@ -82,7 +82,7 @@ classdef imagestackReader < handle
             
             for k=1:numel(idx)                
                 if idx(k)>obj.physical_dim(3)
-                    error('Image %d does not exist in stack.',idx(k));
+                    error('Image %d does not exist in stack %s',idx(k), obj.filename);
                 end
                 
                 ii=find(obj.images_idx==idx(k));

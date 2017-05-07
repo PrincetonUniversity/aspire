@@ -63,10 +63,36 @@ end
 %   second is omega_y. 
 
 
-freqs1=-freqs.';
+% precomputed interpolation weights once for the give polar grid. This is
+% used below for computing the polar Fourier transform of all slices
+precomp=nufft_t_2d_prepare(freqs,size(p,1),precision);
+
+%t1=tic;
 pf=zeros(n_r,n_theta,n_proj);
 parfor k=1:n_proj
-    tmp=p(:,:,k);    
-    tmp2=nufft2(tmp,freqs1);
-    pf(:,:,k)=reshape(tmp2,n_r,n_theta);   
+    tmp=p(:,:,k);
+%    tmp=(2/n_uv)^2*nufft_t_v3(tmp,precomp);    
+    tmp=nufft_t_2d_execute(tmp,precomp);    
+    pf(:,:,k)=reshape(tmp,n_r,n_theta);   
 end
+%t1=toc(t1);
+
+% The following code uses the nufft wrappers, which use either 'chemnitz'
+% or'cims' (or defualt DFT). However, 'chemnitz' works only for even sizes,
+% and for some of the tested size, 'cims' is 2 times slower than my code.
+% So the following code is commented until the odd/even sizes would be
+% fixed.
+% t2=tic;
+% pf2=zeros(n_r,n_theta,n_proj);
+% for k=1:n_proj
+%     tmp=p(:,:,k);    
+%     tmp2=nufft2(tmp,-freqs.');
+%     pf2(:,:,k)=reshape(tmp2,n_r,n_theta);   
+% end
+% t2=toc(t2);
+% 
+% err=norm(pf(:)-pf2(:))/norm(pf(:));
+% fprintf('err = %e\n',err);
+% fprintf('t1= %5.2f\n',t1);
+% fprintf('t2= %5.2f\n',t2);
+% fprintf('ratio = %5.2f\n',t1/t2);
