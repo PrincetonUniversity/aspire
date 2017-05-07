@@ -23,7 +23,9 @@ fprintf('Assigning orientations took %5.1f seconds\n',t_orient);
 % Refine orientations
 t_refined=tic;
 [R_refined,shifts_refined,errs]=cryo_refine_orientations(...
-    projshifted,voldata.volref,Rs,shifts,1,-1,trueRs,true_shifts);
+    projshifted,0,voldata.volref,Rs,shifts,1,-1,trueRs,true_shifts);
 t_refined=toc(t_refined);
 fprintf('Refining orientations %5.1f seconds\n',t_refined);
 
+% Somehow show that the errors get smaller after refinement, e.g.,
+median(errs)

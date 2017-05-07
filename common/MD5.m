@@ -8,7 +8,4 @@ function md5HEXstr=MD5(fname)
 %
 % Yoel Shkolnisky, April 2017
 
-opt.Input='file';
-opt.Format='hex';
-opt.Method='MD5';
-md5HEXstr=DataHash(fname,opt);
+md5HEXstr=GetMD5(fname,'File','hex');

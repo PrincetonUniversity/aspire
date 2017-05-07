@@ -113,7 +113,7 @@ log_message('Aligning volumes.')
 [Rests,dxests]=cryo_orient_projections(projs2,vol1masked,Nprojs,[],verbose,0);
 
 log_message('Refining alignment.');
-Rests=cryo_refine_orientations(projs2,vol1masked,Rests,dxests,1,-1);
+Rests=cryo_refine_orientations(projs2,0,vol1masked,Rests,dxests,1,-1);
 
 % Assess quality of the alignment. Use Rests and trueRs to estimate the
 % matrix aligning the two volumes. The close this matrix to an orthogonal

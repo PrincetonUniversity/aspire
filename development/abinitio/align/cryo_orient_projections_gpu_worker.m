@@ -1,90 +1,26 @@
-function [Rests,dxs,stats]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs,verbose,preprocess,workers)
-% XXX An optimized version of cryo_orient_projections_gpu that uses a psrfor for the main loop for full utilization of the GPU. Integrate this file with cryo_orient_projections_gpu. Y.S. 25/07/2016.
-% 
-% CRYO_ORIENT_PROJECTION Find the orientation of a projection image.
-%
-% [Rests,dxs]=cryo_orient_projection(proj,vol) 
-%   Given a stack of projections projs and a volume vol, estimate the
-%   orientation of each projection in the stack. That is, estimate the
-%   orientations in which we need to project vol to get projs.
-%   the projection in the volume. Returns the estimated orientations Rest
-%   and the translation dxs.
-%
-% [Rests,dxs]=cryo_orient_projections_gpu(projs,vol,Nrefs)
-%   The function estimates the orientation parameters of the projections
-%   projs using their common lines with Nrefs reference projections of vol.
-%   By default, Nrefs is 1.5 times the dimension of vol.
-%
-% [Rests,dxs]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs)
-%   Provide the true rotations trueRs for debugging. Use empty array ([])
-%   to ignore this parameter.
-%
-% [Rests,dxs]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs,verbose)
-%   Set verbose to 0 to supress screen printouts (default is 1).
-%
-% [Rests,dxs]=cryo_orient_projections_gpu(projs,vol,Nrefs,trueRs,verbose,preprocess)
-%   If preprocess is nonzero (default is 1) the projections and volme are
-%   preprocessed. See cryo_orient_projections_auxpreprocess for details of
-%   the preprocessing.
-%
-% To do:
-%   1. Normalize rays properly (remove DC).
-%   2. Filter volume and projections to the same value.
-%   3. What correlation  should we expect as a function of SNR?
-%
-% Yoel Shkolnisky, August 2015.
-% Revised: Yoel Shkolnisky, June 2016.
+function [Rests,dxs,corrs]=cryo_orient_projections_gpu_worker(projs_hat,vol,Nrefs,max_shift,shift_step,trueRs,verbose)
 
-if ~exist('Nrefs','var') || isempty(Nrefs)
-    Nrefs=-1; % Default number of references to use to orient the given 
-               % projection is set below.
-end
-
-if ~exist('trueRs','var') || isempty(trueRs)
-    trueRs=-1;
-end
-
-if size(projs,1)~=size(projs,2)
-    error('Projections to orient must be square.');
-end
+%%% XXX Document
 
 szvol=size(vol);
-if any(szvol-szvol(1))
-    error('Volume must have all dimensions equal');
-end
+n=szvol(1);
+vol=cryo_mask(vol,0,floor(0.45*n),floor(0.05*n)); % Mask volume
+log_message('vol MD5 %s',MD5var(vol));
 
-if ~exist('verbose','var')
-    verbose=1;
-end
-
-currentsilentmode=log_silent(verbose==0);
-
-% Preprocess projections and referece volume.
-if ~exist('preprocess','var')
-    preprocess=1; % Default is to apply preprocessing
-end
-
-if preprocess
-    log_message('Preprocessing volume and projections');
-    [vol,projs]=cryo_orient_projections_auxpreprocess(vol,projs);
-else
-    log_message('Skipping preprocessing of volume and projections');
-end
-
-szvol=size(vol); % The dimensions of vol may have changed after preprocessing.
-
-if Nrefs==-1
-    %Nrefs=round(szvol(1)*1.5);
-    Nrefs=100;
-end
+n_r=size(projs_hat,1);
+L=size(projs_hat,2);
+n_projs=size(projs_hat,3);
 
 % Generate Nrefs references projections of the given volume using random
 % orientations.
-log_message('Generating %d reference projections.',Nrefs);
+log_message('Start generating %d reference projections of size %dx%d.',Nrefs,szvol(1),szvol(1));
 initstate;
 qrefs=qrand(Nrefs);
 refprojs=cryo_project(vol,qrefs,szvol(1));
 refprojs=permute(refprojs,[2 1 3]);
+log_message('Generating reference projections done');
+log_message('qrefs MD5 %s',MD5var(qrefs));
+log_message('refprojs MD5 %s',MD5var(refprojs));
 
 % Save the orientations used to generate the proejctions. These would be
 % used to calculate common lines between the projection to orient and the
@@ -95,38 +31,15 @@ for k=1:Nrefs
     Rrefs(:,:,k)=(q_to_rot(qrefs(:,k))).';
     Rrefsvec(:,3*(k-1)+1:3*k)=Rrefs(:,:,k);
 end
-
-% Set the angular resolution for common lines calculations. The resolution
-% L is set such that the distance between two rays that are 2*pi/L apart
-% is one pixel at the outermost radius. Make L even.
-% L=ceil(2*pi/atan(2/szvol(1)));
-% if mod(L,2)==1 % Make n_theta even
-%     L=L+1;
-% end
-L=360;
  
-% Compute polar Fourier transform of the projecitons.
-n_r=ceil(szvol(1)/2);
-log_message('Computing polar Fourier transforms.');
-log_message('Using n_r=%d L=%d.',n_r,L);
+% Compute polar Fourier transform of reference projecitons.
+log_message('Start computing polar Fourier transforms of reference projections. Using n_r=%d L=%d.',n_r,L);
 refprojs_hat=cryo_pft(refprojs,n_r,L,'single');
-projs_hat=cryo_pft(projs,n_r,L,'single');
-
-
-% % if bandpass
-% %     % Bandpass filter all projection, by multiplying the shift_phases the the
-% %     % filter H. Then H will be applied to all projections when applying the
-% %     % phases below.
-% %     rk2=(0:n_r-1).';
-% %     H=fuzzymask(n_r,1,floor(n_r*0.4),ceil(n_r*0.1),(n_r+1)/2).*sqrt(rk2);
-% %     H=H./norm(H);    
-% % else 
-% %     H=1;
-% % end
-
+log_message('Computing polar Fourier transform done');
+log_message('refprojs_hat MD5 %s',MD5var(refprojs_hat));
 
 % Normalize polar Fourier transforms
-log_message('Normalizing projections.');
+log_message('Start normalizing Fourier transform of reference projections (cryo_raynormalize)');
 for k=1:Nrefs
     pf=refprojs_hat(:,:,k);    
 % %     pf=bsxfun(@times,pf,H);
@@ -134,22 +47,18 @@ for k=1:Nrefs
     pf=cryo_raynormalize(pf);
     refprojs_hat(:,:,k)=pf;
 end
-
-for k=1:size(projs,3)
-    proj_hat=projs_hat(:,:,k);
-% %     proj_hat=bsxfun(@times,proj_hat,H);
-    proj_hat=cryo_raynormalize(proj_hat);
-    projs_hat(:,:,k)=proj_hat;
-end
-
+log_message('Normalizing done');
+log_message('refprojs_hat MD5 %s',MD5var(refprojs_hat));
 
 % Generate candidate rotations. The rotation corresponding to the given
 % projection will be searched month these rotatios.
 candidate_rots=genRotationsGrid(75);
+log_message('candidate_rots MD5 %s',MD5var(candidate_rots));
+%candidate_rots=genRotationsGrid(50);
 %candidate_rots(:,:,1)=Rref;
 Nrots=size(candidate_rots,3);
 
-log_message('Using %d candidate rotations.',Nrots);
+log_message('Using %d candidate rotations for alignment.',Nrots);
 
 % Compute the common lines between the candidate rotations and all
 % reference projections. Load if possible.
@@ -218,7 +127,7 @@ if ~skipprecomp
 %         end
 %     end
 %     toc
-%     % END slower implementatio
+%     % END slower implementation
     tic;
     
     candidate_rots_vec=zeros(3,3*Nrots);
@@ -238,9 +147,9 @@ if ~skipprecomp
     end
     
     % Convert to single to save space in the tables
-%     Ckj=single(Ckj);
-%     Cjk=single(Cjk);
-%     Mkj=single(Mkj);
+    Ckj=single(Ckj);
+    Cjk=single(Cjk);
+    Mkj=single(Mkj);
     
     t=toc;
     log_message('Precomputing tables took %5.2f seconds.',t);
@@ -250,9 +159,7 @@ if ~skipprecomp
 end
 
 % Setup shift search parameters
-max_shift=round(size(projs,1)*0.1);
-rmax=size(pf,1);
-shift_step=0.5;
+rmax=n_r;
 n_shifts=ceil(2*max_shift/shift_step+1); % Number of shifts to try.
 log_message('Using max_shift=%d  shift_step=%d, n_shifts=%d',max_shift,shift_step,n_shifts);
 
@@ -272,64 +179,89 @@ end
 % its agreement with the reference projections, and choose the best
 % matching rotation.
 
-Rests=zeros(3,3,size(projs,3));
-dxs=zeros(2,size(projs,3));
+Rests=zeros(3,3,n_projs);
+dxs=zeros(2,n_projs);
 
 
-%gCkj=gpuArray(single(Ckj));
-gCkj=gpuArray(Ckj);
-%gCjk=gpuArray(single(Cjk));
-gCjk=gpuArray(Cjk);
-%grefprojs_hat=gpuArray(single(refprojs_hat));
-grefprojs_hat=gpuArray(refprojs_hat);
-%gshift_phases=gpuArray(single(shift_phases));
-gshift_phases=gpuArray(shift_phases);
+gCkj=gpuArray(single(Ckj));
+gCjk=gpuArray(single(Cjk));
+grefprojs_hat=gpuArray(single(refprojs_hat));
+gshift_phases=gpuArray(single(shift_phases));
 
-poolreopen(workers);
-t_total=tic;
 
-if verbose
-    printProgressBarHeader;
+% Precompute all pointers for extracting commong lines.
+idx_cell=cell(Nrefs,1);
+gCkj_cell=cell(Nrefs,1);    
+gCjk_cell=cell(Nrefs,1);    
+grefprojs_cell=cell(Nrefs,1);
+for j=1:Nrefs
+        idx=find(Mkj(:,j)~=0);
+        idx_cell{j}=idx;
+        gidx=gpuArray(single(idx));
+        gCkj_cell{j}=gCkj(gidx,j);
+        gCjk_cell{j}=gCjk(gidx,j);
+        grefprojs_cell{j}=grefprojs_hat(:,gCjk_cell{j},j);
 end
+gshift_phases=gshift_phases.';
 
-stats=zeros(3,size(projs,3)); % Statistics of the assigned orientations.
+corrs=zeros(n_projs,2); % Statistics on common-lines matching.
 
-% Generate constant pointers to large data arrays to reduce memory
-% footprint when using parfor (avoid replicating the data).
-% Can be used with MATLAB r2015b and later.
-%Crefprojs_hat = parallel.pool.Constant(refprojs_hat);
-%Cprojs_hat = parallel.pool.Constant(projs_hat);
-%Cgrefprojs_hat = parallel.pool.Constant(grefprojs_hat);
+progress_msg=[]; % String use to print progress message.
 
-parfor projidx=1:size(projs,3)
-    if verbose
-        progressTic(projidx,size(projs,3));
+t_total=tic;
+for projidx=1:n_projs
+    if verbose==2
+    	log_message('Orienting projection %d/%d.',projidx,n_projs);   
     end
-    
-    %log_message('Orienting projection %d/%d.',projidx,size(projs,3));   
-    %t_gpu=tic;
+    t_gpu=tic;
 
-    %gproj_hat=gpuArray(single(Cprojs_hat.Value(:,:,projidx)));   
-    %gproj_hat=gpuArray(single(projs_hat(:,:,projidx)));   
-    gproj_hat=gpuArray(projs_hat(:,:,projidx));
+    gproj_hat=gpuArray(single(projs_hat(:,:,projidx)));   
     cvals=zeros(Nrefs,Nrots);
     for j=1:Nrefs
-        idx=find(Mkj(:,j)~=0);
-        %gidx=gpuArray(single(idx));
-        gidx=gpuArray(idx);
-        gU=gproj_hat(:,gCkj(gidx,j));
-        %gV=bsxfun(@times,conj(gU),Cgrefprojs_hat.Value(:,gCjk(gidx,j),j));
-        gV=bsxfun(@times,conj(gU),grefprojs_hat(:,gCjk(gidx,j),j));
-        gW=real(gshift_phases.'*gV);
-        cvals(j,idx)=gather(max(gW));
+%         idx=find(Mkj(:,j)~=0);
+%         gidx=gpuArray(single(idx));
+%         gU=gproj_hat(:,gCkj(gidx,j));
+%         gV=bsxfun(@times,conj(gU),grefprojs_hat(:,gCjk(gidx,j),j));
+%         gW=real(gshift_phases.'*gV);
+%         cvals(j,idx)=gather(max(gW));
+        
+%         % Optimized version of the above code.
+%         gU=gproj_hat(:,gCkj_cell{j});
+%         gV=bsxfun(@times,conj(gU),grefprojs_hat(:,gCjk_cell{j},j));
+%         gW=real(gshift_phases.'*gV);
+%         cvals(j,idx_cell{j})=gather(max(gW));
+        
+        % One more optimization:
+        gU=gproj_hat(:,gCkj_cell{j});
+        gV=bsxfun(@times,conj(gU),grefprojs_cell{j});
+        gW=real(gshift_phases*gV);
+        cvals(j,idx_cell{j})=gather(max(gW));
+
     end
     
     scores=sum(cvals)./sum(cvals>0);
     [bestRscore,bestRidx]=max(scores);
-    %t_gpu=toc(t_gpu);   
-    %log_message('\t Best correlation = %5.3f.',bestRscore);
-    %log_message('\t Mean correlation = %5.3f.',mean(scores));
-    %log_message('\t Took %5.2f seconds.',t_gpu);
+    meanRscore=mean(scores);
+    
+    t_gpu=toc(t_gpu);
+    if verbose==1
+        if mod(projidx,50)==0
+            bs=char(repmat(8,1,numel(progress_msg)));
+            fprintf('%s',bs);
+            progress_msg=sprintf(...
+                'Orienting projection %d/%d (corr:best=%7.4f, mean=%7.4f, b/m=%7.2f)  t=%5.2f secs',...
+                projidx,n_projs,bestRscore,meanRscore,bestRscore/meanRscore,t_gpu);
+            fprintf('%s',progress_msg);
+        end
+        
+    elseif verbose==2
+        log_message('\t Best correlation = %5.3f.',bestRscore);
+        log_message('\t Mean correlation = %5.3f.',meanRscore);
+        log_message('\t Took %5.2f seconds.',t_gpu);
+    end
+    
+    corrs(projidx,1)=bestRscore;
+    corrs(projidx,2)=meanRscore;
     
     % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %     % Non GPU code - uncomment if no GPU exist.
@@ -375,17 +307,11 @@ parfor projidx=1:size(projs,3)
     %
     % % end of reference code
 
-%     if trueRs~=-1
-%         log_message('\t Frobenius error norm of estimated rotation is %5.2e.',...
-%             norm(candidate_rots(:,:,bestRidx)-trueRs(:,:,projidx),'fro')/3);
-%     end
-    
-    err=-1;
     if trueRs~=-1
-        err=norm(candidate_rots(:,:,bestRidx)-trueRs(:,:,projidx),'fro')/3;
+        log_message('\t Frobenius error norm of estimated rotation of projection %d is %5.2e.',...
+            projidx,norm(candidate_rots(:,:,bestRidx)-trueRs(:,:,projidx),'fro')/3);
     end
-
-    stats(:,projidx)=[bestRscore; mean(scores); err];
+    
     % Now that we have the best shift, the the corresponding 2D shift of the
     % projection.
     shift_equations=zeros(Nrefs,3);
@@ -393,9 +319,7 @@ parfor projidx=1:size(projs,3)
     
     idx=find(Mkj(bestRidx,:)==1);
     for j=idx
-        %pfj=bsxfun(@times,Crefprojs_hat.Value(:,Cjk(bestRidx,j),j),shift_phases);
         pfj=bsxfun(@times,refprojs_hat(:,Cjk(bestRidx,j),j),shift_phases);
-        %c=real(Cprojs_hat.Value(:,Ckj(bestRidx,j),projidx)'*pfj);
         c=real(projs_hat(:,Ckj(bestRidx,j),projidx)'*pfj);
         [~,sidx]=max(c);
         
@@ -410,7 +334,8 @@ parfor projidx=1:size(projs,3)
     Rests(:,:,projidx)=candidate_rots(:,:,bestRidx);
 end
 t_total=toc(t_total);
+if verbose==1
+    fprintf('\n');
+end
 log_message('Total time for orienting %d projections is %5.2f seconds.',...
-    size(projs,3),t_total);
-
-log_silent(currentsilentmode);
+    n_projs,t_total);
