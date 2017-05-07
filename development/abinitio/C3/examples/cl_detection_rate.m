@@ -76,12 +76,12 @@ function clmatrix_gt = find_cl_gt(n_theta,refq)
 nImages = size(refq,2);
 clmatrix_gt = zeros(nImages,nImages,4);
 
-g = [0 -1 0; ...
-     1  0 0; ...
-     0  0 1]; % rotation matrix of 90 degress around z-axis
+g = [cosd(120) -sind(120) 0; ...
+     sind(120)  cosd(120) 0; ...
+     0                 0  1]; % rotation matrix of 120 degress around z-axis
 
-gs = zeros(3,3,4);
-for s=0:3
+gs = zeros(3,3,3);
+for s=0:2
     gs(:,:,s+1) = g^s;
 end
 
@@ -89,7 +89,7 @@ for i=1:nImages
     for j=i+1:nImages
         Ri = q_to_rot(refq(:,i))';
         Rj = q_to_rot(refq(:,j))';
-        for s=0:3
+        for s=0:2
             U = Ri.'*gs(:,:,s+1)*Rj;
             c1 = [-U(2,3)  U(1,3)]';
             c2 = [ U(3,2) -U(3,1)]';

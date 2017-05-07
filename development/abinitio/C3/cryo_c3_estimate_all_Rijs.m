@@ -23,17 +23,17 @@ Rijs = cryo_sync3n_estimate_all_Rijs(clmatrix, n_theta);
 
 if exist('refq','var') && ~isempty(refq)
     
-    g = [0 -1 0; ...
-     1  0 0; ...
-     0  0 1]; % rotation matrix of 90 degress about z-axis
+g = [cosd(120) -sind(120) 0; ...
+     sind(120)  cosd(120) 0; ...
+     0                 0  1]; % rotation matrix of 120 degress around z-axis
     
     J = diag([1 1 -1]); % Reflection matrix
     
     nImages = size(refq,2);    
     errs = zeros(1,nchoosek(nImages,2));
-    %precompile g,g^2,g^3
-    gs = zeros(3,3,4);
-    for s=0:3
+    %precompile g,g^2
+    gs = zeros(3,3,3);
+    for s=0:2
         gs(:,:,s+1) = g^s;
     end
     
@@ -46,8 +46,8 @@ if exist('refq','var') && ~isempty(refq)
             Ri_gt = q_to_rot(refq(:,i))';
             Rj_gt = q_to_rot(refq(:,j))';
             
-            errs_tmp = zeros(1,4);
-            for s=1:4
+            errs_tmp = zeros(1,3);
+            for s=1:3
                 Rij_gt = Ri_gt.'*gs(:,:,s)*Rj_gt;
                 % we are oblivious to a possible J conjugation at this moment
                 errs_tmp(s) = min([norm(Rij-Rij_gt,'fro'),norm(J*Rij*J-Rij_gt,'fro')]);

@@ -7,7 +7,7 @@ open_log(0);
 % The MAT file p100_c4_shifted contains 100 projections of size 65x65. The
 % orientations (given as quaternions) used to generate these projections
 % are stored in the the variable "refq". The projection were generated using the following command:
-[projs,refq] = generate_c3_images(100,100000000,65,'GAUSSIAN',0,1);
+[projs,refq] = generate_c3_images(500,1/8,65,'GAUSSIAN',0,1);
 
 % load p100_c4_gaussian_no_shifts;
 viewstack(projs,5,5);   % Display the proejctions.
@@ -20,7 +20,7 @@ n_theta = 360; % number of rays in every projection
 n_r     = 89;  % number of radial points in every radial line
 [npf,~] = cryo_pft(masked_projs,n_r,n_theta,'single');
 
-npf = gaussian_filter_imgs(npf);
+% npf = gaussian_filter_imgs(npf);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 2  : detect a single pair of common-lines between each pair of images
@@ -33,11 +33,7 @@ cl_detection_rate(clmatrix,n_theta,refq);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 3  : detect self-common-lines in each image
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-is_handle_equator_ims = true;
-equator_res_fact = 10;
-equator_removal_frac = 0.1;
-sclmatrix = cryo_self_clmatrix_gpu(npf,max_shift,shift_step,...
-    is_handle_equator_ims,equator_res_fact,equator_removal_frac,refq);
+sclmatrix = cryo_self_clmatrix_gpu(npf,max_shift,shift_step,refq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 4  : calculate self-relative-rotations

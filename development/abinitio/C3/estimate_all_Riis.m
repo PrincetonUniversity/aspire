@@ -41,13 +41,17 @@ idxDiff      = self_cls(2,:)-self_cls(1,:);
 % even larger than zero), calculate therefore explitely the angle
 twiceAlpha   = idxDiff*2*pi./n_theta;
 cos_twiceAlpha = cos(twiceAlpha);
-% we expect that cos_twiceAlpha lives in [-1,0], but sometimes due to
-% discretization issues we might get values larger than zero. Assert that
-% values are not too large and constrain them to be zero (these actually correspond to top-view images)
-assert(max(cos_twiceAlpha) <= eps,['max(cos_twiceAlpha) is ' num2str(max(cos_twiceAlpha))]);
-cos_twiceAlpha(cos_twiceAlpha>0) = 0;
 
-angles = acos((1+cos_twiceAlpha)./(1-cos_twiceAlpha));
+angles = acos(cos_twiceAlpha./(1-cos_twiceAlpha));
+angles = real(angles); % TODO Gabi why this comes out complex???
+
+% % we expect that cos_twiceAlpha lives in [-1,0], but sometimes due to
+% % discretization issues we might get values larger than zero. Assert that
+% % values are not too large and constrain them to be zero (these actually correspond to top-view images)
+% assert(max(cos_twiceAlpha) <= eps,['max(cos_twiceAlpha) is ' num2str(max(cos_twiceAlpha))]);
+% cos_twiceAlpha(cos_twiceAlpha>0) = 0;
+% 
+% angles = acos((1+cos_twiceAlpha)./(1-cos_twiceAlpha));
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -55,10 +59,10 @@ angles = acos((1+cos_twiceAlpha)./(1-cos_twiceAlpha));
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if is_simulation
     
-    g = [0 -1 0; ...
-     1  0 0; ...
-     0  0 1]; % rotation matrix of 90 degress around z-axis
-    
+    g = [cosd(120) -sind(120) 0; ...
+     sind(120)  cosd(120) 0; ...
+     0                 0  1]; % rotation matrix of 120 degress around z-axis
+
     assert(nImages == size(refq,2));
     
     angle_tol_err = 10/180*pi;
@@ -115,14 +119,14 @@ if is_simulation
     for i=1:nImages
         Ri_gt = q_to_rot(refq(:,i))';
         Rii_g_gt  = Ri_gt.'*g*Ri_gt;
-        Rii_g3_gt = Ri_gt.'*g^3*Ri_gt;
+        Rii_g2_gt = Ri_gt.'*g^2*Ri_gt;
         
         Rii = Riis(:,:,i);
         [errs(i),errs_idx(i)] = min([norm(Rii-Rii_g_gt,'fro'),  norm(J*Rii*J-Rii_g_gt, 'fro'),...
-            norm(Rii-Rii_g3_gt,'fro'), norm(J*Rii*J-Rii_g3_gt, 'fro')]);
+            norm(Rii-Rii_g2_gt,'fro'), norm(J*Rii*J-Rii_g2_gt, 'fro')]);
     end
     cls_dist = histc(errs_idx,1:4)/numel(errs_idx);
-    
+    errs(bad_idxs) = [];
     log_message('MSE of Rii''s=%.2f',mean(errs.^2));
     log_message('cls_dist=[%.2f %.2f %.2f %.2f]',cls_dist);
     

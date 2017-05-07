@@ -17,27 +17,29 @@ if ~exist('n_r','var')
 end
 
 [pf,~] = cryo_pft(projs,n_r,n_theta,'single');  % take Fourier transform of projections
-pfC4 = cat(3,pf,pf,pf,pf); % Replicate the images
+pfC3 = cat(3,pf,pf,pf); % Replicate the images
 
-g = [0 -1 0; 1 0 0; 0 0 1]; % a rotation of 90 degrees about the z-axis
+g = [cosd(120) -sind(120) 0; ...
+     sind(120)  cosd(120) 0; ...
+     0                 0  1]; % rotation matrix of 120 degress around z-axis
+
 
 nImages = size(rots,3);
 
-RsC4 = zeros(3,3,4*nImages);
+RsC3 = zeros(3,3,3*nImages);
 
 for k=1:nImages
     rot = rots(:,:,k);
-    RsC4(:,:,k)           = rot;
-    RsC4(:,:,nImages+k)   = g*rot;
-    RsC4(:,:,2*nImages+k) = g*g*rot;
-    RsC4(:,:,3*nImages+k) = g*g*g*rot;
+    RsC3(:,:,k)           = rot;
+    RsC3(:,:,nImages+k)   = g*rot;
+    RsC3(:,:,2*nImages+k) = g*g*rot;
 end
 
-[dxC4,~] = cryo_estimate_shifts(pfC4,RsC4,max_shift,shift_step,10000,[],0);
+[dxC3,~] = cryo_estimate_shifts(pfC3,RsC3,max_shift,shift_step,10000,[],0);
 
 n = size(projs,1);
-projsC4 = cat(3,projs,projs,projs,projs);
-[ v1, ~, ~ ,~, ~, ~] = recon3d_firm( projsC4,RsC4,-dxC4, 1e-6, 100, zeros(n,n,n));
+projsC3 = cat(3,projs,projs,projs);
+[ v1, ~, ~ ,~, ~, ~] = recon3d_firm( projsC3,RsC3,-dxC3, 1e-6, 100, zeros(n,n,n));
 ii1=norm(imag(v1(:)))/norm(v1(:));
 log_message('Relative norm of imaginary components = %e\n',ii1);
 vol=real(v1);

@@ -75,14 +75,14 @@ nrank1 = 0;
 e1 = [1 0 0].';
 msg = [];
 
-% no matter whether Rii=RigRi or Rii=Rig^{3}Ri (and, possibly
-% also J-conjugated), the sum Rii + Rii.' is rank-1 and is equal to the
+% no matter whether Rii=RigRi or Rii=Rig^{2}Ri (and, possibly
+% also J-conjugated), the sum Rii + Rii.' + eye(3) is rank-1 and is equal to the
 % outor product vi*vj^{T} (or J*vi*vj^{T}*J) of third row of matrices Ri
 % and Rj
 viis = zeros(3,3,nImages);
 for i=1:nImages
     Rii = Riis(:,:,i);
-    viis(:,:,i) = 0.5*(Rii + Rii.');
+    viis(:,:,i) = (Rii + Rii.' + eye(3))/3;
 end
 
 vijs         = zeros(3,3,nchoosek(nImages,2));
@@ -128,7 +128,7 @@ for i=1:nImages
             Rii_cand = c_Rii{s};
             Rjj_cand = c_Rjj{s};
             
-            vij_cand = 0.5*(Rij + Rii_cand*Rij*Rjj_cand);
+            vij_cand = (Rij + Rii_cand*Rij*Rjj_cand + Rii_cand^2*Rij*Rjj_cand^2)/3;
             
             vij_cands(:,:,s) = vij_cand;
             svals = svd(vij_cand);
