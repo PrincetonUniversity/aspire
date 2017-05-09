@@ -83,14 +83,14 @@ mask_radius=round(size(projs,1)*0.45);
 log_message('Masking projections. Masking radius is %d pixels',mask_radius);
 [masked_projs,~]=mask_fuzzy(projs,mask_radius);
 
-% Compute polar Fourier transform
+%% Compute polar Fourier transform
 if ~n_r_given
     n_r=ceil(size(masked_projs,1)*0.5);
 end
 log_message('Computeing polar Fourier transform of projections. n_theta=%d, n_r=%d',n_theta,n_r);
 [pf,~]=cryo_pft(masked_projs,n_r,n_theta,'single');  % take Fourier transform of projections
 
-% Find common lines from projections
+%% Find common lines from projections
 if ~max_shift_given
     max_shift=ceil(size(projs,1)*0.15); % max_shift is 15% of the image size
 end
@@ -100,7 +100,7 @@ log_message('Finding common lines using max_shift=%d, shift_step=%d',max_shift,s
 log_message('Saving common lines');
 save(outparams,'n_theta','n_r','clstack','max_shift','shift_step');
 
-% Orientation assigment
+%% Orientation assigment
 if algo==1
     % Use sync3N
     algname='sync3n';
@@ -188,7 +188,7 @@ log_message('Estimating shifts');
 save(outparams,'est_shifts','-append');
 log_message('Finished estimating shifts');
 
-% Reconstruct downsampled volume with no CTF correction
+%% Reconstruct downsampled volume with no CTF correction
 n=size(projs,1);
 [ v1, ~, ~ ,~, ~, ~] = recon3d_firm( projs,...
     rotations,-est_shifts, 1e-6, 100, zeros(n,n,n));

@@ -108,8 +108,8 @@ projs2=permute(projs2,[2,1,3]);
 
 % Estimate rotations of the projections of volume 2.
 log_message('Aligning volumes.')
-%[Rests,dxests]=cryo_orient_projections_gpu(projs2,vol1masked,Nprojs,[],verbose,0);
-[Rests,dxests]=cryo_orient_projections(projs2,vol1masked,Nprojs,[],verbose,0);
+[Rests,dxests]=cryo_orient_projections_gpu(projs2,vol1masked,Nprojs,[],verbose,0);
+%[Rests,dxests]=cryo_orient_projections(projs2,vol1masked,Nprojs,[],verbose,0);
 
 % Assess quality of the alignment. Use Rests and trueRs to estimate the
 % matrix aligning the two volumes. The close this matrix to an orthogonal
@@ -147,7 +147,7 @@ end
 
 
 log_message('Refining alignment.');
-Rests=cryo_refine_orientations(projs2,vol1masked,Rests,dxests,1,-1);
+Rests=cryo_refine_orientations(projs2,0,vol1masked,Rests,dxests,1,-1);
 
 
 % There are two possibilties:
@@ -175,7 +175,7 @@ no1=max(s1)/min(s1); %Non orthogonality (actually, the condition number)
 no2=max(s2)/min(s2);
 
 if verbose
-    log_message('Singular values of aligning matrix:');
+    log_message('Singular values of aligning matrix after refinement:');
     log_message('\t without reflection (%7.4f,%7.4f,%7.4f); condition number = %7.4f',s1(1),s1(2),s1(3),no1);
     log_message('\t with    reflection (%7.4f,%7.4f,%7.4f); condition number = %7.4f',s2(1),s2(2),s2(3),no2);
 end
