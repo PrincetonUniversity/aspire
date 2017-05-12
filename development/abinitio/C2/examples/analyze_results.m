@@ -106,17 +106,18 @@ end
 function err_in_degrees = check_degrees_error(rots,n_theta,refq)
 
 
-FOUR = 4; % place-holder for a parameter that would be used for C3 as well
+TWO = 2; % place-holder for a parameter that would be used for C3 as well
 nImages = size(refq,2);
 assert(size(rots,3) == nImages);
 d_theta = 2*pi/n_theta;
 
-g = [0 -1 0; ...
-     1  0 0; ...
-     0  0 1]; % rotation matrix of 90 degress about z-axis
-% precalculate g^s, s=0..params.FOUR-1
-g_s = zeros(3,3,FOUR);
-for s = 1:FOUR
+g = [-1  0 0; ...
+      0 -1 0; ...
+      0  0 1]; % rotation matrix of 180 degress around z-axis
+  
+% precalculate g^s, s=0..params.TWO-1
+g_s = zeros(3,3,TWO);
+for s = 1:TWO
     g_s(:,:,s) = g^(s-1);
 end
 
@@ -131,8 +132,8 @@ for k = 1:nImages
             sin((j-1)*d_theta).*Rk_gt(:,2);
     end
     
-    c_err_in_degrees = cell(1,4);
-    for s = 1:FOUR
+    c_err_in_degrees = cell(1,TWO);
+    for s = 1:TWO
         rays = zeros(n_theta,3);
         Rk   = g_s(:,:,s)*rots(:,:,k);
         for j = 1:n_theta
@@ -173,17 +174,18 @@ function [rotations_g_synced,sign_g_Ri] = g_sync(rotations, refq)
 nImages = size(rotations,3);
 assert(nImages == size(refq,2));
 
-g = [0 -1 0; ...
-     1  0 0; ...
-     0  0 1]; % rotation matrix of 90 degress about z-axis
 
+g = [-1  0 0; ...
+      0 -1 0; ...
+      0  0 1]; % rotation matrix of 180 degress around z-axis
+  
 J = diag([1 1 -1]); % Reflection matrix
 
-FOUR = 4; % place holder as the code for C3 is similar
-ALPHA = pi/2; % place holder as the code for C3 is similar
+TWO = 2; % place holder as the code for C3 is similar
+ALPHA = pi; % place holder as the code for C3 is similar
 
-gs = zeros(3,3,4);
-for s=1:FOUR
+gs = zeros(3,3,TWO);
+for s=1:TWO
     gs(:,:,s) = g^(s-1);
 end
 
@@ -201,29 +203,29 @@ A_g = zeros(nImages,nImages);
 
 for i = 1:nImages-1
     
-    Ri_t      = Rs_t(:,:,i);
+    Ri_t     = Rs_t(:,:,i);
     Rjs_t    = Rs_t(:,:,i+1:end);
     RiRjs_t = multiprod(Ri_t.', Rjs_t);
     
-    J_Ri_J_t     = J_Rs_J_t(:,:,i);
+    J_Ri_J_t    = J_Rs_J_t(:,:,i);
     J_Rjs_J_t   = J_Rs_J_t(:,:,i+1:end);
     J_RiRjs_J_t = multiprod(J_Ri_J_t.', J_Rjs_J_t);
     
     Ri    = rotations(:,:,i);
     Rjs   = rotations(:,:,i+1:end);
     
-    RiRjs  = zeros(3,3,nImages-i,FOUR);
-    for s  = 1:FOUR
+    RiRjs  = zeros(3,3,nImages-i,TWO);
+    for s  = 1:TWO
         g_s = gs(:,:,s);
         RiRjs(:,:,:,s) = multiprod(Ri.'*g_s, Rjs);
     end
     
     % compute the squared frobenious norm
-    norm_diff      = (bsxfun(@minus,RiRjs_t,    RiRjs)).^2;
+    norm_diff     = (bsxfun(@minus,RiRjs_t,    RiRjs)).^2;
     J_norm_diff_J = (bsxfun(@minus,J_RiRjs_J_t,RiRjs)).^2;
     
-    norm_diff     = reshape(norm_diff,9,nImages-i,FOUR);
-    J_norm_diff_J = reshape(J_norm_diff_J,9,nImages-i,FOUR);
+    norm_diff     = reshape(norm_diff,9,nImages-i,TWO);
+    J_norm_diff_J = reshape(J_norm_diff_J,9,nImages-i,TWO);
     
     % we don't care if there is conjugation or not - all we want is to know
     % s for g^s
@@ -232,7 +234,7 @@ for i = 1:nImages-1
     [~,ii] = min(sum(norm_diff_concat),[],3);
     
     % remove the effect of concatination above.
-    ii = mod(ii,4);
+    ii = mod(ii,TWO);
     
     A_g(i,i+1:end) = exp(-sqrt(-1)*ALPHA*(ii-1)); 
     
@@ -251,7 +253,7 @@ evect1 = v(:,ind(1));
 log_message('Outer g syn first 5 eigenvalues=[%.2f %.2f %.2f %.2f %.2f]',...
     evals(1),evals(2),evals(3),evals(4),evals(5));
 
-angles = exp(sqrt(-1)*ALPHA*(0:FOUR-1))';
+angles = exp(sqrt(-1)*ALPHA*(0:TWO-1))';
 rotations_g_synced = zeros(3,3,nImages);
 sign_g_Ri = zeros(nImages,1);
 for ii  = 1:nImages
@@ -263,7 +265,7 @@ for ii  = 1:nImages
     angleDists = abs(angle(zi./angles));
     
     [~,I] = min(angleDists);
-    sign_g_Ri(ii) = FOUR-(I(1)-1);
+    sign_g_Ri(ii) = TWO-(I(1)-1);
     R = rotations(:,:,ii);
     rotations_g_synced(:,:,ii) = g^(sign_g_Ri(ii))*R;    
 end

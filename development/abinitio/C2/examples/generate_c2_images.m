@@ -1,4 +1,4 @@
-function [images,refq,ref_shifts] = generate_c4_images(nImages,SNR,projSize,c4_type,max_shift,shift_step)
+function [images,refq,ref_shifts] = generate_c2_images(nImages,SNR,projSize,c4_type,max_shift,shift_step)
 %
 % Generates a set of projection images of a C4 volume
 % 
@@ -42,34 +42,15 @@ refq   = qrand(nImages);
 
 log_message('loading simulated %s volume',c4_type)
 if strcmp(c4_type,'GAUSSIAN')
-    vol = cryo_gaussian_phantom_3d('C4_params',projSize,1);   
-elseif strcmp(c4_type,'SYNTHETIC')
-    load cleanrib;
+    error('not implemented yet');
     
-    volref  = real(volref);
-    volref  = volref(1:end-1,1:end-1,1:end-1);
-    vol = zeros(size(volref));
-    dim = size(volref,3);
-    for k=1:dim
-        vol(:,:,k) = volref(:,:,k) + rot90(volref(:,:,k))+rot180(volref(:,:,k))+rot270(volref(:,:,k));
-    end
+%     vol = cryo_gaussian_phantom_3d('C4_params',projSize,1);   
+elseif strcmp(c4_type,'SYNTHETIC')
+    
+    load cleanrib;
+    volref = real(volref);
+    vol = volref + fastrotate(volref,180);
     clear volref;
-elseif strcmp(c4_type,'IP3')
-    %     load ip3.mat;
-    %     symmVol = map;
-    %     clear map;
-    vol = ReadMRC('ip3Down.mrc');
-    dim = size(vol,3);
-    for k=1:dim
-        vol(:,:,k) = vol(:,:,k) + rot90(vol(:,:,k))+rot180(vol(:,:,k))+rot270(vol(:,:,k));
-    end
-elseif strcmp(c4_type,'TRPV1')
-    vol = ReadMRC('EMD-5778.map');
-    %     symmVol = symmVol(52:202,52:202,52:202);
-    %     dim = size(symmVol,3);
-    %     for k=1:dim
-    %         symmVol(:,:,k) = symmVol(:,:,k) + rot90(symmVol(:,:,k))+rot180(symmVol(:,:,k))+rot270(symmVol(:,:,k));
-    %     end
 else
     error(['no such c4_type : ' c4_type]);
 end

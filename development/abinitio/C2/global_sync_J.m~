@@ -32,6 +32,7 @@ log_message('Global J synchronization');
 % J in them and those without a spurious J in them.
 sz = nchoosek(nImages,2);
 assert(size(Rijs,3) == sz);
+assert(size(Rijs)   == size(Rijgs));
 
 vijs = zeros(3,3,sz);
 for i=1:sz
@@ -55,7 +56,7 @@ for i=1:numel(sign_ij_J)
         Rijgs_out(:,:,i) = Rijgs(:,:,i);
     else
         Rijs_out(:,:,i)  = J*Rijs(:,:,i)*J;
-        Rijgs_out(:,:,i) = J*Rijgs(:,:,i)*J;
+        Rijgs_out(:,:,i) = J*Rijgs(:,:,i);
     end
 end
 

@@ -34,39 +34,79 @@ clmatrix_correct = zeros(size(clmatrix));
 % clmatrix_gt is a n*n*4 matrix representing the four pairs of common-lines between each two images
 clmatrix_gt = find_cl_gt(n_theta,refq); 
 
-clmatrix_diff = bsxfun(@minus,clmatrix_gt,clmatrix);
-clmatrix_diff_angle = clmatrix_diff*2*pi./n_theta;
+% calculate the diff of FIRST common-line in each image against the two
+% lines of ground-truth
+clmatrix_diff_11 = (clmatrix_gt(:,:,1) - clmatrix(:,:,1))*2*pi./n_theta;
+clmatrix_diff_12 = (clmatrix_gt(:,:,1) - clmatrix(:,:,2))*2*pi./n_theta;
+clmatrix_diff_21 = (clmatrix_gt(:,:,2) - clmatrix(:,:,1))*2*pi./n_theta;
+clmatrix_diff_22 = (clmatrix_gt(:,:,2) - clmatrix(:,:,2))*2*pi./n_theta;
+
 % take absolute cosine because of handedness
 % there might be +180 independendt diff for each image which at this stage
 % hasn't been taken care yet.
 nCorrect = 0;
-hand_idx = zeros(1,nchoosek(nImages,2));
+hand_idx = zeros(nchoosek(nImages,2),2);
+nclmatrix_correct = zeros(nImages,nImages);
 for i=1:nImages
     for j=i+1:nImages
         ind = uppertri_ijtoind(i,j,nImages);
-        diffs_cij = clmatrix_diff_angle(i,j,:);
-        diffs_cji = clmatrix_diff_angle(j,i,:);
-        min_diff1 = min(acos(cos(diffs_cij))    + acos(cos(diffs_cji)));
-        min_diff2 = min(acos(cos(diffs_cij+pi)) + acos(cos(diffs_cji+pi)));
-        if min_diff1 < min_diff2
-            min_diff = min_diff1;
-            hand_idx(ind) = 1;
+        
+        diffs_cij_11 = clmatrix_diff_11(i,j);
+        diffs_cij_12 = clmatrix_diff_12(i,j);
+        diffs_cij_21 = clmatrix_diff_21(i,j);
+        diffs_cij_22 = clmatrix_diff_22(i,j);
+        
+        diffs_cji_11 = clmatrix_diff_11(j,i);
+        diffs_cji_12 = clmatrix_diff_12(j,i);
+        diffs_cji_21 = clmatrix_diff_21(j,i);
+        diffs_cji_22 = clmatrix_diff_22(j,i);
+        
+        
+        [val_11,hand_11] = min([acos(cos(diffs_cij_11))    + acos(cos(diffs_cji_11)),...
+                                acos(cos(diffs_cij_11+pi)) + acos(cos(diffs_cji_11+pi))]);
+                      
+        
+        [val_22,hand_22] = min([acos(cos(diffs_cij_22))    + acos(cos(diffs_cji_22)),...
+                                acos(cos(diffs_cij_22+pi)) + acos(cos(diffs_cji_22+pi))]);
+                            
+        
+        [val_12,hand_12] = min([acos(cos(diffs_cij_12))    + acos(cos(diffs_cji_12)),...
+                                acos(cos(diffs_cij_12+pi)) + acos(cos(diffs_cji_12+pi))]);
+                            
+        
+        [val_21,hand_21] = min([acos(cos(diffs_cij_21))    + acos(cos(diffs_cji_21)),...
+                                acos(cos(diffs_cij_21+pi)) + acos(cos(diffs_cji_21+pi))]);
+                  
+        
+        nCorrect_ij = 0;
+        if val_11+val_22 < val_12+val_21
+            if val_11 < 2*angle_tol_err
+                nCorrect_ij = nCorrect_ij+1;
+            end
+            if val_22 < 2*angle_tol_err
+                nCorrect_ij = nCorrect_ij+1;
+            end
+            hand_idx(ind,:) = [hand_11 hand_22];
         else
-            min_diff = min_diff2;
-            hand_idx(ind) = 2;
+            if val_12 < 2*angle_tol_err
+                nCorrect_ij = nCorrect_ij+1;
+            end
+            if val_21 < 2*angle_tol_err
+                nCorrect_ij = nCorrect_ij+1;
+            end
+            hand_idx(ind,:) = [hand_12 hand_21];
         end
-        if min_diff < 2*angle_tol_err
-            nCorrect  = nCorrect+1;
-            clmatrix_correct(i,j) = 1;
-            clmatrix_correct(j,i) = 1;
-        end
+        nclmatrix_correct(i,j) = nCorrect_ij;
+        nclmatrix_correct(j,i) = nCorrect_ij;    
+        
+        nCorrect = nCorrect + nCorrect_ij;
     end
 end
 
-cl_dist = histc(hand_idx,1:2)/numel(hand_idx);
-detec_rate = nCorrect/(nImages*(nImages-1)/2);
+cl_J_dist = histc(hand_idx(:),1:2)/numel(hand_idx);
+detec_rate = nCorrect/(2*nchoosek(nImages,2));
 log_message('common lines detection rate=%.2f%%',detec_rate*100);
-log_message('cl_J_dist=[%.2f %.2f]',cl_dist);
+log_message('cl_J_dist=[%.2f %.2f]',cl_J_dist);
 
 end
 
@@ -74,14 +114,14 @@ function clmatrix_gt = find_cl_gt(n_theta,refq)
 
 
 nImages = size(refq,2);
-clmatrix_gt = zeros(nImages,nImages,4);
+clmatrix_gt = zeros(nImages,nImages,2);
 
-g = [0 -1 0; ...
-     1  0 0; ...
-     0  0 1]; % rotation matrix of 90 degress around z-axis
+g = [-1  0 0; ...
+      0 -1 0; ...
+      0  0 1]; % rotation matrix of 180 degress around z-axis
 
-gs = zeros(3,3,4);
-for s=0:3
+gs = zeros(3,3,2);
+for s=0:1
     gs(:,:,s+1) = g^s;
 end
 
@@ -89,7 +129,7 @@ for i=1:nImages
     for j=i+1:nImages
         Ri = q_to_rot(refq(:,i))';
         Rj = q_to_rot(refq(:,j))';
-        for s=0:3
+        for s=0:1
             U = Ri.'*gs(:,:,s+1)*Rj;
             c1 = [-U(2,3)  U(1,3)]';
             c2 = [ U(3,2) -U(3,1)]';

@@ -7,9 +7,9 @@ open_log(0);
 % The MAT file p100_c4_shifted contains 100 projections of size 65x65. The
 % orientations (given as quaternions) used to generate these projections
 % are stored in the the variable "refq". The projection were generated using the following command:
-% [projs,refq] = generate_c4_images(100,100000000,65,'GAUSSIAN',0,1);
+[projs,refq] = generate_c2_images(250,100000000,65,'SYNTHETIC',0,1);
 
-load p100_c4_gaussian_no_shifts;
+% load p100_c4_gaussian_no_shifts;
 viewstack(projs,5,5);   % Display the proejctions.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 1  : Computing polar Fourier transform of projections
@@ -27,51 +27,36 @@ npf = gaussian_filter_imgs(npf);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 max_shift  = 0; % number of shifts to consider
 shift_step = 0.5; % the shift step (see Yoel's technical report)
-clmatrix = cryo_clmatrix_gpu(npf,size(npf,3),1,max_shift,shift_step); 
+min_dist_cls = 25; % the minimal distance (in degrees) between two lines in a single images
+clmatrix = commonlines_gaussian_C2(npf,max_shift,shift_step,min_dist_cls); 
+% clmatrix = cryo_clmatrix_gpu(npf,size(npf,3),1,max_shift,shift_step); 
 cl_detection_rate(clmatrix,n_theta,refq);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% step 3  : detect self-common-lines in each image
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-is_handle_equator_ims = true;
-equator_res_fact = 10;
-equator_removal_frac = 0.1;
-sclmatrix = cryo_self_clmatrix_gpu(npf,max_shift,shift_step,...
-    is_handle_equator_ims,equator_res_fact,equator_removal_frac,refq);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% step 4  : calculate self-relative-rotations
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Riis = estimate_all_Riis(sclmatrix,n_theta,refq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 5  : calculate relative-rotations
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Rijs = cryo_c4_estimate_all_Rijs(clmatrix,n_theta,refq);
+Rijs  = cryo_c2_estimate_all_Rijs(clmatrix(:,:,1),n_theta,refq);
+Rijgs = cryo_c2_estimate_all_Rijs(clmatrix(:,:,2),n_theta,refq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 6  : inner J-synchronization
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-is_remove_non_rank1 = true;
-non_rank1_remov_percent = 0.25;
-[vijs,viis,im_inds_to_remove,pairwise_inds_to_remove,...
-    npf,projs,refq] = local_sync_J(Rijs,Riis,npf,...
-                                projs,is_remove_non_rank1,non_rank1_remov_percent,refq);
+nImages = size(clmatrix,1);
+[Rijs,Rijgs] = local_sync_J(Rijs,Rijgs,nImages);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 7  : outer J-synchronization
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[vijs,viis] = global_sync_J(vijs,viis);
+[Rijs,Rijgs] = global_sync_J(Rijs,Rijgs,nImages);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 8  : third rows estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-vis  = estimate_third_rows(vijs,viis);
+vis  = estimate_third_rows(Rijs,Rijgs,nImages);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 9  : in-plane rotations angles estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-inplane_rot_res = 1;
-[rots,in_plane_rotations] = estimate_inplane_rotations2(npf,vis,inplane_rot_res,max_shift,shift_step);
+rots = cryo_inplane_rotations(vis,Rijs,Rijgs);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 10  : Results Analysis

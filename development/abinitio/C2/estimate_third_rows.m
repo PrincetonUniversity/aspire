@@ -1,4 +1,4 @@
-function vis = estimate_third_rows(vijs,viis)
+function vis = estimate_third_rows(Rijs,Rijgs,nImages)
 %
 % Find the third row of each rotation matrix.
 % 
@@ -12,27 +12,23 @@ function vis = estimate_third_rows(vijs,viis)
 %   vis        A 3xnImages matrix whose i-th column equals the 
 %              transpose of the third row of the rotation matrix Ri.
 
-[nr,nc,nImages] = size(viis);
-assert(nr == 3 && nc == 3);
-
-
-[nr_,nc_,n_] = size(vijs);
-assert(nr_ == 3 && nc_ == 3);
-
-assert(n_ == nchoosek(nImages,2));
+assert(nchoosek(nImages,2) == size(Rijs,3));
+assert(size(Rijs,3) == size(Rijgs,3));
 
 % V is a 3nx3n matrix whose (i,j)-th block of size 3x3 holds 
 % the outer product vij
 V = zeros(3*nImages,3*nImages);
 for i=1:nImages
-    V((i-1)*3+1:i*3,(i-1)*3+1:i*3) = viis(:,:,i);
     for j=i+1:nImages
         ind = uppertri_ijtoind(i,j,nImages);
-        V((i-1)*3+1:i*3,(j-1)*3+1:j*3) = vijs(:,:,ind);
+        vij = (Rijs(:,:,ind)+Rijgs(:,:,ind))/2;
+        V((i-1)*3+1:i*3,(j-1)*3+1:j*3) = vij;
     end
 end
 
 V = V + V.'; % since vij^{T} = vji
+
+V = V + eye(3*nImages); % since on the diagonal there is Ri^{T}*Ri = I
 
 [v, d] = eigs(V, 20, 'la');
 [evals, ind] = sort(diag(d), 'descend');
@@ -40,7 +36,7 @@ V = V + V.'; % since vij^{T} = vji
 % of the third rows of all rotation matrices
 evect1 = v(:,ind(1));
 
-log_message('first 5 eigenvalues=[%.2f %.2f %.2f %.2f %.2f]',evals(1),evals(2),evals(3),evals(4),evals(5));
+log_message('Third row estimation sync matrix: first 5 eigenvalues=[%.2f %.2f %.2f %.2f %.2f]',evals(1),evals(2),evals(3),evals(4),evals(5));
 
 % figure,
 % bar(evals);

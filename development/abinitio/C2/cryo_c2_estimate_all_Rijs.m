@@ -1,4 +1,4 @@
-function Rijs = cryo_c4_estimate_all_Rijs(clmatrix,n_theta,refq)
+function Rijs = cryo_c2_estimate_all_Rijs(clmatrix,n_theta,refq)
 %
 % Estimate a single relative rotation Rij between images i and j. The
 % estimate may correspond to either RiRj, RigRj, Rig^{2}Rj, or Rig^{3}Rj
@@ -16,26 +16,20 @@ function Rijs = cryo_c4_estimate_all_Rijs(clmatrix,n_theta,refq)
 %   Rijs       A 3x3xn_choose_2 array holding the estimates for the
 %              relative orientations
 
-
 Rijs = cryo_sync3n_estimate_all_Rijs(clmatrix, n_theta);
 
 %%%%%%%%%%%%%%%%%%% debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if exist('refq','var') && ~isempty(refq)
     
-    g = [0 -1 0; ...
-     1  0 0; ...
-     0  0 1]; % rotation matrix of 90 degress about z-axis
+    g = [-1  0 0; ...
+          0 -1 0; ...
+          0  0 1]; % rotation matrix of 180 degress around z-axis
     
     J = diag([1 1 -1]); % Reflection matrix
     
     nImages = size(refq,2);    
     errs = zeros(1,nchoosek(nImages,2));
-    %precompile g,g^2,g^3
-    gs = zeros(3,3,4);
-    for s=0:3
-        gs(:,:,s+1) = g^s;
-    end
     
     for i=1:nImages
         for j=i+1:nImages
@@ -46,15 +40,15 @@ if exist('refq','var') && ~isempty(refq)
             Ri_gt = q_to_rot(refq(:,i))';
             Rj_gt = q_to_rot(refq(:,j))';
             
-            errs_tmp = zeros(1,4);
-            for s=1:4
-                Rij_gt = Ri_gt.'*gs(:,:,s)*Rj_gt;
-                % we are oblivious to a possible J conjugation at this moment
-                errs_tmp(s) = min([norm(Rij-Rij_gt,'fro'),norm(J*Rij*J-Rij_gt,'fro')]);
-            end
+            Rij_gt  = Ri_gt.'*Rj_gt;
+            Rijg_gt = Ri_gt.'*g*Rj_gt;
+            % we are oblivious to a possible J conjugation at this moment
+            err1 = min([norm(Rij-Rij_gt,'fro'),norm(J*Rij*J-Rij_gt,'fro')]);
+            err2 = min([norm(Rij-Rijg_gt,'fro'),norm(J*Rij*J-Rijg_gt,'fro')]);
+            
             % we are oblivious to which relative rotation we actualy have
             % in hand, so take the optimal
-            errs(ind) = min(errs_tmp);
+            errs(ind) = min(err1,err2);
         end
     end
     
