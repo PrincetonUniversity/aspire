@@ -98,8 +98,7 @@ for i=1:nImages
             Rijgs_out(:,:,ind) = J*Rijg*J;
             stats(ind)   = 1;
         end
-        
-        
+               
         %%%%%%%%%%%%%%%%%%% debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         t2 = clock;
         t = etime(t2,t1);
@@ -114,6 +113,6 @@ fprintf('\n');
 
 stats_dist = histc(stats,0:1)/numel(stats);
 log_message('percentage of rank-1 matrices= %.2f%%', nrank1/nchoosek(nImages,2)*100);
-log_message('inner_sync_dist=[%.2f %.2f]', stats_dist);
+log_message('inner_sync_dist=[%.2f %.2f]',stats_dist);
 
 end

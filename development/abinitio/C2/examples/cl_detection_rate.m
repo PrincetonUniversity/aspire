@@ -30,8 +30,8 @@ function [detec_rate,clmatrix_correct] = cl_detection_rate(clmatrix,n_theta,refq
 
 angle_tol_err = 10/180*pi; % how much angular deviation we allow for a common-line to have
 nImages = size(clmatrix,1);
-clmatrix_correct = zeros(size(clmatrix));
-% clmatrix_gt is a n*n*4 matrix representing the four pairs of common-lines between each two images
+clmatrix_correct = false(size(clmatrix));
+% clmatrix_gt is a n*n*2 matrix representing the four pairs of common-lines between each two images
 clmatrix_gt = find_cl_gt(n_theta,refq); 
 
 % calculate the diff of FIRST common-line in each image against the two
@@ -46,7 +46,7 @@ clmatrix_diff_22 = (clmatrix_gt(:,:,2) - clmatrix(:,:,2))*2*pi./n_theta;
 % hasn't been taken care yet.
 nCorrect = 0;
 hand_idx = zeros(nchoosek(nImages,2),2);
-nclmatrix_correct = zeros(nImages,nImages);
+cls_flip = zeros(nchoosek(nImages,2),1);
 for i=1:nImages
     for j=i+1:nImages
         ind = uppertri_ijtoind(i,j,nImages);
@@ -77,36 +77,36 @@ for i=1:nImages
         [val_21,hand_21] = min([acos(cos(diffs_cij_21))    + acos(cos(diffs_cji_21)),...
                                 acos(cos(diffs_cij_21+pi)) + acos(cos(diffs_cji_21+pi))]);
                   
-        
-        nCorrect_ij = 0;
         if val_11+val_22 < val_12+val_21
+            cls_flip(ind) = 0;
             if val_11 < 2*angle_tol_err
-                nCorrect_ij = nCorrect_ij+1;
+                clmatrix_correct(i,j,1) = true;
             end
             if val_22 < 2*angle_tol_err
-                nCorrect_ij = nCorrect_ij+1;
+                clmatrix_correct(i,j,2) = true;
             end
             hand_idx(ind,:) = [hand_11 hand_22];
         else
+            cls_flip(ind) = 1;
             if val_12 < 2*angle_tol_err
-                nCorrect_ij = nCorrect_ij+1;
+                clmatrix_correct(i,j,2) = true;
             end
             if val_21 < 2*angle_tol_err
-                nCorrect_ij = nCorrect_ij+1;
+                clmatrix_correct(i,j,1) = true;
             end
             hand_idx(ind,:) = [hand_12 hand_21];
         end
-        nclmatrix_correct(i,j) = nCorrect_ij;
-        nclmatrix_correct(j,i) = nCorrect_ij;    
-        
-        nCorrect = nCorrect + nCorrect_ij;
     end
 end
 
-cl_J_dist = histc(hand_idx(:),1:2)/numel(hand_idx);
-detec_rate = nCorrect/(2*nchoosek(nImages,2));
+detec_rate = sum(clmatrix_correct(:))/(2*nchoosek(nImages,2));
 log_message('common lines detection rate=%.2f%%',detec_rate*100);
+
+cl_J_dist = histc(hand_idx(:),1:2)/numel(hand_idx);
 log_message('cl_J_dist=[%.2f %.2f]',cl_J_dist);
+
+cl_flip_dist = histc(cls_flip(:),0:1)/numel(cls_flip);
+log_message('cl_flip_dist=[%.2f %.2f]',cl_flip_dist)
 
 end
 
@@ -116,38 +116,52 @@ function clmatrix_gt = find_cl_gt(n_theta,refq)
 nImages = size(refq,2);
 clmatrix_gt = zeros(nImages,nImages,2);
 
-g = [-1  0 0; ...
-      0 -1 0; ...
-      0  0 1]; % rotation matrix of 180 degress around z-axis
+g = diag([-1 -1 1]);
 
-gs = zeros(3,3,2);
-for s=0:1
-    gs(:,:,s+1) = g^s;
-end
 
 for i=1:nImages
     for j=i+1:nImages
         Ri = q_to_rot(refq(:,i))';
         Rj = q_to_rot(refq(:,j))';
-        for s=0:1
-            U = Ri.'*gs(:,:,s+1)*Rj;
-            c1 = [-U(2,3)  U(1,3)]';
-            c2 = [ U(3,2) -U(3,1)]';
-            
-            idx1 = clAngles2Ind(c1,n_theta);
-            idx2 = clAngles2Ind(c2,n_theta);
-            
-%             if strcmp(params_simul.CL,'GT') && params_simul.confuse_cl_J
-%                 if round(rand)==1
-%                     % j-conjugating amounts at choosing the antipodal
-%                     % common-lines in each image
-%                     idx1 = mod(idx1+n_theta/2-1,n_theta)+1;
-%                     idx2 = mod(idx2+n_theta/2-1,n_theta)+1;
-%                 end
-%             end
-            clmatrix_gt(i,j,s+1) = idx1;
-            clmatrix_gt(j,i,s+1) = idx2;
-        end
+        
+        % first common-lines
+        U = Ri.'*Rj;
+        c1 = [-U(2,3)  U(1,3)]';
+        c2 = [ U(3,2) -U(3,1)]';
+        
+        idx1 = clAngles2Ind(c1,n_theta);
+        idx2 = clAngles2Ind(c2,n_theta);
+        
+        %             if strcmp(params_simul.CL,'GT') && params_simul.confuse_cl_J
+        %                 if round(rand)==1
+        %                     % j-conjugating amounts at choosing the antipodal
+        %                     % common-lines in each image
+        %                     idx1 = mod(idx1+n_theta/2-1,n_theta)+1;
+        %                     idx2 = mod(idx2+n_theta/2-1,n_theta)+1;
+        %                 end
+        %             end
+        clmatrix_gt(i,j,1) = idx1;
+        clmatrix_gt(j,i,1) = idx2;
+        
+        
+        % second common-lines
+        U = Ri.'*g*Rj;
+        c1 = [-U(2,3)  U(1,3)]';
+        c2 = [ U(3,2) -U(3,1)]';
+        
+        idx1 = clAngles2Ind(c1,n_theta);
+        idx2 = clAngles2Ind(c2,n_theta);
+        
+        %             if strcmp(params_simul.CL,'GT') && params_simul.confuse_cl_J
+        %                 if round(rand)==1
+        %                     % j-conjugating amounts at choosing the antipodal
+        %                     % common-lines in each image
+        %                     idx1 = mod(idx1+n_theta/2-1,n_theta)+1;
+        %                     idx2 = mod(idx2+n_theta/2-1,n_theta)+1;
+        %                 end
+        %             end
+        clmatrix_gt(i,j,2) = idx1;
+        clmatrix_gt(j,i,2) = idx2;     
     end
 end
 
