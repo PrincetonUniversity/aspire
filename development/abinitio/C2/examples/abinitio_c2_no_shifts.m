@@ -7,9 +7,9 @@ open_log(0);
 % The MAT file p100_c4_shifted contains 100 projections of size 65x65. The
 % orientations (given as quaternions) used to generate these projections
 % are stored in the the variable "refq". The projection were generated using the following command:
-[projs,refq] = generate_c2_images(100,1/8,65,'SYNTHETIC',0,1);
+[projs,refq] = generate_c2_images(100,10000000000,65,'SYNTHETIC',0,1);
 
-% load p100_c4_gaussian_no_shifts;
+% load p100_c2_gaussian_no_shifts;
 viewstack(projs,5,5);   % Display the proejctions.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 1  : Computing polar Fourier transform of projections
