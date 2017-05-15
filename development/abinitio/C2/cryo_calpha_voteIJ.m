@@ -186,7 +186,7 @@ if idx>1
 %    
 %     shg;
     
-    if ~isscalar(refq)
+    if exist('refq','var') && ~isempty(refq)
         % For debugging, compute the true angle between the images, and compare to
         % the estimated one. The following debugging code is correct only when
         % p=1, for otherwise, it is hard to predict how the errors would affect

@@ -6,11 +6,13 @@ open_log(0);
 %% Load and display projections
 % The MAT file p100_c4_shifted contains 100 projections of size 65x65. The
 % orientations (given as quaternions) used to generate these projections
-% are stored in the the variable "refq". The shift introduced into each
-% projection is stored in the variable "ref_shifts". The projections were
-% shifted by random integer shifts of up to +/- 5 pixels, with steps of 0.5
-% pixel.
-load p100_c4_shifted;
+% are stored in the the variable "refq". The projection were generated using the following command:
+
+max_shift  = 5; % number of shifts to consider
+shift_step = 1; % the shift step (see Yoel's technical report)
+[projs,refq] = generate_c2_images(100,10000000000,65,'GAUSSIAN',max_shift,shift_step);
+
+% load p100_c2_gaussian_no_shifts;
 viewstack(projs,5,5);   % Display the proejctions.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 1  : Computing polar Fourier transform of projections
@@ -26,53 +28,36 @@ npf = gaussian_filter_imgs(npf);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 2  : detect a single pair of common-lines between each pair of images
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-max_shift  = 5; % number of shifts to consider
-shift_step = 0.5; % the shift step (see Yoel's technical report)
-clmatrix = cryo_clmatrix_gpu(npf,size(npf,3),1,max_shift,shift_step); 
+min_dist_cls = 25; % the minimal distance (in degrees) between two lines in a single images
+clmatrix = cryo_clmatrix_c2_gpu_tmp(npf,size(npf,3),1,max_shift,shift_step,min_dist_cls); 
 cl_detection_rate(clmatrix,n_theta,refq);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% step 3  : detect self-common-lines in each image
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-is_handle_equator_ims = true;
-equator_res_fact = 10;
-equator_removal_frac = 0.1;
-sclmatrix = cryo_self_clmatrix_gpu(npf,max_shift,shift_step,...
-    is_handle_equator_ims,equator_res_fact,equator_removal_frac,refq);
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% step 4  : calculate self-relative-rotations
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Riis = estimate_all_Riis(sclmatrix,n_theta,refq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 5  : calculate relative-rotations
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Rijs = cryo_c4_estimate_all_Rijs(clmatrix,n_theta,refq);
+[Rijs,Rijgs,Confijs] = cryo_generateRij(clmatrix,n_theta,refq);
+% Rijs  = cryo_c2_estimate_all_Rijs(clmatrix(:,:,1),n_theta,refq);
+% Rijgs = cryo_c2_estimate_all_Rijs(clmatrix(:,:,2),n_theta,refq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 6  : inner J-synchronization
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-is_remove_non_rank1 = true;
-non_rank1_remov_percent = 0.25;
-[vijs,viis,im_inds_to_remove,pairwise_inds_to_remove,...
-    npf,projs,refq,ref_shifts] = local_sync_J(Rijs,Riis,npf,...
-                                projs,is_remove_non_rank1,non_rank1_remov_percent,refq,ref_shifts);
+nImages = size(clmatrix,1);
+[Rijs,Rijgs] = local_sync_J(Rijs,Rijgs,nImages);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 7  : outer J-synchronization
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[vijs,viis] = global_sync_J(vijs,viis);
+[Rijs,Rijgs] = global_sync_J(Rijs,Rijgs,nImages);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 8  : third rows estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-vis  = estimate_third_rows(vijs,viis);
+vis  = estimate_third_rows(Rijs,Rijgs,nImages);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 9  : in-plane rotations angles estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-inplane_rot_res = 1;
-[rots,in_plane_rotations] = estimate_inplane_rotations2(npf,vis,inplane_rot_res,max_shift,shift_step);
+rots = cryo_inplane_rotations(vis,Rijs,Rijgs);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 10  : Results Analysis
@@ -82,6 +67,6 @@ inplane_rot_res = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 11  : Reconstructing volume
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% estimatedVol = reconstruct_vol(projs,npf,rot_alligned,max_shift,shift_step);
 estimatedVol = reconstruct(projs,rot_alligned,n_r,n_theta,max_shift,shift_step);   
-WriteMRC(estimatedVol,1,'example1_shifted.mrc');
+
+% WriteMRC(estimatedVol,1,'example1_with_shifts.mrc');

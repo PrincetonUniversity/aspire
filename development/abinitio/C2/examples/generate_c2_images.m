@@ -1,4 +1,4 @@
-function [images,refq,ref_shifts] = generate_c2_images(nImages,SNR,projSize,c4_type,max_shift,shift_step)
+function [images,refq,ref_shifts] = generate_c2_images(nImages,SNR,projSize,c2_type,max_shift,shift_step)
 %
 % Generates a set of projection images of a C4 volume
 % 
@@ -34,25 +34,23 @@ if ~exist('max_shift','var')
     max_shift = 15;
 end
 
-if ~exist('c4_type','var')
-    c4_type = 'Gaussian';
+if ~exist('c2_type','var')
+    c2_type = 'GAUSSIAN';
 end
 
 refq   = qrand(nImages);
 
-log_message('loading simulated %s volume',c4_type)
-if strcmp(c4_type,'GAUSSIAN')
-    error('not implemented yet');
-    
-%     vol = cryo_gaussian_phantom_3d('C4_params',projSize,1);   
-elseif strcmp(c4_type,'SYNTHETIC')
+log_message('loading simulated %s volume',c2_type)
+if strcmp(c2_type,'GAUSSIAN') 
+    vol = cryo_gaussian_phantom_3d('C2_params',projSize,1);   
+elseif strcmp(c2_type,'SYNTHETIC')
     
     load cleanrib;
     volref = real(volref);
     vol = volref + fastrotate(volref,180);
     clear volref;
 else
-    error(['no such c4_type : ' c4_type]);
+    error(['no such c4_type : ' c2_type]);
 end
 
 % if params_simul.debug

@@ -41,6 +41,11 @@ nPairs = nchoosek(nImages,2);
 Rijs_tmp = zeros(9, nPairs,2);
 ConfijsTmp = zeros(nImages,nImages,2); % the confidence in the estimation
 
+
+if ~exist('refq','var') || isempty(refq)
+    refq = [];  % Reference quaternions are given.
+end
+
 poolreopen;
 
 for k1=1:nImages-1
@@ -70,11 +75,16 @@ end
 
 function [Rk1k2,Kfeasible] = cryo_calpha_voteIJ_wrapper(clmatrix,k1,k2,K3,cl_layer,is_perturbed,n_theta,refq)
 
-[~, ~, cosalpha, Kfeasible]=cryo_calpha_voteIJ(clmatrix,k1,k2,K3,cl_layer,is_perturbed,n_theta,refq);
 
-ref=0;
-if exist('refq','var')
-    ref=1;  % Reference quaternions are given.
+ref = 0;
+if exist('refq','var') && ~isempty(refq)
+    ref = 1;  % Reference quaternions are given.
+end
+
+if ref
+    [~, ~, cosalpha, Kfeasible] = cryo_calpha_voteIJ(clmatrix,k1,k2,K3,cl_layer,is_perturbed,n_theta,refq);
+else
+    [~, ~, cosalpha, Kfeasible] = cryo_calpha_voteIJ(clmatrix,k1,k2,K3,cl_layer,is_perturbed,n_theta);
 end
 
 TOL=1.0E-12; % This tolerance is relevant only if L is very large (1.0e15),

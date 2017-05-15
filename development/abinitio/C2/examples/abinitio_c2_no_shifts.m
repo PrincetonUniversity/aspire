@@ -7,9 +7,9 @@ open_log(0);
 % The MAT file p100_c4_shifted contains 100 projections of size 65x65. The
 % orientations (given as quaternions) used to generate these projections
 % are stored in the the variable "refq". The projection were generated using the following command:
-% [projs,refq] = generate_c2_images(100,10000000000,65,'SYNTHETIC',0,1);
+[projs,refq] = generate_c2_images(100,1/2,65,'GAUSSIAN',0,1);
 
-load p100_c2_gaussian_no_shifts;
+% load p100_c2_gaussian_no_shifts;
 viewstack(projs,5,5);   % Display the proejctions.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 1  : Computing polar Fourier transform of projections
@@ -28,7 +28,7 @@ npf = gaussian_filter_imgs(npf);
 max_shift  = 0; % number of shifts to consider
 shift_step = 0.5; % the shift step (see Yoel's technical report)
 min_dist_cls = 25; % the minimal distance (in degrees) between two lines in a single images
-clmatrix = cryo_clmatrix_c2_gpu(npf,size(npf,3),1,max_shift,shift_step,min_dist_cls); 
+clmatrix = cryo_clmatrix_c2_gpu(npf,size(npf,3),1,0,1,min_dist_cls); 
 cl_detection_rate(clmatrix,n_theta,refq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -68,4 +68,4 @@ rots = cryo_inplane_rotations(vis,Rijs,Rijgs);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 estimatedVol = reconstruct(projs,rot_alligned,n_r,n_theta,max_shift,shift_step);   
 
-% WriteMRC(estimatedVol,1,'example1_no_shifts.mrc');
+WriteMRC(estimatedVol,1,'example1_no_shifts.mrc');

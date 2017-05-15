@@ -30,7 +30,7 @@ function [detec_rate,clmatrix_correct] = cl_detection_rate(clmatrix,n_theta,refq
 
 angle_tol_err = 10/180*pi; % how much angular deviation we allow for a common-line to have
 nImages = size(clmatrix,1);
-clmatrix_correct = false(size(clmatrix));
+clmatrix_correct = zeros(size(clmatrix));
 % clmatrix_gt is a n*n*2 matrix representing the four pairs of common-lines between each two images
 clmatrix_gt = find_cl_gt(n_theta,refq); 
 
@@ -44,7 +44,6 @@ clmatrix_diff_22 = (clmatrix_gt(:,:,2) - clmatrix(:,:,2))*2*pi./n_theta;
 % take absolute cosine because of handedness
 % there might be +180 independendt diff for each image which at this stage
 % hasn't been taken care yet.
-nCorrect = 0;
 hand_idx = zeros(nchoosek(nImages,2),2);
 cls_flip = zeros(nchoosek(nImages,2),1);
 for i=1:nImages
@@ -80,19 +79,19 @@ for i=1:nImages
         if val_11+val_22 < val_12+val_21
             cls_flip(ind) = 0;
             if val_11 < 2*angle_tol_err
-                clmatrix_correct(i,j,1) = true;
+                clmatrix_correct(i,j,1) = 1;
             end
             if val_22 < 2*angle_tol_err
-                clmatrix_correct(i,j,2) = true;
+                clmatrix_correct(i,j,2) = 1;
             end
             hand_idx(ind,:) = [hand_11 hand_22];
         else
             cls_flip(ind) = 1;
             if val_12 < 2*angle_tol_err
-                clmatrix_correct(i,j,2) = true;
+                clmatrix_correct(i,j,2) = 1;
             end
             if val_21 < 2*angle_tol_err
-                clmatrix_correct(i,j,1) = true;
+                clmatrix_correct(i,j,1) = 1;
             end
             hand_idx(ind,:) = [hand_12 hand_21];
         end
@@ -101,6 +100,10 @@ end
 
 detec_rate = sum(clmatrix_correct(:))/(2*nchoosek(nImages,2));
 log_message('common lines detection rate=%.2f%%',detec_rate*100);
+
+clmatrix_correct_at_least_one = max(clmatrix_correct,[],3);
+detec_rate_at_least_one = sum(clmatrix_correct_at_least_one(:))/(nchoosek(nImages,2));
+log_message('common lines detection rate of at least one cl=%.2f%%',detec_rate_at_least_one*100);
 
 cl_J_dist = histc(hand_idx(:),1:2)/numel(hand_idx);
 log_message('cl_J_dist=[%.2f %.2f]',cl_J_dist);

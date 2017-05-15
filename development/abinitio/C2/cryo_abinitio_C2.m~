@@ -95,9 +95,8 @@ end
 npf = gaussian_filter_imgs(npf);
 
 save(outparams,'n_theta','n_r');
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% step 2  : detect two pairs of common-lines between each pair of images
+% step 2  : detect a single pair of common-lines between each pair of images
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if ~max_shift_given
     max_shift = ceil(size(projs,1)*0.15); % max_shift is 15% of the image size
@@ -106,42 +105,40 @@ log_message('detecting common-lines');
 min_dist_cls = 25; % the minimal distance (in degrees) between two lines in a single images
 clmatrix = cryo_clmatrix_c2_gpu(npf,nImages,1,max_shift,shift_step,min_dist_cls); 
 save(outparams,'clmatrix','max_shift','shift_step','-append');
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% step 3  : calculate relative-rotations
+% step 3  : detect self-common-lines in each image
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[Rijs,Rijgs,Confijs] = cryo_generateRij(clmatrix,n_theta);
+[Rijs,Rijgs,Confijs] = cryo_generateRij(clmatrix,n_theta,refq);
 % Rijs  = cryo_c2_estimate_all_Rijs(clmatrix(:,:,1),n_theta,refq);
 % Rijgs = cryo_c2_estimate_all_Rijs(clmatrix(:,:,2),n_theta,refq);
 save(outparams,'Rijs','Rijgs','Confijs','-append');
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% step 4  : local J-synchronization
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 [Rijs,Rijgs] = local_sync_J(Rijs,Rijgs,nImages);
 save(outparams,'Rijs','Rijgs','-append');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% step 5  : global J-synchronization
+% step 7  : outer J-synchronization
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 [Rijs,Rijgs] = global_sync_J(Rijs,Rijgs,nImages);
 save(outparams,'Rijs','Rijgs','-append');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% step 6  : third rows estimation
+% step 8  : third rows estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 vis  = estimate_third_rows(Rijs,Rijgs,nImages);
 save(outparams,'vis','-append');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% step 7  : in-plane rotations angles estimation
+% step 9  : in-plane rotations angles estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 rots = cryo_inplane_rotations(vis,Rijs,Rijgs);
 save(outparams,'rots','-append');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% step 8  : Reconstruction
+% step 11  : Reconstructing volume
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+estimatedVol = reconstruct(projs,rot_alligned,n_r,n_theta,max_shift,shift_step);   
+
 estimatedVol = reconstruct(projs,rots,n_r,n_theta,max_shift,shift_step);   
 WriteMRC(estimatedVol,1,outvol);
 % 
