@@ -1,0 +1,177 @@
+14-May-2017 17:11:23 Starting cryo_workflow_preprocess_execute
+14-May-2017 17:11:23 Loaded XML file /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/c2_10049.xml (MD5: )
+14-May-2017 17:11:23 Computing MD5 of /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/rawdata_10049.mrc
+14-May-2017 17:11:23 Using raw data /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/rawdata_10049.mrc (MD5: )
+14-May-2017 17:11:23 Creating backup of raw data.
+14-May-2017 17:11:23 Configuration file /home/gabip/matlabProjects/aspire/aspire/tmpdir.cfg not found
+14-May-2017 17:11:23 Create file /home/gabip/matlabProjects/aspire/aspire/tmpdir.cfg containing name of temporary folder to override default folder
+14-May-2017 17:11:23 Using default folder '/scratch/' as root of temporary folder
+14-May-2017 17:11:23 Copying raw data from /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/rawdata_10049.mrc to temporary file /scratch/gabip/aspire_temp/24870/tpf0d12d98_efc1_4838_8977_ad4736183583.mrc
+14-May-2017 17:12:09 Start phaseflipping...
+14-May-2017 17:12:09 Reading CTF data /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/allimg_new.star (MD5: )
+14-May-2017 17:12:34 Configuration file /home/gabip/matlabProjects/aspire/aspire/tmpdir.cfg not found
+14-May-2017 17:12:34 Create file /home/gabip/matlabProjects/aspire/aspire/tmpdir.cfg containing name of temporary folder to override default folder
+14-May-2017 17:12:34 Using default folder '/scratch/' as root of temporary folder
+14-May-2017 17:12:34 Phaseflipped images will be saved to temporary file /scratch/gabip/aspire_temp/24870/tp9e9247c2_d813_4173_bc9d_fe39a1b8b4f0.mrc
+14-May-2017 17:12:34 Running cryo_phaseflip_outofcore
+14-May-2017 17:22:57 Finished phaseflipping
+14-May-2017 17:22:58 Skipping cropping
+14-May-2017 17:22:58 Start downsampling...
+14-May-2017 17:22:58 Downsampling to 129x129
+14-May-2017 17:22:58 Configuration file /home/gabip/matlabProjects/aspire/aspire/tmpdir.cfg not found
+14-May-2017 17:22:58 Create file /home/gabip/matlabProjects/aspire/aspire/tmpdir.cfg containing name of temporary folder to override default folder
+14-May-2017 17:22:58 Using default folder '/scratch/' as root of temporary folder
+14-May-2017 17:22:58 Downsampled images will be saved to temporary file /scratch/gabip/aspire_temp/24870/tp5cf6ac9b_a8cb_4b6b_ac68_3f0dca51f2f7.mrc
+14-May-2017 17:22:58 Running cryo_downsample_outofcore
+14-May-2017 17:26:26 Finished downsampling
+14-May-2017 17:26:27 Start normalize background...
+14-May-2017 17:26:27 Configuration file /home/gabip/matlabProjects/aspire/aspire/tmpdir.cfg not found
+14-May-2017 17:26:27 Create file /home/gabip/matlabProjects/aspire/aspire/tmpdir.cfg containing name of temporary folder to override default folder
+14-May-2017 17:26:27 Using default folder '/scratch/' as root of temporary folder
+14-May-2017 17:26:27 Normalized images will be saved to temporary file /scratch/gabip/aspire_temp/24870/tpf00d5789_3a58_4d4d_8528_8faf693668fc.mrc
+14-May-2017 17:26:27 Running cryo_normalize_background_outofcore
+14-May-2017 17:27:02 Finished normalizing
+14-May-2017 17:27:02 Starting prewhitening...
+14-May-2017 17:27:02 Estimating noise power spectrum
+14-May-2017 17:27:02 Each projection of size 129x129
+14-May-2017 17:32:23 Finished noise power spectrum estimation
+14-May-2017 17:32:25 Configuration file /home/gabip/matlabProjects/aspire/aspire/tmpdir.cfg not found
+14-May-2017 17:32:25 Create file /home/gabip/matlabProjects/aspire/aspire/tmpdir.cfg containing name of temporary folder to override default folder
+14-May-2017 17:32:25 Using default folder '/scratch/' as root of temporary folder
+14-May-2017 17:32:25 Prewhitened images will be saved to temporary file /scratch/gabip/aspire_temp/24870/tp391cc78b_01c5_4266_bf58_83fb5269db2f.mrc
+14-May-2017 17:32:25 Running cryo_prewhiten_outofcore
+14-May-2017 17:42:03 Finished prewhitening
+14-May-2017 17:42:03 Computing power spectrum of prewhitened projections - for verifying that power spectrum is white
+14-May-2017 17:47:13 Starting global phaseflip...
+14-May-2017 17:47:56 Phase of images was flipped
+14-May-2017 17:47:56 Images copied (even if not globally phase flipped) to /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/phaseflipped_downsampled_prewhitened.mrc (MD5: )
+14-May-2017 17:47:56 Finished global phaseflip...
+14-May-2017 17:48:00 Images will be shuffled prior to splitting to groups
+14-May-2017 17:48:00 Shuffled order of images saved to variable 'shuffleidx' in /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/preprocess_info.mat
+14-May-2017 17:48:00 Start splitting to 2 groups
+14-May-2017 17:48:00 Saving group 1 into file /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/phaseflipped_cropped_downsampled_prewhitened_group1.mrc
+14-May-2017 17:48:24 Saved group 1 into file /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/phaseflipped_cropped_downsampled_prewhitened_group1.mrc (MD5: )
+14-May-2017 17:48:24 Indices of raw images in group 1 are saved to /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/raw_indices_group1.dat (MD5: )
+14-May-2017 17:48:24 Generating CTF for downsampled images of group 1
+14-May-2017 17:48:26 Pixel size of original images 3.40 Angstroms
+14-May-2017 17:48:26 Pixel size of downsampled images 5.03 Angstroms
+14-May-2017 17:48:26 Create CTF data for downsampled images
+14-May-2017 17:48:49 Saving CTF data for group 1 to /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/ctfs_group1.star
+14-May-2017 17:48:56 Save CTF parameters of raw images group 1 into /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/ctfs_raw_group1.star
+14-May-2017 17:49:02 Saving group 2 into file /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/phaseflipped_cropped_downsampled_prewhitened_group2.mrc
+14-May-2017 17:49:26 Saved group 2 into file /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/phaseflipped_cropped_downsampled_prewhitened_group2.mrc (MD5: )
+14-May-2017 17:49:26 Indices of raw images in group 2 are saved to /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/raw_indices_group2.dat (MD5: )
+14-May-2017 17:49:26 Generating CTF for downsampled images of group 2
+14-May-2017 17:49:26 Pixel size of original images 3.40 Angstroms
+14-May-2017 17:49:26 Pixel size of downsampled images 5.03 Angstroms
+14-May-2017 17:49:26 Create CTF data for downsampled images
+14-May-2017 17:49:49 Saving CTF data for group 2 to /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/ctfs_group2.star
+14-May-2017 17:49:55 Save CTF parameters of raw images group 2 into /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/ctfs_raw_group2.star
+14-May-2017 17:50:03 Finished splitting to groups
+14-May-2017 17:50:03 Data save into MAT file /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/preprocess_info.mat (MD5: )
+14-May-2017 17:50:03 Workflow file: /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/c2_10049.xml
+14-May-2017 17:50:03 Use this file name when calling subsequent funtions.
+14-May-2017 17:50:03 Call next cryo_workflow_classify('/home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/c2_10049.xml')
+14-May-2017 17:52:04 Starting cryo_workflow_classify_execute
+14-May-2017 17:52:04 Loaded XML file /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/c2_10049.xml (MD5: )
+14-May-2017 17:52:04 Loading phaseflipped_cropped_downsampled_prewhitened_group1.mrc (MD5: )
+14-May-2017 17:52:10 Starting class averaging initial classificaiton
+14-May-2017 18:38:55 Finished class averaging initial classificaiton
+14-May-2017 18:38:55 Starting VDM
+14-May-2017 18:44:08 Saved /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/VDM_data_1.mat (MD5: )
+14-May-2017 18:44:08 Loading phaseflipped_cropped_downsampled_prewhitened_group2.mrc (MD5: )
+14-May-2017 18:44:43 Starting class averaging initial classificaiton
+14-May-2017 19:33:33 Finished class averaging initial classificaiton
+14-May-2017 19:33:33 Starting VDM
+14-May-2017 19:38:47 Saved /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/VDM_data_2.mat (MD5: )
+14-May-2017 19:38:47 Workflow file: /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/c2_10049.xml
+14-May-2017 19:38:47 Use this file name when calling subsequent funtions.
+14-May-2017 19:38:47 Call next cryo_workflow_classmeans('/home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/c2_10049.xml')
+14-May-2017 20:50:56 Starting cryo_workflow_classmeans_execute
+14-May-2017 20:50:56 Loaded XML file /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/c2_10049.xml (MD5: )
+14-May-2017 20:50:56 Loading prewhitened projections from phaseflipped_cropped_downsampled_prewhitened_group1.mrc (MD5: )
+14-May-2017 20:50:56 Loading /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/VDM_data_1.mat (MD5: )
+14-May-2017 20:50:58 Starting align_main
+14-May-2017 23:58:41 Finished align_main
+14-May-2017 23:58:55 Number of raw projection in each the each percentile of averages (percentile,num means, num unique raw, contrast)
+14-May-2017 23:58:55 	 10%	    5427 	   30427 	 3.81e+01
+14-May-2017 23:58:55 	 20%	   10854 	   46277 	 3.79e+01
+14-May-2017 23:58:55 	 30%	   16282 	   52555 	 3.77e+01
+14-May-2017 23:58:55 	 40%	   21709 	   53888 	 3.76e+01
+14-May-2017 23:58:55 	 50%	   27136 	   54178 	 3.75e+01
+14-May-2017 23:58:55 	 60%	   32563 	   54240 	 3.74e+01
+14-May-2017 23:58:55 	 70%	   37990 	   54262 	 3.73e+01
+14-May-2017 23:58:55 	 80%	   43418 	   54266 	 3.72e+01
+14-May-2017 23:58:56 	 90%	   48845 	   54268 	 3.71e+01
+14-May-2017 23:58:56 	100%	   54272 	   54270 	 3.62e+01
+14-May-2017 23:58:56 Checking if global phase flip is required.
+14-May-2017 23:59:08 Signal mean = -9.101e-01, noise power = -5.412e-01
+14-May-2017 23:59:08 Applied global phase flip to averages
+14-May-2017 23:59:08 Writing sorted averages (by contrast) into /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/averages_nn50_group1.mrc
+15-May-2017 00:07:06 Saved averages in /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/averages_nn50_group1.mrc (MD5: )
+15-May-2017 00:07:10 Saving averages_info_nn50_group1.mat (MD5: )
+15-May-2017 00:07:56 Loading prewhitened projections from phaseflipped_cropped_downsampled_prewhitened_group2.mrc (MD5: )
+15-May-2017 00:07:56 Loading /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/VDM_data_2.mat (MD5: )
+15-May-2017 00:07:56 Starting align_main
+15-May-2017 02:14:03 Finished align_main
+15-May-2017 02:14:12 Number of raw projection in each the each percentile of averages (percentile,num means, num unique raw, contrast)
+15-May-2017 02:14:12 	 10%	    5427 	   31459 	 3.81e+01
+15-May-2017 02:14:12 	 20%	   10854 	   47491 	 3.79e+01
+15-May-2017 02:14:12 	 30%	   16282 	   52812 	 3.77e+01
+15-May-2017 02:14:12 	 40%	   21709 	   53980 	 3.76e+01
+15-May-2017 02:14:12 	 50%	   27136 	   54207 	 3.75e+01
+15-May-2017 02:14:12 	 60%	   32563 	   54245 	 3.74e+01
+15-May-2017 02:14:12 	 70%	   37990 	   54258 	 3.73e+01
+15-May-2017 02:14:12 	 80%	   43418 	   54261 	 3.72e+01
+15-May-2017 02:14:12 	 90%	   48845 	   54265 	 3.71e+01
+15-May-2017 02:14:12 	100%	   54272 	   54265 	 3.63e+01
+15-May-2017 02:14:12 Checking if global phase flip is required.
+15-May-2017 02:14:22 Signal mean = -9.123e-01, noise power = -5.291e-01
+15-May-2017 02:14:22 Applied global phase flip to averages
+15-May-2017 02:14:22 Writing sorted averages (by contrast) into /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/averages_nn50_group2.mrc
+15-May-2017 02:19:44 Saved averages in /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/averages_nn50_group2.mrc (MD5: )
+15-May-2017 02:19:48 Saving averages_info_nn50_group2.mat (MD5: )
+15-May-2017 02:19:58 Workflow file: /home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/c2_10049.xml
+
+15-May-2017 02:19:58 Use this file name when calling subsequent funtions.
+
+15-May-2017 02:19:58 Call next cryo_workflow_abinitio('/home/gabip/matlabProjects/aspire/aspire/development/abinitio/C2/datasets/10049/c2_10049.xml')
+
+15-May-2017 09:39:36 projections loaded. Using 200 projections of size 129 x 129
+15-May-2017 09:39:36 Masking projections. Masking radius is 58 pixels
+15-May-2017 09:39:46 detecting common-lines
+15-May-2017 09:47:29 GPU PRECISION=single
+15-May-2017 09:47:29 Using single precision GPU calculations!!!
+15-May-2017 09:47:29 Reference clmatrix not found
+15-May-2017 09:47:29 Reference shifts not found
+15-May-2017 09:47:29 Verbose mode=1
+15-May-2017 09:47:29 Shift estimation parameters: max_shift=20   shift_step=5.000000e-01
+15-May-2017 09:47:29 map_filter_radius = 0
+15-May-2017 09:48:06 detecting self-common-lines
+15-May-2017 09:49:24 projections loaded. Using 200 projections of size 129 x 129
+15-May-2017 09:49:24 Masking projections. Masking radius is 58 pixels
+15-May-2017 09:49:24 detecting common-lines
+15-May-2017 09:49:25 GPU PRECISION=single
+15-May-2017 09:49:25 Using single precision GPU calculations!!!
+15-May-2017 09:49:25 Reference clmatrix not found
+15-May-2017 09:49:25 Reference shifts not found
+15-May-2017 09:49:25 Verbose mode=1
+15-May-2017 09:49:25 Shift estimation parameters: max_shift=20   shift_step=5.000000e-01
+15-May-2017 09:49:25 map_filter_radius = 0
+15-May-2017 10:10:46 projections loaded. Using 200 projections of size 129 x 129
+15-May-2017 10:10:46 Masking projections. Masking radius is 58 pixels
+15-May-2017 10:10:46 detecting common-lines
+15-May-2017 10:10:46 GPU PRECISION=single
+15-May-2017 10:10:46 Using single precision GPU calculations!!!
+15-May-2017 10:10:47 Reference clmatrix not found
+15-May-2017 10:10:47 Reference shifts not found
+15-May-2017 10:10:47 Verbose mode=1
+15-May-2017 10:10:47 Shift estimation parameters: max_shift=20   shift_step=5.000000e-01
+15-May-2017 10:10:47 map_filter_radius = 0
+15-May-2017 10:15:49 Local J synchronization
+15-May-2017 10:15:52 percentage of rank-1 matrices= 14.98%
+15-May-2017 10:15:52 inner_sync_dist=[0.39 0.61]
+15-May-2017 10:15:52 Global J synchronization
+15-May-2017 10:15:53 global J-sync dist=[0.49 0.51]
+15-May-2017 10:15:53 Third row estimation sync matrix: first 5 eigenvalues=[166.63 139.72 125.40 20.53 20.07]
+15-May-2017 10:15:54 In-plane rotation sync matrix : first 5 eigenvalues=[169.22 18.34 16.69 15.77 15.16]
