@@ -22,8 +22,6 @@ eig_vals1=diag(D1);
 eig_vals2=diag(D2);
 [sorted_eigs1, sort_idx1] = sort(real(eig_vals1),'descend');
 [sorted_eigs2, sort_idx2] = sort(real(eig_vals2),'descend');
-figure; bar(1-sorted_eigs1);
-figure; bar(1-sorted_eigs2);
 V4=VV1(:, sort_idx1(1:num_eig));
 V3=VV2(:, sort_idx2(2:num_eig+1));
 
