@@ -15,7 +15,7 @@ X=[corr(:); corr(:)]; %including reflection
 rot=[rot(:); -rot(:)]; %including reflection
 C=list;
 CC=[C(:, 2), C(:, 1)];
-[~,ia, ib]=union(C, CC, 'rows');
+[ia, ib] = union_row_idx(C, CC);
 rows=[C(ia, 1); CC(ib, 1)];
 cols=[C(ia, 2); CC(ib, 2)];
 rot_matrix=rot(:);
@@ -30,4 +30,15 @@ A=(rot_matrix)*2*pi/n_theta;
 Ah=exp(sqrt(-1)*A);
 X=X(ind);
 
+end
+
+function [ia, ib] = union_row_idx(a, b)
+    % Need to write this function ourselves since Octave (<4.2.0) has a bug
+    % in its implementation.
+    [~, idx] = unique([a; b], 'rows');
+
+    a_rows = size(a, 1);
+
+    ia = idx(idx <= a_rows);
+    ib = idx(idx > a_rows) - a_rows;
 end
