@@ -36,7 +36,7 @@ if exist(fname,'file')==2
 else
 	gen_simulation_data;
 end
-
+disp('Loaded dataset')
 
 K=10000; %K is the number of images
 SNR = 1/10; %SNR
@@ -49,8 +49,11 @@ def2=4;
 lambda = EWavelength(300);
 B=10; % decay envelope parameter
 
+sprintf('Adding CTF to images')
 [g_proj_CTF,CTF,defocus_group]=  add_CTF_env_v6(cfft2(data.projections(:,:,1:K)), ndef, def1,def2,B, lambda, use_CTF);
+disp('Adding noise to images')
 [images, noise_v_r]=addnoise_v6(icfft2(g_proj_CTF), SNR);
+clear g_proj_CTF
 q = data.q(:, 1:K);
 L = size(images, 1);
 n_nbor = 10; %number of nearest neighbors for initial classification.
@@ -64,8 +67,9 @@ k_VDM_out = n_nbor; % number of nearest neighbors search for
 
 
 % Initial classification with sPCA (new, fast code)
+disp('Phase flipping images')
 [ images_fl ] = Phase_Flip(images, defocus_group, CTF); %phase flipping 
-
+clear images 
 str=which('gen_simulation_data.m');
 [pathstr,~,~]=fileparts(str);
 fname=fullfile(pathstr,'simulation','noisy_data_fl.mrc');
@@ -73,12 +77,15 @@ WriteMRC(real(images_fl),1,fname);
 allims=imagestackReader(fname);
 
 disp('Phase flipped');
+disp('Starting fast steerable PCA to compress and denoise images')
 [sPCA_data, sPCA_coeff_cell, basis, recon_spca]=data_sPCA(images_fl,  noise_v_r);
 [mse_spca] = calc_MSE_v6(recon_spca, data.projections(:,:,1:K),sPCA_data.R);
+sprintf('Relative MSE of denoised images after PCA is %f',mse_spca)
 tic_init=tic;
 [ class_f, class_refl_f, rot_f, corr_f,  timing_f ] = Initial_classification_FD(sPCA_data, n_nbor, isrann );
 toc_init=toc(tic_init);
 disp('Finished initial classification...');
+disp('Improving initial classification with vector diffusion maps...');
 if(use_VDM)
 	tic_VDM = tic;
 	[ class_VDM, class_VDM_refl, rot_f_vdm ] = VDM(class_f, ones(size(class_f)), rot_f, class_refl_f, k_VDM_in, VDM_flag, k_VDM_out);
@@ -96,18 +103,19 @@ end
 
 list_recon = [1:size(images_fl, 3)];
 
-tmp_dir=tempmrcdir;
+[tmp_dir]=fmtinput('Please enter the destination path to an empty folder for class averaged images. The default destination is your home directory','~/.','%s');
 max_shift=0;
 tic_align = tic;
 [ shifts, corr, averagesfname, norm_variance ] = align_main( allims, rot_f_vdm, class_VDM, class_VDM_refl, sPCA_data, k_VDM_out, max_shift, list_recon, recon_spca, tmp_dir);
 toc_align = toc(tic_align);
 disp('Finished alignment and class averaging...');
+disp('Checking simulation results...');
 % Check Classification result
 d = d_f;
 error_rot = error_rot_f;
 [ N, X ] = hist(acosd(d), [0:180]);
 figure; bar(N);
 xlabel('a$\cos\langle v_i, v_j \rangle$', 'interpreter', 'latex');
-
+disp('The histogram shows the angular distance in degrees between images classified into the same class. In the case of good classification, this distance should be as close to zero as possible.')
 
 

@@ -50,7 +50,6 @@ clear check
 
 %dimensionality reduction using PCA
 [ U, S, V ]=pca_Y(M, ncomp);
-bar(diag(S));
 fprintf('\nFinished PCA');
 Coeff_b = S*V';
 %Normalize 
