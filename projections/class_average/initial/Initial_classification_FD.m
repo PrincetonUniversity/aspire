@@ -91,6 +91,8 @@ end;
 class_refl=ceil(class/n_im);
 class(class>n_im)=class(class>n_im)-n_im;
 
+rot(class_refl==2) = mod(rot(class_refl==2)+180, 360);
+
 timing.bispec=toc_bispec;
 timing.nn=toc_nn;
 timing.rot=toc_rot;
