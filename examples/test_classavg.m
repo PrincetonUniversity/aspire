@@ -87,6 +87,10 @@ if(use_VDM)
 	% Check Classification result
 	[ d_f, error_rot_f ] = check_simulation_results(class_VDM, class_VDM_refl, rot_f_vdm, q); % should use minus sign for init class, no minus sign for VDM 
 else
+	rot_f_vdm = rot_f;
+	class_VDM = class_f;
+	class_VDM_refl = class_refl_f;
+	k_VDM_out = k_VDM_in;
 	[ d_f, error_rot_f ] = check_simulation_results(class_f, class_refl_f, -rot_f, q); % should use minus sign for init class, no minus sign for VDM 
 end
 
@@ -99,7 +103,8 @@ tic_align = tic;
 toc_align = toc(tic_align);
 disp('Finished alignment and class averaging...');
 % Check Classification result
-[ d, error_rot ] = check_simulation_results(class_VDM, class_VDM_refl, rot_f_vdm, q);
+d = d_f;
+error_rot = error_rot_f;
 [ N, X ] = hist(acosd(d), [0:180]);
 figure; bar(N);
 xlabel('a$\cos\langle v_i, v_j \rangle$', 'interpreter', 'latex');
