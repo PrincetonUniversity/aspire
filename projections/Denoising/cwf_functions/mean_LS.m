@@ -1,5 +1,6 @@
 function [ est_mean ] = mean_LS( ctf, index, y, regu )
 %Estimate the mean of the dataset using least squares
+% Tejal, Oct 2015
 
 L=size(y,1);
 nim=size(y,3);

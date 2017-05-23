@@ -1,4 +1,6 @@
 function [regu]=choose_regu_k0_cgshrink(A,inv_sqrt_Epop,w)
+% Choosing the regularization parameter for the k=0 block while solving CG
+
 D=size(A{1});
 
 %disp('here')

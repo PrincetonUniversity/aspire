@@ -1,5 +1,17 @@
 function [X, relres, iter, num_eig, skip_flag]=solve_cg_shrink(A,C,w, noise_variance, nim, freq, regu)
-% solve problem  \argmin_{X} \sum_i w(i) \|A{i} *X*A{i}'-C{i}\|_F^2 such that X is real
+% solve problem  \argmin_{X} \sum_i w(i) \|A{i} *X*A{i}'-C{i}\|_F^2 such that X is real (*)
+% Tejal, Oct 2015
+
+% INPUTS:
+% nim: Number of data samples
+% freq: Angular Frequency k
+% regu: regularization parameter
+% OUTPUTS:
+% X: The solution to the problem in (*)
+% relres: relative residual
+% iter: Number of CG iterations
+% num_eig: Number of eigenvalues retained
+% skip_flag: Flag to indicate if CG was skipped 
 D=size(A{1});
 E=zeros(D(2),D(2));
 E_pop=zeros(D(2),D(2));

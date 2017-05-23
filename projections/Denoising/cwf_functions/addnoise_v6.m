@@ -7,7 +7,7 @@ function [noisy_real, noise_v]=addnoise_v6(signal, SNR)
 % OUTPUT:
 % noise_v: Noise variance
 % noisy_real: Stack of noisy images
-% Tejal Oct 22/15
+% Tejal Bhamre: updated Oct 22/15
 
 rng('default')
 noise_std=sqrt(var(signal(:))/SNR);   % noise_std is standard dev

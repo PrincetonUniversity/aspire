@@ -3,7 +3,7 @@ function [regu]=choose_regu_k0(A,w)
 % Choose regularization parameter for the least squares system
 % w: Weights
 % A: cell, CTF operators
-% Tejal Dec 2015
+% Tejal Bhamre: updated Dec 2015
 
 D=size(A{1});
 

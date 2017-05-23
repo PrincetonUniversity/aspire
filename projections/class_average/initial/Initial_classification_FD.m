@@ -35,6 +35,7 @@ Coeff(Freqs==0, :)=Coeff(Freqs==0, :)*sqrt(2);
 %Compute bispectrum
 %[ Coeff_b, toc_bispec ] = Bispec_2Drot_large( Coeff, Freqs ); %If the number of images and number of Coefficients are large use Bispec_2Drot_large
 [ Coeff_b,  toc_bispec ] = Bispec_2Drot_1( Coeff, Freqs );
+sprintf('Size of coeff_b is %d', size(Coeff_b))
 
 if n_im<=10000
     %%For small dataset, search for nearest neighbors
