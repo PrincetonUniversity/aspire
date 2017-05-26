@@ -39,7 +39,6 @@ end
 
 clear Coeff
 [O1, O2] = bispec_Operator_1(Freqs(Freqs~=0));
-fprintf('\nLength of the bispectrum is %d \n', size(O1, 1));
 
 M=exp(O1*Coeff_norm+sqrt(-1)*O2*Phase);
 ncomp = min(min(size(M,1), size(M,2)),200);
