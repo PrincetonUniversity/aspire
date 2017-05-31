@@ -112,7 +112,7 @@ parfor k=1:K
     end
 
     
-    if norm(imag(projection(:)))/norm(projection(:)) >1.0e-8
+    if norm(imag(projection(:)))/norm(projection(:)) >5*eps(class(projection))
         error('GCAR:imaginaryComponents','projection has imaginary components');
     end
     projection = real(projection);
