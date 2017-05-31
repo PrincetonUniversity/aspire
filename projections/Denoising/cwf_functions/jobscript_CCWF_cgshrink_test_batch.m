@@ -1,4 +1,17 @@
 function [ denoised_coeff, skip_flags]  = jobscript_CCWF_cgshrink_test(index, CTF_rad_all, basis, sample_points,  mean_coeff,  noise_v, nbatch, nim, fpath)
+%Tejal Bhamre, Oct 2015
+%INPUTS:
+%index : CTF indices
+%CTF_rad_all: CTF evaluated along radial quadrature points
+%basis: Precomputed basis functions
+%sample_points: Quadrature points
+%mean_coeff: Coefficients of mean image
+%noise_v: Noise variance
+%fpath: Destination of folder for output files
+%OUTPUTS:
+%denoised_coeff: Coeffs of denoised images
+%skip_flags: Flags for skipping conjugate gradient
+
 
 ang_freqs=basis.ang_freqs;
 

@@ -98,6 +98,8 @@ function install_cims_nufft(url, location, force_compile)
 	cd(nufft_root);
 	try
 		nufft1d1(1, 0, 0, 1, 1, 1);
+		nufft2d1(1, 0, 0, 0, 1, 1, 1, 1);
+		nufft3d1(1, 0, 0, 0, 0, 1, 1, 1, 1, 1);
 		fprintf('MEX files are working.\n');
 	catch
 		fprintf('MEX files are not working. Compiling...\n')
@@ -114,9 +116,11 @@ function install_cims_nufft(url, location, force_compile)
 
 		try
 			nufft1d1(1, 0, 0, 1, 1, 1);
+			nufft2d1(1, 0, 0, 0, 1, 1, 1, 1);
+			nufft3d1(1, 0, 0, 0, 0, 1, 1, 1, 1, 1);
 			fprintf('MEX files are working.\n');
 		catch
-			error('MEX compilation failed.\n');
+			error('MEX compilation failed.');
 		end
 	end
 	cd(current_dir);

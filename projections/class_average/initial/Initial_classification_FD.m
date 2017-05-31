@@ -35,7 +35,6 @@ Coeff(Freqs==0, :)=Coeff(Freqs==0, :)*sqrt(2);
 %Compute bispectrum
 %[ Coeff_b, toc_bispec ] = Bispec_2Drot_large( Coeff, Freqs ); %If the number of images and number of Coefficients are large use Bispec_2Drot_large
 [ Coeff_b,  toc_bispec ] = Bispec_2Drot_1( Coeff, Freqs );
-sprintf('Tejal Size of coeff_b is %d', size(Coeff_b))
 
 if n_im<=10000
     %%For small dataset, search for nearest neighbors
@@ -91,6 +90,8 @@ end;
 
 class_refl=ceil(class/n_im);
 class(class>n_im)=class(class>n_im)-n_im;
+
+rot(class_refl==2) = mod(rot(class_refl==2)+180, 360);
 
 timing.bispec=toc_bispec;
 timing.nn=toc_nn;

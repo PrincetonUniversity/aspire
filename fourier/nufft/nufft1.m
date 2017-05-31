@@ -4,9 +4,9 @@
 %    sig_f = nufft1(sig, fourier_pts);
 %
 % Input
-%    sig: A vector of length containing a signal.
+%    sig: A vector of length N containing a signal.
 %    fourier_pts: The frequencies in Fourier space at which the Fourier trans-
-%       form is to be calculated. These are arranged as a vector of length K,
+%       form is to be calculated. These are arranged as an array of size 1-by-K,
 %       with values in the range [-pi, pi].
 %
 % Output
@@ -16,49 +16,11 @@
 %    nudft1
 
 function sig_f = nufft1(sig, fourier_pts)
-	persistent p_plan p_sz p_num_pts;
+	p = nufft_initialize(size(sig), size(fourier_pts, 2));
 
-	epsilon = 1e-10;
-	sz = size(sig);
+	p = nufft_set_points(p, fourier_pts);
 
-	lib_code = pick_nufft_library(sz);
+	sig_f = nufft_transform(p, sig);
 
-	num_pts = size(fourier_pts, 2);
-
-	if lib_code == 3
-		if ~isempty(p_plan) && all(p_sz==sz) && p_num_pts == num_pts
-			plan = p_plan;
-		else
-			plan = nfft_init_1d(sz(1),num_pts);
-		end
-
-		nfft_set_x(plan, 1/(2*pi)*fourier_pts);
-		nfft_precompute_psi(plan);
-		nfft_set_f_hat(plan, sig);
-
-		nfft_trafo(plan);
-		sig_f = nfft_get_f(plan);
-
-		if isempty(p_plan) || plan ~= p_plan
-			if ~isempty(p_plan)
-				nfft_finalize(p_plan);
-			end
-			p_plan = plan;
-			p_sz = sz;
-			p_num_pts = num_pts;
-		end
-	elseif lib_code == 2
-		sig_f = nufft1d2(num_pts, ...
-			fourier_pts(1,:), ...
-			-1, epsilon, sz(1), double(sig(:)));
-	elseif lib_code == 1
-        warning('NUFFT:directImplementation','Using direct (very slow) NUFFT. Call install_cims_nufft');
-		sig_f = nudft1(sig, fourier_pts);
-	else
-		error('invalid library code');
-	end
-
-	if isa(sig, 'single')
-		sig_f = single(sig_f);
-	end
+	nufft_finalize(p);
 end
