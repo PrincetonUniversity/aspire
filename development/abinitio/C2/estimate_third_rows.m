@@ -1,4 +1,4 @@
-function vis = estimate_third_rows(Rijs,Rijgs,nImages)
+function vis = estimate_third_rows(Rijs,Rijgs,conf,nImages,is_use_weights)
 %
 % Find the third row of each rotation matrix.
 % 
@@ -15,6 +15,14 @@ function vis = estimate_third_rows(Rijs,Rijgs,nImages)
 assert(nchoosek(nImages,2) == size(Rijs,3));
 assert(size(Rijs,3) == size(Rijgs,3));
 
+if is_use_weights
+    W = conf + conf'; %+ eye(K);
+    D = sum(W,2);
+    W = diag(D)\W;  % normalize every row    
+else
+    W = ones(nImages,nImages);
+end
+
 % V is a 3nx3n matrix whose (i,j)-th block of size 3x3 holds 
 % the outer product vij
 V = zeros(3*nImages,3*nImages);
@@ -22,7 +30,7 @@ for i=1:nImages
     for j=i+1:nImages
         ind = uppertri_ijtoind(i,j,nImages);
         vij = (Rijs(:,:,ind)+Rijgs(:,:,ind))/2;
-        V((i-1)*3+1:i*3,(j-1)*3+1:j*3) = vij;
+        V((i-1)*3+1:i*3,(j-1)*3+1:j*3) = vij*W(i,j);
     end
 end
 

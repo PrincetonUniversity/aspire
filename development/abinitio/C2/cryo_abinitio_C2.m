@@ -79,7 +79,7 @@ if size(projs,1)~=size(projs,2)
 end
 
 %% Mask projections
-mask_radius = round(size(projs,1)*0.45);
+mask_radius = round(size(projs,1)*0.3);
 log_message('Masking projections. Masking radius is %d pixels',mask_radius);
 [masked_projs,~] = mask_fuzzy(projs,mask_radius);
 
@@ -110,16 +110,16 @@ save(outparams,'clmatrix','max_shift','shift_step','-append');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 3  : calculate relative-rotations
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[Rijs,Rijgs,Confijs] = cryo_generateRij(clmatrix,n_theta);
+[Rijs,Rijgs,confijs] = cryo_generateRij(clmatrix,n_theta);
 % Rijs  = cryo_c2_estimate_all_Rijs(clmatrix(:,:,1),n_theta,refq);
 % Rijgs = cryo_c2_estimate_all_Rijs(clmatrix(:,:,2),n_theta,refq);
-save(outparams,'Rijs','Rijgs','Confijs','-append');
+save(outparams,'Rijs','Rijgs','confijs','-append');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 4  : local J-synchronization
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[Rijs,Rijgs] = local_sync_J(Rijs,Rijgs,nImages);
-save(outparams,'Rijs','Rijgs','-append');
+[Rijs,Rijgs,~,isRank1_ijs] = local_sync_J(Rijs,Rijgs,nImages);
+save(outparams,'Rijs','Rijgs','isRank1_ijs','-append');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 5  : global J-synchronization
@@ -130,14 +130,18 @@ save(outparams,'Rijs','Rijgs','-append');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 6  : third rows estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-vis  = estimate_third_rows(Rijs,Rijgs,nImages);
-save(outparams,'vis','-append');
+save before_conf.mat
+conf = confijs.*isRank1_ijs; 
+is_use_weights_third_row = false;
+vis  = estimate_third_rows(Rijs,Rijgs,conf,nImages,is_use_weights_third_row);
+save(outparams,'vis','conf','is_use_weights_third_row','-append');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 7  : in-plane rotations angles estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-rots = cryo_inplane_rotations(vis,Rijs,Rijgs);
-save(outparams,'rots','-append');
+is_use_weights_inplane = false;
+rots = cryo_inplane_rotations(vis,Rijs,Rijgs,is_use_weights_inplane,conf);
+save(outparams,'rots','is_use_weights_inplane','-append');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 8  : Reconstruction

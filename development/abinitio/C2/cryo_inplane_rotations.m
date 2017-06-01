@@ -1,20 +1,21 @@
-function rots = cryo_inplane_rotations(vis,Rijs,Rijgs)
-
-% if params.isUseWeight_in_plain_rot
-%     W = conf + conf' ; %+ eye(K);
-%     D = sum(W, 2);
-%     W = diag(D)\W;  % normalize every row
-%     % adding 'I' for debug purposes. Namely that in clean setting thw spectrum is indeed (1,0,0,...0). 
-%     %Otherwise everything is shifted by 1
-%     W = W + eye(K); 
-% else
-%     W = ones(K,K);
-% end
+function rots = cryo_inplane_rotations(vis,Rijs,Rijgs,is_use_weight,conf)
 
 nImages = size(vis,2);
 
 assert(size(Rijs,3) == nchoosek(nImages,2));
 assert(size(Rijgs,3) == nchoosek(nImages,2));
+
+if is_use_weight
+    W = conf + conf' ; %+ eye(K);
+    D = sum(W, 2);
+    W = diag(D)\W;  % normalize every row
+    % adding 'I' for debug purposes. Namely that in clean setting thw spectrum is indeed (1,0,0,...0). 
+    %Otherwise everything is shifted by 1
+    W = W + eye(nImages); 
+else
+    W = ones(nImages,nImages);
+end
+
 
 H = zeros(nImages,nImages);
 
@@ -50,7 +51,7 @@ for i = 1:nImages
         U = u*v.';
         
         H(i,j) = U(1,1) + sqrt(-1)*U(2,1);
-%         H(i,j) = H(i,j)*W(i,j);
+        H(i,j) = H(i,j)*W(i,j);
     end
 end
 

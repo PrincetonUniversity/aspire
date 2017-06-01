@@ -1,4 +1,4 @@
-function [Rijs_out,Rijgs_out] = local_sync_J(Rijs,Rijgs,nImages)
+function [Rijs_out,Rijgs_out,rank1_rate,isRank1_ijs] = local_sync_J(Rijs,Rijgs,nImages)
 
 % Local J-synchronization of all relative orientations.
 %
@@ -112,7 +112,8 @@ end
 fprintf('\n');
 
 stats_dist = histc(stats,0:1)/numel(stats);
-log_message('percentage of rank-1 matrices= %.2f%%', nrank1/nchoosek(nImages,2)*100);
+rank1_rate = nrank1/nchoosek(nImages,2);
+log_message('percentage of rank-1 matrices= %.2f%%', rank1_rate*100);
 log_message('inner_sync_dist=[%.2f %.2f]',stats_dist);
 
 end

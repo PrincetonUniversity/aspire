@@ -568,7 +568,7 @@ for k1=1:n_proj;
         %%%%%%%%%%%%%%%%%%%%%%%%%
         %to support C2, we need to pick the second hieghst score as
         %well. but before we want to mask-out close entries
-        
+%         min_dist_cls = 1;
         maskHole = min_dist_cls*2*n_theta/360;
         rowMask1 = mod(cl1+(-maskHole:maskHole)-1,2*n_theta) + 1;
         colMask1 = mod(cl2+(-maskHole:maskHole)-1,2*n_theta) + 1;
@@ -580,13 +580,16 @@ for k1=1:n_proj;
         
         rowMask1(rowMask1>n_theta)  = [];
         
-        mask = ones(n_theta,n_shifts,2*n_theta);
-        mask(rowMask1,:,colMask1) = 0;
-        mask(rowMask2,:,colMask2) = 0;
-        
-        mask = reshape(mask,n_theta*n_shifts,2*n_theta);
+        mask_tmp = ones(n_theta,2*n_theta);
+        mask_tmp(rowMask1,colMask1) = 0;
+        mask_tmp(rowMask2,colMask2) = 0;
+        mask = repmat(mask_tmp,n_shifts,1);
+%         mask = ones(n_theta,n_shifts,2*n_theta);
+%         
+%         
+%         mask = reshape(mask,n_theta*n_shifts,2*n_theta);
         if strcmpi(PRECISION,'single')
-            g_mask = gpuArray(mask);        
+            g_mask = gpuArray(single(mask));        
         else
             g_mask = gpuArray(mask);
         end

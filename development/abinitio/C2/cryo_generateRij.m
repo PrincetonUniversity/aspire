@@ -46,7 +46,7 @@ if ~exist('refq','var') || isempty(refq)
     refq = [];  % Reference quaternions are given.
 end
 
-poolreopen;
+% poolreopen;
 
 for k1=1:nImages-1
     %fprintf('Process image %d out of %d\n',k1,K-1);
