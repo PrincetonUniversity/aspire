@@ -7,13 +7,18 @@ end
 if ~exist('tol','var')
     tol=10;
 end
+
+% Strip extension from MRC filenames
+[d,n,~]=fileparts(map_out_step2);
+map_out_step2=fullfile(d,n);
+
 cr_threshold=0.8;
 
 log_message('Using maxiter=%d, tol=%4.2f degrees, correlation threshold=%d;',maxiter,tol,cr_threshold);
 log_message('Iterations stop when maxiter reached or the rotations of the current iteration deviate from the rotations of the previous');
 log_message('iteatrion by a less than tol degrees, or the correlation between volumes of two consecutive iterations is at least as specified.');
 
-log_message('Loading initial volume %s',vol_fname');    
+log_message('Loading initial volume %s',vol_fname);
 vol=ReadMRC(vol_fname);
 log_message('Volume loaded');
 szvol=size(vol);
@@ -126,11 +131,15 @@ while iter<=maxiter && roterr>tol && cr<cr_threshold
     log_message('Relative norm of imaginary components = %e\n',ii1);
     v1_refined=real(v1_refined);
     
-    fname=sprintf('%s_%d.mrc',map_out_step2,iter);
+    fname=sprintf('%s_%d',map_out_step2,iter);
+    fname=addExtIfNeeded(fname,'.mrc'); % Add extension if needed.
     WriteMRC(v1_refined,1,fname);
-
-    fname=sprintf('%s.mat',mat_out);
+    log_message('Saved %s',fname);
+    
+    fname=addExtIfNeeded(mat_out,'.mat');
     save(fname)
+    log_message('Saved %s',fname);
+    
     
     vol=v1_refined;
     
@@ -146,7 +155,8 @@ while iter<=maxiter && roterr>tol && cr<cr_threshold
         log_message('\t %s',str);
         roterr=max(dd);
         
-        str=sprintf('%s_%d.mrc',map_out_step2,iter-1);
+        str=sprintf('%s_%d',map_out_step2,iter-1);
+        str=addExtIfNeeded(str,'.mrc');
         vol_prev=ReadMRC(str);
         cr=corr(vol(:),vol_prev(:));
         log_message('\t Correlation of reconstruction of iteration %d with iteration %d is %4.2f',...
