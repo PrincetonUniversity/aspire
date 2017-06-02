@@ -33,10 +33,10 @@ folded_phis=phis;
 idx=find(folded_phis>90);
 folded_phis(idx)=180-folded_phis(idx);
 assert(all(folded_phis<=90))
-polarscatter(thetas/180*pi,folded_phis,8,folded_phis,'filled');
+polarscatter(thetas/180*pi,folded_phis,8,'b','filled');
 rlim([0 90])
 rticks(0:10:90)
 
 h2=figure;
-scatter3(viewingdirs(1,:),viewingdirs(2,:),viewingdirs(3,:),5,folded_phis,'filled');
+scatter3(viewingdirs(1,:),viewingdirs(2,:),viewingdirs(3,:),5,'b','filled');
 axis equal
