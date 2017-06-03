@@ -7,7 +7,9 @@ open_log(0);
 % The MAT file p100_c4_shifted contains 100 projections of size 65x65. The
 % orientations (given as quaternions) used to generate these projections
 % are stored in the the variable "refq". The projection were generated using the following command:
-[projs,refq] = generate_c3_images(100,1000000,65,'GAUSSIAN',0,1);
+max_shift_2d  = 5;
+shift_step_2d = 1;
+[projs,refq] = generate_c3_images(100,1000000,65,'GAUSSIAN',max_shift_2d,shift_step_2d);
 
 % load p100_c4_gaussian_no_shifts;
 viewstack(projs,5,5);   % Display the proejctions.
@@ -25,15 +27,15 @@ n_r     = 89;  % number of radial points in every radial line
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 2  : detect a single pair of common-lines between each pair of images
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-max_shift  = 0; % number of shifts to consider
-shift_step = 0.5; % the shift step (see Yoel's technical report)
-clmatrix = cryo_clmatrix_gpu(npf,size(npf,3),1,max_shift,shift_step); 
+max_shift_1d  = ceil(2*sqrt(2)*max_shift_2d);
+shift_step_1d = 0.5;
+clmatrix = cryo_clmatrix_gpu(npf,size(npf,3),1,max_shift_1d,shift_step_1d); 
 cl_detection_rate(clmatrix,n_theta,refq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 3  : detect self-common-lines in each image
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-sclmatrix = cryo_self_clmatrix_gpu(npf,max_shift,shift_step,refq);
+sclmatrix = cryo_self_clmatrix_gpu(npf,max_shift_1d,shift_step_1d,refq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 4  : calculate self-relative-rotations
@@ -67,7 +69,7 @@ vis  = estimate_third_rows(vijs,viis);
 % step 9  : in-plane rotations angles estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 inplane_rot_res = 1;
-[rots,in_plane_rotations] = estimate_inplane_rotations2(npf,vis,inplane_rot_res,max_shift,shift_step);
+[rots,in_plane_rotations] = estimate_inplane_rotations2(npf,vis,inplane_rot_res,max_shift_1d,shift_step_1d);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 10  : Results Analysis
@@ -79,4 +81,4 @@ inplane_rot_res = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 estimatedVol = reconstruct(projs,rot_alligned,n_r,n_theta,max_shift,shift_step);   
 
-WriteMRC(estimatedVol,1,'example1_no_shifts.mrc');
+% WriteMRC(estimatedVol,1,'example1_no_shifts.mrc');

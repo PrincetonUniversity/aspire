@@ -117,7 +117,7 @@ save(outparams,'Riis','-append');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 5  : calculate relative-rotations
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Rijs = cryo_c4_estimate_all_Rijs(clmatrix,n_theta);
+Rijs = cryo_c3_estimate_all_Rijs(clmatrix,n_theta);
 save(outparams,'Rijs','-append');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 6  : inner J-synchronization

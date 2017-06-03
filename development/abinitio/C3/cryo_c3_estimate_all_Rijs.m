@@ -1,4 +1,4 @@
-function Rijs = cryo_c4_estimate_all_Rijs(clmatrix,n_theta,refq)
+function Rijs = cryo_c3_estimate_all_Rijs(clmatrix,n_theta,refq)
 %
 % Estimate a single relative rotation Rij between images i and j. The
 % estimate may correspond to either RiRj, RigRj, Rig^{2}Rj, or Rig^{3}Rj
