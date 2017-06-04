@@ -10,7 +10,7 @@ function writeSTAR(datablock,fname)
 %
 % Yoel Shkolnisky, August 2015.
 
-% Open file for writing.
+% Open file for writing. Backup existing file.
 if exist(fname,'file')==2
     [pathstr,name,ext]=fileparts(fname);
     name=sprintf('%s_sav',name);
@@ -44,7 +44,7 @@ fprintf(fid,'loop_\n');
 % Label names always starts with an underscore ("_"). Each label may only
 % be used once within each data block.
 nlabels=numel(datablock.labels);
-for k=1:nlabels;    
+for k=1:nlabels
     label=datablock.labels{k};
     if label(1)~='_'
         label=strcat('_', label);

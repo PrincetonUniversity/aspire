@@ -5,10 +5,10 @@ function datablock=createSTARdata(Nrecords,varargin)
 %   Create an empty STAR data block with the given fieldnames. Records can
 %   be added to the datablock using addrecordtoSTARdata. Memory for
 %   Nrecords data records is preallcoated (to speed up modifying the
-%   structure).
+%   structure). Use negative Nrecords if number of records is unknown.
 %
 % Example:
-%   db=createSTARdata('defocus','pixA');
+%   db=createSTARdata(100,'pixA');
 %
 % Yoel Shkolnisky, September 2015.
 

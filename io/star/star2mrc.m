@@ -3,7 +3,7 @@ function star2mrc(starname,mrcname,basedir,ignorepath)
 % STAR2MRC     Create image stack from STAR file
 %
 % star2mrc(starname,mrcname,basedir)
-%   Create an MRC file name mrcname from images specified in the STAR file
+%   Create an MRC file named mrcname from images specified in the STAR file
 %   starname. The relative paths of the images in the STAR file relative to
 %   basedir. Set ignorepath to nonzero to ignore the image path specified
 %   in the STAR file. In such a case only the image name is used, relative
