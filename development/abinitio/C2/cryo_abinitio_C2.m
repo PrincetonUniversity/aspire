@@ -71,11 +71,8 @@ else % not provided as a parameter so use everything
     nImages = size(projs,3);
 end
 
-projs = projs(:,:,1:floor(size(projs,3)/nImages)+1:end);
-if size(projs,3) > nImages
-    projs(:,:,nImages:end) = [];
-end
-
+projs = projs(:,:,floor(linspace(1,size(projs,3),nImages)));
+assert(size(projs,3) == nImages);
 
 log_message('projections loaded. Using %d projections of size %d x %d',nImages,size(projs,1),size(projs,2));
 if size(projs,1)~=size(projs,2)
