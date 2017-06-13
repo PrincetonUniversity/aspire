@@ -12,16 +12,16 @@ function shift_phases = calc_shift_phases(n_r,max_shift,shift_step)
 %   shift_phases  A matrix of size n_rxnshifts where shift_phases(:,shiftidx)
 %                 is the fourier transform of corresponding shift 
 
-if ~exist('shift_step','var')
-    shift_step = 0.1;
-end
-
-if ~exist('max_shift','var')
-    max_shift = 15;
-end
-              
+% if ~exist('shift_step','var')
+%     shift_step = 0.1;
+% end
+% 
+% if ~exist('max_shift','var')
+%     max_shift = 15;
+% end
+%               
 % the maximum shift occurs at a diagonal direction
-max_shift = ceil(2*sqrt(2)*max_shift);
+% max_shift = ceil(2*sqrt(2)*max_shift);
 % there are max_shift in each direction
 nshifts = 2*max_shift/shift_step+1;
 

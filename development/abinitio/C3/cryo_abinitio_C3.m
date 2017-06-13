@@ -71,7 +71,11 @@ else % not provided as a parameter so use everything
     nImages = size(projs,3);
 end
 
-projs = projs(:,:,floor(linspace(1,size(projs,3),nImages)));
+% im_indeces = floor(linspace(1,size(projs,3),nImages));
+im_indeces = randperm(size(projs,3),nImages);
+save(outparams,'im_indeces');
+
+projs = projs(:,:,im_indeces);
 assert(size(projs,3) == nImages);
 
 log_message('projections loaded. Using %d projections of size %d x %d',nImages,size(projs,1),size(projs,2));
@@ -80,7 +84,7 @@ if size(projs,1)~=size(projs,2)
 end
 
 %% Mask projections
-mask_radius = round(size(projs,1)*0.45);
+mask_radius = round(size(projs,1)*0.4);
 log_message('Masking projections. Masking radius is %d pixels',mask_radius);
 [masked_projs,~] = mask_fuzzy(projs,mask_radius);
 
@@ -139,10 +143,10 @@ save(outparams,'vis','-append');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 9  : in-plane rotations angles estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-rots = estimate_inplane_rotations2(npf,vis,0.25,max_shift,shift_step);
+rots = estimate_inplane_rotations2(npf,vis,1,max_shift,shift_step);
 save(outparams,'rots','-append');
 
-estimatedVol = reconstruct(projs,rots,n_r,n_theta,max_shift,shift_step);   
+estimatedVol = reconstruct(projs,rots,n_r,n_theta);   
 WriteMRC(estimatedVol,1,outvol);
 % 
 % 

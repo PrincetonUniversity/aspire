@@ -18,14 +18,6 @@ function [sclmatrix,correlations,shifts] = cryo_self_clmatrix_gpu(npf,max_shift,
 %   shifts                  An array of length nImages whose i-th entry
 %                           holds the shift found for image i
 
-if ~exist('shift_step','var')
-    shift_step = 0.5;
-end
-
-if ~exist('max_shift','var')
-    max_shift = 15;
-end
-
 log_message('detecting self-common-lines');
 
 [n_r,n_theta,nImages] = size(npf);
