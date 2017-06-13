@@ -81,4 +81,4 @@ inplane_rot_res = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 estimatedVol = reconstruct(projs,rot_alligned,n_r,n_theta);   
 
-% WriteMRC(estimatedVol,1,'example1_no_shifts.mrc');
+WriteMRC(estimatedVol,1,'example1_with_shifts.mrc');
