@@ -75,6 +75,6 @@ rots = cryo_inplane_rotations(vis,Rijs,Rijgs,is_use_inplane_weights,conf);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 11  : Reconstructing volume
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% estimatedVol = reconstruct(projs,rot_alligned,n_r,n_theta,max_shift,shift_step_2d);   
+estimatedVol = reconstruct(projs,rot_alligned,n_r,n_theta);   
 
-% WriteMRC(estimatedVol,1,'example1_with_shifts.mrc');
+WriteMRC(estimatedVol,1,'example1_with_shifts.mrc');
