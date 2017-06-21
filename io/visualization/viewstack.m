@@ -118,7 +118,7 @@ val = source.Value;
 % For R2014a and earlier:
 % val = get(source,'Value');
 ud=source.UserData;
-startidx=val*ud.nrows*ud.ncols+1;
+startidx=floor(val*ud.nrows*ud.ncols+1);
 draw(ud.projs,startidx,ud.nrows,ud.ncols,ud.showlabels);
 
 end
