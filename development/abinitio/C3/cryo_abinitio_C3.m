@@ -57,7 +57,7 @@ end
 
 %% Load projections
 projs = ReadMRC(instack);
-
+projs(:,:,10001:end) = [];
 if n_projs_given
     if n_projs == -1
         nImages = size(projs,3);
@@ -84,7 +84,7 @@ if size(projs,1)~=size(projs,2)
 end
 
 %% Mask projections
-mask_radius = round(size(projs,1)*0.4);
+mask_radius = round(size(projs,1)*0.5);
 log_message('Masking projections. Masking radius is %d pixels',mask_radius);
 [masked_projs,~] = mask_fuzzy(projs,mask_radius);
 
