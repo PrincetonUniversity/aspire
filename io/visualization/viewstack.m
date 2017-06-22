@@ -13,11 +13,35 @@ function viewstack(projs,nrows,ncols,showlabels)
 %
 % Yoel Shkolnisky, July 2013.
 
+
 if ~exist('showlabels','var')
     showlabels=1;
 end
-    
 
+particles=draw(projs,1,nrows,ncols,showlabels);
+sz=size(projs);
+
+nticks=ceil(sz(3)/(nrows*ncols))-1;
+if nticks>1
+    %disp([sz(3) nrows ncols nticks]);
+    
+    ax=get(particles,'Parent');
+    pos=get(ax,'Position');
+    units=get(ax,'Units');
+    sld = uicontrol('Parent',gcf,'Style', 'slider',...
+        'Min',0,'Max',nticks,'Value',0,...
+        'SliderStep',[1/nticks 1/nticks],'Units',units,...
+        'Position', [pos(1) 0.02 pos(3)*0.75 0.05],...
+        'UserData',struct('projs',projs,'nrows',nrows,'ncols',ncols,'showlabels',showlabels),...
+        'Callback', @sldCallback);
+    align([ax,sld],'Center','None');
+end
+
+
+end
+
+
+function particles=draw(projs,startidx,nrows,ncols,showlabels)
 sz=size(projs);
 borderwidth=2;
 img=zeros(nrows*sz(1)+borderwidth*(nrows+1),ncols*sz(1)+borderwidth*(ncols+1),3); % RGB matrix
@@ -36,7 +60,7 @@ for k=1:ncols+1
 end
 
 % Put in the images
-idx=1;
+idx=startidx;
 colloc=borderwidth+1;
 for k=1:ncols
     rowloc=borderwidth+1;
@@ -61,13 +85,13 @@ for k=1:ncols
     colloc=colloc+sz(1)+borderwidth;
 end
 
-imagesc(img);
+particles=imagesc(img);
 axis off
 axis image
 
 if showlabels
     % Add text labels
-    idx=1;
+    idx=startidx;
     colloc=borderwidth+1;
     for k=1:ncols
         rowloc=borderwidth+1;
@@ -86,4 +110,15 @@ if showlabels
         end
         colloc=colloc+sz(1)+borderwidth;
     end
+end
+end
+
+function sldCallback(source,event)
+val = source.Value;
+% For R2014a and earlier:
+% val = get(source,'Value');
+ud=source.UserData;
+startidx=floor(val*ud.nrows*ud.ncols+1);
+draw(ud.projs,startidx,ud.nrows,ud.ncols,ud.showlabels);
+
 end
