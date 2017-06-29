@@ -58,6 +58,7 @@ end
 %% Load projections
 projs = ReadMRC(instack);
 
+% projs = cryo_downsample(projs,89,true);
 if n_projs_given
     if n_projs == -1
         nImages = size(projs,3);
@@ -71,7 +72,10 @@ else % not provided as a parameter so use everything
     nImages = size(projs,3);
 end
 
-projs = projs(:,:,floor(linspace(1,size(projs,3),nImages)));
+inds = randperm(size(projs,3),nImages);
+save(outparams,'inds');
+
+projs = projs(:,:,inds);
 assert(size(projs,3) == nImages);
 
 log_message('projections loaded. Using %d projections of size %d x %d',nImages,size(projs,1),size(projs,2));
@@ -95,7 +99,7 @@ end
 
 npf = gaussian_filter_imgs(npf);
 
-save(outparams,'n_theta','n_r');
+save(outparams,'n_theta','n_r','-append');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 2  : detect two pairs of common-lines between each pair of images
