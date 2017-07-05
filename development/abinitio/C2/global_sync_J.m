@@ -27,7 +27,7 @@ function [Rijs_out,Rijgs_out,sign_ij_J] = global_sync_J(Rijs,Rijgs,nImages)
 %                estimate vii had a spurious J or not.
 
 
-log_message('Global J synchronization');
+log_message('\nGlobal J synchronization');
 % partition all off-diagonal blocks into two classes: Those with a spurious
 % J in them and those without a spurious J in them.
 sz = nchoosek(nImages,2);
@@ -40,7 +40,7 @@ for i=1:sz
     vijs(:,:,i) = (Rij+Rijg)/2;
 end
 
-sign_ij_J = cryo_sync3n_Jsync_power_method(vijs,1,0);
+sign_ij_J = cryo_sync3n_Jsync_power_method(vijs,1,0,1);
 
 assert(numel(sign_ij_J) == sz);
 

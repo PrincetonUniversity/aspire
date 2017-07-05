@@ -47,7 +47,7 @@ function [Rijs_out,Rijgs_out,rank1_rate,isRank1_ijs] = local_sync_J(Rijs,Rijgs,n
 %   ref_shifts     Only if provided in input. Returns the input ref_shifts where
 %                  all shifts that correspond to image indexes to remove are removed
 
-log_message('Local J synchronization');
+log_message('\nLocal J synchronization');
 
 assert(nchoosek(nImages,2) == size(Rijs,3));
 assert(nchoosek(nImages,2) == size(Rijgs,3));

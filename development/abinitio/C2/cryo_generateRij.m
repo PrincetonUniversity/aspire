@@ -22,6 +22,8 @@ function [Rijs,Rijgs,Confijs] = cryo_generateRij(clmatrix,n_theta,refq)
 % Yoel Shkolnisky and Xiuyuan Cheng, July 2012.
 % Modified : Gabi Pragier , November 2013
 
+log_message('\nGenerating Rijs (voting)');
+
 % Check the input
 sz=size(clmatrix);
 if numel(sz)~=3
@@ -48,8 +50,9 @@ end
 
 % poolreopen;
 
+msg = [];
 for k1=1:nImages-1
-    %fprintf('Process image %d out of %d\n',k1,K-1);
+    t1 = clock;
     for cl_layer=1:2
         Rijtmp=zeros(3,3,nImages);
         %for k2=k1+1:K
@@ -63,6 +66,14 @@ for k1=1:nImages-1
             Rijs_tmp(:,ind,cl_layer) = Rk(:);
         end
     end
+    %%%%%%%%%%%%%%%%%%% debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    t2 = clock;
+    t = etime(t2,t1);
+    bs = char(repmat(8,1,numel(msg)));
+    fprintf('%s',bs);
+    msg = sprintf('k1=%3d/%3d t=%7.5f',k1,nImages,t);
+    fprintf('%s',msg);
+    %%%%%%%%%%%%%%%%%%% end of debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
 
 Rijs  = reshape(Rijs_tmp(:,:,1),[3,3,nPairs]);

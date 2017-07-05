@@ -56,27 +56,67 @@ if ~exist('shift_step','var')
 end
 
 %% Load projections
-projs = ReadMRC(instack);
+% projs = ReadMRC(instack,1000,10000);
+% 
+% % projs = cryo_downsample(projs,89,true);
+% if n_projs_given
+%     if n_projs == -1
+%         nImages = size(projs,3);
+%     elseif n_projs <= 0 
+%         error('n_projs must be either positive number, or -1 for using all images');
+%     else
+%         assert(n_projs <= size(projs,3));
+%         nImages = n_projs;
+%     end
+% else % not provided as a parameter so use everything
+%     nImages = size(projs,3);
+% end
+% 
+% inds = randperm(size(projs,3),nImages);
+% save(outparams,'inds');
+% 
+% projs = projs(:,:,inds);
+% assert(size(projs,3) == nImages);
+% 
 
-% projs = cryo_downsample(projs,89,true);
-if n_projs_given
-    if n_projs == -1
-        nImages = size(projs,3);
-    elseif n_projs <= 0 
-        error('n_projs must be either positive number, or -1 for using all images');
-    else
-        assert(n_projs <= size(projs,3));
-        nImages = n_projs;
-    end
-else % not provided as a parameter so use everything
-    nImages = size(projs,3);
-end
-
-inds = randperm(size(projs,3),nImages);
+log_message('***************************************');
+log_message('***************************************');
+log_message('***************************************');
+nImages = 6000;
+log_message('SAMPLING %d IMAGES',nImages);
+sz = 65;
+projs = zeros(sz,sz,nImages);
+chnk_sz = 500;
+projs_chunk = zeros(129,129,chnk_sz);
+inds  = randperm(90000,nImages);
+inds  = sort(inds);
 save(outparams,'inds');
 
-projs = projs(:,:,inds);
-assert(size(projs,3) == nImages);
+stack = imagestackReader(instack);
+msg = [];
+j=1;
+for k=1:nImages
+    t1 = clock;
+    
+    ind = inds(k);
+    projs_chunk(:,:,j) = stack.getImage(ind);
+    if j == chnk_sz
+        projs(:,:,k-chnk_sz+1:k) = cryo_downsample(projs_chunk,sz,true);
+        projs_chunk = zeros(129,129,chnk_sz);
+        j=1;
+    else
+        j = j+1;
+    end
+   
+    %%%%%%%%%%%%%%%%%%% debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    t2 = clock;
+    t = etime(t2,t1);
+    bs = char(repmat(8,1,numel(msg)));
+    fprintf('%s',bs);
+    msg = sprintf('k=%3d/%3d  t=%7.5f',k,nImages,t);
+    fprintf('%s',msg);
+    %%%%%%%%%%%%%%%%%%% end of debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+end
 
 log_message('projections loaded. Using %d projections of size %d x %d',nImages,size(projs,1),size(projs,2));
 if size(projs,1)~=size(projs,2)
@@ -135,7 +175,6 @@ save(outparams,'Rijs','Rijgs','-append');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 6  : third rows estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-save before_conf.mat
 conf = confijs.*isRank1_ijs; 
 is_use_weights_third_row = false;
 vis  = estimate_third_rows(Rijs,Rijgs,conf,nImages,is_use_weights_third_row);
