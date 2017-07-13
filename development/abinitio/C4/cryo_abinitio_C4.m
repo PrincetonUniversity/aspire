@@ -59,8 +59,24 @@ end
 %% Load projections
 projs = ReadMRC(instack);
 
-projs = projs(:,:,floor(linspace(1,size(projs,3),n_projs)));
-nImages = size(projs,3);
+if n_projs_given
+    if n_projs == -1
+        nImages = size(projs,3);
+    elseif n_projs <= 0 
+        error('n_projs must be either positive number, or -1 for using all images');
+    else
+        assert(n_projs <= size(projs,3));
+        nImages = n_projs;
+    end
+else % not provided as a parameter so use everything
+    nImages = size(projs,3);
+end
+
+im_indeces = randperm(size(projs,3),nImages);
+save(outparams,'im_indeces');
+
+projs = projs(:,:,im_indeces);
+assert(size(projs,3) == nImages);
 
 log_message('projections loaded. Using %d projections of size %d x %d',nImages,size(projs,1),size(projs,2));
 if size(projs,1)~=size(projs,2)
@@ -68,7 +84,7 @@ if size(projs,1)~=size(projs,2)
 end
 
 %% Mask projections
-mask_radius = round(size(projs,1)*0.45);
+mask_radius = round(size(projs,1)*0.35);
 log_message('Masking projections. Masking radius is %d pixels',mask_radius);
 [masked_projs,~] = mask_fuzzy(projs,mask_radius);
 
@@ -83,7 +99,7 @@ end
 
 npf = gaussian_filter_imgs(npf);
 
-save(outparams,'n_theta','n_r');
+save(outparams,'n_theta','n_r','-append');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 2  : detect a single pair of common-lines between each pair of images
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -91,7 +107,7 @@ if ~max_shift_given
     max_shift = ceil(size(projs,1)*0.15); % max_shift is 15% of the image size
 end
 log_message('detecting common-lines');
-clmatrix = cryo_clmatrix(npf,nImages,0,max_shift,shift_step); 
+clmatrix = cryo_clmatrix(npf,nImages,1,max_shift,shift_step); 
 save(outparams,'clmatrix','max_shift','shift_step','-append');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 3  : detect self-common-lines in each image
@@ -131,7 +147,7 @@ rots = estimate_inplane_rotations4(npf,vis,1,max_shift,shift_step);
 save(outparams,'rots','-append');
 
 % estimatedVol = reconstruct_vol(projs,npf,rot_alligned,max_shift,shift_step);
-estimatedVol = reconstruct(projs,rots,n_r,n_theta,max_shift,shift_step);   
+estimatedVol = reconstruct(projs,rots,n_r,n_theta);   
 WriteMRC(estimatedVol,1,outvol);
 % 
 % 
