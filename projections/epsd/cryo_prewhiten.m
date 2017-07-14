@@ -34,14 +34,12 @@ filter=filter/norm(filter(:));
 assert(norm(imag(filter(:)))<10*delta); % Allow loosing one digit.
 filter=real(filter);  % Get rid of tiny imaginary components, if any.
 
-% The filter should be cicularly symmetric. In particular, it is up-down
-% and left-right symmetric.
-%assert(norm(filter-flipud(filter))<10*delta); 
-%assert(norm(filter-fliplr(filter))<10*delta);
+% The filter should be cicularly symmetric. In particular, should have
+% reflection symmetry.
+assert(norm(filter-fourier_flip(filter, [1 2]))<10*delta); 
 
 % Get rid of any tiny asymmetries in the filter.
-%filter=(filter+flipud(filter))./2;
-%filter=(filter+fliplr(filter))./2;
+filter = 0.5*(filter + fourier_flip(filter, [1 2]));
 
 % The filter may have very small values or even zeros. We don't want to
 % process these so make a list of all large entries.
