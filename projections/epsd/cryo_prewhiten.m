@@ -50,7 +50,6 @@ fnz=filter(nzidx);
 % TODO: Batch this to avoid memory trouble with large n if the noise_response
 % is much larger than the projections.
 
-fprintf('Whitening...\n');
 pp = zero_pad(proj, K*ones(1, 2));
 fp=cfft2(pp); % Take the Fourier transform of the padded image.
 fp = reshape(fp, [L^2 n]);
