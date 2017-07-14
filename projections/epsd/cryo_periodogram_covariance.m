@@ -16,8 +16,6 @@ function x_per_cov = cryo_periodogram_covariance(x_per)
 
     L = [size(x_per, 1) size(x_per, 2)];
 
-    x_per = ifftshift(ifftshift(x_per, 1), 2);
-
     x_per_half = fourier_full_to_half(x_per, L);
 
     C = x_per_half*x_per_half'/n;
@@ -35,7 +33,4 @@ function x_per_cov = cryo_periodogram_covariance(x_per)
     x_per_cov = permute(x_per_cov, [3 1:2]);
     x_per_cov = fourier_half_to_full(x_per_cov, L);
     x_per_cov = permute(x_per_cov, [3:4 1:2]);
-
-    x_per_cov = fftshift(fftshift(x_per_cov, 1), 2);
-    x_per_cov = fftshift(fftshift(x_per_cov, 3), 4);
 end

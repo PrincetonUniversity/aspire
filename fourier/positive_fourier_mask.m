@@ -32,4 +32,7 @@ function [mask, real_mask] = positive_fourier_mask(sz)
 
     mask = zero_mask|nonzero_mask;
     real_mask = zero_mask;
+
+    mask = mdim_fftshift(mask, 1:ndims(sz));
+    real_mask = mdim_fftshift(real_mask, 1:ndims(sz));
 end

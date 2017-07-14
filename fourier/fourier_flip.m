@@ -25,5 +25,9 @@ function xf = fourier_flip(xf, dims)
         idx_src.subs{dim} = [1 size(xf, dim):-1:2];
     end
 
+    xf = mdim_ifftshift(xf, dims);
+
     xf = subsasgn(xf, idx_dst, subsref(xf, idx_src));
+
+    xf = mdim_fftshift(xf, dims);
 end
