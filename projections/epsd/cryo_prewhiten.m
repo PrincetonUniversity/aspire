@@ -24,7 +24,6 @@ K=size(noise_response, 1);
 % The whitening filter is the sqrt of of the power spectrum of the noise.
 % Also, normalized the enetgy of the filter to one.
 filter=sqrt(noise_response);      
-filter=filter/norm(filter(:));
 
 % The power spectrum of the noise must be positive, and then, the values
 % in filter are all real. If they are not, this means that noise_response
