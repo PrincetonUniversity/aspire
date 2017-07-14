@@ -42,25 +42,27 @@ filter = 0.5*(filter + fourier_flip(filter, [1 2]));
 % The filter may have very small values or even zeros. We don't want to
 % process these so make a list of all large entries.
 nzidx=find(filter>100*delta);
+
+nzidx = nzidx(:);
+
 fnz=filter(nzidx);
 
 fprintf('Whitening...\n');
-printProgressBarHeader;
-parfor i=1:n
-    progressTic(i,n);
-    pp = zero_pad(proj(:,:,i), K*ones(1, 2));
-    fp=cfft2(pp); % Take the Fourier transform of the padded image.
-    p=zeros(size(fp));
-    p(nzidx) = fp(nzidx)./fnz; % Divide the image by the whitening filter, 
-                               % but onlyin places where the filter is
-                               % large. In frequnecies where the filter is
-                               % tiny  we cannot pre-whiten so we just put
-                               % zero.
-    p2 = icfft2(p);
-    assert(norm(imag(p2(:)))/norm(p2(:))<1.0e-13); % The resulting image should be real.
-    p2 = extract_center(p2, L*ones(1, 2));
-    proj(:, :, i)=real(p2);
-end;
+pp = zero_pad(proj, K*ones(1, 2));
+fp=cfft2(pp); % Take the Fourier transform of the padded image.
+fp = reshape(fp, [L^2 n]);
+p=zeros([L^2 n]);
+% Divide the image by the whitening filter, 
+% but onlyin places where the filter is
+% large. In frequnecies where the filter is
+% tiny  we cannot pre-whiten so we just put
+% zero.
+p(nzidx,:) = bsxfun(@times, fp(nzidx,:), 1./fnz);
+p = reshape(p, [L*ones(1, 2) n]);
+p2 = icfft2(p);
+assert(norm(imag(p2(:)))/norm(p2(:))<1.0e-13); % The resulting image should be real.
+p2 = extract_center(p2, L*ones(1, 2));
+proj = real(p2);
 
 end
 
