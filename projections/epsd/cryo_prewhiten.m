@@ -19,9 +19,7 @@ delta=eps(class(proj));
 
 n=size(proj, 3);
 L=size(proj, 1); 
-l=floor(L/2);
 K=size(noise_response, 1);
-k=ceil(K/2);
 
 % The whitening filter is the sqrt of of the power spectrum of the noise.
 % Also, normalized the enetgy of the filter to one.
@@ -50,12 +48,7 @@ fprintf('Whitening...\n');
 printProgressBarHeader;
 parfor i=1:n
     progressTic(i,n);
-    pp=zeros(K);
-    if mod(L,2)==1 % Odd-sized image
-        pp(k-l:k+l, k-l:k+l)=proj(:, :, i); % Zero pad the image to twice the size.
-    else
-        pp(k-l:k+l-1, k-l:k+l-1)=proj(:, :, i); % Zero pad the image to twice the size.
-    end
+    pp = zero_pad(proj(:,:,i), K*ones(1, 2));
     fp=cfft2(pp); % Take the Fourier transform of the padded image.
     p=zeros(size(fp));
     p(nzidx) = fp(nzidx)./fnz; % Divide the image by the whitening filter, 
@@ -65,11 +58,7 @@ parfor i=1:n
                                % zero.
     p2 = icfft2(p);
     assert(norm(imag(p2(:)))/norm(p2(:))<1.0e-13); % The resulting image should be real.
-    if mod(L,2)==1
-        p2 = p2(k-l:k+l, k-l:k+l);   
-    else
-        p2 = p2(k-l:k+l-1, k-l:k+l-1);
-    end
+    p2 = extract_center(p2, L*ones(1, 2));
     proj(:, :, i)=real(p2);
 end;
 
