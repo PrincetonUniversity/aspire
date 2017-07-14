@@ -10,9 +10,6 @@
 % Output
 %    yf: The Fourier transform xf, but flipped along the specified dimensions
 %       with the zero frequency kept intact.
-%
-% Notes
-%    For the moment, only even dimensions are supported.
 
 function xf = fourier_flip(xf, dims)
     idx_src.type = '()';
