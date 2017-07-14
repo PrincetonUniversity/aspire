@@ -11,8 +11,9 @@
 %
 % Output
 %    im_per: An array of size L1-by-L2-by-n containing the periodograms of the
-%       images using the indices in samples_idx. These are in the non-centered
-%       Fourier transform format with the zero frequency at (1, 1).
+%       images using the indices in samples_idx. These are in the centered
+%       Fourier transform format with the zero frequency at (floor(L1/2)+1,
+%       floor(L2/2)+1).
 
 function im_per = cryo_periodogram(im, samples_idx)
     if nargin < 2
@@ -42,4 +43,6 @@ function im_per = cryo_periodogram(im, samples_idx)
     im_f = fft2(im);
 
     im_per = 1/n_samples*abs(im_f).^2;
+
+    im_per = fftshift(fftshift(im_per, 1), 2);
 end

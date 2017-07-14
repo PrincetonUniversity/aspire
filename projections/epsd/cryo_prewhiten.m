@@ -36,12 +36,12 @@ filter=real(filter);  % Get rid of tiny imaginary components, if any.
 
 % The filter should be cicularly symmetric. In particular, it is up-down
 % and left-right symmetric.
-assert(norm(filter-flipud(filter))<10*delta); 
-assert(norm(filter-fliplr(filter))<10*delta);
+%assert(norm(filter-flipud(filter))<10*delta); 
+%assert(norm(filter-fliplr(filter))<10*delta);
 
 % Get rid of any tiny asymmetries in the filter.
-filter=(filter+flipud(filter))./2;
-filter=(filter+fliplr(filter))./2;
+%filter=(filter+flipud(filter))./2;
+%filter=(filter+fliplr(filter))./2;
 
 % The filter may have very small values or even zeros. We don't want to
 % process these so make a list of all large entries.
