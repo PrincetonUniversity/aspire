@@ -49,7 +49,7 @@ fnz=filter(nzidx);
 % TODO: Batch this to avoid memory trouble with large n if the noise_response
 % is much larger than the projections.
 
-pp = zero_pad(proj, K*ones(1, 2));
+pp = pad_signal(proj, K*ones(1, 2));
 fp=cfft2(pp); % Take the Fourier transform of the padded image.
 fp = reshape(fp, [L^2 n]);
 p=zeros([L^2 n]);
@@ -62,7 +62,7 @@ p(nzidx,:) = bsxfun(@times, fp(nzidx,:), 1./fnz);
 p = reshape(p, [L*ones(1, 2) n]);
 p2 = icfft2(p);
 assert(norm(imag(p2(:)))/norm(p2(:))<1.0e-13); % The resulting image should be real.
-p2 = extract_center(p2, L*ones(1, 2));
+p2 = unpad_signal(p2, L*ones(1, 2));
 proj = real(p2);
 
 end
