@@ -1,4 +1,4 @@
-function [ proj, filter, nzidx] = cryo_prewhiten(proj, noise_response )
+function [ proj, filter, nzidx] = cryo_prewhiten(proj, noise_response, rel_threshold)
 % Pre-whiten a stack of projections using the power spectrum of the noise.
 %  
 %  Input:
@@ -8,6 +8,12 @@ function [ proj, filter, nzidx] = cryo_prewhiten(proj, noise_response )
 %      this is a single image. If each image is to be whitened with respect
 %      to a different power spectrum, this is a three-dimensional array with
 %      the same number of 2d slices as the stack of images.
+%   rel_threshold   The relative threshold used to determine which frequencies
+%                   to whiten and which to set to zero. If empty (the default)
+%                   all filter values less than 100*eps(class(proj)) are
+%                   zeroed out, while otherwise, all filter values less than
+%                   threshold times the maximum filter value for each filter
+%                   is set to zero.
 %
 %  Output:
 %   proj    Pre-whitened stack of images.
@@ -18,6 +24,10 @@ function [ proj, filter, nzidx] = cryo_prewhiten(proj, noise_response )
 %                      double precision.
 %
 %   29/05/2016  Y.S.    Rename Prewhiten_image2d to cryo_prewhiten
+
+if nargin < 3
+    rel_threshold = [];
+end
 
 delta=eps(class(proj));
 
@@ -49,7 +59,11 @@ filter = 0.5*(filter + filter_flipped);
 
 % The filter may have very small values or even zeros. We don't want to
 % process these so make a list of all large entries.
-nzidx=find(filter>100*delta);
+if isempty(rel_threshold)
+    nzidx = find(filter>100*delta);
+else
+    nzidx = find(bsxfun(@gt, filter, rel_threshold*max(max(filter, [], 1), [], 2)));
+end
 
 nzidx = nzidx(:);
 
