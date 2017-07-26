@@ -107,7 +107,7 @@ end
 
 function compile_sdplr()
 	% Adapted from 'mexinstall.m' of the SDPLR package with additions for
-	% Octave support.
+	% Octave and clang support.
 
 	if isoctave()
 		% For the source to compile under Octave, we need to make a few
@@ -133,6 +133,43 @@ function compile_sdplr()
 		fprintf(fid, '%s', source_file);
 		fclose(fid);
 	end
+
+	% For things to compile under clang, we need to ensure that the main
+	% function definition is correct.
+
+	% Read in proto.h and split into lines.
+	source_file = fileread(fullfile('source', 'proto.h'));
+	source_lines = strsplit(source_file, '\n');
+
+	% Change definition of main in proto.h.
+	old_line = 'int main(size_t argc, char *argv[]);';
+	new_line = 'int main(int argc, char *argv[]);';
+	ind = find(strcmp(source_lines, old_line), 1);
+	source_lines{ind} = new_line;
+
+	source_file = strjoin(source_lines, '\n');
+
+	% Write modified file back to proto.h.
+	fid = fopen(fullfile('source', 'proto.h'), 'w');
+	fprintf(fid, '%s', source_file);
+	fclose(fid);
+
+	% Read in main.c and split into lines.
+	source_file = fileread(fullfile('source', 'main.c'));
+	source_lines = strsplit(source_file, '\n');
+
+	% Change definition of main in main.c.
+	old_line = 'int main(size_t argc, char *argv[])';
+	new_line = 'int main(int argc, char *argv[])';
+	ind = find(strcmp(source_lines, old_line), 1);
+	source_lines{ind} = new_line;
+
+	source_file = strjoin(source_lines, '\n');
+
+	% Write modified file back to main.c.
+	fid = fopen(fullfile('source', 'main.c'), 'w');
+	fprintf(fid, '%s', source_file);
+	fclose(fid);
 
 	winlib1 = [matlabroot '\extern\lib\win32\lcc\libmwlapack.lib'];
 	winlib2 = [matlabroot '\extern\lib\win32\lcc\libmwblas.lib'];
