@@ -14,7 +14,6 @@ addpath(genpath(fullfile(pathstr,'reconstruction')))
 addpath(genpath(fullfile(pathstr,'refinement')))
 addpath(genpath(fullfile(pathstr,'workflow')))
 
-addpath(fullfile(pathstr,'extern','SDPLR-1.03-beta'))
 %run(fullfile(pathstr,'extern','irt','setup.m'))
 %run(fullfile(pathstr,'extern','cvx','cvx_startup.m'));
 
@@ -26,4 +25,8 @@ if exist(fullfile(pathstr, 'extern', 'nfft'))
     addpath(fullfile(pathstr, 'extern', 'nfft', 'lib'));
     addpath(fullfile(pathstr, 'extern', 'nfft', 'share', 'nfft', ...
         'matlab', 'nfft'));
+end
+
+if exist(fullfile(pathstr, 'extern', 'SDPLR-1.03-beta'))
+    addpath(fullfile(pathstr,'extern','SDPLR-1.03-beta'));
 end
