@@ -7,6 +7,8 @@ function initpath()
     fname = mfilename('fullpath');
     [pathstr,~,~] = fileparts(fname); % Find where the package installed.
 
+    addpath(pathstr);
+
     addpath(genpath(fullfile(pathstr,'abinitio')));
     addpath(genpath(fullfile(pathstr,'common')));
     addpath(genpath(fullfile(pathstr,'examples')));
