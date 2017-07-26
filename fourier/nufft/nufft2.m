@@ -6,7 +6,7 @@
 % Input
 %    im: An N-by-N array containing the pixel structure of an image.
 %    fourier_pts: The points in Fourier space where the Fourier transform is to
-%       be calculated, arranged as a 2-by-N array. These need to be in the
+%       be calculated, arranged as a 2-by-K array. These need to be in the
 %       range [-pi, pi] in each dimension.
 %
 % Output
@@ -16,13 +16,18 @@
 %    nudft2
 
 function im_f = nufft2(im, fourier_pts)
-	persistent p_plan p_sz p_num_pts;
+	p = nufft_initialize(size(im), size(fourier_pts, 2));
 
+<<<<<<< HEAD
 	epsilon = 1e-8;
 	sz = size(im);
+=======
+	p = nufft_set_points(p, fourier_pts);
+>>>>>>> master
 
-	lib_code = pick_nufft_library(sz);
+	im_f = nufft_transform(p, im);
 
+<<<<<<< HEAD
 	num_pts = size(fourier_pts, 2);
 
 	if lib_code == 3
@@ -62,4 +67,7 @@ function im_f = nufft2(im, fourier_pts)
 	if isa(im, 'single')
 		im_f = single(im_f);
 	end
+=======
+	nufft_finalize(p);
+>>>>>>> master
 end

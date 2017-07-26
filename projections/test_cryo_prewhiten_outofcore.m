@@ -8,6 +8,8 @@ function test_cryo_prewhiten_outofcore
 N=65; % Each noise image is of size NxN.
 Ks=1000; % Number of noise images to generate.
 
+initstate;
+
 % Generate a stack of noise images
 noise=noise_exp2d(N,max(Ks),1);
 instackname=tempname;

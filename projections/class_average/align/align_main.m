@@ -1,4 +1,4 @@
-function [ shifts, corr, averagesfname, norm_variance ] = align_main( data, angle, class_VDM, refl, FBsPCA_data, k, max_shifts, list_recon,tmpdir)
+function [ shifts, corr, averagesfname, norm_variance ] = align_main( data, angle, class_VDM, refl, FBsPCA_data, k, max_shifts, list_recon,recon_sPCA, tmpdir)
 % Function for aligning images with its k nearest neighbors to generate
 % class averages.
 %   Input: 
@@ -11,16 +11,17 @@ function [ shifts, corr, averagesfname, norm_variance ] = align_main( data, angl
 %       k: number of nearest neighbors for class averages
 %       max_shifts: maximum number of pixels to check for shift
 %       list_recon: indices for images to compute class averages
+%	recon_sPCA: reconstructed images after sPCA step
 %       tmpdir  temporary folder for intermetidate files. Must be empty.
 %   Output:
 %       shifts: Pxk matrix. Relative shifts for k nearest neighbors
 %       corr: Pxk matrix. Normalized cross correlation of each image with
 %       its k nearest neighbors
-%       average: LxLxP matrix. Class averages
+%       averagesfname: Class averages folder name
 %       norm_variance: compute the variance of each class averages.
 %
 % Zhizhen Zhao Feb 2014
-
+% Tejal Bhamre, 3/2017: Use recon_spca
 P=data.dim(3);
 L=data.dim(1);
 l=size(class_VDM, 2);
@@ -29,8 +30,8 @@ N=floor(L/2);
 [x, y]=meshgrid(-N:N, -N:N);
 r=sqrt(x.^2+y.^2);
 
-r_max = FBsPCA_data.r_max;
-UU = FBsPCA_data.UU;
+r_max = FBsPCA_data.R;
+UU = FBsPCA_data.U;
 Coeff = FBsPCA_data.Coeff;
 Mean = FBsPCA_data.Mean;
 Freqs = FBsPCA_data.Freqs;
@@ -43,8 +44,6 @@ end;
 
 shifts=zeros(length(list_recon), k+1);
 corr=zeros(length(list_recon), k+1);
-%average=zeros(L, L, length(list_recon));
-%average=imagestackWriter('/tmp/align_main_tmp.mrc',length(list_recon),1,100);
 norm_variance=zeros(length(list_recon), 1);
 
 %generate grid. Precompute phase for shifts
@@ -71,11 +70,6 @@ for i=1:359
     M{i}=fastrotateprecomp(L, L,i);
 end;
 
-% %Go concurrent
-% ps=matlabpool('size');
-% if ps==0
-%     matlabpool open
-% end
 
 filelist=dir(fullfile(tmpdir,'*.*'));
 if numel(filelist)>2
@@ -98,13 +92,8 @@ parfor j=1:length(list_recon)
     image1=data.getImage(list_recon(j));
     
     %Build denoised images from FBsPCA
-    %reconstruct the images.
-    tmp = 2*real(UU(:, Freqs~=0)*Coeff(Freqs~=0, list_recon(j)));
-    tmp = tmp + UU(:, Freqs==0)*real(Coeff(Freqs==0, list_recon(j)));
-    I = zeros(L);
-    I(r<=r_max)=tmp;
-    I = I+Mean;
-    I = mask_fuzzy(I, r_max-5);
+    tmp=recon_sPCA(:,:,list_recon(j));
+    I=tmp;
     
     for i=1:k
         if (refl_j(i)==2)
@@ -153,7 +142,7 @@ end
 averagesfname=tempname;
 [~, averagesfname]=fileparts(averagesfname);
 averagesfname=fullfile(tmpdir,averagesfname);
-stack=imagestackWriter(averagesfname,numel(list_recon),1,100);
+stack=imagestackWriter(averagesfname,1,numel(list_recon),100);
 for j=1:length(list_recon)
     mrcname=sprintf('average%d.mrc',j);
     mrcname=fullfile(tmpdir,mrcname);

@@ -69,7 +69,7 @@ parfor k=1:K
 end;
 [ P ] = Noise_Estimation( data );
 [ P2,negmask2 ] = radial_average( P );
-[ data ] = Prewhiten_image2d(data, P2);
+[ data ] = cryo_prewhiten(data, P2);
 
 figure;
 subplot(1,2,1);

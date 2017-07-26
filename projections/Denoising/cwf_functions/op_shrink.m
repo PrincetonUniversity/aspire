@@ -2,6 +2,11 @@
 function [eigs_shrink]=op_shrink(eigs, noise_v, gamma)
 % Operator norm shrinkage to eigenvalues, see Donoho et al. Optimal Shrinkage of Eigenvalues in the Spiked Covariance Model
 % Tejal Dec 2015
+% INPUTS:
+%eigs: Eigenvalues
+%noise_v: Noise variance
+%gamma: p/n
+%OUTPUT: Eigenvalues after shrinkage
 
 eigs=diag(eigs);
 eigs=eigs/noise_v;

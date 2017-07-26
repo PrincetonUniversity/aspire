@@ -1,5 +1,8 @@
+extern/
 *.sw*
 .nfs*
 *.mexa64
 *.mrc
 *.mat
+*.fig
+*.ofig

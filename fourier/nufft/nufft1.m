@@ -4,9 +4,9 @@
 %    sig_f = nufft1(sig, fourier_pts);
 %
 % Input
-%    sig: A vector of length containing a signal.
+%    sig: A vector of length N containing a signal.
 %    fourier_pts: The frequencies in Fourier space at which the Fourier trans-
-%       form is to be calculated. These are arranged as a vector of length K,
+%       form is to be calculated. These are arranged as an array of size 1-by-K,
 %       with values in the range [-pi, pi].
 %
 % Output
@@ -16,13 +16,13 @@
 %    nudft1
 
 function sig_f = nufft1(sig, fourier_pts)
-	persistent p_plan p_sz p_num_pts;
+	p = nufft_initialize(size(sig), size(fourier_pts, 2));
 
-	epsilon = 1e-10;
-	sz = size(sig);
+	p = nufft_set_points(p, fourier_pts);
 
-	lib_code = pick_nufft_library(sz);
+	sig_f = nufft_transform(p, sig);
 
+<<<<<<< HEAD
 	num_pts = size(fourier_pts, 2);
 
 	if lib_code == 3
@@ -61,4 +61,7 @@ function sig_f = nufft1(sig, fourier_pts)
 	if isa(sig, 'single')
 		sig_f = single(sig_f);
 	end
+=======
+	nufft_finalize(p);
+>>>>>>> master
 end

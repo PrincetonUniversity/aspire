@@ -63,10 +63,21 @@ end
 %   second is omega_y. 
 
 
+<<<<<<< HEAD
 freqs1=-freqs.';
 pf=zeros(n_r,n_theta,n_proj);
 parfor k=1:n_proj
     tmp=p(:,:,k);    
     tmp2=nufft2(tmp,freqs1);
     pf(:,:,k)=reshape(tmp2,n_r,n_theta);   
+=======
+% precomputed interpolation weights once for the give polar grid. This is
+% used below for computing the polar Fourier transform of all slices
+
+pf=zeros([n_r,n_theta,n_proj],class(p));
+parfor k=1:n_proj
+    tmp=p(:,:,k);
+    tmp = nufft2(tmp, -freqs');
+    pf(:,:,k)=reshape(tmp,n_r,n_theta);   
+>>>>>>> master
 end

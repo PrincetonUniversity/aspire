@@ -13,7 +13,7 @@ for i=1:n
 end;
 [ P ] = Noise_Estimation( data );
 [ P2 ] = radial_average( P );
-[ data ] = Prewhiten_image2d(data, P2);
+[ data ] = cryo_prewhiten(data, P2);
 [ data ] = Phase_Flip( data, defocus_group, c );
 
 end

@@ -11,7 +11,17 @@ if nargin<1
     state = 3498;
 end
 
-rng('default');
-rng(state);
+if ~isoctave()
+    rng('default');
+    rng(state);
+else
+    % There doesn't seem to be an overall way of resetting all the RNGs in
+    % Octave at the same time so let's do it manually.
 
+    rand('state', state);
+    randn('state', state);
+    rande('state', state);
+    randg('state', state);
+    randp('state', state);
+end
 

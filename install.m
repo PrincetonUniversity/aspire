@@ -14,11 +14,6 @@ currPath=pwd; % Save current location to get back to here once done.
 [aspirePath,~,~]=fileparts(mfilename('fullpath'));
 traversedirrectorytree(aspirePath,@runmakemex);
 
-
-% Install external packages
-cd(fullfile(aspirePath,'extern','SDPLR-1.03-beta'));
-mexinstall;
-
 % cd(fullfile(aspirePath,'extern','cvx'));
 % cvx_setup;
 

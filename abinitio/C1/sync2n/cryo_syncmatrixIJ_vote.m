@@ -140,7 +140,7 @@ J=[1 0 0; 0 1 0; 0 0 -1]; % Reflection matrix
 %tic;
 
 [Rs,goodratios]=rotratio_eulerangle_vec(clmatrix,k1,k2,goodK3,L);
-Rk=mean(Rs,3);
+Rk=sum(Rs,3)/size(Rs,3);
 
 %Rks2=zeros(2,2,numel(goodratios));
 

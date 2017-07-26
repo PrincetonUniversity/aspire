@@ -1,9 +1,0 @@
-% test_all_graph
-% todo
-
-list = {...
-'montager test', ...
-'jf_slicer test', ...
-};
-
-run_mfile_local(list)

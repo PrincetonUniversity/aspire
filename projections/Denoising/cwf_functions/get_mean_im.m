@@ -1,4 +1,11 @@
 function [ mean_image] = get_mean_im( fn, mean_coeff, L0, R )
+% Tejal Bhamre, Oct 2015
+%INPUTS:
+%fn: IFT of FB basis, stored in cell structure. cell number corresponds to the angular index.     
+%mean_coeff: Coefficients of mean image 
+%L0: Size of image
+%R: Size of compact support
+%OUTPUTS: mean image
 
 L = 2*R;
 tmp = fn{1};

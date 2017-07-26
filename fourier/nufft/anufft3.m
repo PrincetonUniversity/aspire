@@ -4,10 +4,10 @@
 %    vol = anufft3(vol_f, fourier_pts, sz);
 %
 % Input
-%    vol_f: An array containing the Fourier transform of a volume at certain
-%       points.
+%    vol_f: An array containing the Fourier transform of a volume at K
+%       frequencies.
 %    fourier_pts: The points in Fourier space where the Fourier transform is to
-%       be calculated, arranged as a 3-by-N array. These need to be in the
+%       be calculated, arranged as a K-by-3 array. These need to be in the
 %       range [-pi, pi] in each dimension.
 %    sz: The size of the resulting volume.
 %
@@ -19,29 +19,15 @@
 %    anudft3
 
 function vol = anufft3(vol_f, fourier_pts, sz)
-	persistent p_plan p_sz p_num_pts;
+	if numel(sz) ~= 3
+		error('Input ''sz'' must have three elements.');
+	end
 
-	epsilon = 1e-10;
+	p = nufft_initialize(sz, size(fourier_pts, 2));
 
-	lib_code = pick_nufft_library(sz);
+	p = nufft_set_points(p, fourier_pts);
 
-	num_pts = size(fourier_pts, 2);
-
-	if lib_code == 3
-		if ~isempty(p_plan) && all(p_sz==sz) && p_num_pts == num_pts
-			plan = p_plan;
-		else
-			plan = nfft_init_3d(sz(1), sz(2), sz(3), num_pts);
-		end
-
-		nfft_set_x(plan, 1/(2*pi)*fourier_pts);
-		nfft_precompute_psi(plan);
-		nfft_set_f(plan, double(vol_f(:)));
-
-		nfft_adjoint(plan);
-		vol = nfft_get_f_hat(plan);
-		vol = permute(reshape(vol, [sz(1) sz(2) sz(3)]), [3 2 1]);
-
+<<<<<<< HEAD
 		if isempty(p_plan) || plan ~= p_plan
 			if ~isempty(p_plan)
 				nfft_finalize(p_plan);
@@ -61,8 +47,9 @@ function vol = anufft3(vol_f, fourier_pts, sz)
 	else
 		error('invalid library code');
 	end
+=======
+	vol = nufft_adjoint(p, vol_f);
+>>>>>>> master
 
-	if isa(vol_f, 'single')
-		vol = single(vol);
-	end
+	nufft_finalize(p);
 end

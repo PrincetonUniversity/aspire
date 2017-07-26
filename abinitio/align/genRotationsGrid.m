@@ -170,7 +170,7 @@ else % JRJ == flase
             for phi1 = 0:phi1_step:2*pi - phi1_step
                 counter = counter + 1;
                 angles(:, counter) = [tau1, theta1, phi1];
-                rotations(:,:,counter) = q_to_rot([sintau1* sintheta1* sin(phi1), sintau1* sintheta1* cos(phi1), sintau1* costheta1, costau1]);
+                rotations(:,:,counter) = q_to_rot([sintau1* sintheta1* sin(phi1), sintau1* sintheta1* cos(phi1), sintau1* costheta1, costau1].');
             end
         end
     end
