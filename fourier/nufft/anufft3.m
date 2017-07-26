@@ -27,29 +27,7 @@ function vol = anufft3(vol_f, fourier_pts, sz)
 
 	p = nufft_set_points(p, fourier_pts);
 
-<<<<<<< HEAD
-		if isempty(p_plan) || plan ~= p_plan
-			if ~isempty(p_plan)
-				nfft_finalize(p_plan);
-			end
-			p_plan = plan;
-			p_sz = sz;
-			p_num_pts = num_pts;
-		end
-	elseif lib_code == 2
-		vol = num_pts*nufft3d1(num_pts, ...
-			fourier_pts(1,:), fourier_pts(2,:), fourier_pts(3,:), ...
-			double(vol_f(:)), 1, epsilon, sz(1), sz(2), sz(3));
-		vol = reshape(vol, sz);
-	elseif lib_code == 1
-        warning('NUFFT:directImplementation','Using direct (very slow) NUFFT. Call install_cims_nufft');
-		vol = anudft3(vol_f, fourier_pts, sz);
-	else
-		error('invalid library code');
-	end
-=======
 	vol = nufft_adjoint(p, vol_f);
->>>>>>> master
 
 	nufft_finalize(p);
 end
