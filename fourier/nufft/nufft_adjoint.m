@@ -13,8 +13,8 @@
 function sig = nufft_adjoint(plan, sig_f)
 	dims = numel(plan.sz);
 
-	if ~all(size(sig_f)==[plan.num_pts 1])
-		error('Input ''sig_f'' must have plan.num_pts elements.');
+	if ndims(sig_f) ~= 2 || ~all(size(sig_f)==[plan.num_pts 1])
+		error('Input ''sig_f'' must be of size num_pts-by-1.');
 	end
 
 	precision = class(sig_f);
