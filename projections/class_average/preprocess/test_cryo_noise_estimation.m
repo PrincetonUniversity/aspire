@@ -6,6 +6,8 @@
 p=129; % Each noise image is of size NxN.
 K=10000; % Number of noise images to generate.
 
+initstate;
+
 % The next line is slow since we compute the reference Power spectrum
 % (about three minutes).
 [noise,~,Sref]=noise_exp2d(p,K,1); % Generate a stack of noise images

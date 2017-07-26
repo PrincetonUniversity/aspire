@@ -157,7 +157,7 @@ if str2double(workflow.preprocess.do_prewhiten)
     
     
     %log_message('Prewhitening images');
-    %prewhitened_projs = Prewhiten_image2d(PFDprojs, psd);
+    %prewhitened_projs = cryo_prewhiten(PFDprojs, psd);
     %fname=sprintf('phaseflipped_downsampled_prewhitened.mrc');
     %WriteMRC(single(prewhitened_projs),1,fullfile(workflow.info.working_dir,fname));
 

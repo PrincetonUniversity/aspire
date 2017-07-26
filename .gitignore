@@ -4,3 +4,5 @@ extern/
 *.mexa64
 *.mrc
 *.mat
+*.fig
+*.ofig
