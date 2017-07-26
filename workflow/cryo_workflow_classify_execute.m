@@ -34,9 +34,18 @@ for groupid=1:numgroups
     n=size(prewhitened_projs,1);
     prewhitened_projs=double(prewhitened_projs); % Convert to double for VDM below.
     
+    % Estimate variance of the noise. Should be 1 (if images have been normalized).
+    log_message('Estimating SNR of images');
+    [~,~,var_n]=cryo_estimate_snr(prewhitened_projs);
+    log_message('Estimated noise variance=%d',var_n);    
+    
+    
+    log_message('Starting computing steerable PCA');
+    [sPCA_data, sPCA_coeff_cell, basis, recon_spca]=data_sPCA(prewhitened_projs,  var_n);
+    log_message('Finished computing steerable PCA');
+    
     log_message('Starting class averaging initial classificaiton');
-    r_max=round(n/2)-10;
-    [ class, class_refl, rot, ~, FBsPCA_data, ~ ] = Initial_classification(prewhitened_projs , r_max,...
+    [ class, class_refl, rot, ~,  ~] = Initial_classification_FD(sPCA_data,...
         str2double(workflow.classification.n_nbor),...
         str2double(workflow.classification.isrann));
     log_message('Finished class averaging initial classificaiton');
@@ -49,8 +58,8 @@ for groupid=1:numgroups
     disp('Finished VDM classification...');
     
     matname=fullfile(workflow.info.working_dir,sprintf('VDM_data_%d.mat',groupid));
-    save(matname,'class','class_refl','rot','FBsPCA_data','class_VDM',...
-        'class_VDM_refl','class_VDM_refl','VDM_angles');
+    save(matname,'class','class_refl','rot','sPCA_data','class_VDM',...
+        'class_VDM_refl','class_VDM_refl','VDM_angles','recon_spca');
     
     log_message('Saved %s (MD5: %s)',matname,MD5(matname));
 end

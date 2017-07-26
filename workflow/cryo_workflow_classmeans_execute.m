@@ -30,7 +30,7 @@ for groupid=1:numgroups
     fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrc',groupid);
     fullfilename=fullfile(workflow.info.working_dir,fname);
     
-    log_message('Loading prewhitened projections from %s (MD5: %s)',fname,MD5(fname));
+    log_message('Loading prewhitened projections from %s (MD5: %s)',fname,MD5(fullfilename));
 
     %prewhitened_projs=ReadMRC(fullfilename);
     
@@ -50,9 +50,8 @@ for groupid=1:numgroups
     delete(fullfile(tmpdir,'*')); % Delete any leftovers from the temp directory
 
     list_recon=1:prewhitened_projs.dim(3);
-    [ shifts, corr, unsortedaveragesfname, norm_variance ] = align_main(prewhitened_projs,...
-        VDM_angles, class_VDM, class_VDM_refl, FBsPCA_data,...
-        nnavg,15, list_recon,tmpdir);
+    [ shifts, corr, averagesfname, norm_variance ] = align_main( prewhitened_projs,...
+        VDM_angles, class_VDM, class_VDM_refl, sPCA_data, nnavg, 15, list_recon, recon_spca, tmpdir);
     log_message('Finished align_main');         
 
     
