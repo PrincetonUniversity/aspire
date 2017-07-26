@@ -10,6 +10,7 @@ function initpath()
     addpath(pathstr);
 
     addpath(genpath(fullfile(pathstr,'abinitio')));
+    addpath(genpath(fullfile(pathstr,'basis')));
     addpath(genpath(fullfile(pathstr,'common')));
     addpath(genpath(fullfile(pathstr,'examples')));
     addpath(genpath(fullfile(pathstr,'fourier')));
