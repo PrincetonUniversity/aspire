@@ -27,6 +27,10 @@ function im_bp = cryo_mean_backproject(im, params, mean_est_opt)
         mean_est_opt = struct();
     end
 
+    if size(im, 1) ~= size(im, 2) || size(im, 1) == 1 || ndims(im) > 3
+        error('Input `im` must be of size L-by-L-by-n for L > 1.');
+    end
+
     L = size(im, 1);
     n = size(im, 3);
 
