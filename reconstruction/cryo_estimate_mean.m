@@ -20,6 +20,15 @@
 %    mean_est_opt: A struct containing the fields:
 %          - 'precision': The precision of the kernel. Either 'double'
 %             (default) or 'single'.
+%          - 'preconditioner': One of the following values specifying the
+%             preconditioner for the conjugate gradient method:
+%                - 'none': No preconditioner is used.
+%                - 'circulant': Uses `circularize_kernel_f` to obtain a
+%                   circulant approximation to the projection-backprojection
+%                   kernel whose inverse is then used as a preconditioner
+%                   (default).
+%                - function handle: In this case, the function handle is passed
+%                   on directly to the `conj_grad` function.
 %       The struct is also passed on to the `conj_grad` function, so any options
 %       to that function should be passed here.
 %
@@ -49,6 +58,7 @@ function mean_est = cryo_estimate_mean(im, params, basis, mean_est_opt)
     check_imaging_params(params, L, n);
 
     mean_est_opt = fill_struct(mean_est_opt, ...
+        'preconditioner', 'circulant', ...
         'precision', 'double');
 
     if isempty(basis)
@@ -57,7 +67,23 @@ function mean_est = cryo_estimate_mean(im, params, basis, mean_est_opt)
 
     kernel_f = cryo_mean_kernel_f(L, params, mean_est_opt);
 
+    precond_kernel_f = [];
+
+    if ischar(mean_est_opt.preconditioner)
+        if strcmp(mean_est_opt.preconditioner, 'none')
+            precond_kernel_f = [];
+        elseif strcmp(mean_est_opt.preconditioner, 'circulant')
+            precond_kernel_f = 1./circularize_kernel_f(kernel_f);
+        else
+            error('Invalid preconditioner type.');
+        end
+
+        % Reset so this is not used by the `conj_grad` function.
+        mean_est_opt.preconditioner = @(x)(x);
+    end
+
     im_bp = cryo_mean_backproject(im, params, mean_est_opt);
 
-    mean_est = cryo_conj_grad_mean(kernel_f, im_bp, basis, [], mean_est_opt);
+    mean_est = cryo_conj_grad_mean(kernel_f, im_bp, basis, ...
+        precond_kernel_f, mean_est_opt);
 end
