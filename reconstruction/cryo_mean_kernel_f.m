@@ -70,4 +70,6 @@ function mean_kernel_f = cryo_mean_kernel_f(L, params, mean_est_opt)
     mean_kernel = ifftshift(ifftshift(ifftshift(mean_kernel, 1), 2), 3);
     mean_kernel_f = fftn(mean_kernel);
     mean_kernel_f = fftshift(fftshift(fftshift(mean_kernel_f, 1), 2), 3);
+
+    mean_kernel_f = real(mean_kernel_f);
 end
