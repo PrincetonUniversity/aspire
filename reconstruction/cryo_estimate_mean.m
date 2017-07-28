@@ -59,5 +59,5 @@ function mean_est = cryo_estimate_mean(im, params, basis, mean_est_opt)
 
     im_bp = cryo_mean_backproject(im, params, mean_est_opt);
 
-    mean_est = cryo_conj_grad_mean(kernel_f, im_bp, basis, mean_est_opt);
+    mean_est = cryo_conj_grad_mean(kernel_f, im_bp, basis, [], mean_est_opt);
 end

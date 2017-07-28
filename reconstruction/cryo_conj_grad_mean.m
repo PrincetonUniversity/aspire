@@ -1,7 +1,8 @@
 % CRYO_CONJ_GRAD_MEAN Solve for mean volume using conjugate gradient
 %
 % Usage
-%    mean_est = cryo_conj_grad_mean(kernel_f, im_bp, basis, mean_est_opt);
+%    mean_est = cryo_conj_grad_mean(kernel_f, im_bp, basis, ...
+%       precond_kernel_f, mean_est_opt);
 %
 % Input
 %    kernel_f: The centered Fourier transform of the projection-backprojection
@@ -10,6 +11,9 @@
 %       obtained from `cryo_mean_backproject`.
 %    basis: A basis object used for representing the volumes, such as
 %       dirac_basis(L*ones(1, 3)).
+%    precond_kernel_f: If present, the Fourier transform of a kernel that is
+%       used to precondition the projection-backprojection operator (default
+%       empty).
 %    mean_est_opt: An options structure. No options are used in the function
 %       itself, but it is passed on to the `conj_grad` function, so any options
 %       for that function should be specified here.
@@ -21,8 +25,14 @@
 %       backprojected images `im_bp`. The equation is solved using the
 %       conjugate gradient method.
 
-function mean_est = cryo_conj_grad_mean(kernel_f, im_bp, basis, mean_est_opt)
-    if nargin < 4 || isempty(mean_est_opt)
+function mean_est = cryo_conj_grad_mean(kernel_f, im_bp, basis,
+    precond_kernel_f, mean_est_opt)
+
+    if nargin < 4
+        precond_kernel_f = [];
+    end
+
+    if nargin < 5 || isempty(mean_est_opt)
         mean_est_opt = struct();
     end
 
@@ -39,6 +49,14 @@ function mean_est = cryo_conj_grad_mean(kernel_f, im_bp, basis, mean_est_opt)
 
     fun = @(vol_basis)( ...
         apply_mean_kernel(vol_basis, kernel_f, basis, mean_est_opt));
+
+    if ~isempty(precond_kernel_f)
+        precond_fun = @(vol_basis)( ...
+            apply_mean_kernel(vol_basis, precond_kernel_f, basis, ...
+            mean_est_opt));
+
+        mean_est_opt.preconditioner = precond_fun;
+    end
 
     im_bp_basis = basis.evaluate_t(im_bp);
 
