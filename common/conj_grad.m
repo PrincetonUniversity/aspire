@@ -57,12 +57,13 @@ function [x, obj, info] = conj_grad(Afun, b, cg_opt, init)
         x = init.x;
     end
 
-    if ~isfield(cg_opt, 'max_iter'), cg_opt.max_iter = 50; end
-    if ~isfield(cg_opt, 'verbose'), cg_opt.verbose = 0; end
-    if ~isfield(cg_opt, 'iter_callback'), cg_opt.iter_callback = []; end
-    if ~isfield(cg_opt, 'preconditioner'), cg_opt.preconditioner = @(x)(x); end
-    if ~isfield(cg_opt, 'rel_tolerance'), cg_opt.rel_tolerance = 1e-15; end
-    if ~isfield(cg_opt, 'store_iterates'), cg_opt.store_iterates = false; end
+    cg_opt = fill_struct(cg_opt, ...
+        'max_iter', 50, ...
+        'verbose', 0, ...
+        'iter_callback', [], ...
+        'preconditioner', @(x)(x), ...
+        'rel_tolerance', 1e-15, ...
+        'store_iterates', false);
 
     b_norm = sqrt(sum(abs(b).^2, 1));
 
