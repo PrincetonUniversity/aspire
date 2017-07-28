@@ -161,6 +161,9 @@ function [x, obj, info] = conj_grad(Afun, b, cg_opt, init)
             cg_opt.iter_callback(info);
         end
 
+        % TODO: This stopping criterion is not equivalent if we use the
+        % "preconditioned" residual (which is not the same). Make this
+        % consistent for both the preconditioned and non-preconditioned cases.
         if all(new_res < b_norm*cg_opt.rel_tolerance)
             break;
         end
