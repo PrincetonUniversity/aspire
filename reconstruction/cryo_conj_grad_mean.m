@@ -42,7 +42,7 @@ function mean_est = cryo_conj_grad_mean(kernel_f, im_bp, basis, ...
         error('Input `im_bp` must be an array of size L-by-L-by-L.');
     end
 
-    if ~is_basis(basis) || basis.sz ~= L*ones(1, 3)
+    if ~is_basis(basis) || any(basis.sz ~= L*ones(1, 3))
         error(['Input `basis` must be a basis object representing ' ...
             'volumes of size L-by-L-by-L.']);
     end
