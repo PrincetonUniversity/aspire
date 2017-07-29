@@ -25,7 +25,7 @@
 %       backprojected images `im_bp`. The equation is solved using the
 %       conjugate gradient method.
 
-function mean_est = cryo_conj_grad_mean(kernel_f, im_bp, basis,
+function mean_est = cryo_conj_grad_mean(kernel_f, im_bp, basis, ...
     precond_kernel_f, mean_est_opt)
 
     if nargin < 4
