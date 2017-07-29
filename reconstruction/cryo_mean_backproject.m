@@ -41,6 +41,8 @@ function im_bp = cryo_mean_backproject(im, params, mean_est_opt)
 
     pts_rot = rotated_grids(L, params.rot_matrices);
 
+    im = im_translate(im, -params.shifts);
+
     im = im_filter(im, params.ctf(:,:,params.ctf_idx));
 
     im_f = 1/L^2*cfft2(im);
