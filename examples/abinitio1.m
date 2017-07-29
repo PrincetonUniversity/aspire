@@ -63,10 +63,15 @@ fprintf('MSE of the estimated rotations: %f\n\n',check_MSE(est_inv_rots,q));
 
 
 %% 3D inversion
-[ v, v_b, kernel ,err, iter, flag] = recon3d_firm( projections,...
-est_inv_rots,-est_shifts, 1e-6, 30, zeros(65,65,65));
+params = struct();
+params.rot_matrices = est_inv_rots;
+params.ctf = ones(size(projections, 1)*ones(1, 2));
+params.ctf_idx = ones(size(projections, 3), 1);
+params.shifts = full(est_shifts');
+params.ampl = ones(size(projections, 3), 1);
 
-assert(norm(imag(v(:)))/norm(v(:))<1.0e-4);
-v=real(v);
+basis = dirac_basis(size(projections, 1)*ones(1, 3));
+
+v = cryo_estimate_mean(projections, params, basis);
+
 WriteMRC(v,1,'example1.mrc'); % Output density map reconstructed from projections.
-
