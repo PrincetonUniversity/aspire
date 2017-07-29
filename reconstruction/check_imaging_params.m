@@ -48,6 +48,10 @@ function check_imaging_params(params, L, n)
         error('Parameters must have `ampl` field.');
     end
 
+    if ~isfield(params, 'shifts')
+        error('Parameters must have `shifts` field.');
+    end
+
     if isempty(L)
         L = size(params.ctf, 1);
     end
@@ -78,5 +82,10 @@ function check_imaging_params(params, L, n)
         any(params.ctf_idx < 1) || any(params.ctf_idx > size(params.ctf, 3))
         error(['Field `ctf_idx` must have positive integer entries less ' ...
             'than `size(ctf, 3)`']);
+    end
+
+    if ndims(params.shifts) > 2 || size(params.shifts, 1) ~= 2 || ...
+        size(params.shifts, 2) ~= n
+        error('Field `shifts` must be of the size 2-by-n.');
     end
 end
