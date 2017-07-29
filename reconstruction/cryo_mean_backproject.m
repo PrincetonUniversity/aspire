@@ -45,6 +45,8 @@ function im_bp = cryo_mean_backproject(im, params, mean_est_opt)
 
     im = im_filter(im, params.ctf(:,:,params.ctf_idx));
 
+    im = permute(im, [2 1 3]);
+
     im_f = 1/L^2*cfft2(im);
 
     im_f = bsxfun(@times, im_f, reshape(params.ampl, [1 1 n]));

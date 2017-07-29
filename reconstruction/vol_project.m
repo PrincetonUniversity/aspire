@@ -42,4 +42,6 @@ function im = vol_project(vol, rot_matrices)
     im = icfft2(im_f);
     
     im = real(im);
+
+    im = permute(im, [2 1 3]);
 end
