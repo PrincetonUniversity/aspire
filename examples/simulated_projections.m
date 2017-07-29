@@ -43,7 +43,16 @@ projections2=permute(projections,[2 1 3]);   % transpose each image
 %% Reconstruct.
 % Reconstruct the 3D volume from the 2D projections using FIRM.
 
-[vol_recon, ~, ~ ,err, iter, flag] = recon3d_firm_parallel(projections2,inv_rot_matrices,[],1e-6,100,[]);
+params = struct();
+params.rot_matrices = inv_rot_matrices;
+params.ctf = ones(size(projections2, 1)*ones(1, 2));
+params.ctf_idx = ones(n, 1);
+params.shifts = zeros(2, n);
+params.ampl = ones(n, 1);
+
+basis = dirac_basis(size(projections2, 1)*ones(1, 3));
+
+vol_recon = cryo_estimate_mean(projections2, params, basis);
 fprintf('Reconstruction error is %f\n', norm(ph(:)-vol_recon(:))/norm(ph(:))); 
 
 % The printed error should about 0.004
