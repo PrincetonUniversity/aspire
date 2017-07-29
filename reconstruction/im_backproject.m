@@ -30,6 +30,8 @@ function vol = im_backproject(im, rot_matrices)
 
     pts_rot = reshape(pts_rot, [3 L^2*n]);
 
+    im = permute(im, [2 1 3]);
+
     im_f = 1/L^2*cfft2(im);
 
     if mod(L, 2) == 0
