@@ -73,4 +73,10 @@ function check_imaging_params(params, L, n)
     if ndims(params.ampl) > 2 || numel(params.ampl) ~= n
        error('Field `ampl` must be a vector of length n.');
     end
+
+    if any(round(params.ctf_idx) ~= params.ctf_idx) || ...
+        any(params.ctf_idx < 1) || any(params.ctf_idx > size(params.ctf, 3))
+        error(['Field `ctf_idx` must have positive integer entries less ' ...
+            'than `size(ctf, 3)`']);
+    end
 end
