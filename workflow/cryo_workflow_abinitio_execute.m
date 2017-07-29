@@ -154,8 +154,18 @@ for groupid=1:numgroups
 
     % Reconstruct downsampled volume with no CTF correction
     n=size(average,1);
-    [ v1, ~, ~ ,~, ~, ~] = recon3d_firm( average,...
-        rotations,-est_shifts, 1e-6, 100, zeros(n,n,n));
+
+    params = struct();
+    params.rot_matrices = rotations;
+    params.ctf = ones(n*ones(1, 2));
+    params.ctf_idx = ones(size(average, 3), 1);
+    params.shifts = full(est_shifts');
+    params.ampl = ones(size(average, 3), 1);
+
+    basis = dirac_basis(n*ones(1, 3));
+
+    v1 = cryo_estimate_mean(average, params, basis);
+
     ii1=norm(imag(v1(:)))/norm(v1(:));
     log_message('Relative norm of imaginary components = %e\n',ii1);
     v1=real(v1);
