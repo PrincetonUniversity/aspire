@@ -111,8 +111,18 @@ parfor k=1:K
         projection = projection .* reshape(exp(2*pi*1i*(I+J)/(2*n)),n,n);
     end
 
-    
-    if norm(imag(projection(:)))/norm(projection(:)) >5*eps(class(projection))
+    % Verify that we have only small imaginary components in the
+    % projcetions. How 'small' dependes on the accuracy. If the projections
+    % are 'single' allow for imaginary components that are about 10^-7. If
+    % 'double' allow for 10^-13.
+    if isa(projection,'single')
+        imagtol=5.0e-7; 
+    elseif isa(projection,'double')
+        imagtol=5.0e-13;
+    else
+        error('projection is not single nor double!?');
+    end
+    if norm(imag(projection(:)))/norm(projection(:))>imagtol
         error('GCAR:imaginaryComponents','projection has imaginary components');
     end
     projection = real(projection);
