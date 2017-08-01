@@ -238,7 +238,7 @@ disp(err); % Error should be close to machine precision.
 
 %% Test 8: Finally compare project to gen_projections
 
-[P1,~,~,q]=gen_projections_v2(1,1,0,1);
+[P1,~,~,q]=cryo_gen_projections(1,1,0,1);
 n=size(P1,1);
 %volref=cryo_gaussian_phantom_3d('C1_params',n,1);
 load cleanrib
