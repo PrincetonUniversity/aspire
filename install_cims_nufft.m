@@ -50,6 +50,10 @@ function install_cims_nufft(url, location, force_compile)
 	if exist(filepath, 'file')
 		fprintf('Package exists on disk. Skipping download.\n');
 	else
+		if ~exist(location, 'dir')
+			mkdir(location);
+		end
+
 		try
 			fprintf('Downloading...');
 			urlwrite(url, filepath);

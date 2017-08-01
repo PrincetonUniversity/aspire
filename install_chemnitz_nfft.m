@@ -54,6 +54,10 @@ function install_chemnitz_nfft(url, location, fftw_location)
 	if exist(filepath, 'file')
 		fprintf('Package exists on disk. Skipping download.\n');
 	else
+		if ~exist(location, 'dir')
+			mkdir(location);
+		end
+
 		try
 			fprintf('Downloading...');
 			urlwrite(url, filepath);

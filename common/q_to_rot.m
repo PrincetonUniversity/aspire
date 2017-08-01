@@ -1,4 +1,4 @@
-function rot_matrix = q_to_rot_vec(q)
+function rot_matrix = q_to_rot(q)
 %
 % Convert a quaternion into a rotation matrix.
 %
