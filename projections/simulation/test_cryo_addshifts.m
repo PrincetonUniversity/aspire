@@ -54,7 +54,7 @@ fprintf('Shifts are [%d %d]\n',ref_shifts(1),ref_shifts(2));
 
 %% Test 4: Compare to gen_projections_v2
 
-[P1,~,ref_shifts,q]=gen_projections_v2(1,1,5,1);
+[P1,~,ref_shifts,q]=cryo_gen_projections(1,1,5,1);
 n=size(P1,1);
 %volref=cryo_gaussian_phantom_3d('C1_params',n,1);
 load cleanrib
