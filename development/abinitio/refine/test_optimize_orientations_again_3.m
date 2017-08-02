@@ -1,17 +1,17 @@
 Nprojs=100;
-q=qrand(Nprojs);  % Generate Nprojs projections to orient.
+rots = rand_rots(Nprojs);  % Generate Nprojs projections to orient.
 voldata=load('cleanrib');
-projs=cryo_project(voldata.volref,q);
+projs=cryo_project(voldata.volref,rots);
 projs=permute(projs,[2,1,3]);
 [projshifted,true_shifts]=cryo_addshifts(projs,[],2,1);
 true_shifts=true_shifts.';
 snr=1/8;
 projshifted=cryo_addnoise(projshifted,snr,'gaussian');
 
-% Convert quaternions to rotations
+% Invert rotations
 trueRs=zeros(3,3,Nprojs);
 for k=1:Nprojs
-    trueRs(:,:,k)=(q_to_rot(q(:,k))).';
+    trueRs(:,:,k)=rots(:,:,k).';
 end
 L=360;
 n_r=ceil(size(projshifted,1)/2);
@@ -22,7 +22,7 @@ Rest=cryo_syncrotations(S);
 dxest=cryo_estimate_shifts(pf,Rest,6,1);
 
 figure(1)
-dir1=Q2S2(q,L);
+dir1=Q2S2(rot_to_q(rots),L);
 dir2=R2S2(Rest,L);
 check_orientations(dir1,dir2);
 
@@ -35,7 +35,7 @@ L=360;
 [Rest2,dxest2,optout]=optimize_orientations_again(projshifted,Rest,dxest,L,trueRs,true_shifts);
 
 figure(2)
-dir1=Q2S2(q,L);
+dir1=Q2S2(rot_to_q(rots),L);
 dir2=R2S2(Rest2,L);
 check_orientations(dir1,dir2);
 

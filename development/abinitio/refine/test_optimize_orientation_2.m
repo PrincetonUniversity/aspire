@@ -1,16 +1,16 @@
 Nprojs=10;
-q=qrand(Nprojs);  % Generate Nprojs projections to orient.
+rots = rand_rots(Nprojs);  % Generate Nprojs projections to orient.
 voldata=load('cleanrib');
-projs=cryo_project(voldata.volref,q);
+projs=cryo_project(voldata.volref,rots);
 projs=permute(projs,[2,1,3]);
 [projshifted,ref_shifts]=cryo_addshifts(projs,[],2,1);
 snr=1000;
 projshifted=cryo_addnoise(projshifted,snr,'gaussian');
 
-% Convert quaternions to rotations
+% Invert rotations
 trueRs=zeros(3,3,Nprojs);
 for k=1:Nprojs
-    trueRs(:,:,k)=(q_to_rot(q(:,k))).';
+    trueRs(:,:,k)=rots(:,:,k).';
 end
 
 Nrefs=10;
@@ -23,13 +23,13 @@ fprintf('L2 error in shifts estimation = %e\n',shifts_L2_error);
 fprintf('Max shift error in integral pixels (in each coordinate) = (%d,%d)\n',...
     max(round(ref_shifts)-round(dx_gpu')));
 
-q_ref=qrand(Nprojs);  % Generate Nprojs projections to orient.
+rots_ref = rand_rots(Nprojs);  % Generate Nprojs projections to orient.
 volref=voldata.volref;
-projs_ref=cryo_project(volref,q_ref);
+projs_ref=cryo_project(volref,rots_ref);
 projs_ref=permute(projs_ref,[2,1,3]);
 Rrefs=zeros(3,3,Nprojs);
 for k=1:Nprojs
-    Rrefs(:,:,k)=(q_to_rot(q_ref(:,k))).';
+    Rrefs(:,:,k)=rots_ref(:,:,k).';
 end
 
 

@@ -1,18 +1,18 @@
-function projections=cryo_project(volume,q,n,precision)
+function projections=cryo_project(volume,rot,n,precision)
 %
-% Project the given volume in a direction given by the quaternions q.
+% Project the given volume in a direction given by the rotations rot.
 %
 % Input parameters:
 %   volume      3D array of size nxnxn of thevolume to project.
-%   q           List of quaternions determining the projection direction of
-%               each projected image.
+%   rot         Array of size 3-by-3-by-K containing the projection directions
+%               of each projected image.
 %   precision   Accuracy of the projection. 'single' or 'double'. Default
 %               is single (faster).
 %
 % Output parameters:
 %   projections 3D stack of size of projections. Each slice
 %               projections(:,:,k) is a projection image of size nxn which
-%               corresponds to the quaternion q(:,k). The number of
+%               corresponds to the rotation rot(:,:,k). The number of
 %               projections in the stack is equal to the number of
 %               quaternions.
 %
@@ -30,11 +30,11 @@ function projections=cryo_project(volume,q,n,precision)
 %
 % Example:
 %     voldef='C1_params';
-%     q = qrand(1);
+%     rot = rand_rots(1);
 %     n=129;
 %     rmax=1;
 %     vol=cryo_gaussian_phantom_3d(n,rmax,voldef);
-%     p=cryo_project(vol,q);
+%     p=cryo_project(vol,rot);
 %     imagesc(p);
 %
 % Yoel Shkolnisky, August 2013.
@@ -75,7 +75,7 @@ if N>nv+1 % For compaibility with gen_projections, allow one pixel aliasing.
     nv=N; % The new volume size
 end
 
-K=size(q,2);
+K=size(rot, 3);
 projections=zeros(N,N,K);
 
 parfor k=1:K
@@ -83,7 +83,7 @@ parfor k=1:K
 %   if((mod(k,1000))==0)
 % 		sprintf('%d projections done',k)
 %   end
-    R=q_to_rot(q(:,k));
+    R = rot(:,:,k);
     Rt=R.';
     
     % n_x, n_y, n_z are the image of the unit vectors in the x, y, z

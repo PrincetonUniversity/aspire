@@ -53,8 +53,8 @@ end
 % orientations.
 log_message('Generating %d reference projections.',Nrefs);
 initstate;
-qrefs=qrand(Nrefs);
-refprojs=cryo_project(vol,qrefs,szvol(1));
+rots_ref = rand_rots(Nrefs);
+refprojs=cryo_project(vol,rots_ref,szvol(1));
 refprojs=permute(refprojs,[2 1 3]);
 
 % Save the orientations used to generate the proejctions. These would be
@@ -63,7 +63,7 @@ refprojs=permute(refprojs,[2 1 3]);
 Rrefs=zeros(3,3,Nrefs);
 Rrefsvec=zeros(3,3*Nrefs);
 for k=1:Nrefs
-    Rrefs(:,:,k)=(q_to_rot(qrefs(:,k))).';
+    Rrefs(:,:,k)=rots_ref(:,:,k).';
     Rrefsvec(:,3*(k-1)+1:3*k)=Rrefs(:,:,k);
 end
 
@@ -138,12 +138,12 @@ if exist(Ctblfname,'file')
     
     if isfield(precompdata,'Mkj') && ...
             isfield(precompdata,'Ckj') && isfield(precompdata,'Cjk') &&...
-        isfield(precompdata,'qrefs') && isfield(precompdata,'L')
+        isfield(precompdata,'rots_ref') && isfield(precompdata,'L')
         Mkj=precompdata.Mkj;
         Ckj=precompdata.Ckj;
         Cjk=precompdata.Cjk;
         if size(Mkj,1)==Nrots && size(Mkj,2)==Nrefs && ...
-                norm(qrefs-precompdata.qrefs)<1.0e-14 && ...
+                norm(rots_ref(:)-precompdata.rots_ref(:))<1.0e-14 && ...
                 L==precompdata.L
             skipprecomp=1;
         else
@@ -188,7 +188,7 @@ if ~skipprecomp
     t=toc;
     log_message('Precomputing tables took %5.2f seconds.',t);
         
-    save(Ctblfname,'Ckj','Cjk','Mkj','qrefs', 'L');
+    save(Ctblfname,'Ckj','Cjk','Mkj','rots_ref', 'L');
 end
 
 % Setup shift search parameters

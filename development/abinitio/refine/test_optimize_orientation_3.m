@@ -8,13 +8,13 @@
 % Yoel Shkolnisky, June 2016.
 clear;
 Nprojs=2000;
-q=qrand(Nprojs);  % Generate Nprojs projections to orient.
+rots = rand_rots(Nprojs);  % Generate Nprojs projections to orient.
 
 log_message('Loading volume');
 voldata=load('cleanrib');
 
 log_message('Generating %d clean projections',Nprojs);
-projs=cryo_project(voldata.volref,q);
+projs=cryo_project(voldata.volref,rots);
 projs=permute(projs,[2,1,3]);
 
 log_message('Adding shifts');
@@ -24,10 +24,10 @@ snr=1/8;
 log_message('Adding noise. snr=%d',snr);
 projshifted=cryo_addnoise(projshifted,snr,'gaussian');
 
-% Convert quaternions to rotations
+% Invert rotations
 trueRs=zeros(3,3,Nprojs);
 for k=1:Nprojs
-    trueRs(:,:,k)=(q_to_rot(q(:,k))).';
+    trueRs(:,:,k)=rots(:,:,k).';
 end
 
 log_message('Orienting projecctions according to reference volume');
@@ -64,13 +64,13 @@ log_message('Comparing reconstructed volume to reference volume');
 plotFSC(voldata.volref,v1);
 
 % Optimize rotations
-q_ref=qrand(Nprojs);  % Generate Nprojs projections to orient.
+rots_ref=rand_rots(Nprojs);  % Generate Nprojs projections to orient.
 volref=voldata.volref;
-projs_ref=cryo_project(volref,q_ref);
+projs_ref=cryo_project(volref,rots_ref);
 projs_ref=permute(projs_ref,[2,1,3]);
 Rrefs=zeros(3,3,Nprojs);
 for k=1:Nprojs
-    Rrefs(:,:,k)=(q_to_rot(q_ref(:,k))).';
+    Rrefs(:,:,k)=rots_ref(:,:,k).';
 end
 
 L=360;

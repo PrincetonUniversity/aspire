@@ -16,9 +16,9 @@ map=single(map);
 
 % Generate projections at full resolution.
 Nprojs=20;
-q=qrand(Nprojs);  % Generate Nprojs projections to orient.
+rots = rand_rots(Nprojs);  % Generate Nprojs projections to orient.
 log_message('Generating %d projections to orient',Nprojs);
-projs=cryo_project(map,q);
+projs=cryo_project(map,rots);
 projs=permute(projs,[2,1,3]);
 log_message('Adding shifts');
 [projshifted,ref_shifts]=cryo_addshifts(projs,[],2,1);
@@ -29,10 +29,10 @@ log_message('Adding noise wit snr=%d',snr);
 projshifted=cryo_addnoise(projshifted,snr,'gaussian');
 
 % Save trues rotations of the proejctions
-% Convert quaternions to rotations
+% Invert rotations
 trueRs=zeros(3,3,Nprojs);
 for k=1:Nprojs
-    trueRs(:,:,k)=(q_to_rot(q(:,k))).';
+    trueRs(:,:,k)=rots(:,:,k).';
 end
 
 

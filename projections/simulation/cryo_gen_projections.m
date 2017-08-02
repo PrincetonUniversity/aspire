@@ -76,7 +76,7 @@ end
 
 % Generate clean projections
 load cleanrib
-projections=cryo_project(volref,q,n,precision);
+projections=cryo_project(volref,q_to_rot(q),n,precision);
 
 
 projections=permute(projections,[2 1 3]); % Swap dimensions for compitability with old gen_projections.

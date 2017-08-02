@@ -10,18 +10,18 @@
 
 % Generate simulated data - proejctions and reference volume
 Nprojs=20;
-q=qrand(Nprojs);  % Generate Nprojs projections to orient.
+rots = rand_rots(Nprojs);  % Generate Nprojs projections to orient.
 voldata=load('cleanrib');
-projs=cryo_project(voldata.volref,q);
+projs=cryo_project(voldata.volref,rots);
 projs=permute(projs,[2,1,3]);
 [projshifted,ref_shifts]=cryo_addshifts(projs,[],2,1);
 snr=1000;
 projshifted=cryo_addnoise(projshifted,snr,'gaussian');
 
-% Convert quaternions to rotations
+% Invert rotations
 trueRs=zeros(3,3,Nprojs);
 for k=1:Nprojs
-    trueRs(:,:,k)=(q_to_rot(q(:,k))).';
+    trueRs(:,:,k)=rots(:,:,k).';
 end
 
 Nrefs=10;
@@ -85,7 +85,7 @@ tables_cpu=load(fullfile(tempmrcdir,'cryo_orient_projections_tables_cpu.mat'));
 assert(all(tables_ref.Cjk(:)==tables_cpu.Cjk(:)));
 assert(all(tables_ref.Ckj(:)==tables_cpu.Ckj(:)));
 assert(all(tables_ref.Mkj(:)==tables_cpu.Mkj(:)));
-assert(all(tables_ref.qrefs(:)==tables_cpu.qrefs(:)));
+assert(all(tables_ref.rots_ref(:)==tables_cpu.rots_ref(:)));
 
 % Compare refernce and GPU tables
 tables_ref=load(fullfile(tempmrcdir,'cryo_orient_projections_tables_ref.mat'));
@@ -93,4 +93,4 @@ tables_gpu=load(fullfile(tempmrcdir,'cryo_orient_projections_tables_gpu.mat'));
 assert(all(tables_ref.Cjk(:)==tables_gpu.Cjk(:)));
 assert(all(tables_ref.Ckj(:)==tables_gpu.Ckj(:)));
 assert(all(tables_ref.Mkj(:)==tables_gpu.Mkj(:)));
-assert(all(tables_ref.qrefs(:)==tables_gpu.qrefs(:)));
+assert(all(tables_ref.rots_ref(:)==tables_gpu.rots_ref(:)));
