@@ -34,7 +34,11 @@ function sig_f = nufft_transform(plan, sig)
 			sig_f = nudft3(sig, plan.fourier_pts);
 		end
 	elseif plan.lib_code == 2
-		epsilon = 1e-10;
+		if strcmp(precision, 'double')
+			epsilon = 1e-16;
+		elseif strcmp(precision, 'float')
+			epsilon = 1e-8;
+		end
 
 		sig = double(sig(:));
 
