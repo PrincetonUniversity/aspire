@@ -36,7 +36,7 @@ function sig_f = nufft_transform(plan, sig)
 	elseif plan.lib_code == 2
 		if strcmp(precision, 'double')
 			epsilon = 1e-16;
-		elseif strcmp(precision, 'float')
+		elseif strcmp(precision, 'single')
 			epsilon = 1e-8;
 		end
 
