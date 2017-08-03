@@ -49,7 +49,7 @@ if ~isempty(shifts)
 else
     ref_shifts=zeros(K,2);
     if shift_step>0
-        rng(1234,'twister');
+        initstate(1234);
         ref_shifts=round((rand(K,2)-1/2)*2*max_shift/shift_step)*shift_step;
     end
 
