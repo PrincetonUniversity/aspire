@@ -6,13 +6,13 @@
 % Shift a projection and then shift it back.
 clear;
 voldef='C1_params';  % Can be 'one_ball' for a simpler phantom.
-q = [1;0;0;0];       % Identity rotation - projection along the z direction.
+rot = eye(3);        % Identity rotation - projection along the z direction.
 n=65;                % Size of the projections. Can be even or odd.
                      % Sampling must be sufficient for the projected
                      % (Guassian) phantom.
 rmax=1;              % The value of n must be large enough for the given 
                      % rmax. See "Test 1" for more details.
-p1=cryo_project_gaussian(voldef,n,rmax,q); % Compute analytic projection.
+p1=cryo_project_gaussian(voldef,n,rmax,rot); % Compute analytic projection.
 sp1=cryo_addshifts(p1,[20 0]);   % Shift 
 sp2=cryo_addshifts(sp1,[-20 0]); % and Shift back
 err=norm(p1(:)-sp2(:))/norm(p1(:));
@@ -25,13 +25,13 @@ subplot(1,3,3); imagesc(p1-sp2); colorbar; axis image; % Difference
 % Shift a projection by a non-integer shift. Inspect the results visually.
 clear;
 voldef='C1_params';  % Can be 'one_ball' for a simpler phantom.
-q = [1;0;0;0];       % Identity rotation - projection along the z direction.
+rot = eye(3);        % Identity rotation - projection along the z direction.
 n=65;                % Size of the projections. Can be even or odd.
                      % Sampling must be sufficient for the projected
                      % (Guassian) phantom.
 rmax=1;              % The value of n must be large enough for the given 
                      % rmax. See "Test 1" for more details.
-p1=cryo_project_gaussian(voldef,n,rmax,q); % Compute analytic projection.
+p1=cryo_project_gaussian(voldef,n,rmax,rot); % Compute analytic projection.
 sp1=cryo_addshifts(p1,[10.5 0]);   % Shift 
 subplot(1,2,1);imagesc(p1); colorbar; axis image;  % Original
 subplot(1,2,2);imagesc(sp1); colorbar; axis image; % Shifted
@@ -40,13 +40,13 @@ subplot(1,2,2);imagesc(sp1); colorbar; axis image; % Shifted
 % Shift the projection by a random shift.
 clear;
 voldef='C1_params';  % Can be 'one_ball' for a simpler phantom.
-q = qrand(1);       % Identity rotation - projection along the z direction.
+rot = rand_rots(1); % Identity rotation - projection along the z direction.
 n=65;                % Size of the projections. Can be even or odd.
                      % Sampling must be sufficient for the projected
                      % (Guassian) phantom.
 rmax=1;              % The value of n must be large enough for the given 
                      % rmax. See "Test 1" for more details.
-p1=cryo_project_gaussian(voldef,n,rmax,q); % Compute analytic projection.
+p1=cryo_project_gaussian(voldef,n,rmax,rot); % Compute analytic projection.
 [sp1,ref_shifts]=cryo_addshifts(p1,[],10,5);   % Shift 
 subplot(1,2,1);imagesc(p1); colorbar; axis image;  % Original
 subplot(1,2,2);imagesc(sp1); colorbar; axis image; % Shifted

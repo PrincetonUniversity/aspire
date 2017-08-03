@@ -50,7 +50,7 @@ else
 end
 p1=sum(vol ,3)*dz; % Sum along the z direction and multiply by dz 
                    % to convert the sum to an integral.
-p2=cryo_project_gaussian(voldef,n,rmax,rot_to_q(rot)); % Compute analytic projection.
+p2=cryo_project_gaussian(voldef,n,rmax,rot); % Compute analytic projection.
 subplot(1,3,1);imagesc(p1); colorbar; axis image;
 subplot(1,3,2);imagesc(p2); colorbar; axis image;
 subplot(1,3,3); imagesc(p2-p1); colorbar; axis image;
@@ -84,7 +84,7 @@ p1=cryo_project(vol,rot)*dz; % Project the volume and multiply by dz to
                            % convert the discrete projection (summation
                            % along the direction specified by q) into an
                            % integral. 
-p2=cryo_project_gaussian(voldef,n,rmax,rot_to_q(rot)); % Compute analytic projection.
+p2=cryo_project_gaussian(voldef,n,rmax,rot); % Compute analytic projection.
 subplot(1,3,1);imagesc(p1); colorbar; axis image;
 subplot(1,3,2);imagesc(p2); colorbar; axis image;
 subplot(1,3,3); imagesc(p2-p1); colorbar; axis image;
@@ -146,7 +146,7 @@ assert(max(abs(imag(p1(:))))<1.0e-14); % The imaginary components in the
                                        % computed projection should be tiny.
 p1=real(p1); % Get rid of tiny imaginary components, if any.
 
-p2=cryo_project_gaussian(voldef,n,rmax,rot_to_q(rot)); % Compute analytic projection.
+p2=cryo_project_gaussian(voldef,n,rmax,rot); % Compute analytic projection.
 subplot(1,3,1); imagesc(p1);  colorbar; axis image;
 subplot(1,3,2); imagesc(p2);  colorbar; axis image;
 subplot(1,3,3); imagesc(p2-p1); colorbar; axis image;
@@ -176,7 +176,7 @@ p1=p1.*nf;
 assert(max(abs(imag(p1(:))))<1.0e-14)
 p1=real(p1);
 
-p2=cryo_project_gaussian(voldef,n,rmax,rot_to_q(rot));
+p2=cryo_project_gaussian(voldef,n,rmax,rot);
 subplot(1,3,1); imagesc(p1); colorbar; axis image;
 subplot(1,3,2); imagesc(p2); colorbar; axis image;
 subplot(1,3,3); imagesc(p2-p1); colorbar; axis image;
@@ -193,7 +193,7 @@ rot = rand_rots(1);
 n=256;
 rmax=1;
 [p1hat,nf]=cryo_gaussian_ft_slice(voldef,n,rmax,rot_to_q(rot));
-p2=cryo_project_gaussian(voldef,n,rmax,rot_to_q(rot));
+p2=cryo_project_gaussian(voldef,n,rmax,rot);
 
 if mod(n,2)==1
     p2hat=cfft2(p2)./nf;
@@ -220,8 +220,8 @@ else
     dz=2*rmax/n;
 end
 
-p1=cryo_project(vol,rot)*dz; % =cryo_project_gaussian(voldef,n,rmax,q);
-%p2=cryo_project_gaussian(voldef,n,rmax,q);
+p1=cryo_project(vol,rot)*dz; % =cryo_project_gaussian(voldef,n,rmax,rot);
+%p2=cryo_project_gaussian(voldef,n,rmax,rot);
 %norm(p1(:)-p2(:))/norm(p1(:)); % Intermediate test. Should be tiny.
 
 if mod(n,2)==1

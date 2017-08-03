@@ -28,7 +28,7 @@ function [y,nf]=cryo_gaussian_ft_slice(def,n,rmax,q)
 %     assert(max(abs(imag(p1(:))))<1.0e-14)
 %     p1=real(p1);
 % 
-%     p2=cryo_project_gaussian(n,rmax,q,voldef);
+%     p2=cryo_project_gaussian(n,rmax,q_to_rot(q),voldef);
 %     subplot(1,3,1); imagesc(p1); colorbar; axis image;
 %     subplot(1,3,2); imagesc(p2); colorbar; axis image;
 %     subplot(1,3,3); imagesc(p2-p1); colorbar; axis image;
