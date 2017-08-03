@@ -165,7 +165,7 @@ voldef='C1_params';
 rot = rand_rots(1);
 rmax=2; % I used larger rmax just to show that other rmax work too.
 n=256; % Should be large enough for the given rmax.
-[p1hat,nf]=cryo_gaussian_ft_slice(voldef,n,rmax,rot_to_q(rot));
+[p1hat,nf]=cryo_gaussian_ft_slice(voldef,n,rmax,rot);
 
 if mod(n,2)==1
     p1=icfft2(p1hat);
@@ -192,7 +192,7 @@ voldef='C1_params';
 rot = rand_rots(1);
 n=256;
 rmax=1;
-[p1hat,nf]=cryo_gaussian_ft_slice(voldef,n,rmax,rot_to_q(rot));
+[p1hat,nf]=cryo_gaussian_ft_slice(voldef,n,rmax,rot);
 p2=cryo_project_gaussian(voldef,n,rmax,rot);
 
 if mod(n,2)==1
@@ -231,7 +231,7 @@ else
     nf=(n/(2*rmax))^2; % Nromalization factor. 
     p1hat=cfft2e(p1)./nf; 
 end
-p2hat=cryo_gaussian_ft_slice(voldef,n,rmax,rot_to_q(rot));
+p2hat=cryo_gaussian_ft_slice(voldef,n,rmax,rot);
 err=norm(p1hat(:)-p2hat(:))/norm(p1hat(:));
 disp(err); % Error should be close to machine precision.
 
