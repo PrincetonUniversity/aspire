@@ -8,7 +8,7 @@ function viewstack(projs,nrows,ncols,showlabels)
 %   showlabels  Nonzero to show image numbering labels (default 1).
 %
 % Example:
-%   [projs, noisy_projs, ~, ref_q] = gen_projections(10,1/8,0,1);
+%   [projs, noisy_projs, ~, ref_q] = cryo_gen_projections(65,10,1/8,0,1);
 %   viewstack(projs,5,5)
 %
 % Yoel Shkolnisky, July 2013.

@@ -1,22 +1,23 @@
 
 K=250;
-L=360;
+L=65;
 n_r=100;
-[projs,noisy_projs,shifts,refq]=gen_projections(K,3,6,3,'gaussian',0);
+n_theta = 360;
+[projs,noisy_projs,shifts,refq]=cryo_gen_projections(L,K,3,6,3);
 %
 % Corrupt two projections
 projs(10:50,10:50,1:5)=0;
 noisy_projs(10:50,10:50,1:5)=0;
-masked_projs=mask_projections(noisy_projs,35);
-[cpf,sampling_freqs]=cryo_pft(projs,n_r,L,'single');  % take Fourier transform of projections   
-[npf,~]=cryo_pft(masked_projs,n_r,L,'single');  % take Fourier transform of projections   
+masked_projs=mask_fuzzy(noisy_projs,35);
+[cpf,sampling_freqs]=cryo_pft(projs,n_r,n_theta,'single');  % take Fourier transform of projections   
+[npf,~]=cryo_pft(masked_projs,n_r,n_theta,'single');  % take Fourier transform of projections   
 
 open_log(0);
 % Find common lines using noisy projections, but reoncstruct using clean.
 [clmatrix,clcorr,shift_equations,shift_equations_map]=cryo_clmatrix(npf,K,1,16,1);
 
 [PHIc,eigs_diary,removed_projections,clean_clmatrix]=...
-    cryo_clmat2orientations(clmatrix,zeros(size(clmatrix)),L,...
+    cryo_clmat2orientations(clmatrix,zeros(size(clmatrix)),n_theta,...
     size(clmatrix,1),10,'/tmp/yoel');
 
 save tmp;
@@ -92,7 +93,7 @@ disp(norm(ES(:)-est_shifts(:)));
 cpf(:,:,removed_projections)=[];
 npf(:,:,removed_projections)=[];
 refq(:,removed_projections)=[];
-dirref=Q2S2(refq,L);
+dirref=Q2S2(refq,n_theta);
 PHIc=register_orientations(PHIc,dirref);
 % Reconstrut with no shifts
 X=cryo_vol2rays(cpf);
