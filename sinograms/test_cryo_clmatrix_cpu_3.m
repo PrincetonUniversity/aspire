@@ -4,6 +4,7 @@
 
 fprintf('Commonline detection rates.\n');
 fprintf('===========================\n');
+n = 89;
 K=100;
 n_r=100;
 n_theta=360;
@@ -13,7 +14,7 @@ for k=1:6
     max_shift2d=0;
     step_size=1;
     [p, np, shifts, q] = ...
-        gen_projections(K,SNR,max_shift2d,step_size);
+        cryo_gen_projections(n,K,SNR,max_shift2d,step_size);
     [ref_clmatrix,clcorr]=clmatrix_cheat_q(q,n_theta);
     
 
