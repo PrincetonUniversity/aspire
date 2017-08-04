@@ -59,7 +59,8 @@ fprintf('Percentage of correct common lines: %f%%\n\n',prop*100);
 % The resulting MSE should be small (of the order of 1e-4).
 
 [est_inv_rots] = est_orientations_LS(clstack, n_theta);
-fprintf('MSE of the estimated rotations: %f\n\n',check_MSE(est_inv_rots,q));
+fprintf('MSE of the estimated rotations: %f\n\n', ...
+    check_MSE(est_inv_rots,q_to_rot(q)));
 
 
 %% 3D inversion

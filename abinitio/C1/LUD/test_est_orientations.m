@@ -7,30 +7,15 @@ function test_est_orientations(K,L,p)
 
 
 
-%%%%%% Generate K random quaternions (a,b,c,d) %%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%% Generate K random rotations %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                                                                     %%
 % The 3-sphere S^3 in R^4 is a double cover of the rotation group SO(3)
 % SO(3) = RP^3
 % We identify unit norm quaternions a^2+b^2+c^2+d^2=1 with group elements
 % The antipodal points (-a,-b,-c,-d) and (a,b,c,d) are identified as the
 % same group elements
-q = randn(4,K);
 
-l2_norm = sqrt(q(1,:).^2 + q(2,:).^2 + q(3,:).^2 + q(4,:).^2);
-
-for i=1:4;
-    q(i,:) = q(i,:) ./ l2_norm;
-end;
-
-%%%%%% Convert quaternions into 3 x 3 rotation matrices %%%%%%%%%%%%%%%%%
-%%                                                                     %%
-%% Using the Euler formula
-rot_matrices = zeros(3,3,K);
-rot_matrix = zeros(3);
-for k=1:K;
-    rot_matrix = q_to_rot(q(:,k));
-    rot_matrices(:,:,k) = rot_matrix;
-end;
+rot_matrices = rand_rots(K);
 
 % calculate inverse rotation matrices (just transpose)
 inv_rot_matrices = zeros(3,3,K);
@@ -118,28 +103,28 @@ Time = zeros(6,1);
 tic;
 est_inv_rots = est_orientations_LS(common_lines_matrix, L);
 Time(1) = toc;
-MSEs(1) = check_MSE(est_inv_rots, q);
+MSEs(1) = check_MSE(est_inv_rots, rot_matrices);
 
 % With spectral norm constraint
 pars.alpha = 2/3;
 tic;
 est_inv_rots = est_orientations_LS(common_lines_matrix, L, pars);
 Time(2) = toc;
-MSEs(2) = check_MSE(est_inv_rots, q);
+MSEs(2) = check_MSE(est_inv_rots, rot_matrices);
 
 %% Test est_orientations_LUD
 % ADMM
 tic;
 est_inv_rots = est_orientations_LUD(common_lines_matrix,L);
 Time(3) = toc;
-MSEs(3) = check_MSE(est_inv_rots, q);
+MSEs(3) = check_MSE(est_inv_rots, rot_matrices);
 
 % ADMM with spectral norm constraint
 pars.alpha = 2/3;
 tic;
 est_inv_rots = est_orientations_LUD(common_lines_matrix,L, pars);
 Time(4) = toc;
-MSEs(4) = check_MSE(est_inv_rots, q);
+MSEs(4) = check_MSE(est_inv_rots, rot_matrices);
 
 % IRLS
 pars.solver = 'IRLS';
@@ -147,14 +132,14 @@ pars.alpha = 0;
 tic;
 est_inv_rots = est_orientations_LUD(common_lines_matrix,L, pars);
 Time(5) = toc;
-MSEs(5) = check_MSE(est_inv_rots, q);
+MSEs(5) = check_MSE(est_inv_rots, rot_matrices);
 
 % IRLS with spectral norm constraint
 pars.alpha = 2/3;
 tic;
 est_inv_rots = est_orientations_LUD(common_lines_matrix,L, pars);
 Time(6) = toc;
-MSEs(6) = check_MSE(est_inv_rots, q);
+MSEs(6) = check_MSE(est_inv_rots, rot_matrices);
 
 %% Print the MSEs and cost time of the results
 fprintf('K = %d, L = %d, p = %f\n', K, L, p);
