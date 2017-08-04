@@ -8,8 +8,8 @@ n_theta=360;
 max_shift=0;
 shift_step=1;
 
-[~,stack,~,refq]=cryo_gen_projections(89,N,SNR,max_shift,shift_step);
-[ref_clstack,~]=clmatrix_cheat_q(refq,n_theta);
+[~,stack,~,rots_ref]=cryo_gen_projections(89,N,SNR,max_shift,shift_step);
+[ref_clstack,~]=clmatrix_cheat_q(rot_to_q(rots_ref),n_theta);
 
 % Normalize background noise to mean 0 and std 1
 stack=cryo_normalize_background(stack);

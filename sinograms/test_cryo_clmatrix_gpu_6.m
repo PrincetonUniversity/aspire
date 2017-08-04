@@ -29,7 +29,7 @@ for k=1:numel(SNRlist)
      noisy_projs=cryo_addnoise(projs,SNR,'gaussian');
 
     
-%     [p, np, shifts, q] = ...
+%     [p, np, shifts, rots_ref] = ...
 %         cryo_gen_projections(n,K,SNR,max_shift2d,step_size_2d);
     [ref_clmatrix,clcorr]=clmatrix_cheat_q(rot_to_q(rots_ref),n_theta);
     

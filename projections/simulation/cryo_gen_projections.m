@@ -1,5 +1,5 @@
-function [projections, noisy_projections, shifts, q] = ...
-    cryo_gen_projections(n,K,SNR,max_shift,shift_step,ref_shifts,ref_q,precision)
+function [projections, noisy_projections, shifts, rots] = ...
+    cryo_gen_projections(n,K,SNR,max_shift,shift_step,ref_shifts,rots_ref,precision)
 %
 % Simulate projections. 
 % Same functionality as gen_projections_v2, but uses the new simulation
@@ -26,10 +26,10 @@ function [projections, noisy_projections, shifts, q] = ...
 %           Number of rows must be equal to the number of proejctions. If
 %           this parameter is provided, max_shift and shift_step are
 %           ignored.
-%   ref_q   A list of quaternions used to generate the projections. Number
-%           of rows must be equal to the number of proejctions. If this
-%           parameter is missing, the function draws quaternons unformly at
-%           random.
+%   rots_ref  An array of rotation matrices used to generate the projections.
+%           The size of the third dimension must equal the number of
+%           projections. If this parameter is missing, the functions draws
+%           rotation matrices uniformly at random.
 %   precision   Accuracy of the projections. 'single' or 'double'. Default
 %           is 'single' (faster)
 %
@@ -39,10 +39,10 @@ function [projections, noisy_projections, shifts, q] = ...
 %   shifts              A two column table with the 2D shift introduced to
 %            each projections. If ref_shift is given, this is equal to
 %            ref_shifts, otherwise, the shifts are random.
-%   q                   A list of quaternions used to generate each of the
-%            projections. If ref_q is given, this is requl to ref_q.
-%            Otherwise, the rotations are random and uniformly distributed
-%            on SO(3).
+%   rots     A 3-by-3-by-K array of rotation matrices used to generate each of
+%            the projections. If rots_ref is given, this is equal to that array.
+%            Otherwise, the rotations re random and uniformly distributed on
+%            SO(3).
 %
 % Yoel Shkolnisky, September 2013.
 
@@ -50,13 +50,13 @@ if ~exist('precision','var')
     precision='single';
 end
 
-if exist('ref_q','var')
-    if ~isempty(ref_q)
-        q=ref_q; % Use given quaternions.
+if exist('rots_ref','var')
+    if ~isempty(rots_ref)
+        rots = rots_ref;
     end
 else
     initstate; % So we get the same results every time for reproducibility.
-    q=qrand(K);  % Generate random uniform quaternions.
+    rots = rand_rots(K);
 end
 
 shifts=[];
@@ -76,7 +76,7 @@ end
 
 % Generate clean projections
 load cleanrib
-projections=cryo_project(volref,q_to_rot(q),n,precision);
+projections=cryo_project(volref,rots,n,precision);
 
 
 projections=permute(projections,[2 1 3]); % Swap dimensions for compitability with old gen_projections.

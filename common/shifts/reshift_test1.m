@@ -28,8 +28,8 @@ K=200;
 L=65;
 n_r=100;
 n_theta = 360;
-[projs,noisy_projs,shifts,refq]=cryo_gen_projections(L,K,1000,6,3);
-%[projs,noisy_projs,shifts,refq]=cryo_gen_projections(L,K,1000,0,1);
+[projs,noisy_projs,shifts,rots_ref]=cryo_gen_projections(L,K,1000,6,3);
+%[projs,noisy_projs,shifts,rots_ref]=cryo_gen_projections(L,K,1000,0,1);
 [pf,sampling_freqs]=cryo_pft(projs,n_r,n_theta,'single');  % take Fourier transform of projections   
 
 open_log(0);
@@ -64,7 +64,7 @@ V=V(:,1:end-3); % Null space of shift_equations.
 disp(norm(V.'*(s1-s2))/norm(V.'*s1)); 
 
 
-dirref=Q2S2(refq,n_theta);
+dirref=Q2S2(rot_to_q(rots_ref),n_theta);
 % Reconstrut with no shifts
 X=cryo_vol2rays(pf);
 T1p=2/128;

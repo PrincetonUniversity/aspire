@@ -3,7 +3,7 @@ K=250;
 L=65;
 n_r=100;
 n_theta = 360;
-[projs,noisy_projs,shifts,refq]=cryo_gen_projections(L,K,3,6,3);
+[projs,noisy_projs,shifts,rots_ref]=cryo_gen_projections(L,K,3,6,3);
 %
 % Corrupt two projections
 projs(10:50,10:50,1:5)=0;
@@ -92,8 +92,8 @@ disp(norm(ES(:)-est_shifts(:)));
 
 cpf(:,:,removed_projections)=[];
 npf(:,:,removed_projections)=[];
-refq(:,removed_projections)=[];
-dirref=Q2S2(refq,n_theta);
+rots_ref(:,:,removed_projections)=[];
+dirref=Q2S2(rot_to_q(rots_ref),n_theta);
 PHIc=register_orientations(PHIc,dirref);
 % Reconstrut with no shifts
 X=cryo_vol2rays(cpf);

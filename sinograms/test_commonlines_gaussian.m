@@ -11,9 +11,9 @@ max_shift=5;
 step_size=1;
 mask_radius = 55;
 % fprecomp='p100_shifted';
-[p, np, shifts, q] = ...
+[p, np, shifts, rots] = ...
     cryo_gen_projections(n,K,1,max_shift,step_size);
-[ref_clmatrix,clcorr]=clmatrix_cheat_q(q,n_theta);
+[ref_clmatrix,clcorr]=clmatrix_cheat_q(rot_to_q(rots),n_theta);
 [np,sigma]=mask_fuzzy(np,mask_radius);
 [npf,freqs]=cryo_pft(np,n_r,n_theta);
 max_shift = 15;
@@ -39,9 +39,9 @@ for k=1:6
     max_shift=5;
     step_size=1;
     mask_radius = 55;
-    [p, np, shifts, q] = ...
+    [p, np, shifts, rots] = ...
         cryo_gen_projections(n,K,SNR,max_shift,step_size);
-    [ref_clmatrix,clcorr]=clmatrix_cheat_q(q,n_theta);
+    [ref_clmatrix,clcorr]=clmatrix_cheat_q(rot_to_q(rot),n_theta);
     [np,sigma]=mask_fuzzy(np,mask_radius);
     [npf,freqs]=cryo_pft(np,n_r,n_theta);
     max_shift = 15;

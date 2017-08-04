@@ -238,11 +238,11 @@ disp(err); % Error should be close to machine precision.
 
 %% Test 8: Finally compare project to gen_projections
 
-[P1,~,~,q]=cryo_gen_projections(1,1,0,1);
+[P1,~,~,rots]=cryo_gen_projections(1,1,0,1);
 n=size(P1,1);
 %volref=cryo_gaussian_phantom_3d('C1_params',n,1);
 load cleanrib
-P2=cryo_project(volref,q_to_rot(q),n);
+P2=cryo_project(volref,rots,n);
 P2=permute(P2,[2 1]);
 subplot(1,3,1); imagesc(P1); colorbar; axis image;
 subplot(1,3,2); imagesc(P2); colorbar; axis image;

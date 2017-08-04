@@ -54,11 +54,11 @@ fprintf('Shifts are [%d %d]\n',ref_shifts(1),ref_shifts(2));
 
 %% Test 4: Compare to gen_projections_v2
 
-[P1,~,ref_shifts,q]=cryo_gen_projections(1,1,5,1);
+[P1,~,ref_shifts,rots]=cryo_gen_projections(1,1,5,1);
 n=size(P1,1);
 %volref=cryo_gaussian_phantom_3d('C1_params',n,1);
 load cleanrib
-P2=cryo_project(volref,q_to_rot(q),n);
+P2=cryo_project(volref,rots,n);
 P2=permute(P2,[2 1]);
 SP2=cryo_addshifts(P2,ref_shifts);
 subplot(1,3,1); imagesc(P1); colorbar; axis image;

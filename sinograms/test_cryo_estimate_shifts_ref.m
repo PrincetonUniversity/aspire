@@ -14,12 +14,12 @@ nprojs=100;
 dummySNR=1;
 max_shift=3;
 shift_step=1;
-[projs,noisy_projs,refshifts,refq]=cryo_gen_projections(n,nprojs,dummySNR,max_shift,shift_step);
+[projs,noisy_projs,refshifts,rots_ref]=cryo_gen_projections(n,nprojs,dummySNR,max_shift,shift_step);
 masked_projs=mask_fuzzy(projs,floor(n/2)); % Applly circular mask
 
 ref_rotations=zeros(3,3,nprojs);
  for k=1:nprojs
-    ref_rotations(:,:,k)=(q_to_rot(refq(:,k))).';
+    ref_rotations(:,:,k)=rots_ref(:,:,k).';
  end
 
 % Compute polar Fourier transform, using radial resolution n_r and angular
@@ -30,7 +30,7 @@ n_r=ceil(n/2);
 
 %% Compte common lines matrix
 % Compute reference common lines matrix
-clstack_ref=clmatrix_cheat_q(refq,n_theta);
+clstack_ref=clmatrix_cheat_q(rot_to_q(rots_ref),n_theta);
 
 % Search for common lines in the presence of shifts
 open_log(0);
@@ -44,7 +44,7 @@ fprintf('Percentage of correct common lines: %f%%\n\n',prop*100);
 
 %% Estimate rotations
 S=cryo_syncmatrix_vote(clstack,n_theta);
-[rotations,~,mse]=cryo_syncrotations(S,refq);
+[rotations,~,mse]=cryo_syncrotations(S,rot_to_q(rots_ref));
 fprintf('MSE of the estimated rotations: %f\n\n',mse); %Show be close to zero.
 
 % Resgister the estimated rotations to the reference onces. 
