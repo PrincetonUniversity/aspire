@@ -23,7 +23,7 @@ p=0.5;
 %p=1;
 [noisy_cl,is_perturbed]=perturb_clmatrix(clmatrix,L,p);
 
-%S=cryo_syncmatrix_vote(noisy_cl,L,rot_to_q(rots_ref),is_perturbed);
+%S=cryo_syncmatrix_vote(noisy_cl,L,rots_ref,is_perturbed);
 S=cryo_syncmatrix_vote(noisy_cl,L);
 rotations=cryo_syncrotations(S,rots_ref);
 inv_rots_ref = permute(rots_ref, [2 1 3]);
