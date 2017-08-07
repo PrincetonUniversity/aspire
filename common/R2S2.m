@@ -12,9 +12,9 @@ function PR=R2S2(Rs,Ntheta)
 % of the output is thus K*Nthetax3.
 % 
 % Examples:
-%   dir1=Q2S2(q,L);
-%   dir2=R2S2(rotations,L);
-%   check_orientations(dir1,dir2)
+%   rotations = rand_rots(100);
+%   L = 36;
+%   dir = R2S2(rotations, L);
 %
 % Yoel Shkolnisky, August 2010.
 

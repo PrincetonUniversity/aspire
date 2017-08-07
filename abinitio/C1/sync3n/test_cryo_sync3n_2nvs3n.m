@@ -18,7 +18,8 @@ outfile='./test_2nvs3n.mat';
 
 [projs,~,~,rots_ref]=cryo_gen_projections(n,K,100000);
 [ref_clstack,~]=clmatrix_cheat(rots_ref,n_theta); % Reference common lines matrix
-dirref=Q2S2(rot_to_q(rots_ref),n_theta);
+inv_rots_ref = permute(rots_ref, [2 1 3]);
+dirref=R2S2(inv_rots_ref,n_theta);
 
 results=struct;
 

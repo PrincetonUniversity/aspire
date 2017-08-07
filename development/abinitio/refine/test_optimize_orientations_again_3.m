@@ -22,7 +22,7 @@ Rest=cryo_syncrotations(S);
 dxest=cryo_estimate_shifts(pf,Rest,6,1);
 
 figure(1)
-dir1=Q2S2(rot_to_q(rots),L);
+dir1=R2S2(trueRs,L);
 dir2=R2S2(Rest,L);
 check_orientations(dir1,dir2);
 
@@ -35,7 +35,7 @@ L=360;
 [Rest2,dxest2,optout]=optimize_orientations_again(projshifted,Rest,dxest,L,trueRs,true_shifts);
 
 figure(2)
-dir1=Q2S2(rot_to_q(rots),L);
+dir1=R2S2(trueRs,L);
 dir2=R2S2(Rest2,L);
 check_orientations(dir1,dir2);
 

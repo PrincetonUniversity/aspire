@@ -226,7 +226,7 @@ if verbose_plot_cl && verbose_detailed_debugging
 end
 %S2CORD=0;
 if verbose_plot_neighbors && found_ref_q
- %   S2CORD=Q2S2(ref_q,n_theta); % compute S2 group of rotation matrix
+ %   S2CORD=R2S2(permute(q_to_rot(ref_q), [2 1 3]),n_theta); % compute S2 group of rotation matrix
 end
 
 %% Maximum likelihood based common line detector

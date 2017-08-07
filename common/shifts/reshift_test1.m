@@ -63,8 +63,8 @@ V=V(:,1:end-3); % Null space of shift_equations.
 % subspace that is orthogonal to the null space of shift_equations.
 disp(norm(V.'*(s1-s2))/norm(V.'*s1)); 
 
-
-dirref=Q2S2(rot_to_q(rots_ref),n_theta);
+inv_rots_ref = permute(rots_ref, [2 1 3]);
+dirref=R2S2(inv_rots_ref,n_theta);
 % Reconstrut with no shifts
 X=cryo_vol2rays(pf);
 T1p=2/128;

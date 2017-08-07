@@ -93,7 +93,8 @@ disp(norm(ES(:)-est_shifts(:)));
 cpf(:,:,removed_projections)=[];
 npf(:,:,removed_projections)=[];
 rots_ref(:,:,removed_projections)=[];
-dirref=Q2S2(rot_to_q(rots_ref),n_theta);
+inv_rots_ref = permute(rots_ref, [2 1 3]);
+dirref=R2S2(inv_rots_ref,n_theta);
 PHIc=register_orientations(PHIc,dirref);
 % Reconstrut with no shifts
 X=cryo_vol2rays(cpf);

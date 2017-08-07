@@ -20,6 +20,7 @@ p=0.5;
 open_log(0);
 use_weights=1;
 rotations=cryo_sync3n_estimate_rotations(noisy_cl,L,use_weights);
-dir1=Q2S2(rot_to_q(rots_ref),L);
+inv_rots_ref = permute(rots_ref, [2 1 3]);
+dir1=R2S2(inv_rots_ref,L);
 dir2=R2S2(rotations,L);
 check_orientations(dir1,dir2);
