@@ -19,8 +19,16 @@
 %    anudft2
 
 function im = anufft2(im_f, fourier_pts, sz)
-	if numel(sz) ~= 2
-		error('Input ''sz'' must have two elements.');
+	if ndims(im_f) > 2 || size(im_f, 2) ~= 1
+		error('Input ''im_f'' must be of the form K-by-1.');
+	end
+
+	if ndims(fourier_pts) > 2 || any(size(fourier_pts) ~= [2 size(im_f, 1)])
+		error('Input ''fourier_pts'' must be of the form 2-by-K.');
+	end
+
+	if numel(sz) ~= 2 || any(floor(sz) ~= sz) || any(sz < 1)
+		error('Input ''sz'' must be a positive integer vector of length two.');
 	end
 
 	p = nufft_initialize(sz, size(fourier_pts, 2));
