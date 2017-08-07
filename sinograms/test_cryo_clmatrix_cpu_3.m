@@ -15,7 +15,7 @@ for k=1:6
     step_size=1;
     [p, np, shifts, rots] = ...
         cryo_gen_projections(n,K,SNR,max_shift2d,step_size);
-    [ref_clmatrix,clcorr]=clmatrix_cheat_q(rot_to_q(rots),n_theta);
+    [ref_clmatrix,clcorr]=clmatrix_cheat(rots,n_theta);
     
 
     mask_radius=round(size(np,1)*0.45);

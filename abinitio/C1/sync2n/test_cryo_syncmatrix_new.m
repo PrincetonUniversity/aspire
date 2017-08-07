@@ -12,9 +12,9 @@ Ks=[100, 200, 500, 1000];
 
 for ntest=1:numel(Ks)
     K=Ks(ntest);
-    refq=qrand(K);
+    rots_ref = rand_rots(K);
     L=360;     % Use a large number of lines per image, so we don't have discretization errors.
-    cl=clmatrix_cheat_q(refq,L);
+    cl=clmatrix_cheat(rots_ref,L);
     tic; 
     Sold=cryo_syncmatrix_vote_old(cl,L); 
     Told=toc;

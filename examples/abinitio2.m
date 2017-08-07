@@ -33,7 +33,7 @@ shift_step=1;
 clstack = commonlines_gaussian(npf,max_shift,shift_step);
 
 % Find reference common lines and compare
-[ref_clstack,~]=clmatrix_cheat_q(rot_to_q(rots_ref),n_theta);
+[ref_clstack,~]=clmatrix_cheat(rots_ref,n_theta);
 prop=comparecl( clstack, ref_clstack, n_theta, 10 );
 fprintf('Percentage of correct common lines: %f%%\n\n',prop*100);
 

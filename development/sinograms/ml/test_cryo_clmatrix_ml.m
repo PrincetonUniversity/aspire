@@ -96,7 +96,7 @@ for snridx=1:numel(SNRlist)
                 t_corr=toc;
                 
                 % Find reference common lines and compare
-                [ref_clstack,~]=clmatrix_cheat_q(rot_to_q(rots_ref),n_theta);
+                [ref_clstack,~]=clmatrix_cheat(rots_ref,n_theta);
                 prop_corr=comparecl( clstack, ref_clstack, n_theta, 5 );
                 log_message('Percentage of correct common lines: %f%%',prop_corr*100);
 

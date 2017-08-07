@@ -19,7 +19,7 @@ SNR=1e10; % Dummy SNR.
 [projs,~,~,rots]=cryo_gen_projections(n,K,SNR);  % Generate clean projections.
 n_r=ceil(n/2);  % Radius of each projection
 n_theta=360;    % Angular resolution of each projection (for computing its Fourier transform).
-clstack_ref=clmatrix_cheat_q(rot_to_q(rots),n_theta); % True common lines matrix.
+clstack_ref=clmatrix_cheat(rots,n_theta); % True common lines matrix.
 
 pf=cryo_pft(projs,n_r,n_theta);
 VERBOSE=0;

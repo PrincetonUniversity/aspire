@@ -25,7 +25,7 @@ viewstack(projections,10,10);   % Display the proejctions.
 
 n_theta=72; % Angular resolution - number of sinograms computed for each 
             % projection. This corresponds to a resolution of 5 degrees.
-[ref_clmatrix,~]=clmatrix_cheat_q(q,n_theta);
+[ref_clmatrix,~]=clmatrix_cheat(q_to_rot(q),n_theta);
 
 %% Compute common lines from projections
 

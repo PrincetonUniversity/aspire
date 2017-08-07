@@ -30,7 +30,7 @@ n_r=ceil(n/2);
 
 %% Compte common lines matrix
 % Compute reference common lines matrix
-clstack_ref=clmatrix_cheat_q(rot_to_q(rots_ref),n_theta);
+clstack_ref=clmatrix_cheat(rots_ref,n_theta);
 
 % Search for common lines in the presence of shifts
 open_log(0);

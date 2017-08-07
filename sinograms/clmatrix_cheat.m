@@ -1,6 +1,6 @@
-function [clmatrix,clcorr,cltheta]=clmatrix_cheat_q(q,n_theta)
+function [clmatrix,clcorr,cltheta]=clmatrix_cheat(rots,n_theta)
 %
-% Build common lines matrix using the true quaternions corresponding to the
+% Build common lines matrix using the true rotations corresponding to the
 % projections orientations. Each projection has n_theta rays.
 % clcorr is set to 1.0e-8.
 %
@@ -13,14 +13,14 @@ function [clmatrix,clcorr,cltheta]=clmatrix_cheat_q(q,n_theta)
 % Revised, Y.S. June 2014.
 
 
-N=size(q,2);
+N=size(rots,3);
 
 clmatrix=zeros(N);   % common lines matrix
 clcorr=zeros(N);     % correlation coefficient for ach common line
 cltheta=zeros(N);    % angles of common line pairs
 
 for k1=1:N-1
-    R1=q_to_rot(q(:,k1));
+    R1=rots(:,:,k1);
     R1=R1.';
     
     % Rotated coordinate system is the columns of the rotation matrix.
@@ -35,7 +35,7 @@ for k1=1:N-1
     for k2=k1+1:N
         %%%%%%%%%%%%%%%%%%%%%%%
                 
-        R2=q_to_rot(q(:,k2));
+        R2=rots(:,:,k2);
         R2=R2.';
         
         X2=R2(:,1);

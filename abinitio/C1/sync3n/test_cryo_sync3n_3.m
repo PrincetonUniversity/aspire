@@ -1,6 +1,6 @@
 % Test the 3Nx3N synchronization algorithm on noisy  simulated data.
 %
-% The script generates K quternions (images), constructs their
+% The script generates K rotations (images), constructs their
 % corresponding common lines matrix, and introduces errors into the
 % common lines matrix, such that only a factrion p of the common lines
 % remain correct. Then, it estimates the rotations from the noisy matrix
@@ -15,17 +15,17 @@
 
 K=400;
 initstate;
-q=qrand(K);
+rots_ref = rand_rots(K);
 
 %L=1.0E15; % L is very large to reduce discretization errors due to finite angular resolution.
 L=360;
-clmatrix=clmatrix_cheat_q(q,L);
+clmatrix=clmatrix_cheat(rots_ref,L);
 p=0.5;
 %p=1;
 [noisy_cl,is_perturbed]=perturb_clmatrix(clmatrix,L,p);
 
 open_log(0);
 rotations=cryo_sync3n_estimate_rotations(noisy_cl,L);
-dir1=Q2S2(q,L);
+dir1=Q2S2(rot_to_q(rots_ref),L);
 dir2=R2S2(rotations,L);
 check_orientations(dir1,dir2);
