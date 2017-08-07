@@ -13,7 +13,7 @@ K=50;
 rots_ref = rand_rots(K);
 L=1E15;     % Use a large number of lines per image, so we don't have discretization errors.
 cl=clmatrix_cheat(rots_ref,L);
-S=cryo_syncmatrix(cl,L,rot_to_q(rots_ref));
+S=cryo_syncmatrix(cl,L,rots_ref);
 s=eig(S);
 s=sort(s);
 
