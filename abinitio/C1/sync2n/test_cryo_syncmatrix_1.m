@@ -27,7 +27,7 @@ else
 end
 
 % Check that the MSE of the recovered orientations is very small
-[~,diff,mse]=cryo_syncrotations(S,rot_to_q(rots_ref));
+[~,diff,mse]=cryo_syncrotations(S,rots_ref);
 e2=max(diff(:));
 
 if e2>TOL

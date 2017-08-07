@@ -44,7 +44,7 @@ fprintf('Percentage of correct common lines: %f%%\n\n',prop*100);
 
 %% Estimate rotations
 S=cryo_syncmatrix_vote(clstack,n_theta);
-[rotations,~,mse]=cryo_syncrotations(S,rot_to_q(rots_ref));
+[rotations,~,mse]=cryo_syncrotations(S,rots_ref);
 fprintf('MSE of the estimated rotations: %f\n\n',mse); %Show be close to zero.
 
 % Resgister the estimated rotations to the reference onces. 

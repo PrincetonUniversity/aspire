@@ -54,7 +54,7 @@ for snridx=1:numel(SNRlist)
     
     %% Estimate shifts using estimated rotations
     S=cryo_syncmatrix_vote(clstack,n_theta);
-    [rotations,~,mse]=cryo_syncrotations(S,rot_to_q(rots_ref));
+    [rotations,~,mse]=cryo_syncrotations(S,rots_ref);
     log_message('MSE of the estimated rotations: %f',mse); %Show be close to zero.
 
     

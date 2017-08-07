@@ -40,7 +40,7 @@ fprintf('Percentage of correct common lines: %f%%\n\n',prop*100);
 %% Estimate orientations using sychronization.
  
 S=cryo_syncmatrix_vote(clstack,n_theta);
-[rotations,diff,mse]=cryo_syncrotations(S,rot_to_q(rots_ref));
+[rotations,diff,mse]=cryo_syncrotations(S,rots_ref);
 fprintf('MSE of the estimated rotations: %f\n\n',mse);
 %fprintf('MSE of the estimated rotations: %f\n\n', ...
 %   check_MSE(rotations,rots_ref));

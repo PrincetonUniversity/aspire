@@ -25,7 +25,7 @@ p=0.5;
 
 %S=cryo_syncmatrix_vote(noisy_cl,L,rot_to_q(rots_ref),is_perturbed);
 S=cryo_syncmatrix_vote(noisy_cl,L);
-rotations=cryo_syncrotations(S,rot_to_q(rots_ref));
+rotations=cryo_syncrotations(S,rots_ref);
 inv_rots_ref = permute(rots_ref, [2 1 3]);
 dir1=R2S2(inv_rots_ref,L);
 dir2=R2S2(rotations,L);
