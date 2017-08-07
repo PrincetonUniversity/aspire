@@ -1,8 +1,6 @@
 function [l_ij,l_ji]=commonline_R(Ri,Rj,L)
 %
 % Compute the common line induced by rotation matrixces Ri and Rj.
-% Ri and Rj are generated, for example, by
-% Ri=q_to_rot(q(:,i)) and Rj=q_to_rot(q(:,j))
 %
 % Returns the indices of the common lines between images  (rotations) i and
 % j in image i (l_ij) and in image j (l_ji), respectively.

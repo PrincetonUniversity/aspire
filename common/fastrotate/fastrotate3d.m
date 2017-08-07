@@ -9,7 +9,7 @@ function OUTPUT=fastrotate3d(INPUT,R)
 %
 % Examples:
 %
-%   R=q_to_rot(qrand(1))
+%   R=rand_rots(1);
 %   rvol=fastrotate3d(vol,R);
 %
 %Yoel Shkolnisky, November 2013.

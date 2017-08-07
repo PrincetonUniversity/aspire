@@ -5,7 +5,7 @@
 
 maxerr=-1;
 for k=1:10000
-    R=q_to_rot(qrand(1));
+    R=rand_rots(1);
     [psi,theta,phi]=rot2xyz(R);
     R2=Rz(phi)*Ry(theta)*Rx(psi);
     err=norm(R2.'*R-eye(3),'fro');

@@ -105,11 +105,7 @@ vol2ds=cryo_downsample(vol2masked,[n_downsample n_downsample n_downsample]);
 
 
 % Nrots=5000;
-% qrots=qrand(Nrots);
-% rotations=zeros(3,3,Nrots);
-% for jj=1:Nrots
-%     rotations(:,:,jj)=q_to_rot(qrots(:,jj));
-% end
+% rotations=rand_rots(Nrots);
 rotations=genRotationsGrid(75);
 
 corr0=0;
