@@ -13,7 +13,7 @@
 function plan = nufft_set_points(plan, fourier_pts)
 	dims = numel(plan.sz);
 
-	if ndims(fourier_pts) ~= 2 || ~all(size(fourier_pts)==[dims plan.num_pts])
+	if ndims(fourier_pts) ~= 2 || any(size(fourier_pts) ~= [dims plan.num_pts])
 		error('Frequencies ''fourier_pts'' array must be of the size d-by-N.');
 	end
 

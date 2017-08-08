@@ -11,10 +11,19 @@
 %    sig: The adjoint transform of sig_f.
 
 function sig = nufft_adjoint(plan, sig_f)
+	if ~isfield(plan, 'lib_code') || ~isfield(plan, 'sz') || ...
+		~isfield(plan, 'num_pts')
+		error('Input ''plan'' is not a valid NUFFT plan.');
+	end
+
+	if ~isfield(plan, 'fourier_pts')
+		error('Plan has not been initialized with Fourier points.');
+	end
+
 	dims = numel(plan.sz);
 
-	if ndims(sig_f) ~= 2 || ~all(size(sig_f)==[plan.num_pts 1])
-		error('Input ''sig_f'' must be of size num_pts-by-1.');
+	if ndims(sig_f) ~= 2 || any(size(sig_f) ~= [plan.num_pts 1])
+		error('Input ''sig_f'' must be of size plan.num_pts-by-1.');
 	end
 
 	precision = class(sig_f);
@@ -56,6 +65,10 @@ function sig = nufft_adjoint(plan, sig_f)
 
 		sig = reshape(sig, [plan.sz 1]);
 	elseif plan.lib_code == 3
+		if ~isfield(plan, 'nfft_plan_id')
+			error('Input ''plan'' is not a valid NUFFT plan.');
+		end
+
 		sig_f = double(sig_f);
 		sig_f = sig_f(:);
 

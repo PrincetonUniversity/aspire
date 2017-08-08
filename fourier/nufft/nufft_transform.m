@@ -11,13 +11,24 @@
 %    sig_f: Non-uniform Fourier transform of sig.
 
 function sig_f = nufft_transform(plan, sig)
+	if ~isfield(plan, 'lib_code') || ~isfield(plan, 'sz') || ...
+		~isfield(plan, 'num_pts')
+		error('Input ''plan'' is not a valid NUFFT plan.');
+	end
+
+	if ~isfield(plan, 'fourier_pts')
+		error('Plan has not been initialized with Fourier points.');
+	end
+
 	dims = numel(plan.sz);
 
 	sig_sz = size(sig);
 
-	sig_sz = sig_sz(1:dims);
+	if dims == 1 && sig_sz(2) == 1
+		sig_sz = sig_sz(1);
+	end
 
-	if ~all(sig_sz==plan.sz)
+	if numel(sig_sz) ~= dims || any(sig_sz ~= plan.sz)
 		error('Input ''sig'' must be of size plan.sz.');
 	end
 
@@ -59,6 +70,10 @@ function sig_f = nufft_transform(plan, sig)
 				plan.sz(1), plan.sz(2), plan.sz(3), sig);
 		end
 	elseif plan.lib_code == 3
+		if ~isfield(plan, 'nfft_plan_id')
+			error('Input ''plan'' is not a valid NUFFT plan.');
+		end
+
 		sig = double(sig);
 
 		if dims == 2
