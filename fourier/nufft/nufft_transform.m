@@ -15,9 +15,7 @@ function sig_f = nufft_transform(plan, sig)
 
 	sig_sz = size(sig);
 
-	if sig_sz(2) == 1
-		sig_sz = sig_sz(1);
-	end
+	sig_sz = sig_sz(1:dims);
 
 	if ~all(sig_sz==plan.sz)
 		error('Input ''sig'' must be of size plan.sz.');

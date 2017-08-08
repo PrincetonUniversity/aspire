@@ -16,7 +16,7 @@
 %    nudft1
 
 function sig_f = nufft1(sig, fourier_pts)
-	p = nufft_initialize(size(sig), size(fourier_pts, 2));
+	p = nufft_initialize(size(sig, 1), size(fourier_pts, 2));
 
 	p = nufft_set_points(p, fourier_pts);
 

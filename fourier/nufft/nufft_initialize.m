@@ -19,8 +19,6 @@ function plan = nufft_initialize(sz, num_pts)
 		error('num_pts must be a positive finite integer')
 	end
 
-	sz = sz(1:find(sz~=1, 1, 'last'));
-
 	lib_code = pick_nufft_library(sz);
 
 	plan = struct();
