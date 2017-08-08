@@ -37,7 +37,11 @@ function sig = nufft_adjoint(plan, sig_f)
 			sig = anudft3(sig_f, plan.fourier_pts, plan.sz);
 		end
 	elseif plan.lib_code == 2
-		epsilon = 1e-10;
+		if strcmp(precision, 'double')
+			epsilon = 1e-16;
+		elseif strcmp(precision, 'single')
+			epsilon = 1e-8;
+		end
 
 		sig_f = double(sig_f(:));
 
