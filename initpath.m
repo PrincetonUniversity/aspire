@@ -30,6 +30,10 @@ if exist(fullfile(pathstr, 'extern', 'nfft'))
         'matlab', 'nfft'));
 end
 
+if exist(fullfile(pathstr, 'extern', 'finufft'))
+    addpath(fullfile(pathstr, 'extern', 'finufft', 'matlab'));
+end
+
 if exist(fullfile(pathstr, 'extern', 'SDPLR-1.03-beta'))
     addpath(fullfile(pathstr,'extern','SDPLR-1.03-beta'));
 end
