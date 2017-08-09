@@ -5,7 +5,7 @@ if nargin < 3 || isempty(adaptive_support)
     adaptive_support = false;
 end
 
-n = size(images, 3);
+%n = size(images, 3);
 if adaptive_support
     energy_thresh=0.99;
     [ c, R ] = choose_support_v6( cfft2(images), energy_thresh); %Estimate band limit and compact support size
@@ -15,25 +15,27 @@ else
     R = floor(size(images, 1)/2);
 end
 n_r = ceil(4*c*R);
-tic_basis=tic;
+%tic_basis=tic;
 [ basis, sample_points ] = precomp_fb( n_r, R, c );
-timing.basis=toc(tic_basis);
+%timing.basis=toc(tic_basis);
 num_pool=5;
 
-disp('Computing sPCA coefficients')
-[ timing, coeff, mean_coeff, sPCA_coeff, U, D ] = jobscript_FFBsPCA(images, R, noise_v_r, basis, sample_points, num_pool);
+log_message('Start computing sPCA coefficients')
+[ ~, ~, mean_coeff, sPCA_coeff, U, ~ ] = jobscript_FFBsPCA(images, R, noise_v_r, basis, sample_points, num_pool);
+log_message('Finished computing sPCA coefficients')
 
 sPCA_data.U = U;
 sPCA_data.Coeff = cell2mat(sPCA_coeff);
 sPCA_data.Mean = mean_coeff;
 
+size_vec=zeros(length(sPCA_coeff),1);
 for i=1:length(sPCA_coeff)
 	size_vec(i)=size(sPCA_coeff{i},1);
 end
 
 
 uniq_freq=unique(basis.ang_freqs);
-freqs1 = [];
+freqs1 = zeros(max(uniq_freq),1);
 so_far=0;
 for i=1:max(uniq_freq)
  if size_vec(i)~=0
@@ -44,7 +46,8 @@ for i=1:max(uniq_freq)
  end
 end
 
-sPCA_data.Freqs=freqs1';
+freqs1=freqs1(1:so_far);
+sPCA_data.Freqs=freqs1;
 sPCA_data.c=c;
 sPCA_data.R=R;
 
@@ -52,5 +55,7 @@ L0=size(images,1);
 n_max=size(images,3); % Number of images to denoise
 %Computes eigen images, need output from IFT_FB.m.
 [ fn ] = IFT_FB(R, c);
-sprintf('Reconstructing images after sPCA')
+log_message('Start reconstructing images after sPCA')
 [~, recon_spca] = denoise_images_analytical(U, fn, mean_coeff, sPCA_coeff, L0, R, n_max);
+log_message('Finished reconstructing images after sPCA')
+

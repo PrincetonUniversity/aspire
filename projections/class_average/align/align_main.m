@@ -142,7 +142,7 @@ end
 averagesfname=tempname;
 [~, averagesfname]=fileparts(averagesfname);
 averagesfname=fullfile(tmpdir,averagesfname);
-stack=imagestackWriter(averagesfname,1,numel(list_recon),100);
+stack=imagestackWriter(averagesfname,numel(list_recon),1,100);
 for j=1:length(list_recon)
     mrcname=sprintf('average%d.mrc',j);
     mrcname=fullfile(tmpdir,mrcname);
