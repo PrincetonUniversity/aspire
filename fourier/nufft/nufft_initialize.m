@@ -35,7 +35,7 @@ function plan = nufft_initialize(sz, num_pts)
 		elseif numel(sz) == 3
 			plan.nfft_plan_id = nfft_init_3d(sz(1), sz(2), sz(3), num_pts);
 		end
-	elseif lib_code ~= 1 && lib_code ~= 2
+	elseif ~ismember(lib_code, [1 2 4])
 		error('Invalid library code.');
 	end
 end
