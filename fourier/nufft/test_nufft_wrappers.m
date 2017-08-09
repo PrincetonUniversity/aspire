@@ -132,7 +132,7 @@ tm3_a2d = toc(tt);
 fprintf('%-40s%15f s\n', 'anufft2 ''dft'':', tm3_a2d);
 
 tt = tic;
-im0 = anudft2(im_f, fourier_pts, N*ones(1, 3));
+im0 = anudft2(im_f, fourier_pts, N*ones(1, 2));
 tm0_a2d = toc(tt);
 fprintf('%-40s%15f s\n', 'anudft2:', tm0_a2d);
 
@@ -199,7 +199,7 @@ tm3_a1d = toc(tt);
 fprintf('%-40s%15f s\n', 'anufft1 ''dft'':', tm3_a1d);
 
 tt = tic;
-sig0 = anudft1(sig_f, fourier_pts, N*ones(1, 3));
+sig0 = anudft1(sig_f, fourier_pts, N);
 tm0_a1d = toc(tt);
 fprintf('%-40s%15f s\n', 'anudft1:', tm0_a1d);
 
