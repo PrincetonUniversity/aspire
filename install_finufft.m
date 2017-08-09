@@ -117,6 +117,11 @@ function install_finufft(url, location, fftw_location)
 		cmd = [cmd ' octave'];
 	end
 
+	old_cpath = getenv('CPATH');
+	new_cpath = [fullfile(fftw_location, 'include') pathsep ...
+		old_cpath];
+	setenv('CPATH', new_cpath);
+
 	old_library_path = getenv('LIBRARY_PATH');
 	new_library_path = [fullfile(fftw_location, 'lib') pathsep ...
 		old_library_path];
@@ -124,6 +129,7 @@ function install_finufft(url, location, fftw_location)
 
 	status = system(cmd);
 
+	setenv('CPATH', old_cpath);
 	setenv('LIBRARY_PATH', old_library_path);
 
 	if status ~= 0
