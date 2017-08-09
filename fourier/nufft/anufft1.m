@@ -18,12 +18,16 @@
 %    anudft1
 
 function sig = anufft1(sig_f, fourier_pts, sz)
-	if numel(sz) == 2 && sz(2) == 1
-		sz = sz(1);
+	if ndims(sig_f) > 2 || size(sig_f, 2) ~= 1
+		error('Input ''sig_f'' must be of the form K-by-1.');
 	end
 
-	if numel(sz) ~= 1
-		error('Input ''sz'' must be a scalar.');
+	if ndims(fourier_pts) > 2 || any(size(fourier_pts) ~= [1 size(sig_f, 1)])
+		error('Input ''fourier_pts'' must be of the form 1-by-K.');
+	end
+
+	if numel(sz) ~= 1 || any(floor(sz) ~= sz) || any(sz < 1)
+		error('Input ''sz'' must be a positive integer scalar.');
 	end
 
 	p = nufft_initialize(sz, size(fourier_pts, 2));

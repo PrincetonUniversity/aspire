@@ -12,14 +12,12 @@
 
 function plan = nufft_initialize(sz, num_pts)
 	if numel(sz) < 1 || numel(sz) > 3
-		error('sz vector must be of length 1, 2, or 3');
+		error('Input ''sz'' vector must be of length 1, 2, or 3.');
 	end
 
-	if num_pts < 1 || ~isfinite(num_pts) || abs(num_pts-round(num_pts)) > eps(num_pts)
-		error('num_pts must be a positive finite integer')
+	if num_pts < 1 || ~isfinite(num_pts) || floor(num_pts) ~= num_pts
+		error('Input ''num_pts'' must be a positive finite integer.')
 	end
-
-	sz = sz(1:find(sz~=1, 1, 'last'));
 
 	lib_code = pick_nufft_library(sz);
 
@@ -37,7 +35,7 @@ function plan = nufft_initialize(sz, num_pts)
 		elseif numel(sz) == 3
 			plan.nfft_plan_id = nfft_init_3d(sz(1), sz(2), sz(3), num_pts);
 		end
-	elseif lib_code ~= 1 && lib_code ~= 2
-		error('invalid library code');
+	elseif ~ismember(lib_code, [1 2 4])
+		error('Invalid library code.');
 	end
 end

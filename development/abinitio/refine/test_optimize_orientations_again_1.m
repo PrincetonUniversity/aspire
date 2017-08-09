@@ -14,6 +14,7 @@ for k=1:Nprojs
     trueRs(:,:,k)=(q_to_rot(q(:,k))).';
 end
 
+L = size(projs, 1);
 [estR2,estdx2,optout]=optimize_orientations_again(projshifted,trueRs,true_shifts,L,trueRs,true_shifts);
 
 rot_diff=norm(estR2(:)-trueRs(:))/norm(trueRs(:));

@@ -15,10 +15,22 @@
 %    vol: The adjoint Fourier transform of vol_f at frequencies fourier_pts.
 
 function vol = anudft3(vol_f, fourier_pts, sz)
+	if ndims(vol_f) > 2 || size(vol_f, 2) ~= 1
+		error('Input ''vol_f'' must be of the form K-by-1.');
+	end
+
+	if ndims(fourier_pts) > 2 || any(size(fourier_pts) ~= [3 size(vol_f, 1)])
+		error('Input ''fourier_pts'' must be of the form 3-by-K.');
+	end
+
+	if numel(sz) ~= 3 || any(floor(sz) ~= sz) || any(sz < 1)
+		error('Input ''sz'' must be a positive integer vector of length three.');
+	end
+
 	N = sz(1);
 
 	if sz(2) ~= N || sz(3) ~= N
-		error('only cube volumes supported');
+		error('Only cubic volumes supported.');
 	end
 
 	grid = ceil([-N/2:N/2-1]);

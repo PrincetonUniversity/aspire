@@ -30,7 +30,7 @@ for k=1:numel(SNRlist)
 
     
 %     [p, np, shifts, q] = ...
-%         gen_projections(K,SNR,max_shift2d,step_size_2d);
+%         cryo_gen_projections(n,K,SNR,max_shift2d,step_size_2d);
     [ref_clmatrix,clcorr]=clmatrix_cheat_q(refq,n_theta);
     
 

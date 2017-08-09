@@ -19,8 +19,16 @@
 %    anudft3
 
 function vol = anufft3(vol_f, fourier_pts, sz)
-	if numel(sz) ~= 3
-		error('Input ''sz'' must have three elements.');
+	if ndims(vol_f) > 2 || size(vol_f, 2) ~= 1
+		error('Input ''vol_f'' must be of the form K-by-1.');
+	end
+
+	if ndims(fourier_pts) > 2 || any(size(fourier_pts) ~= [3 size(vol_f, 1)])
+		error('Input ''fourier_pts'' must be of the form 3-by-K.');
+	end
+
+	if numel(sz) ~= 3 || any(floor(sz) ~= sz) || any(sz < 1)
+		error('Input ''sz'' must be a positive integer vector of length three.');
 	end
 
 	p = nufft_initialize(sz, size(fourier_pts, 2));

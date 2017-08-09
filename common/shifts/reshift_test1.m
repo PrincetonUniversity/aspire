@@ -25,11 +25,12 @@
 % Yoel Shkolnisky, February 2012.
 
 K=200;
-L=360;
+L=65;
 n_r=100;
-[projs,noisy_projs,shifts,refq]=gen_projections(K,1000,6,3,'gaussian',0);
-%[projs,noisy_projs,shifts,refq]=gen_projections(K,1000,0,1,'gaussian',0);
-[pf,sampling_freqs]=cryo_pft(projs,n_r,L,'single');  % take Fourier transform of projections   
+n_theta = 360;
+[projs,noisy_projs,shifts,refq]=cryo_gen_projections(L,K,1000,6,3);
+%[projs,noisy_projs,shifts,refq]=cryo_gen_projections(L,K,1000,0,1);
+[pf,sampling_freqs]=cryo_pft(projs,n_r,n_theta,'single');  % take Fourier transform of projections   
 
 open_log(0);
 [clmatrix,clcorr,shift_equations,shift_equations_map]=cryo_clmatrix(pf,K,1,16,1);
@@ -63,7 +64,7 @@ V=V(:,1:end-3); % Null space of shift_equations.
 disp(norm(V.'*(s1-s2))/norm(V.'*s1)); 
 
 
-dirref=Q2S2(refq,L);
+dirref=Q2S2(refq,n_theta);
 % Reconstrut with no shifts
 X=cryo_vol2rays(pf);
 T1p=2/128;
