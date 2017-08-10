@@ -22,6 +22,12 @@
 %    mean_est_opt: A struct containing the fields:
 %          - 'precision': The precision of the kernel. Either 'double'
 %             (default) or 'single'.
+%          - 'batch_size': The size of the batches in which to compute the
+%             kernel, if set to a non-empty value. If empty, there are no
+%             batches and the entire parameter set is used. A small batch size
+%             can help with certain NUFFT libraries (like the Chemnitz NFFT
+%             package), which cannot handle too many nodes at once (default
+%             empty).
 %
 % Output
 %    mean_kernel_f: A 2*L-by-2*L-by-2*L array containing the centered Fourier
@@ -40,7 +46,33 @@ function mean_kernel_f = cryo_mean_kernel_f(L, params, mean_est_opt)
     n = size(params.rot_matrices, 3);
 
     mean_est_opt = fill_struct(mean_est_opt, ...
-        'precision', 'double');
+        'precision', 'double', ...
+        'batch_size', []);
+
+    if ~isempty(mean_est_opt.batch_size)
+        % To do batch, simply take a subset of the parameters, call the
+        % function for those subsets, and sum.
+        batch_size = mean_est_opt.batch_size;
+
+        mean_est_opt.batch_size = [];
+
+        batch_ct = ceil(n/batch_size);
+
+        mean_kernel_f = zeros(2*L*ones(1, 3), mean_est_opt.precision);
+
+        for batch = 1:batch_ct
+            s1 = (batch-1)*batch_size+1;
+            s2 = min(batch*batch_size, n);
+
+            batch_params = subset_params(params, s1:s2);
+
+            batch_kernel_f = cryo_mean_kernel_f(L, batch_params, mean_est_opt);
+
+            mean_kernel_f = mean_kernel_f + (s2-s1+1)/n*batch_kernel_f;
+        end
+
+        return;
+    end
 
     pts_rot = rotated_grids(L, params.rot_matrices);
 
