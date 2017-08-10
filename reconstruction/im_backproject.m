@@ -41,7 +41,7 @@ function vol = im_backproject(im, rot_matrices)
 
     im_f = reshape(im_f, [L^2*n 1]);
 
-    vol = 2/L*anufft3(im_f, pts_rot, L*ones(1, 3));
+    vol = anufft3(im_f, pts_rot, L*ones(1, 3));
 
     vol = real(vol);
 end

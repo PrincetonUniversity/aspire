@@ -60,7 +60,7 @@ function mean_kernel_f = cryo_mean_kernel_f(L, params, mean_est_opt)
     pts_rot = reshape(pts_rot, 3, []);
     filter = reshape(filter, [], 1);
 
-    mean_kernel = 1/n*(1/L)^2*(2/L)^2*anufft3(filter, pts_rot, ...
+    mean_kernel = 1/n*(1/L)^2*anufft3(filter, pts_rot, ...
         2*L*ones(1, 3));
 
     % Ensure symmetric kernel

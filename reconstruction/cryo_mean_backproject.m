@@ -63,7 +63,7 @@ function im_bp = cryo_mean_backproject(im, params, mean_est_opt)
     pts_rot = reshape(pts_rot, 3, []);
     im_f = reshape(im_f, [], 1);
 
-    im_bp = 1/n*(2/L)*anufft3(im_f, pts_rot, L*ones(1, 3));
+    im_bp = 1/n*anufft3(im_f, pts_rot, L*ones(1, 3));
 
     im_bp = real(im_bp);
 end

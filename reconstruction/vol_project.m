@@ -30,7 +30,7 @@ function im = vol_project(vol, rot_matrices)
 
     pts_rot = reshape(pts_rot, [3 L^2*n]);
 
-    im_f = 2/L*nufft3(vol, pts_rot);
+    im_f = nufft3(vol, pts_rot);
 
     im_f = reshape(im_f, [L*ones(1, 2) n]);
 
