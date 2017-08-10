@@ -21,6 +21,12 @@
 %    mean_est_opt: A struct containing the fields:
 %          - 'precision': The precision of the kernel. Either 'double'
 %             (default) or 'single'.
+%          - 'batch_size': The size of the batches in which to compute the
+%             backprojection, if set to a non-empty value. If empty, there are
+%             no batchces and the entire set of images is used. A small batch
+%             size can help with NUFFT libraries (like the Chemnitz NFFT can
+%             help with certain package), which cannot handle too many nodes
+%             at once (default empty).
 %
 % Output
 %    im_bp: The backprojected images, averaged over the whole dataset.
@@ -40,7 +46,35 @@ function im_bp = cryo_mean_backproject(im, params, mean_est_opt)
     check_imaging_params(params, L, n);
 
     mean_est_opt = fill_struct(mean_est_opt, ...
-        'precision', 'double');
+        'precision', 'double', ...
+        'batch_size', []);
+
+    if ~isempty(mean_est_opt.batch_size)
+        % To do batch, simply take a subset of the parameters, call the
+        % function for those subsets, and sum.
+        batch_size = mean_est_opt.batch_size;
+
+        mean_est_opt.batch_size = [];
+
+        batch_ct = ceil(n/batch_size);
+
+        im_bp = zeros(L*ones(1, 3), mean_est_opt.precision);
+
+        for batch = 1:batch_ct
+            s1 = (batch-1)*batch_size+1;
+            s2 = min(batch*batch_size, n);
+
+            batch_params = subset_params(params, s1:s2);
+            batch_im = im(:,:,s1:s2);
+
+            batch_im_bp = cryo_mean_backproject(batch_im, batch_params, ...
+                mean_est_opt);
+
+            im_bp = im_bp + (s2-s1+1)/n*batch_im_bp;
+        end
+
+        return;
+    end
 
     pts_rot = rotated_grids(L, params.rot_matrices);
 
