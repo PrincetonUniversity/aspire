@@ -15,6 +15,9 @@
 %             `ctf` array corresponding to each projection image.
 %          - ampl: A vector of length n specifying the amplitude multiplier
 %             of each image.
+%          - shifts: An array of size 2-by-n containing the offsets in x and y
+%             y (the second and first dimensions of im) which were applied
+%             after the projection.
 %    basis: A basis object used for representing the volumes (default
 %       dirac_basis(L*ones(1, 3))).
 %    mean_est_opt: A struct containing the fields:

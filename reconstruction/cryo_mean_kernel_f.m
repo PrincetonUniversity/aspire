@@ -16,6 +16,9 @@
 %             `ctf` array corresponding to each projection image.
 %          - ampl: A vector of length n specifying the amplitude multiplier
 %             of each image.
+%          - shifts: An array of size 2-by-n containing the offsets in x and y
+%             y (the second and first dimensions of im) which were applied
+%             after the projection.
 %    mean_est_opt: A struct containing the fields:
 %          - 'precision': The precision of the kernel. Either 'double'
 %             (default) or 'single'.
