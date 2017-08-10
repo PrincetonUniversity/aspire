@@ -35,5 +35,5 @@ function im = vol_image(vol, params, start, num)
 
     im = bsxfun(@times, im, reshape(params.ampl(range), [1 1 num]));
 
-    im = im_translate(im, params.shifts);
+    im = im_translate(im, params.shifts(:,range));
 end
