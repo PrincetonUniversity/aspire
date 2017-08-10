@@ -46,6 +46,8 @@ function mean_kernel_f = cryo_mean_kernel_f(L, params, mean_est_opt)
 
     filter = abs(params.ctf(:,:,params.ctf_idx)).^2;
 
+    filter = cast(filter, mean_est_opt.precision);
+
     filter = bsxfun(@times, filter, reshape(params.ampl.^2, [1 1 n]));
 
     if mod(L, 2) == 0
