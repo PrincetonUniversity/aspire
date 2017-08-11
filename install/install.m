@@ -11,8 +11,7 @@ function install
 currPath=pwd; % Save current location to get back to here once done.
 
 % Compile all mex files
-[aspirePath,~,~]=fileparts(mfilename('fullpath'));
-traversedirrectorytree(aspirePath,@runmakemex);
+traversedirrectorytree(aspire_root(),@runmakemex);
 
 % cd(fullfile(aspirePath,'extern','cvx'));
 % cvx_setup;
