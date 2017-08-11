@@ -24,8 +24,11 @@
 %       mapping represented by convolving with `kernel_f` and b are the
 %       backprojected images `im_bp`. The equation is solved using the
 %       conjugate gradient method.
+%    cg_info: A structure containing information about the conjugate gradient
+%       method, such as residuals, objectives, etc. See the documentation of
+%       `conj_grad` for more details.
 
-function mean_est = cryo_conj_grad_mean(kernel_f, im_bp, basis, ...
+function [mean_est, cg_info] = cryo_conj_grad_mean(kernel_f, im_bp, basis, ...
     precond_kernel_f, mean_est_opt)
 
     if nargin < 4
@@ -60,7 +63,7 @@ function mean_est = cryo_conj_grad_mean(kernel_f, im_bp, basis, ...
 
     im_bp_basis = basis.evaluate_t(im_bp);
 
-    mean_est_basis = conj_grad(fun, im_bp_basis, mean_est_opt);
+    [mean_est_basis, ~, cg_info] = conj_grad(fun, im_bp_basis, mean_est_opt);
 
     mean_est = basis.evaluate(mean_est_basis);
 end

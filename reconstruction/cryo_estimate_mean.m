@@ -45,8 +45,13 @@
 %       CTF filtering, multiplication), and y_s are the observed images. This
 %       is achieved by forming the normal equations and solving them using the
 %       conjugate gradient method.
+%    cg_info: A structure containing information about the conjugate gradient
+%       method, such as residuals, objectives, etc. See the documentation of
+%       `conj_grad` for more details.
 
-function mean_est = cryo_estimate_mean(im, params, basis, mean_est_opt)
+function [mean_est, cg_info] = cryo_estimate_mean(im, params, basis, ...
+    mean_est_opt)
+
     if nargin < 3
         basis = [];
     end
@@ -87,6 +92,6 @@ function mean_est = cryo_estimate_mean(im, params, basis, mean_est_opt)
 
     im_bp = cryo_mean_backproject(im, params, mean_est_opt);
 
-    mean_est = cryo_conj_grad_mean(kernel_f, im_bp, basis, ...
+    [mean_est, cg_info] = cryo_conj_grad_mean(kernel_f, im_bp, basis, ...
         precond_kernel_f, mean_est_opt);
 end
