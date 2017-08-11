@@ -6,7 +6,7 @@
 % Output
 %    root: A string containing the path to the ASPIRE package.
 function root = aspire_root()
-	full_path = mfilename('fullpathext');
+	full_path = mfilename('fullpath');
 
 	[root, ~, ~] = fileparts(full_path);
 
