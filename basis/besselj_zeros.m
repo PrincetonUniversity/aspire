@@ -17,7 +17,7 @@ function z = besselj_zeros(nu, k)
         error('Input `nu` must be between 0 and 1e7.');
     end
 
-    z = zeros(1, k);
+    z = zeros(k, 1);
 
     % Guess first zeros using powers of nu.
     c0 = [ 0.1701 -0.6563 1.0355 1.8558; ...
@@ -70,6 +70,8 @@ function z = besselj_zeros(nu, k)
             j = 2*find(abs(err) >= err_tol, 1);
         end
     end
+
+    z = z';
 end
 
 function b = check_besselj_zeros(nu, z)
