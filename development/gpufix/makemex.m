@@ -1,3 +1,8 @@
+if ~is_gpu()
+    warning('No GPU is present. Skipping compilation of CUDA MEX files.');
+    return;
+end
+
 debug=1;
 timing=0;
 
