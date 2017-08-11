@@ -7,7 +7,7 @@
 %    nu: Order of the Bessel function J_nu. Must be less than 42.
 %    k: The number of zeros desired.
 %    max_iter: The maximum number of iterations used in Halley's method
-%       for computing the exact zeros (default 100, see 
+%       for computing the exact zeros (default 10, see 
 %       besselj_closest_zero).
 %
 % Output

@@ -6,14 +6,14 @@
 % Input
 %    nu: The order of the Bessel function.
 %    z0: The initial value at which to start the search.
-%    max_iter: Maximum number of iterations (default 100).
+%    max_iter: Maximum number of iterations (default 10).
 %
 % Output
 %    z: The zero of J_nu closest to z0 after max_iter iterations.
 
 function z = besselj_closest_zero(nu, z0, max_iter)
 	if nargin < 3 || isempty(max_iter)
-		max_iter = 100;
+		max_iter = 10;
 	end
 
 	z = z0;
