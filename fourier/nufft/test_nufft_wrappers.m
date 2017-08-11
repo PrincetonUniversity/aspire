@@ -3,7 +3,7 @@ M = 87;
 
 old_libs = get_nufft_libraries();
 
-nudft_warning = warning('query', 'aspire:using-nudft');
+nudft_warning = warning('query', 'aspire:using_nudft');
 warning('off', nudft_warning.identifier);
 
 fprintf('Testing NUFFT wrappers\n');
