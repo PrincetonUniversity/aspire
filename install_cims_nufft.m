@@ -28,8 +28,7 @@ function install_cims_nufft(url, location, force_compile)
 	end
 
 	if nargin < 2 || isempty(location)
-		aspire_root = fileparts(mfilename('fullpath'));
-		location = fullfile(aspire_root, 'extern');
+		location = fullfile(aspire_root(), 'extern');
 	end
 
 	if nargin < 3 || isempty(force_compile)

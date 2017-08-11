@@ -29,13 +29,11 @@ function install_finufft(url, location, fftw_location)
 	end
 
 	if nargin < 2 || isempty(location)
-		aspire_root = fileparts(mfilename('fullpath'));
-		location = fullfile(aspire_root, 'extern');
+		location = fullfile(aspire_root(), 'extern');
 	end
 
 	if nargin < 3 || isempty(fftw_location)
-		aspire_root = fileparts(mfilename('fullpath'));
-		fftw_location = fullfile(aspire_root, 'extern', 'fftw3');
+		fftw_location = fullfile(aspire_root(), 'extern', 'fftw3');
 	end
 
 	if ~exist(fftw_location, 'dir')

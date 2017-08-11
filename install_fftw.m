@@ -23,8 +23,7 @@ function install_fftw(url, location)
 	end
 
 	if nargin < 2 || isempty(location)
-		aspire_root = fileparts(mfilename('fullpath'));
-		location = fullfile(aspire_root, 'extern');
+		location = fullfile(aspire_root(), 'extern');
 	end
 
 	fprintf('Installing the FFTW package.\n');
