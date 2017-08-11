@@ -18,6 +18,8 @@ function z = besselj_closest_zero(nu, z0, max_iter)
 
 	z = z0;
 
+	c = 8;
+
 	for iter = 1:max_iter
 		f = besselj(nu, z);
 		if nu == 0
@@ -31,7 +33,13 @@ function z = besselj_closest_zero(nu, z0, max_iter)
 			fb = 1/4*(besselj(nu-2, z)-besselj(nu+2, z));
 		end
 
-		z = z-2*f.*fp./(2*fp.^2-f.*fb);
+		dz = -2*f.*fp./(2*fp.^2-f.*fb);
+
+		z = z + dz;
+
+		if all(abs(dz) < c*eps(z))
+			break;
+		end
 	end
 end
 
