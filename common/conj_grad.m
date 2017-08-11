@@ -22,9 +22,9 @@
 %             even if it has not yet reached the maximum number of iterations
 %             (default 1e-15).
 %          - store_iterates: Defines whether to store each intermediate results
-%             in the info structure under the x field. Since this may require a
-%             large amount of memory, it is recommended not to do this unless
-%             necessary (default false).
+%             in the info structure under the x, p and r fields. Since this
+%             may require a large amount of memory, this is not recommended
+%             (default false).
 %    init: A structure specifying the starting point of the algorithm. This
 %       can contain values of x or p that will be used for intialization
 %       (default empty).
@@ -36,9 +36,9 @@
 %    info: A structure array containing intermediate information obtained
 %       during each iteration. These fields include:
 %          - iter: The iteration number.
-%          - x (if store_iterates is true): The value of x.
-%          - r: The residual vector.
-%          - p: The p vector.
+%          - x (for store_iterates true): The value of x.
+%          - r (for store_iterates true): The residual vector.
+%          - p (for store_iterates true): The p vector.
 %          - res: The square norm of the residual.
 %          - obj: The objective function.
 
@@ -99,9 +99,9 @@ function [x, obj, info] = conj_grad(Afun, b, cg_opt, init)
     info(1).iter = 0;
     if cg_opt.store_iterates
         info(1).x = x;
+        info(1).r = r;
+        info(1).p = p;
     end
-    info(1).r = r;
-    info(1).p = p;
     info(1).res = old_res;
     info(1).obj = obj;
 
@@ -147,9 +147,9 @@ function [x, obj, info] = conj_grad(Afun, b, cg_opt, init)
         info(iter+1).iter = iter;
         if cg_opt.store_iterates
             info(iter+1).x = x;
+            info(iter+1).r = r;
+            info(iter+1).p = p;
         end
-        info(iter+1).r = r;
-        info(iter+1).p = p;
         info(iter+1).res = old_res;
         info(iter+1).obj = obj;
 
