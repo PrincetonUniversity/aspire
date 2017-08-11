@@ -5,12 +5,13 @@
 %
 % Output
 %    root: A string containing the path to the ASPIRE package.
+
 function root = aspire_root()
-	full_path = mfilename('fullpath');
+    full_path = mfilename('fullpath');
 
-	[root, ~, ~] = fileparts(full_path);
+    [root, ~, ~] = fileparts(full_path);
 
-	ind = find(root == filesep, 1, 'last');
+    ind = find(root == filesep, 1, 'last');
 
-	root = root(1:ind-1);
+    root = root(1:ind-1);
 end
