@@ -55,7 +55,8 @@ if exist('ref_q','var')
         q=ref_q; % Use given quaternions.
     end
 else
-    initstate; % So we get the same results every time for reproducibility.
+    %initstate; % So we get the same results every time for reproducibility.
+    log_message('For reproducible results, call initstate before calling cryo_gen_projections ');
     q=qrand(K);  % Generate random uniform quaternions.
 end
 
@@ -76,6 +77,7 @@ end
 
 % Generate clean projections
 load cleanrib
+log_message('Generating clean projections');
 projections=cryo_project(volref,q,n,precision);
 
 
@@ -83,10 +85,13 @@ projections=permute(projections,[2 1 3]); % Swap dimensions for compitability wi
 
 % Add shifts
 if ~isempty(shifts)
+    log_message('Adding user-provided shifts to projections');
     projections=cryo_addshifts(projections,shifts);
 else
+    log_message('Adding randomly-generated shifts to projections');
     [projections,shifts]=cryo_addshifts(projections,[],max_shift,shift_step);
 end
 
 % Add noise
+log_message('Adding noise to projections');
 noisy_projections=cryo_addnoise(projections,SNR,'gaussian');

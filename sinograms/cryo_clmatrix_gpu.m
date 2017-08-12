@@ -100,7 +100,6 @@ if verbose>0
     end
 end
 
-initstate;
 msg=[];
 
 T=size(pf,2);
@@ -146,16 +145,16 @@ if (nargin<2) || (NK==-1)
     NK=n_proj; % Number of common-line pairs to compute for each projection
 end
 
-if ~exist('verbose','var');
+if ~exist('verbose','var')
     verbose=1;
 end
 
-if ~exist('max_shift','var');
+if ~exist('max_shift','var')
     max_shift=15; % Maximal shift between common-lines in pixels. The 
                   % shift  is from -max_shift to max_shift. 
 end
 
-if ~exist('shift_step','var');
+if ~exist('shift_step','var')
     shift_step=1.0; % Resolution of shift estimation in pixels.
 end
 n_shifts=ceil(2*max_shift/shift_step+1); % Number of shifts to try.
@@ -337,7 +336,7 @@ for shiftidx=1:n_shifts
 end
 
 
-for k1=1:n_proj;
+for k1=1:n_proj
     
     n2=min(n_proj-k1,NK);
     subsetK2=sort(randperm(n_proj-k1)+k1);
@@ -374,7 +373,7 @@ for k1=1:n_proj;
         error('DC component of projection is not zero');
     end
     
-    for k2=subsetK2;
+    for k2=subsetK2
         
         t1=clock;                       
         proj2=pf3(:,:,k2); % proj1 and proj2 are both normalized to unit norm.
@@ -857,7 +856,7 @@ if verbose_detailed_debugging
     % XXX Check that the shift estimation improves with n_theta.
     % XXX Does it improve with n_proj?
     if n_proj<=100
-        [U,S,V]=svd(full(shift_equations(:,1:end-1)));
+        [~,S,V]=svd(full(shift_equations(:,1:end-1)));
         s=diag(S);
         log_message('Singular values of the shift system of equations:');
         log_message('%d  ',fliplr(s.'));

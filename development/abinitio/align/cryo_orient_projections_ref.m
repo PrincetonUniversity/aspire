@@ -41,7 +41,6 @@ currentsilentmode=log_silent(verbose==0);
 % Generate Nrefs references projections of the given volume using random
 % orientations.
 log_message('Generating %d reference projections.',Nrefs);
-initstate;
 qrefs=qrand(Nrefs);
 refprojs=cryo_project(vol,qrefs,szvol(1));
 refprojs=permute(refprojs,[2 1 3]);

@@ -133,7 +133,6 @@ idxI=pairsI(pairsJ>pairsI);
 idxJ=pairsJ(pairsJ>pairsI);
 Icl=[idxI,idxJ];
 % Pick Nequations indices from I at random.
-initstate;
 rp=randperm(size(Icl,1));
 Icl=Icl(rp(1:Nequations),:);
 %Icl=Icl((1:Nequations),:);

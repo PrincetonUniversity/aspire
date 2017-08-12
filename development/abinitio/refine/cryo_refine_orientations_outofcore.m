@@ -84,7 +84,6 @@ end
 
 
 % Generate reference projections
-initstate;
 q_ref=qrand(Nrefs);  % Generate Nprojs projections to orient.
 projs_ref=cryo_project(vol,q_ref);
 projs_ref=permute(projs_ref,[2,1,3]);

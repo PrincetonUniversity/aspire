@@ -1,9 +1,20 @@
 function [clstack,corrstack,shift_equations,shift_equations_map,clstack_mask]=...
-    cryo_clmatrix_cpu(pf,NK,verbose,max_shift,shift_step,map_filter_radius,...
+    cryo_clmatrix_gpu_1(pf,NK,verbose,max_shift,shift_step,map_filter_radius,...
     ref_clmatrix,ref_shifts_2d)
+%
+% Development code: incorporating mahalanobis weighting to common lines
+% detection.
 %
 %
 %   Generate common-lines matrix for the Fourier stack pf.
+%   This function is identical to cryo_clmatrix but takes advantage of GPU.
+%   See cryo_clmatrix for details.
+%   This version (using single precision GPU arithmetic) is 2.4 times
+%   faster than cryo_clmatrix (at version 990 at SVN).
+%   Note that when using single precision there are slight discrepencies
+%   between this function and cryo_clmatrix. When changing all GPU code to
+%   double precision, the result of this function is identical to
+%   cryo_clmatrix.
 %
 % Input parameters:
 %   pf       3D array where each image pf(:,:,k) corresponds to the Fourier
@@ -54,27 +65,43 @@ function [clstack,corrstack,shift_equations,shift_equations_map,clstack_mask]=..
 %       projections k1 and k2 was correctly identified, and 0 otherwise.
 %       This matrix will be non-zero only if bit 2 of verbose it set.
 %
-% Future version comment:
-% The function assumes that the common-line is the pair of lines
-% with maximum correlation. When the noise level is high, the
-% maximal correlation usually does not correspond to the true
-% common-line. In such cases, we would like to take several
-% candidates for the common-line. See cryo_clmatrix_v4 for how
-% to handle multiple candidates for common-line.
+% Yoel Shkolnisky, May 2013.
 %
-% Revisions:
-%   02/03/09  Filename changed from cryo_clmatrix_v6.m to cryo_clmatrix.m.
-%   02/04/09  Cleaning the code.
-%   02/19/09  Maximal allowed deviation between common lines to be
-%             considered as match was changed from 5 to 10 degrees.
-%   02/24/09  Normalize the array pf only once (improves speed).
-%   03/05/09  cryo_clmatrix_v3 created from cryo_clmatrix_v2
-%   03/05/09  Exploit the conjugate symmetry of the Fourier transform to
-%             compute correlations of length rmax instead of 2*rmax-1. This
-%             gives a factor of 2 in performance.
-%   15/06/13  Replace repmat with bsxfnu when comparing shifted lines. This
-%             should be faster and makes the code easier to port to GPU.
-%   28/2/17   Rename cryo_clmatrix to cryo_clmatrix_cpu.
+% Revision:
+% 16/05/2013 16:54 Yoel Shkolnisky 
+%         Optimize code:
+%             1. Compute the phases required for all shifts only once and
+%             not inside the shifts loop.
+%             2. Add a PRECISION variable that determines the precision
+%             (single/double) in which calculations are done in the GPU.
+%             3. To minimize communication between the CPU and GPU, search
+%             for the best correlation inside the GPU. and transfer to the
+%             CPU only the value of the best correlation and the index of
+%             the best common line and its shift.
+%             4. The debug code inside the shifts loop (look for "Beginning
+%             of debug code") does not work any more, since clstack is not
+%             being updated inside the loop any more. This debug code
+%             should be moved outside the shifts loop (in future versions).
+%
+%  16/05/2013 20:33 Yoel Shkolnisky 
+%          Further optimization: Instead of processing the shifts in a
+%          loop, one shift at a time, stack all shifts of a single
+%          projection into one array and compute all correlations for all
+%          shifts at once.   
+%         
+%  16/05/2013 21:00 Yoel Shkolnisky
+%          Code cleanup. Print warning when using single precision GPU
+%          calulations. Speedup of this function vs cryo_clmatrix is ~4.5
+%          for double precision and ~14 for single precision.
+
+PRECISION='single';
+
+if verbose>0
+    log_message('GPU PRECISION=%s',PRECISION);
+    if strcmpi(PRECISION,'single')
+        log_message('Using single precision GPU calculations!!!');
+    end
+end
 
 msg=[];
 
@@ -93,27 +120,28 @@ end
 % are exactly the same. Taking shorter correlation would speed the
 % computation by a factor of two.
 pf=[flipdim(pf(2:end,T/2+1:end,:),1) ; pf(:,1:T/2,:) ];
+pfmat=reshape(pf,[size(pf,1) size(pf,2)*size(pf,3)]);
+C=cov(pfmat.');
+%sqrtC=
 
-% XXX The PCA should not be done here. Move outside the common lines
-% XXX matrix.
-% Project all common lines on the first 15 principal components.
-% % % nPCs=30;
-% % % spf=reshape(pf,size(pf,1),size(pf,2)*size(pf,3));
-% % % 
-% % % m=mean(spf,2);
-% % % spf1=zeros(size(spf));
-% % % for k=1:size(spf,2);
-% % %     spf1(:,k)=spf(:,k)-m;
-% % % end
-% % % spf=spf1;
-% % % 
-% % % [U,S]=svd(spf);
-% % % U=U(:,1:nPCs);
-% % % pf_sav=pf;
-% % % spf=U*U'*spf;
-% % % pf=reshape(spf,size(pf,1),size(pf,2),size(pf,3));
-% % % 
-% % % log_message('Number of PCs = %d',nPCs);
+% % Project all common lines on the first 15 principal components.
+% nPCs=30;
+% spf=reshape(pf,size(pf,1),size(pf,2)*size(pf,3));
+% 
+% m=mean(spf,2);
+% spf1=zeros(size(spf));
+% for k=1:size(spf,2);
+%     spf1(:,k)=spf(:,k)-m;
+% end
+% spf=spf1;
+% 
+% [U,S]=svd(spf);
+% U=U(:,1:nPCs);
+% pf_sav=pf;
+% spf=U*U'*spf;
+% pf=reshape(spf,size(pf,1),size(pf,2),size(pf,3));
+% 
+% log_message('Number of PCs = %d',nPCs);
 
 n_theta=size(pf,2);
 n_proj=size(pf,3);
@@ -139,6 +167,20 @@ n_shifts=ceil(2*max_shift/shift_step+1); % Number of shifts to try.
 
 if ~exist('map_filter_radius','var')
     map_filter_radius=0;
+else
+    % Prepare mask to be applied
+    W0 = 1.25.^(21:-1:1);
+    d=map_filter_radius;
+    W0 = W0(1:(1+2*d));
+    W = W0 ( 1 + kron(abs(-d:d),ones(2*d+1,1)) + kron(abs(-d:d)',ones(1,2*d+1)) );
+    W=conj(fft2(W,2*n_theta,2*n_theta));
+    
+    if strcmpi(PRECISION,'single')
+        gW=single(gpuArray(W));
+    else
+        gW=gpuArray(W);
+    end
+
 end
 
 if ~exist('ref_clmatrix','var') || isempty(ref_clmatrix)
@@ -197,7 +239,8 @@ if bitand(verbose,8)
     verbose_plot_shifts=1;
 end;
 
-if verbose~=0
+
+if verbose>0
     log_message('Verbose mode=%d',verbose);
 end
 
@@ -291,6 +334,14 @@ for k=1:n_proj
 end
 
 rk2=rk(1:rmax);
+% Prepare the shift_phases
+shift_phases=zeros(rmax,n_shifts);
+for shiftidx=1:n_shifts
+    shift=-max_shift+(shiftidx-1)*shift_step;
+    shift_phases(:,shiftidx)=exp(-2*pi*sqrt(-1).*rk2.*shift./(2*rmax+1));
+end
+
+
 for k1=1:n_proj
     
     n2=min(n_proj-k1,NK);
@@ -301,6 +352,26 @@ for k1=1:n_proj
     proj1=pf3(:,:,k1);
     P1=proj1(1:rmax,:);  % Take half ray plus the DC
     P1_flipped=conj(P1);
+    
+    % Instead of processing the shifts in a loop, one shift at a time, stack
+    % all shifts of a single projection into one array and compute all
+    % correlations for all shifts at once.
+    % The variable P1_stack stacks all shifted versions of the image k1.
+    P1_stack=zeros(size(P1,1),size(P1,2)*n_shifts);
+    P1_flipped_stack=zeros(size(P1,1),size(P1,2)*n_shifts);
+    for k=1:n_shifts
+        P1_stack(:,(k-1)*n_theta+1:k*n_theta)=bsxfun(@times,P1,shift_phases(:,k));
+        P1_flipped_stack(:,(k-1)*n_theta+1:k*n_theta)=bsxfun(@times,P1_flipped,shift_phases(:,k));
+    end
+
+    if strcmpi(PRECISION,'single')
+        g_P1_stack=gpuArray(single(P1_stack));        
+        g_P1_flipped_stack=gpuArray(single(P1_flipped_stack));
+    else
+        g_P1_stack=gpuArray(P1_stack);
+        g_P1_flipped_stack=gpuArray(P1_flipped_stack);
+    end
+    
     
     % Make sure the DC component is zero. This is assumed  below in
     % computing correlations.
@@ -313,6 +384,12 @@ for k1=1:n_proj
         t1=clock;                       
         proj2=pf3(:,:,k2); % proj1 and proj2 are both normalized to unit norm.
         P2=proj2(1:rmax,:);
+        
+        if strcmpi(PRECISION,'single')
+            g_P2=gpuArray(single(P2));            
+        else
+            g_P2=gpuArray(P2);
+        end
         
         if norm(proj2(rmax+1,:))>1.0e-13
             error('DC component of projection is not zero');
@@ -358,77 +435,10 @@ for k1=1:n_proj
                         
         end
         %%%%%%%%%%%% End of debug code %%%%%%%%%%%%
-
+        
         % Find the shift that gives best correlation.
         for shiftidx=1:n_shifts
-            shift=-max_shift+(shiftidx-1)*shift_step;
-            shift_phases=exp(-2*pi*sqrt(-1).*rk2.*shift./(2*rmax+1)); 
-            %shift_phases=repmat(shift_phases,1,n_theta);
-            
-            % No need to renormalize proj1_shifted and
-            % proj1_shifted_flipped since multiplication by phases
-            % does not change the norm, and proj1 is already normalized.
-            %P1_shifted=P1.*shift_phases;
-            %P1_shifted_flipped=P1_flipped.*shift_phases;
-                                    
-            P1_shifted=bsxfun(@times,P1,shift_phases);
-            P1_shifted_flipped=bsxfun(@times,P1_flipped,shift_phases);
-            
-            % Compute correlations in the positive r direction           
-            C1=2*real(P1_shifted'*P2);
-            
-            % Compute correlations in the negative r direction
-            C2=2*real(P1_shifted_flipped'*P2);
-                        
-            
-            C = [C1,C2];
-   
-            if map_filter_radius > 0
-                C = cryo_average_clmap(C, map_filter_radius);
-            end
-            
-            [sval,sidx]=max(C(:));            
-           
-            improved_correlation=0; % Indicates that we found a better 
-                % correlation than previously known.
-            
-            if sval>corrstack(k1,k2)
-                [cl1,cl2]=ind2sub([n_theta 2*n_theta],sidx);
-                clstack(k1,k2)=cl1;
-                clstack(k2,k1)=cl2;
-                corrstack(k1,k2)=sval;
-                shifts_1d(k1,k2)=shift;
-                improved_correlation=1;
-            end
-            
-            
-% The above code is a compact version of the following one.            
-%             % The best match is the maximum among C1 and C2.
-%             [sval1,sidx1]=max(C1(:));
-%             [sval2,sidx2]=max(C2(:));
-%                                       
-%             improved_correlation=0; % Indicates that we found a better 
-%                 % correlation than previously known.
-%             
-%             if sval1>sval2
-%                 if sval1>corrstack(k1,k2)
-%                     [cl1,cl2]=ind2sub([n_theta n_theta],sidx1);
-%                     clstack(k1,k2)=cl1;
-%                     clstack(k2,k1)=cl2;
-%                     corrstack(k1,k2)=sval1;
-%                     shifts_1d(k1,k2)=shift;
-%                     improved_correlation=1;
-%                 end
-%             else
-%                 if sval2>corrstack(k1,k2)
-%                     [cl1,cl2]=ind2sub([n_theta n_theta],sidx2);
-%                     clstack(k1,k2)=cl1;
-%                     clstack(k2,k1)=cl2+n_theta;
-%                     corrstack(k1,k2)=sval2;
-%                     shifts_1d(k1,k2)=shift;
-%                     improved_correlation=1;
-%                 end
-%             end
+            % Now just debugging code is left is this loop.
             
             if verbose_detailed_debugging && found_ref_clmatrix && found_ref_shifts
                 % Compute and store the correlation between the true
@@ -463,6 +473,10 @@ for k1=1:n_proj
 
             %%%%%%%%%%%% Beginning of debug code %%%%%%%%%%%%            
             if verbose_plot_shifts && improved_correlation
+                
+            % XXX Move this debugging code outside the loop since
+            % XXX clstack is not being updated here any more.
+                
             % If the current shift produces a better correlation, then plot
             % the two appropriately shifted estimated common-lines. The
             % figure also displays the true and estimated common lines, and
@@ -517,7 +531,76 @@ for k1=1:n_proj
             end;
             %%%%%%%%%%%% End of debug code %%%%%%%%%%%%
         end
+        
+%Optimized GPU version:
+        g_C1=2*real(g_P1_stack'*g_P2);
+        g_C2=2*real(g_P1_flipped_stack'*g_P2);
+        
+        g_C=[g_C1 g_C2];
+        
+        L=n_theta;
+        d=map_filter_radius;
+        if map_filter_radius > 0
+            for k=1:n_shifts
+%               g_C((k-1)*n_theta+1:k*n_theta,:)=cryo_average_clmap_gpu(g_C((k-1)*n_theta+1:k*n_theta,:), map_filter_radius);
 
+                tmp=[g_C((k-1)*n_theta+1:k*n_theta,:); g_C((k-1)*n_theta+1:k*n_theta,[L+1:2*L,1:L])];
+                tmp = ifft2(fft2(tmp).*gW); % Apply averaging to map.
+                
+                % See cryo_average_clmap for an explanation of the next
+                % line.
+                avg_map = tmp([2*L+1-d:2*L,1:L-d],[2*L+1-d:2*L,1:2*L-d]);
+                g_C((k-1)*n_theta+1:k*n_theta,:)=avg_map;
+            end
+        end
+        
+
+        [g_sval,g_sidx]=max(g_C(:));
+
+        sval=gather(g_sval);
+        sidx=gather(g_sidx);
+        
+        [cl1,sidx,cl2]=ind2sub([n_theta n_shifts 2*n_theta],sidx);
+        clstack(k1,k2)=cl1;
+        clstack(k2,k1)=cl2;
+        corrstack(k1,k2)=sval;
+        shift=-max_shift+(sidx-1)*shift_step;
+        shifts_1d(k1,k2)=shift;
+        improved_correlation=1;
+
+% % Optimized CPU version. Uncommet to use on CPU:
+%         C1=2*real(P1_stack'*P2);
+%         C2=2*real(P1_flipped_stack'*P2);
+% 
+%         [sval1,sidx1]=max(C1(:));
+%         [sval2,sidx2]=max(C2(:));
+
+% The above GPU code is a compact version of the following one.            
+%         [g_sval1,g_sidx1]=max(g_C1(:));
+%         [g_sval2,g_sidx2]=max(g_C2(:));
+%         sval1=gather(g_sval1);
+%         sval2=gather(g_sval2);
+%         sidx1=gather(g_sidx1);
+%         sidx2=gather(g_sidx2);
+%         
+%         if sval1>sval2
+%             [cl1,sidx,cl2]=ind2sub([n_theta n_shifts n_theta],sidx1);
+%             clstack(k1,k2)=cl1;
+%             clstack(k2,k1)=cl2;
+%             corrstack(k1,k2)=sval1;
+%             shift=-max_shift+(sidx-1)*shift_step;
+%             shifts_1d(k1,k2)=shift;
+%             improved_correlation=1;
+%         else
+%             [cl1,sidx,cl2]=ind2sub([n_theta n_shifts n_theta],sidx2);
+%             clstack(k1,k2)=cl1;
+%             clstack(k2,k1)=cl2+n_theta;
+%             corrstack(k1,k2)=sval2;
+%             shift=-max_shift+(sidx-1)*shift_step;
+%             shifts_1d(k1,k2)=shift;
+%             improved_correlation=1;
+%         end
+                       
         t2=clock;
         t=etime(t2,t1);
 

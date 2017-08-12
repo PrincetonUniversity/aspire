@@ -16,7 +16,6 @@ n_projs=szprojs(3);
 % Generate Nrefs references projections of the given volume using random
 % orientations.
 log_message('Start generating %d reference projections of size %dx%d.',Nrefs,szvol(1),szvol(1));
-initstate;
 qrefs=qrand(Nrefs);
 refprojs=cryo_project(vol,qrefs,szvol(1));
 refprojs=permute(refprojs,[2 1 3]);
