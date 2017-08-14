@@ -1,3 +1,7 @@
+% Filename has been changed from makemex to makemex_norun to prevent the
+% install script to try to run this file automatically.
+% Yoel Shkolnisky, August 2017.
+
 if ~is_gpu()
     warning('No GPU is present. Skipping compilation of CUDA MEX files.');
     return;
