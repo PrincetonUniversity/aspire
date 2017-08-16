@@ -16,6 +16,7 @@ map=single(map);
 
 % Generate projections at full resolution.
 Nprojs=20;
+initstate;
 q=qrand(Nprojs);  % Generate Nprojs projections to orient.
 log_message('Generating %d projections to orient',Nprojs);
 projs=cryo_project(map,q);

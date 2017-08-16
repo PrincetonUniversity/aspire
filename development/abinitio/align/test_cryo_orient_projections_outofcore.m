@@ -28,6 +28,7 @@ Nrefs=10;
 %% Run cryo_orient_projections_gpu
 
 t_gpu=tic;
+initstate;
 [Rest_gpu,dx_gpu]=cryo_orient_projections_gpu(projshifted,voldata.volref,Nrefs,trueRs,1);
 t_gpu=toc(t_gpu);
 
@@ -41,6 +42,7 @@ projswriter.close;
 
 % Orient projections
 t_gpu_outofcore=tic;
+initstate;
 [Rest_gpu_outofcore,dx_gpu_outofcore]=...
     cryo_orient_projections_gpu_outofcore(projs_fname,voldata.volref,Nrefs,trueRs,1);
 t_gpu_outofcore=toc(t_gpu_outofcore);

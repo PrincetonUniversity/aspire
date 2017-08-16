@@ -13,6 +13,7 @@ results=zeros(numel(SNRlist),5);
 open_log(0);
 
 for snridx=1:numel(SNRlist)
+    initstate;
     [projs,noisy_projs,shifts_2d_ref,q_ref]=cryo_gen_projections(n,n_projs,SNRlist(snridx),max_shift,shift_step);
     
     log_message('SNR=%5.3e',SNRlist(snridx));

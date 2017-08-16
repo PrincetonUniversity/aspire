@@ -8,6 +8,7 @@
 n=89;
 K=10;
 SNR=1;
+initstate;
 [~,noisy_projs]=cryo_gen_projections(n,K,SNR);
 
 for k=1:K

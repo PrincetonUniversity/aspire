@@ -1,4 +1,14 @@
+% Check the effect of noise on the resolution of the reconstruction.
+%
+% Generate simulated projection images at various levels of noise,
+% reconstruct from the noisy projections and the true orientations (no
+% shifts are added) and compare the resolution of the reconstructed volume
+% to that of the original (clean) one.
+%
+% Yoel Shkolnisky, August 2017.
+
 Nprojs=50000;
+initstate;
 q=qrand(Nprojs);  % Generate Nprojs projections to orient.
 voldata=load('cleanrib');
 projs=cryo_project(voldata.volref,q);

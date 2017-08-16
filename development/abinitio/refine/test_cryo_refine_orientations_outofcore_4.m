@@ -28,6 +28,7 @@ imstackwriter=imagestackWriter(projs_fname,Nprojs);
 imstackwriter.append(projshifted);
 imstackwriter.close;
 
+initstate;
 t_refined=tic;
 % XXX Note that L=360 is set by the following function internally. It is
 % better to pass it as a parameter to match the L value below.
@@ -46,6 +47,7 @@ projs_hat_normalized_fname=tempmrcname;
 cryo_raynormalize_outofcore(projs_hat_fname,projs_hat_normalized_fname); 
     % Fourier transformed projections are assumed to be normalized.
 
+initstate;
 t_refined=tic;
 [R_refined2,shifts_refined2,errs2]=cryo_refine_orientations_outofcore(...
     projs_hat_normalized_fname,1,voldata.volref,Rs,shifts,1,-1,trueRs,true_shifts);

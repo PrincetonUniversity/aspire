@@ -17,6 +17,7 @@ snr=1;  % Not used. Only clean proejctions are used.
 filter_radius=5; % How many nearby correlation values to average.
 
 % Generate proejctions. Use only the generated clean projections "projs".
+initstate;
 [projs,~,~,refq]=cryo_gen_projections(n,K,snr,max_shift_2d,shift_step_2d);
 
 % take Fourier transform of projections.

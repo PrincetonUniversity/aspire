@@ -22,18 +22,20 @@ t_orient=toc(t_orient);
 fprintf('Assigning orientations took %5.1f seconds\n',t_orient);
 
 % Refine orientations in-core 
+initstate;
 t_refined=tic;
 [R_refined1,shifts_refined1,errs1]=cryo_refine_orientations(...
     projshifted,0,voldata.volref,Rs,shifts,1,-1,trueRs,true_shifts);
 t_refined=toc(t_refined);
 fprintf('Refining orientations %5.1f seconds\n',t_refined);
 
-% Refine orientations in-core 
+% Refine orientations out-of-core 
 projs_fname=tempmrcname;
 imstackwriter=imagestackWriter(projs_fname,Nprojs);
 imstackwriter.append(projshifted);
 imstackwriter.close;
 
+initstate;
 t_refined=tic;
 [R_refined2,shifts_refined2,errs2]=cryo_refine_orientations_outofcore(...
     projs_fname,0,voldata.volref,Rs,shifts,1,-1,trueRs,true_shifts);

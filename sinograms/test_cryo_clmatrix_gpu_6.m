@@ -5,6 +5,7 @@
 %
 % Yoel Shkolnisky, June 2016.
 clear;
+initstate;
 fprintf('Commonline detection rates.\n');
 fprintf('===========================\n');
 K=100;
@@ -22,6 +23,7 @@ for k=1:numel(SNRlist)
      data.volref=ReadMRC('/home/idog/matlab/molecules/frank70S_g1_nn50_n129.mrc');
      volref=real(data.volref);
      volref=cryo_downsample(volref,[n,n,n]);
+     initstate;
      refq=qrand(K);  
      projs=cryo_project(volref,refq,n);
      projs=permute(projs,[2 1 3]); % Swap dimensions for compitability with old gen_projections.

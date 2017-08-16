@@ -9,6 +9,7 @@
 
 % Generate simulated data - proejctions and reference volume
 Nprojs=10;
+initstate;
 q=qrand(Nprojs);  % Generate Nprojs projections to orient.
 voldata=load('cleanrib');
 projs=cryo_project(voldata.volref,q);

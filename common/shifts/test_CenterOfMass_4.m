@@ -6,6 +6,8 @@
 % Yoel Shkolnisky, November 2014.
 
 %% Odd sized test
+initstate;
+
 clear;
 voldef='C1_params';  % A simple centered phantom.
 n=65;               % Size of the volume.

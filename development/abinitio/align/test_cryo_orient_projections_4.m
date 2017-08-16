@@ -8,6 +8,7 @@
 % Yoel Shkolnisky, June 2016.
 
 Nprojs=500;
+initstate;
 q=qrand(Nprojs);  % Generate Nprojs projections to orient.
 
 log_message('Loading volume');

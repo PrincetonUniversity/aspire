@@ -26,16 +26,19 @@ end
 
 Nrefs=10;
 % Run reference code
+initstate; % All three functions must generate exactly the same temporary  data.
 t_ref=tic;
 [Rest_ref,dx_ref]=cryo_orient_projections_ref(projshifted,voldata.volref,Nrefs,trueRs,1);
 t_ref=toc(t_ref);
 
 % Run CPU code
+initstate;
 t_cpu=tic;
 [Rest_cpu,dx_cpu]=cryo_orient_projections(projshifted,voldata.volref,Nrefs,trueRs,1);
 t_cpu=toc(t_cpu);
 
 % Run GPU code
+initstate;
 t_gpu=tic;
 [Rest_gpu,dx_gpu]=cryo_orient_projections_gpu(projshifted,voldata.volref,Nrefs,trueRs,1);
 t_gpu=toc(t_gpu);
@@ -94,3 +97,4 @@ assert(all(tables_ref.Cjk(:)==tables_gpu.Cjk(:)));
 assert(all(tables_ref.Ckj(:)==tables_gpu.Ckj(:)));
 assert(all(tables_ref.Mkj(:)==tables_gpu.Mkj(:)));
 assert(all(tables_ref.qrefs(:)==tables_gpu.qrefs(:)));
+log_message('Test OK');

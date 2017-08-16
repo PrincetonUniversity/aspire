@@ -105,6 +105,7 @@ vol2ds=cryo_downsample(vol2masked,[n_downsample n_downsample n_downsample]);
 
 
 % Nrots=5000;
+% initstate;
 % qrots=qrand(Nrots);
 % rotations=zeros(3,3,Nrots);
 % for jj=1:Nrots

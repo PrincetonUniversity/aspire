@@ -14,6 +14,7 @@ nprojs=100;
 dummySNR=1;
 max_shift=3;
 shift_step=1;
+initstate;
 [projs,noisy_projs,refshifts,refq]=cryo_gen_projections(n,nprojs,dummySNR,max_shift,shift_step);
 masked_projs=mask_fuzzy(projs,floor(n/2)); % Applly circular mask
 

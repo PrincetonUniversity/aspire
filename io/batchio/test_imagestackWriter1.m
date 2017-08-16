@@ -6,6 +6,7 @@
 % The difference should be zero (both arrays should agree to the bit).
 
 % Generate projections.
+initstate;
 n=65;
 K=5;
 SNR=1; % Dummay SNR

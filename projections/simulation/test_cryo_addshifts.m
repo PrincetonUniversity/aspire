@@ -40,7 +40,8 @@ subplot(1,2,2);imagesc(sp1); colorbar; axis image; % Shifted
 % Shift the projection by a random shift.
 clear;
 voldef='C1_params';  % Can be 'one_ball' for a simpler phantom.
-q = qrand(1);       % Identity rotation - projection along the z direction.
+initstate;
+q = qrand(1);       
 n=65;                % Size of the projections. Can be even or odd.
                      % Sampling must be sufficient for the projected
                      % (Guassian) phantom.
@@ -53,7 +54,7 @@ subplot(1,2,2);imagesc(sp1); colorbar; axis image; % Shifted
 fprintf('Shifts are [%d %d]\n',ref_shifts(1),ref_shifts(2));
 
 %% Test 4: Compare to gen_projections_v2
-
+initstate;
 [P1,~,ref_shifts,q]=cryo_gen_projections(1,1,5,1);
 n=size(P1,1);
 %volref=cryo_gaussian_phantom_3d('C1_params',n,1);

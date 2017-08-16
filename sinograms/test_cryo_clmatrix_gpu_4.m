@@ -20,6 +20,7 @@ thetaTol=5;  % A common line is considered correct if it deviates from the
 snr=1;  % Not used. Only clean proejctions are used.
 
 % Generate proejctions. Use only the generated clean projections "projs".
+initstate;
 [projs,~,~,refq]=cryo_gen_projections(n,K,snr,max_shift_2d,shift_step_2d);
 
 % take Fourier transform of projections.

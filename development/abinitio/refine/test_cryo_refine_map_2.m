@@ -25,6 +25,7 @@ log_message('Map resampled successully');
 
 %% Project map
 Nprojs=1000;  % Number of projections to generate
+initstate;
 q=qrand(Nprojs);  % Generate random orientations for the images
 log_message('Generating %d projections of size %dx%d',Nprojs,n_orig,n_orig);
 projs=cryo_project(map,q,n_orig);  % Generate projections of map

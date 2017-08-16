@@ -1,4 +1,5 @@
 Nprojs=10;
+initstate;
 q=qrand(Nprojs);  % Generate Nprojs projections to orient.
 voldata=load('cleanrib');
 projs=cryo_project(voldata.volref,q);
@@ -17,10 +18,10 @@ Nrefs=10;
 [Rest_gpu,dx_gpu]=cryo_orient_projections_gpu(projshifted,voldata.volref,Nrefs,trueRs,1);
 
 rot_L2_error=norm(Rest_gpu(:)-trueRs(:))/norm(trueRs(:));
-fprintf('L2 error in rotations estimation = %e\n',rot_L2_error);
+log_message('L2 error in rotations estimation = %e',rot_L2_error);
 shifts_L2_error=norm(dx_gpu.'-ref_shifts)/norm(ref_shifts);
-fprintf('L2 error in shifts estimation = %e\n',shifts_L2_error);
-fprintf('Max shift error in integral pixels (in each coordinate) = (%d,%d)\n',...
+log_message('L2 error in shifts estimation = %e',shifts_L2_error);
+log_message('Max shift error in integral pixels (in each coordinate) = (%d,%d)',...
     max(round(ref_shifts)-round(dx_gpu')));
 
 q_ref=qrand(Nprojs);  % Generate Nprojs projections to orient.
@@ -50,8 +51,8 @@ for k=1:Nprojs
     shifts_L2_error_before_refinement=norm(dx_gpu(:,k)-(ref_shifts(k,:)).');
     shifts_L2_error_after_refinement=norm(estdx_refined-(ref_shifts(k,:)).');
 
-    fprintf('k=%d/%d\n',k,Nprojs);
-    fprintf('\t Rotation error: before=%e \t after=%e\n',rot_L2_error_before_refinement,rot_L2_error_after_refinement);
-    fprintf('\t Shift error:    before=%e \t after=%e\n',shifts_L2_error_before_refinement,shifts_L2_error_after_refinement);
+    log_message('k=%d/%d',k,Nprojs);
+    log_message('\t Rotation error: before=%e \t after=%e',rot_L2_error_before_refinement,rot_L2_error_after_refinement);
+    log_message('\t Shift error:    before=%e \t after=%e',shifts_L2_error_before_refinement,shifts_L2_error_after_refinement);
 
 end

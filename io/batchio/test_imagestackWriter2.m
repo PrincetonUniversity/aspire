@@ -5,6 +5,7 @@
 % Yoel Shkolnisky, May 2016.
 
 % Generate projections.
+initstate;
 n=65;
 K=500;
 SNR=1; % Dummay SNR

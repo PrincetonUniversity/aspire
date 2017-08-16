@@ -25,6 +25,7 @@ log_message('Map resampled successully');
 
 %% Project map
 Nprojs=100;  % Number of projections to generate
+initstate;
 q=qrand(Nprojs);  % Generate random orientations for the images
 log_message('Generating %d projections of size %dx%d',Nprojs,n_orig,n_orig);
 projs=cryo_project(map,q,n_orig);  % Generate projections of map
@@ -55,12 +56,14 @@ maxiter=5;
 map_out_step1=fullfile(tempmrcdir,'incore_step1');
 map_out_step2=fullfile(tempmrcdir,'incore_step2');
 mat_out=fullfile(tempmrcdir,'incore_out');
+initstate;
 cryo_refine_map(projs_fname,vol_fname,map_out_step1,map_out_step2,mat_out,maxiter)
 
 %% Refined out-of-core
 map_out_step1=fullfile(tempmrcdir,'outofcore_step1');
 map_out_step2=fullfile(tempmrcdir,'outofcore_step2');
 mat_out=fullfile(tempmrcdir,'outcore_out');
+initstate;
 cryo_refine_map_outofcore(projs_fname,vol_fname,map_out_step1,map_out_step2,mat_out,maxiter)
 
 %% Compare result

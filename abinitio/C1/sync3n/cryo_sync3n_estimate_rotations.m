@@ -1,4 +1,4 @@
-function rotations=cryo_sync3n_estimate_rotations(clstack,L,use_J_weights,use_S_weights)
+function [rotations,S]=cryo_sync3n_estimate_rotations(clstack,L,use_J_weights,use_S_weights)
 % CRYO_SYNC3N_ESTIMATE_ROTATIONS Estimate orientations from common lines.
 %
 % cryo_sync3n_estimate_rotations(clstack,L)

@@ -8,6 +8,7 @@
 % Yoel Shkolnisky, May 2016.
 
 %% Write many images to disk
+initstate;
 n=65;
 K=10000;
 SNR=1; % Dummay SNR

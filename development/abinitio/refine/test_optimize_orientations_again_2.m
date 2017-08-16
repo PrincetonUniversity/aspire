@@ -1,4 +1,7 @@
+% Test the function optimize_orientations_again
+
 Nprojs=100;
+initstate;
 q=qrand(Nprojs);  % Generate Nprojs projections to orient.
 voldata=load('cleanrib');
 projs=cryo_project(voldata.volref,q);
@@ -18,20 +21,20 @@ end
 t_orient=tic;
 [Rs,shifts]=cryo_orient_projections(projshifted,voldata.volref,-1,trueRs,1,0);
 t_orient=toc(t_orient);
-fprintf('Assigning orientations took %5.1f seconds\n',t_orient);
+log_message('Assigning orientations took %5.1f seconds',t_orient);
 
 
 rot_diff=norm(Rs(:)-trueRs(:))/norm(trueRs(:));
-fprintf('Rotations difference from reference = %e\n',rot_diff);
+log_message('Rotations difference from reference = %e',rot_diff);
 
 shifts_diff=norm(shifts(:)-true_shifts(:))/norm(true_shifts(:));
-fprintf('Shifts difference from reference = %e\n',shifts_diff);
+log_message('Shifts difference from reference = %e',shifts_diff);
 
 L=360;
 [estR2,estdx2,optout]=optimize_orientations_again(projshifted,Rs,shifts,L,trueRs,true_shifts);
 
 rot_diff=norm(estR2(:)-trueRs(:))/norm(trueRs(:));
-fprintf('Rotations difference from reference = %e\n',rot_diff);
+log_message('Rotations difference from reference = %e',rot_diff);
 
 shifts_diff=norm(estdx2(:)-true_shifts(:))/norm(true_shifts(:));
-fprintf('Shifts difference from reference = %e\n',shifts_diff);
+log_message('Shifts difference from reference = %e',shifts_diff);

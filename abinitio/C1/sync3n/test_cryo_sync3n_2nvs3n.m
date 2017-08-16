@@ -9,6 +9,7 @@
 %% Generate simulated projections
 % Generate 200 simulated projections of size 65x65.
 % For simplicity, the projections are centered.
+initstate;
 n=129;
 K=1000;
 n_theta=360;

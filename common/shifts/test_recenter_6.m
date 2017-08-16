@@ -18,6 +18,7 @@ clear;
 K=10;     % Number of projections.
 n=65;     % Size of each projection is nxn.
 SNR=1e10; % Dummy SNR.
+initstate;
 [projs,~,~,q]=cryo_gen_projections(n,K,SNR,3,1); % Generate shifted clean projections.
 n_r=ceil(n/2);  % Radius of each projection
 n_theta=360;    % Angular resolution of each projection (for computing its Fourier transform).

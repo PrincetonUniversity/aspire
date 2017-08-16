@@ -47,6 +47,7 @@ if mod(size(map,1),2)==0 % Make odd-sized
     map=map(1:end-1,1:end-1,1:end-1);
 end
 
+initstate;
 q=qrand(Nprojs);  % Generate Nprojs projections to orient.
 log_message('Generating %d projections of size %dx%d',Nprojs,n,n);
 

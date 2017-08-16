@@ -11,6 +11,8 @@
 % Compare projection in the z direction to direct summation of the volume
 % along the z direction.
 
+initstate;
+
 clear;
 voldef='C1_params';  % Can be 'one_ball' for a simpler phantom.
 q = [1;0;0;0];       % Identity rotation - projection along the z direction.

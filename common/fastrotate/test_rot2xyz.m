@@ -2,7 +2,7 @@
 %   The printed error should be of the order of machine precision.
 %
 %Yoel Shkolnisky, November 2013.
-
+initstate;
 maxerr=-1;
 for k=1:10000
     R=q_to_rot(qrand(1));
