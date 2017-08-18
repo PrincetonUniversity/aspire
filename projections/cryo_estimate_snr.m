@@ -13,6 +13,10 @@ function [snr,var_s,var_n]=cryo_estimate_snr(projs,prewhiten)
 %   If prewhiten is non-zero, then prewhiten the projections before
 %   estimating the parameters of the noise.
 %   
+%
+% IMPORTANT: All images must be normalized to have the same noise mean and
+% variance, using, e.g., cryo_normalize_background
+%
 % Yoel Shkolnisky, August 2015.
 
 
@@ -29,9 +33,6 @@ end
 % Masking radius
 p = size(projs, 1); % Image size)
 radius_of_mask = floor(p/2)-1; % 
-
-% Normalize projections, in case each comes with a different normalization.
-projs=cryo_normalize_background(projs,radius_of_mask);
 
 % Compute indices of noise samples
 I = cart2rad(p);
