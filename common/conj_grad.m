@@ -102,7 +102,7 @@ function [x, obj, info] = conj_grad(Afun, b, cg_opt, init)
         info(1).r = r;
         info(1).p = p;
     end
-    info(1).res = old_res;
+    info(1).res = sqrt(sum(abs(r).^2, 1));
     info(1).obj = obj;
 
     if cg_opt.verbose
@@ -126,14 +126,16 @@ function [x, obj, info] = conj_grad(Afun, b, cg_opt, init)
         ticker = tic;
         Ap = Afun(p);
 
-        alpha = old_res.^2./real(sum(conj(p).*Ap, 1));
+        old_gamma = real(sum(conj(s).*r, 1));
+
+        alpha = old_gamma./real(sum(conj(p).*Ap, 1));
         x = x + bsxfun(@times, alpha, p);
         Ax = Ax + bsxfun(@times, alpha, Ap);
 
         r = r - bsxfun(@times, alpha, Ap);
         s = cg_opt.preconditioner(r);
-        new_res = sqrt(real(sum(conj(r).*s, 1)));
-        beta = new_res.^2./old_res.^2;
+        new_gamma = real(sum(conj(r).*s, 1));
+        beta = new_gamma./old_gamma;
         p = s + bsxfun(@times, beta, p);
 
         if cg_opt.verbose
@@ -142,7 +144,7 @@ function [x, obj, info] = conj_grad(Afun, b, cg_opt, init)
 
         obj = real(sum(conj(x).*Ax, 1)) - 2*real(sum(conj(b).*x, 1));
 
-        old_res = new_res;
+        old_gamma = new_gamma;
 
         info(iter+1).iter = iter;
         if cg_opt.store_iterates
@@ -150,7 +152,7 @@ function [x, obj, info] = conj_grad(Afun, b, cg_opt, init)
             info(iter+1).r = r;
             info(iter+1).p = p;
         end
-        info(iter+1).res = old_res;
+        info(iter+1).res = sqrt(sum(abs(r).^2, 1));
         info(iter+1).obj = obj;
 
         if cg_opt.verbose
@@ -162,10 +164,7 @@ function [x, obj, info] = conj_grad(Afun, b, cg_opt, init)
             cg_opt.iter_callback(info);
         end
 
-        % TODO: This stopping criterion is not equivalent if we use the
-        % "preconditioned" residual (which is not the same). Make this
-        % consistent for both the preconditioned and non-preconditioned cases.
-        if all(new_res < b_norm*cg_opt.rel_tolerance)
+        if all(info(iter+1).res < b_norm*cg_opt.rel_tolerance)
             break;
         end
 
