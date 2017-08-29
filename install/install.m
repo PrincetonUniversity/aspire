@@ -1,36 +1,43 @@
-function install
-% INSTALL   Install ASPIRE package.
+% INSTALL Install the ASPIRE package
 %
-%   INSATLL
+% Usage
+%    install;
 %
-% Compile all ASPIRE mex files and install external packages.
-% The function should be called only once upon installation of ASPIRE.
-%
-% Yoel Shkolnisky, September 2013.
+% Description
+%    Install any external packages and compile all ASPIRE MEX files. This
+%    function should only be called once when ASPIRE is first installed.
 
-currPath=pwd; % Save current location to get back to here once done.
+function install()
+    current_path = pwd;
 
-% Compile all mex files
-traversedirrectorytree(aspire_root(),@runmakemex);
+    % Compile all mex files
+    traversedirrectorytree(aspire_root(), @run_makemex);
 
-% cd(fullfile(aspirePath,'extern','cvx'));
-% cvx_setup;
-
-
-cd(currPath);
-
-function runmakemex(fullFileName)
-[mexPath,fname]=fileparts(fullFileName);
-if strcmp(fname,'makemex')
-    cd(mexPath);
-    fprintf('Running %s\n',fullFileName);
-    run(fname);
+    cd(current_path);
 end
-    
-    
 
-function traversedirrectorytree(path,fileOperation)
+% RUN_MAKEMEX Run the `makemex` script pointed to by `fullFileName`
 %
+% Usage
+%    run_makemex(fullFileName);
+%
+% Input
+%    fullFileName: A file name of a potential `makemex` script
+%
+% Description
+%    If `fullFileName` is the path of a script with the name `makemex`, it will
+%    be executed in its directory.
+
+function run_makemex(fullFileName)
+    [mexPath, fname] = fileparts(fullFileName);
+
+    if strcmp(fname, 'makemex')
+        cd(mexPath);
+        fprintf('Running %s\n', fullFileName);
+        run(fname);
+    end
+end
+
 % TRAVERSEDIRRECTORYTREE Apply "fileOperation" to a directory tree.
 %
 %   TRAVERSEDIRRECTORYTREE(path,operation) traverse a directory tree whose
@@ -38,30 +45,33 @@ function traversedirrectorytree(path,fileOperation)
 %   operation has the signature operation(fullFileName).
 %
 % Example:
-%  dispfile= @(str) disp(str);
-%  traversedirrectorytree(path,dispfile) 
+%   dispfile = @(str)(disp(str));
+%   traversedirrectorytree(path, dispfile);
 %
 % Yoel Shkolnisky, September 2013
 
-if ~strcmp(path(end), filesep)
-    path(end+1)=filesep;
-end
-dirInfo= dir(path);
-files=~[dirInfo.isdir];
-fileNames={dirInfo(files).name};
-%disp(path);
-if ~isempty(fileNames)
-    for i=1:length(fileNames)
-        % Do whathever (show file names?)
-        fileOperation(fullfile(path,fileNames{i}));
+function traversedirrectorytree(path, fileOperation)
+    if ~strcmp(path(end), filesep)
+        path(end+1) = filesep;
     end
-end
 
-% For each subdir, call itself again
-isDir=[dirInfo.isdir];
-dirNames={dirInfo(isDir).name};
-dirNames(strcmp(dirNames, '.') | strcmp(dirNames, '..'))=[];
+    dirInfo = dir(path);
+    files =~ [dirInfo.isdir];
+    fileNames = {dirInfo(files).name};
 
-for i=1:length(dirNames)
-    traversedirrectorytree([path dirNames{i} filesep],fileOperation);    
+    if ~isempty(fileNames)
+        for i=1:length(fileNames)
+            % Do whathever (show file names?)
+            fileOperation(fullfile(path, fileNames{i}));
+        end
+    end
+
+    % For each subdir, call itself again
+    isDir = [dirInfo.isdir];
+    dirNames = {dirInfo(isDir).name};
+    dirNames(strcmp(dirNames, '.') | strcmp(dirNames, '..')) = [];
+
+    for i=1:length(dirNames)
+        traversedirrectorytree([path dirNames{i} filesep], fileOperation);
+    end
 end
