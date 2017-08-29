@@ -10,6 +10,23 @@
 function install()
     current_path = pwd;
 
+    nufft_choice = multichoice_question( ...
+        'Choose a NUFFT package to install ', ...
+        {'cims', 'chemnitz', 'none'}, [2 3 1], 'cims');
+
+    if nufft_choice == 2
+        install_cims_nufft;
+    elseif nufft_choice == 3
+        install_chemnitz_nfft;
+    end
+
+    sdplr_choice = two_options_question( ...
+        'Install SDPLR? ', 'y', 'n', 'y', '%c');
+
+    if sdplr_choice == 1
+        install_sdplr;
+    end
+
     % Compile all mex files
     traversedirrectorytree(aspire_root(), @run_makemex);
 
