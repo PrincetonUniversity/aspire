@@ -17,9 +17,10 @@ n_r=129;
 SNRlist=[1/4,1/8,1/16,1/20,1/32,1/48,1/64];
 outfile='./test_2nvs3n.mat';
 
-[projs,~,~,refq]=cryo_gen_projections(n,K,100000);
-[ref_clstack,~]=clmatrix_cheat_q(refq,n_theta); % Reference common lines matrix
-dirref=Q2S2(refq,n_theta);
+[projs,~,~,rots_ref]=cryo_gen_projections(n,K,100000);
+[ref_clstack,~]=clmatrix_cheat(rots_ref,n_theta); % Reference common lines matrix
+inv_rots_ref = permute(rots_ref, [2 1 3]);
+dirref=R2S2(inv_rots_ref,n_theta);
 
 results=struct;
 

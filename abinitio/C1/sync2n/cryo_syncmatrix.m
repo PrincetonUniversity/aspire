@@ -1,16 +1,16 @@
-function S=cryo_syncmatrix(clmatrix,L,refq)
+function S=cryo_syncmatrix(clmatrix,L,rots_ref)
 %
 % Construct the CryoEM synchronization matrix, given a common lines matrix
 % clmatrix, that was constructed using angular resolution of L radial lines
 % per image.
 %
-% refq (optional) are the quaternions used to computed the common lines
+% rots_ref (optional) are the rotations used to computed the common lines
 % matrix. 
 %
 % Yoel Shkolnisky, August 2010.
 
 ref=0;
-if exist('refq','var')
+if exist('rots_ref','var')
     ref=1;  % Reference quaternions are given.
 end
 
@@ -68,8 +68,8 @@ for k1=1:K-1
                         % Compare resulting rotation computed using common
                         % lines to the rotations computed using the true
                         % rotations.
-                        R1ref=q_to_rot(refq(:,k1));
-                        R2ref=q_to_rot(refq(:,k2));
+                        R1ref=rots_ref(:,:,k1);
+                        R2ref=rots_ref(:,:,k2);
                         inv_R1ref=R1ref.';
                         inv_R2ref=R2ref.';   
                         Rref=(inv_R1ref.'*inv_R2ref+J*inv_R1ref.'*inv_R2ref*J)/2;
@@ -104,11 +104,11 @@ for k1=1:K-1
             %  -sin(theta) cos(theta) 0 ;...
             %       0           0     1 ]
             % Here we cheat and compute it using the quaternions.
-            % If refq is not given, just put zero.
+            % If rots_ref is not given, just put zero.
             Rk=zeros(3,3);
             if ref
-                R1ref=q_to_rot(refq(:,k1));
-                R2ref=q_to_rot(refq(:,k2));
+                R1ref=rots_ref(:,:,k1);
+                R2ref=rots_ref(:,:,k2);
                 inv_R1ref=R1ref.';
                 inv_R2ref=R2ref.';
                 

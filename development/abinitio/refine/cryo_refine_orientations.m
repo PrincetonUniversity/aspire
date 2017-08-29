@@ -76,13 +76,10 @@ end
 log_message('projs_hat MD5 %s',MD5var(projs_hat));
 
 % Generate reference projections
-q_ref=qrand(Nrefs);  % Generate Nprojs projections to orient.
-projs_ref=cryo_project(vol,q_ref);
+rots_ref=rand_rots(Nrefs);  % Generate Nprojs projections to orient.
+projs_ref=cryo_project(vol,rots_ref);
 projs_ref=permute(projs_ref,[2,1,3]);
-Rrefs=zeros(3,3,Nrefs);
-for k=1:Nrefs
-    Rrefs(:,:,k)=(q_to_rot(q_ref(:,k))).';
-end
+Rrefs = permute(rots_ref, [2 1 3]);
 
 % Compute polar Fourier transform of reference projections.
 n_r=size(projs_hat,1);

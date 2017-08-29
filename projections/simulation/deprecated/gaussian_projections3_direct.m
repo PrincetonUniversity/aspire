@@ -1,4 +1,4 @@
-function p=gaussian_projections3_direct(def,q,n,nsteps,rmax)
+function p=gaussian_projections3_direct(def,rot_matrices,n,nsteps,rmax)
 %
 % XXX FIX
 %
@@ -21,7 +21,7 @@ v=v(:);
 t0=sqrt(12)/2;
 dt=2*t0/nsteps;
 
-inv_rot_matrices= q_to_rot(q)';
+inv_rot_matrices = permute(rot_matrices, [2 1 3]);
 p=zeros(size(u));
 
 for k=1:numel(u)

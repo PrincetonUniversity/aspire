@@ -20,20 +20,15 @@ ph=cryo_gaussian_phantom_3d('C1_params',65,1); % generate a 3D phantom
 
 n=100;                              % use 100 images
 inv_rot_matrices = zeros(3, 3, n);
-q = qrand(n);                       % generate rotations as quaternions
+rot_matrices = rand_rots(n);
 % find inverse rotation matrices
-for k = 1:n
-    quat = q(:, k);
-    q(:, k) = quat/norm(quat);
-    rot = q_to_rot(q(:, k));
-    inv_rot_matrices(:, :, k) = rot';
-end
+inv_rot_matrices = permute(rot_matrices, [2 1 3]);
 
 %% Generate 2D projections.
 % Caclulate the 2D proejctions of the 3D volume in the directions
 % determined by the randomly generated rotations matrices.
 
-projections=cryo_project(ph,q, 65,'single'); % generate phantom projecitons
+projections=cryo_project(ph,rot_matrices, 65,'single'); % generate phantom projecitons
 
 % The following step is ESSENTIAL before calling FIRM reconstruction on the
 % projections.

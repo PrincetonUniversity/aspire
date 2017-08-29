@@ -24,16 +24,16 @@ for k=1:numel(SNRlist)
      volref=real(data.volref);
      volref=cryo_downsample(volref,[n,n,n]);
      initstate;
-     refq=qrand(K);  
-     projs=cryo_project(volref,refq,n);
+     rots_ref = rand_rots(K);
+     projs=cryo_project(volref,rots_ref,n);
      projs=permute(projs,[2 1 3]); % Swap dimensions for compitability with old gen_projections.
      [projs,~]=cryo_addshifts(projs,[],max_shift_2d,shift_step_2d);
      noisy_projs=cryo_addnoise(projs,SNR,'gaussian');
 
     
-%     [p, np, shifts, q] = ...
+%     [p, np, shifts, rots_ref] = ...
 %         cryo_gen_projections(n,K,SNR,max_shift2d,step_size_2d);
-    [ref_clmatrix,clcorr]=clmatrix_cheat_q(refq,n_theta);
+    [ref_clmatrix,clcorr]=clmatrix_cheat(rots_ref,n_theta);
     
 
     mask_radius=round(size(noisy_projs,1)*0.45);

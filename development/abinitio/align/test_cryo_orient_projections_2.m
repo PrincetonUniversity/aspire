@@ -10,18 +10,18 @@
 % Generate simulated data - proejctions and reference volume
 Nprojs=10;
 initstate;
-q=qrand(Nprojs);  % Generate Nprojs projections to orient.
+rots=rand_rots(Nprojs);  % Generate Nprojs projections to orient.
 voldata=load('cleanrib');
-projs=cryo_project(voldata.volref,q);
+projs=cryo_project(voldata.volref,rots);
 projs=permute(projs,[2,1,3]);
 [projshifted,ref_shifts]=cryo_addshifts(projs,[],2,1);
 snr=1/32;
 projshifted=cryo_addnoise(projshifted,snr,'gaussian');
 
-% Convert quaternions to rotations
+% Invert rotations
 trueRs=zeros(3,3,Nprojs);
 for k=1:Nprojs
-    trueRs(:,:,k)=(q_to_rot(q(:,k))).';
+    trueRs(:,:,k)=rots(:,:,k).';
 end
 
 Nrefs=100;
