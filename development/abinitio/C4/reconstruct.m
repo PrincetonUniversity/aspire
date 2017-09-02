@@ -33,7 +33,7 @@ for k=1:nImages
     RsC4(:,:,3*nImages+k) = g*g*g*rot;
 end
 
-[dxC4,~] = cryo_estimate_shifts(pfC4,RsC4,ceil(2*sqrt(2)*max_shift),shift_step,10000,[],0);
+[dxC4,~] = cryo_estimate_shifts(pfC4,RsC4,max_shift,shift_step,10000,[],0);
 
 n = size(projs,1);
 projsC4 = cat(3,projs,projs,projs,projs);

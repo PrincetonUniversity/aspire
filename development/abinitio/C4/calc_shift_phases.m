@@ -21,7 +21,7 @@ if ~exist('max_shift','var')
 end
               
 % the maximum shift occurs at a diagonal direction
-max_shift = ceil(2*sqrt(2)*max_shift);
+% max_shift = ceil(2*sqrt(2)*max_shift);
 % there are max_shift in each direction
 nshifts = 2*max_shift/shift_step+1;
 

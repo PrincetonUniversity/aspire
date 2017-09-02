@@ -56,27 +56,56 @@ if ~exist('shift_step','var')
     shift_step = 0.5;
 end
 
-%% Load projections
-projs = ReadMRC(instack);
+% %% Load projections
+% projs = ReadMRC(instack,1,5000);
+% 
+% if n_projs_given
+%     if n_projs == -1
+%         nImages = size(projs,3);
+%     elseif n_projs <= 0 
+%         error('n_projs must be either positive number, or -1 for using all images');
+%     else
+%         assert(n_projs <= size(projs,3));
+%         nImages = n_projs;
+%     end
+% else % not provided as a parameter so use everything
+%     nImages = size(projs,3);
+% end
+% 
+% im_indeces = randperm(size(projs,3),nImages);
+% save(outparams,'im_indeces');
+% 
+% projs = projs(:,:,im_indeces);
+% assert(size(projs,3) == nImages);
+% 
 
-if n_projs_given
-    if n_projs == -1
-        nImages = size(projs,3);
-    elseif n_projs <= 0 
-        error('n_projs must be either positive number, or -1 for using all images');
-    else
-        assert(n_projs <= size(projs,3));
-        nImages = n_projs;
-    end
-else % not provided as a parameter so use everything
-    nImages = size(projs,3);
-end
-
-im_indeces = randperm(size(projs,3),nImages);
+log_message('***************************************');
+log_message('***************************************');
+log_message('***************************************');
+nImages = n_projs;
+log_message('SAMPLING %d IMAGES',nImages);
+sz = size(ReadMRC(instack,1,1),1);
+projs = zeros(sz,sz,nImages);
+im_indeces  = randperm(40000,nImages);
+im_indeces  = sort(im_indeces);
 save(outparams,'im_indeces');
 
-projs = projs(:,:,im_indeces);
-assert(size(projs,3) == nImages);
+stack = imagestackReader(instack);
+msg = [];
+for k=1:nImages
+    t1 = clock;
+    ind = im_indeces(k);
+    projs(:,:,k) = stack.getImage(ind);
+       
+    %%%%%%%%%%%%%%%%%%% debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    t2 = clock;
+    t = etime(t2,t1);
+    bs = char(repmat(8,1,numel(msg)));
+    fprintf('%s',bs);
+    msg = sprintf('k=%3d/%3d  t=%7.5f',k,nImages,t);
+    fprintf('%s',msg);
+    %%%%%%%%%%%%%%%%%%% end of debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+end
 
 log_message('projections loaded. Using %d projections of size %d x %d',nImages,size(projs,1),size(projs,2));
 if size(projs,1)~=size(projs,2)
@@ -84,7 +113,7 @@ if size(projs,1)~=size(projs,2)
 end
 
 %% Mask projections
-mask_radius = round(size(projs,1)*0.35);
+mask_radius = round(size(projs,1)*0.4);
 log_message('Masking projections. Masking radius is %d pixels',mask_radius);
 [masked_projs,~] = mask_fuzzy(projs,mask_radius);
 
@@ -112,7 +141,8 @@ save(outparams,'clmatrix','max_shift','shift_step','-append');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 3  : detect self-common-lines in each image
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-sclmatrix = cryo_self_clmatrix_gpu(npf,max_shift,shift_step);
+is_handle_equator_ims = true;
+sclmatrix = cryo_self_clmatrix_gpu(npf,max_shift,shift_step,is_handle_equator_ims);
 save(outparams,'sclmatrix','-append');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 4  : calculate self-relative-rotations
@@ -147,7 +177,7 @@ rots = estimate_inplane_rotations4(npf,vis,1,max_shift,shift_step);
 save(outparams,'rots','-append');
 
 % estimatedVol = reconstruct_vol(projs,npf,rot_alligned,max_shift,shift_step);
-estimatedVol = reconstruct(projs,rots,n_r,n_theta);   
+estimatedVol = reconstruct(projs,rots,n_r,n_theta,max_shift,shift_step);   
 WriteMRC(estimatedVol,1,outvol);
 % 
 % 
