@@ -82,10 +82,11 @@ else
         Nequations = NequationsTotal;
     end
 end
-           
+
 
 if Nequations<n_projs
-    error('Too few equations. Increase memoryfactor.');
+    warning('Too few equations. Increase memoryfactor. Setting Nequations to n_projs');
+    Nequations=n_projs;
 end
 
 if Nequations<2*n_projs
