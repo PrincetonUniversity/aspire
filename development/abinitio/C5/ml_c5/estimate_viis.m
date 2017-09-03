@@ -1,33 +1,43 @@
-function [viis,mse_vii] = estimate_viis(ciis,Ris_tilde,npf,is_handle_equators,refq)
+function [viis,mse_vii] = estimate_viis(ciis,Ris_tilde,npf,refq)
 
 [~,n_theta,nImages] = size(npf);
 
 viis = zeros(3,3,nImages);
 
+% if false
+%     log_message('******IMPLEMENT******* REMOVE THIS');
+%     for i=1:nImages
+%         rot_i_gt = q_to_rot(refq(:,i)).';
+%         vi_gt = rot_i_gt(3,:);
+%         viis(:,:,i) = vi_gt.'*vi_gt; 
+%     end
+%     mse_vii = 0;
+%     return;
+% end
+
 % find which of the candidates rotations are equator images
 cii_equators_inds = find(abs(acosd(Ris_tilde(3,3,:)) - 90) < 7);
 cii_equators_inds = squeeze(cii_equators_inds);
-if is_handle_equators
-    [viis_equators,inds_eq_images] = ...
-        handle_equator_images(npf,Ris_tilde,ciis,cii_equators_inds,0,1,10,0.1,refq);
-    
-    viis(:,:,inds_eq_images) = viis_equators;
-    
-else
-    inds_eq_images = [];
-end
+% if is_handle_equators
+%     [viis_equators,inds_eq_images] = ...
+%         handle_equator_images(npf,Ris_tilde,ciis,cii_equators_inds,0,1,10,0.1,refq);
+%     
+%     viis(:,:,inds_eq_images) = viis_equators;
+%     
+% else
+%     inds_eq_images = [];
+% end
 
-inds = sub2ind([n_theta/2,n_theta],ciis(1,:),ciis(2,:));
-
+inds1 = sub2ind([n_theta/2,n_theta],ciis(1,:),ciis(2,:));
+inds2 = sub2ind([n_theta/2,n_theta],ciis(3,:),ciis(4,:));
 
 opt_Ris_tilde_ind = zeros(1,nImages);
 max_corrs_stats   = zeros(1,nImages);
-g = [0 -1 0; 1 0 0; 0 0 1]; % a rotation of 90 degrees about the z-axis
+g = [cosd(72) -sind(72) 0; 
+	 sind(72)  cosd(72) 0; 
+	 0 				 0  1]; % a rotation of 72 degrees about the z-axis
 J = diag([1,1,-1]);
 for i=1:nImages
-    if ismember(i,inds_eq_images); 
-        continue; 
-    end
     Pi = npf(:,:,i);
     Pi(1,:) = 0; % effectivly remove dc term
     % normalize each ray to be of norm 1
@@ -35,7 +45,7 @@ for i=1:nImages
     Half_Pi = Pi(:,1:n_theta/2);
     PiPi = Half_Pi'*Pi;
     
-    Corrs = PiPi(inds);
+    Corrs = 0.5*(PiPi(inds1)+PiPi(inds2));
     
     Corrs(cii_equators_inds) = -inf;
     [Y,I] = max(real(Corrs));
@@ -45,8 +55,9 @@ for i=1:nImages
     
     Ri_opt = Ris_tilde(:,:,I);
     
-    Rii = Ri_opt.'*g*Ri_opt;
-    viis(:,:,i) = 0.5*(Rii+Rii.');
+    Riig  = Ri_opt.'*g*Ri_opt;
+    Riigg = Ri_opt.'*g*g*Ri_opt;
+    viis(:,:,i) = 1/5*(Riig+Riig.'+Riigg+Riigg.'+eye(3));
 end
 
 diffs = zeros(1,nImages);

@@ -1,5 +1,5 @@
 function [vijs,viis,max_corrs_stats] = ...
-    compute_third_row_outer_prod(npf,ciis,cijs,Ris_tilde,R_theta_ijs,is_handle_equators,refq)
+    compute_third_row_outer_prod(npf,ciis,cijs,Ris_tilde,R_theta_ijs,refq)
 
 [~,n_theta,nImages] = size(npf);
 nRis_tilde = size(Ris_tilde,3);
@@ -8,7 +8,7 @@ nRis_tilde = size(Ris_tilde,3);
 % shift_phases = calc_shift_phases(n_r,max_shift,shift_step);
 % [~,nshifts] = size(shift_phases);
 
-viis = estimate_viis(ciis,Ris_tilde,npf,is_handle_equators,refq);
+viis = estimate_viis(ciis,Ris_tilde,npf,refq);
 
 opt_Rs_tilde    = zeros(nImages,nImages);
 opt_thetaij     = zeros(nImages,nImages);
@@ -18,7 +18,9 @@ log_message('\ncomputing likelihood');
 msg = [];
 
 vijs = zeros(3,3,nchoosek(nImages,2));
-g = [0 -1 0; 1 0 0; 0 0 1]; % a rotation of 90 degrees about the z-axis
+g = [cosd(72) -sind(72) 0; 
+	 sind(72)  cosd(72) 0; 
+	 0 				 0  1]; % a rotation of 72 degrees about the z-axis
 J = diag([1,1,-1]);
 % g = gpuDevice(1);
 diffs = zeros(1,nchoosek(nImages,2));
@@ -49,7 +51,7 @@ for i=1:nImages
 
         Corrs = PiPj(C);
         Corrs = Corrs(IC);
-        Corrs = reshape(Corrs,nRis_tilde,nRis_tilde,[],4);
+        Corrs = reshape(Corrs,nRis_tilde,nRis_tilde,[],5);
         Corrs = squeeze(mean(real(Corrs),4));
         
         [YY,II] = max(Corrs(:));
@@ -74,14 +76,14 @@ for i=1:nImages
         Ri_gt = q_to_rot(refq(:,i)).';
         Rj_gt = q_to_rot(refq(:,j)).';
         
-        diff = zeros(1,4);
-        for s=0:3
+        diff = zeros(1,5);
+        for s=0:4
             Rij_gs_gt = Ri_gt.'*g^s*Rj_gt;
             diff(s+1) = min(norm(Rij-Rij_gs_gt,'fro'),norm(Rij-J*Rij_gs_gt*J,'fro'));
         end
         diffs(counter) = min(diff);
         
-        vijs(:,:,counter) = 0.25*Ri_tilde.'*(R_theta_ij+g*R_theta_ij+g^2*R_theta_ij+g^3*R_theta_ij)*Rj_tilde;
+        vijs(:,:,counter) = 1/5*Ri_tilde.'*(R_theta_ij+g*R_theta_ij+g^2*R_theta_ij+g^3*R_theta_ij+g^4*R_theta_ij)*Rj_tilde;
         
         %%%%%%%%%%%%%%%%%%% debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         t2 = clock;

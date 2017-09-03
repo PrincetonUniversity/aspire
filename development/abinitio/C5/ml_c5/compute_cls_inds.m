@@ -3,31 +3,36 @@ function [ciis,cijs] = compute_cls_inds(Ris_tilde,R_theta_ijs,n_theta,is_save_in
 nRisTilde = size(Ris_tilde,3);
 n_theta_ij = size(R_theta_ijs,3);
 
-ciis = zeros(2,nRisTilde,'uint16');
-g = [0 -1 0; 1 0 0; 0 0 1]; % a rotation of 90 degrees about the z-axis
+ciis = zeros(4,nRisTilde,'uint16');
+g = [cosd(72) -sind(72) 0; 
+	 sind(72)  cosd(72) 0; 
+	 0 				 0  1]; % a rotation of 72 degrees about the z-axis
+
 for i=1:nRisTilde
-    
+        
     Ri_tilde = Ris_tilde(:,:,i);
-    Riig = Ri_tilde.' * g * Ri_tilde;
-    
-    % extract a common-line index for each possible theta_ij
-    c_1 = [-Riig(8) ;  Riig(7)]; %[-Riig(2,3)  Riig(1,3)];
-    c_2 = [ Riig(6) ; -Riig(3)]; %[ Riig(3,2) -Riig(3,1)];
-    
-    cii1 = clAngles2Ind(c_1,n_theta);
-    cii2 = clAngles2Ind(c_2,n_theta);
-    
-    if cii1 > n_theta/2
-        cii1 = cii1 - n_theta/2;
-        cii2 = cii2 + n_theta/2;
-        cii2 = mod(cii2-1,n_theta)+1;
+    for s=1:2
+        Riigs = Ri_tilde.' * g^s * Ri_tilde;
+        
+        % extract a common-line index for each possible theta_ij
+        c_1 = [-Riigs(8) ;  Riigs(7)]; %[-Riig(2,3)  Riig(1,3)];
+        c_2 = [ Riigs(6) ; -Riigs(3)]; %[ Riig(3,2) -Riig(3,1)];
+        
+        cii1 = clAngles2Ind(c_1,n_theta);
+        cii2 = clAngles2Ind(c_2,n_theta);
+        
+        if cii1 > n_theta/2
+            cii1 = cii1 - n_theta/2;
+            cii2 = cii2 + n_theta/2;
+            cii2 = mod(cii2-1,n_theta)+1;
+        end
+        
+        ciis(2*s-1,i)  = cii1;
+        ciis(2*s,  i)  = cii2;
     end
-    
-    ciis(1,i)  = cii1;
-    ciis(2,i)  = cii2;
 end
 
-cijs = zeros(nRisTilde,nRisTilde,n_theta_ij/4,4,2,'uint16');
+cijs = zeros(nRisTilde,nRisTilde,n_theta_ij/5,5,2,'uint16');
 msg = [];
 for i=1:nRisTilde
     Ri_tilde = Ris_tilde(:,:,i);
@@ -51,8 +56,8 @@ for i=1:nRisTilde
         c_2s(inds_tmp) = c_2s(inds_tmp) + n_theta/2;
         c_2s(inds_tmp) = mod(c_2s(inds_tmp)-1,n_theta)+1;
         
-        c_1s = reshape(c_1s,n_theta_ij/4,4);
-        c_2s = reshape(c_2s,n_theta_ij/4,4);
+        c_1s = reshape(c_1s,n_theta_ij/5,5);
+        c_2s = reshape(c_2s,n_theta_ij/5,5);
         
         cijs(i,j,:,:,1) = c_1s;
         cijs(i,j,:,:,2) = c_2s;

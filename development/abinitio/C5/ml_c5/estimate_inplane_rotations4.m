@@ -40,7 +40,7 @@ theta_ij = (0:inplane_rot_res:(360-inplane_rot_res))*pi/180;
 n_theta_ij = numel(theta_ij);
 
 % TODO: this should be enforced in the interface
-assert(mod(n_theta_ij,4)==0);
+assert(mod(n_theta_ij,5)==0);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Step 1: construct all in-plane rotation matrices R(theta_ij)
@@ -143,7 +143,7 @@ for i = 1:nImages
         Corrs = sum(co);
         corrs = gather(Corrs);
         
-        corrs = reshape(corrs,n_theta_ij/4,4,nshifts);
+        corrs = reshape(corrs,n_theta_ij/5,5,nshifts);
         
         if nshifts > 1
             % the 1d shifts depend not only on the 2d shifts of each and every
@@ -162,7 +162,7 @@ for i = 1:nImages
         max_idx_corrs(counter) = max_idx_corr; % this is only for stats
         theta_diff = inplane_rot_res*(max_idx_corr-1)*pi/180;
         
-        H(i,j) = cos(4*theta_diff) + sqrt(-1)*sin(4*theta_diff);
+        H(i,j) = cos(5*theta_diff) + sqrt(-1)*sin(5*theta_diff);
 %            
 %         %%%%%%%%%%%%%%%%%%% debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %         
@@ -198,8 +198,8 @@ in_plane_rots = zeros(3,3,nImages);
 for i  = 1:nImages
     zi  = evect1(i);
     zi  = zi/abs(zi);      % rescale so it lies on unit circle
-    c   = real(zi^(1/4));  % we have four time the desired angle
-    s   = -imag(zi^(1/4)); % we have four time the desired angle
+    c   = real(zi^(1/5));  % we have four time the desired angle
+    s   = -imag(zi^(1/5)); % we have four time the desired angle
     in_plane_rots(:,:,i) = [c -s 0; s c 0; 0 0 1];
 end
 

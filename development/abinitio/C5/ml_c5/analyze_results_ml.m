@@ -33,9 +33,9 @@ rot1 = zeros(3*nImages,3); % True true K rotation^T matrices stacked as a matrix
 rot2 = zeros(3*nImages,3); % True true K rotation^T matrices stacked as a matrix with 3K rows.
 
 J = diag([1 1 -1]); % Reflection matrix
-g = [0 -1 0; ...
-     1  0 0; ...
-     0  0 1]; % rotation matrix of 90 degress about z-axis
+g = [cosd(72) -sind(72) 0; 
+	 sind(72)  cosd(72) 0; 
+	 0 				 0  1]; % a rotation of 72 degrees about the z-axis
 for k=1:nImages
     R = rotations(:,:,k);
     rot(3*(k-1)+1:3*k,:) = R.';
@@ -111,10 +111,10 @@ end
 
 function [view_dir_err_in_degrees,polar_ang_gt,stats_g] = check_viewdir_degrees_error(rots,refq)
 
-g = [0 -1 0; ...
-     1  0 0; ...
-     0  0 1]; % rotation matrix of 90 degress about z-axis
-
+g = [cosd(72) -sind(72) 0; 
+	 sind(72)  cosd(72) 0; 
+	 0 				 0  1]; % a rotation of 72 degrees about the z-axis
+ 
 nImages = size(refq,2);
 assert(size(rots,3) == nImages);
 
@@ -129,10 +129,10 @@ for i = 1:nImages
     polar_ang_gt(i) = acosd(qi_gt(3));
     
     qi = rots(:,3,i);
-    qis = [qi,g*qi,g*g*qi,g*g*g*qi];
+    qis = [qi,g*qi,g*g*qi,g*g*g*qi,g*g*g*g*qi];
     
     
-    ang_diffs_g = acosd(dot(repmat(qi_gt,1,4),qis));
+    ang_diffs_g = acosd(dot(repmat(qi_gt,1,5),qis));
     [YY,II] = min(ang_diffs_g);
     view_dir_err_in_degrees(i) = YY;
     stats_g(i) = II-1;
@@ -142,17 +142,17 @@ end
 
 function [err_in_degrees,mean_err_per_rot] = check_degrees_error(rots,n_theta,refq)
 
-FOUR = 4; % place-holder for a parameter that would be used for C3 as well
+FIVE = 5; % place-holder for a parameter that would be used for C3 as well
 nImages = size(refq,2);
 assert(size(rots,3) == nImages);
 d_theta = 2*pi/n_theta;
 
-g = [0 -1 0; ...
-     1  0 0; ...
-     0  0 1]; % rotation matrix of 90 degress about z-axis
+g = [cosd(72) -sind(72) 0; 
+	 sind(72)  cosd(72) 0; 
+	 0 				 0  1]; % a rotation of 72 degrees about the z-axis
 % precalculate g^s, s=0..params.FOUR-1
-g_s = zeros(3,3,FOUR);
-for s = 1:FOUR
+g_s = zeros(3,3,FIVE);
+for s = 1:FIVE
     g_s(:,:,s) = g^(s-1);
 end
 
@@ -168,8 +168,8 @@ for k = 1:nImages
             sin((j-1)*d_theta).*Rk_gt(:,2);
     end
     
-    c_err_in_degrees = cell(1,4);
-    for s = 1:FOUR
+    c_err_in_degrees = cell(1,5);
+    for s = 1:FIVE
         rays = zeros(n_theta,3);
         Rk   = g_s(:,:,s)*rots(:,:,k);
         for j = 1:n_theta
@@ -218,9 +218,9 @@ function sign_g_Ri = g_sync(rotations, refq)
 nImages = size(rotations,3);
 assert(nImages == size(refq,2));
 
-g = [0 -1 0; ...
-     1  0 0; ...
-     0  0 1]; % rotation matrix of 90 degress about z-axis
+g = [cosd(72) -sind(72) 0; 
+	 sind(72)  cosd(72) 0; 
+	 0 				 0  1]; % a rotation of 72 degrees about the z-axis
 
 J = diag([1 1 -1]); % Reflection matrix
 
@@ -241,13 +241,13 @@ for i=1:nImages
         
         Ri_gt = Ris_gt(:,:,i);
         Rj_gt = Ris_gt(:,:,j);
-        diffs = zeros(1,4);
-        for s=0:3
+        diffs = zeros(1,5);
+        for s=0:4
             Rij_gt = Ri_gt.'*(g^s)*Rj_gt;
             diffs(s+1) = min(norm(Rij-Rij_gt,'fro'),norm(Rij-J*Rij_gt*J,'fro'));
         end
         [~,ind] = min(diffs);
-        A_g(i,j) = exp(-sqrt(-1)*pi/2*(ind-1));
+        A_g(i,j) = exp(-sqrt(-1)*2*pi/5*(ind-1));
     end
 end
 % A_g(k,l) is exp(-j(-theta_k+theta_j)) so we use transpose and not
@@ -264,7 +264,7 @@ evect1 = v(:,ind(1));
 log_message('Outer g syn first 5 eigenvalues=[%.2f %.2f %.2f %.2f %.2f]',...
     evals(1),evals(2),evals(3),evals(4),evals(5));
 
-angles = exp(sqrt(-1)*pi/2*(0:3)).';
+angles = exp(sqrt(-1)*2*pi/5*(0:4)).';
 sign_g_Ri = zeros(nImages,1);
 for ii  = 1:nImages
     zi  = evect1(ii);
