@@ -1,6 +1,6 @@
-function [viis,mse_vii] = estimate_viis(ciis,Ris_tilde,npf,is_handle_equators,refq)
+function [viis,mse_vii] = estimate_viis(ciis,Ris_tilde,npf,shift_phases,is_handle_equators,refq)
 
-[~,n_theta,nImages] = size(npf);
+[n_r,n_theta,nImages] = size(npf);
 
 viis = zeros(3,3,nImages);
 
@@ -17,8 +17,17 @@ else
     inds_eq_images = [];
 end
 
-inds = sub2ind([n_theta/2,n_theta],ciis(1,:),ciis(2,:));
+ncands = size(ciis,2);
 
+g_shift_phases = gpuArray(single(shift_phases));
+[~,nshifts] = size(shift_phases);
+
+inds_orig = sub2ind([n_theta,n_theta/2],ciis(1,:),ciis(2,:));
+
+inds = zeros(ncands,nshifts);
+for s=1:nshifts
+    inds(:,s) = inds_orig + (s-1)*n_theta/2*n_theta;
+end
 
 opt_Ris_tilde_ind = zeros(1,nImages);
 max_corrs_stats   = zeros(1,nImages);
@@ -28,22 +37,51 @@ for i=1:nImages
     if ismember(i,inds_eq_images); 
         continue; 
     end
-    Pi = npf(:,:,i);
-    Pi(1,:) = 0; % effectivly remove dc term
-    % normalize each ray to be of norm 1
-    Pi = bsxfun(@rdivide,Pi,sqrt(sum((abs(Pi)).^2)));
-    Half_Pi = Pi(:,1:n_theta/2);
-    PiPi = Half_Pi'*Pi;
     
-    Corrs = PiPi(inds);
+    npf_i = npf(:,:,i); 
+    npf_i_half = npf_i(:,1:n_theta/2);
     
-    Corrs(cii_equators_inds) = -inf;
-    [Y,I] = max(real(Corrs));
+    g_npf_i      = gpuArray(single(npf_i));
+    g_npf_i_half = gpuArray(single(npf_i_half));
     
-    opt_Ris_tilde_ind(i) = I;
-    max_corrs_stats(i)   = Y;
+    % generate all shifted copies of the image
+    g_npf_i_half_shifted = zeros([size(g_npf_i_half),nshifts],'gpuArray');
+    for s=1:nshifts
+        g_npf_i_half_shifted(:,:,s) = bsxfun(@times,g_npf_i_half,g_shift_phases(:,s));
+    end
     
-    Ri_opt = Ris_tilde(:,:,I);
+    g_npf_i_half_shifted = reshape(g_npf_i_half_shifted,n_r,n_theta/2*nshifts);
+    
+    % ignoring dc-term
+    g_npf_i(1,:) = 0;
+    g_npf_i_half_shifted(1,:) = 0;
+    
+    % nomalize each ray to be norm 1
+    norms   = sqrt(sum((abs(g_npf_i)).^2));
+    g_npf_i = bsxfun(@rdivide,g_npf_i,norms);
+    
+    % nomalize each ray to be norm 1
+    norms = sqrt(sum((abs(g_npf_i_half_shifted)).^2));
+    g_npf_i_half_shifted = bsxfun(@rdivide,g_npf_i_half_shifted,norms);
+     
+    PiPi = g_npf_i'*g_npf_i_half_shifted;
+    PiPi = reshape(PiPi,[n_theta, n_theta/2, nshifts]);
+    
+    Corrs = PiPi(inds(:));
+    
+    Corrs = reshape(Corrs,[ncands,nshifts]);
+    
+    Corrs(cii_equators_inds,:) = -inf;
+    [Max_corr,Idx] = max(real(Corrs(:)));
+    max_corr = gather(Max_corr);
+    idx = gather(Idx);
+    
+    [opt_idx_cand,shift] = ind2sub([ncands,nshifts],idx);
+    
+    opt_Ris_tilde_ind(i) = opt_idx_cand;
+    max_corrs_stats(i)   = max_corr;
+    
+    Ri_opt = Ris_tilde(:,:,opt_idx_cand);
     
     Rii = Ri_opt.'*g*Ri_opt;
     viis(:,:,i) = 0.5*(Rii+Rii.');

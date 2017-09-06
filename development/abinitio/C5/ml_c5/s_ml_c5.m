@@ -1,15 +1,16 @@
 tic;
 close all;
-nImages = 100;
-nPoints_sphere  = 600;
+nImages = 500;
+nPoints_sphere  = 100;
 is_use_gt_in_cands = false;
-is_save_inds_to_cache = true;
+is_save_inds_to_cache = false;
 n_r     = 65;  
 n_theta = 360;
 snr = 100000000;
+is_handle_equators = false;
 inplane_rot_res = 1;
-max_shift  = 0;
-shift_step = 1;
+max_shift  = 3;
+shift_step = 0.5;
 
 initstate; 
 open_log(0)
@@ -27,7 +28,7 @@ else
     load(file_cache_name);
 end
 
-[vijs,viis,max_corrs_stats] = compute_third_row_outer_prod(npf,ciis,cijs,Ris_tilde,R_theta_ijs,refq);
+[vijs,viis,max_corrs_stats] = compute_third_row_outer_prod(npf,ciis,cijs,Ris_tilde,R_theta_ijs,max_shift,shift_step,is_handle_equators,refq);
 
 [vijs,viis,sign_ij_J,sign_ii_J] = global_sync_J(vijs,viis);
 % 

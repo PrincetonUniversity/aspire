@@ -1,14 +1,15 @@
 function [vijs,viis,max_corrs_stats] = ...
-    compute_third_row_outer_prod(npf,ciis,cijs,Ris_tilde,R_theta_ijs,refq)
-
-[~,n_theta,nImages] = size(npf);
+    compute_third_row_outer_prod(npf,ciis,cijs,Ris_tilde,R_theta_ijs,max_shift,shift_step,is_handle_equators,refq)
+[n_r,n_theta,nImages] = size(npf);
 nRis_tilde = size(Ris_tilde,3);
+n_theta_ij = size(R_theta_ijs,3);
 
-% %precompile the shift phases
-% shift_phases = calc_shift_phases(n_r,max_shift,shift_step);
-% [~,nshifts] = size(shift_phases);
+%precompile the shift phases
+shift_phases = calc_shift_phases(n_r,max_shift,shift_step);
+viis = estimate_viis(ciis,Ris_tilde,npf,shift_phases,is_handle_equators,refq);
 
-viis = estimate_viis(ciis,Ris_tilde,npf,refq);
+g_shift_phases = gpuArray(double(shift_phases));
+[~,nshifts] = size(shift_phases);
 
 opt_Rs_tilde    = zeros(nImages,nImages);
 opt_thetaij     = zeros(nImages,nImages);
@@ -26,42 +27,63 @@ J = diag([1,1,-1]);
 diffs = zeros(1,nchoosek(nImages,2));
 counter = 0;
 
-inds = sub2ind([n_theta/2,n_theta],cijs(:,:,:,:,1),cijs(:,:,:,:,2));
+inds = sub2ind([n_theta,n_theta/2],cijs(:,:,:,:,1),cijs(:,:,:,:,2));
 [C,~,IC] = unique(inds(:));
 
 for i=1:nImages
-%     if mod(i,10) == 0; reset(g); end;
-    npf_i = npf(:,1:n_theta/2,i);
-    npf_i(1,:) = 0; % effectivly remove dc term
-    % normalize each ray to be of norm 1
-    npf_i = bsxfun(@rdivide,npf_i,sqrt(sum((abs(npf_i)).^2)));
-    Npf_i = gpuArray(single(npf_i));
+    %     if mod(i,10) == 0; reset(g); end;
+    npf_i = npf(:,:,i);
+    g_npf_i = gpuArray(double(npf_i));
+    % ignoring dc-term
+    g_npf_i(1,:) = 0;
+    
+    % nomalize each ray to be norm 1
+    norms   = sqrt(sum((abs(g_npf_i)).^2));
+    g_npf_i = bsxfun(@rdivide,g_npf_i,norms);
+    
     for j=i+1:nImages
         
         t1 = clock;
         
         counter = counter + 1;
         
-        npf_j = npf(:,:,j);
-        npf_j(1,:) = 0; % effectivly remove dc term
-        npf_j = bsxfun(@rdivide,npf_j,sqrt(sum((abs(npf_j)).^2)));
-        Npf_j = gpuArray(single(npf_j));
+        npf_j = npf(:,1:n_theta/2,j);
+        g_npf_j = gpuArray(double(npf_j));
         
-        PiPj = Npf_i'*Npf_j;
-
-        Corrs = PiPj(C);
-        Corrs = Corrs(IC);
-        Corrs = reshape(Corrs,nRis_tilde,nRis_tilde,[],5);
-        Corrs = squeeze(mean(real(Corrs),4));
+        Corrs = zeros([numel(C),1],'gpuArray');
+        for s=1:nshifts
+            g_npf_j_shifted = bsxfun(@times,g_npf_j,g_shift_phases(:,s));
+            
+            % ignoring dc-term
+            g_npf_j_shifted(1,:) = 0;
+            
+            % nomalize each ray to be norm 1
+            norms           = sqrt(sum((abs(g_npf_j_shifted)).^2));
+            g_npf_j_shifted = bsxfun(@rdivide,g_npf_j_shifted,norms);
+            
+            
+            PiPj = g_npf_i'*g_npf_j_shifted;
+            
+            Corrs_s = PiPj(C);
+            
+            Corrs = max([Corrs real(Corrs_s(:))],[],2);
+        end
         
-        [YY,II] = max(Corrs(:));
-        [II,JJ,KK] = ind2sub(size(Corrs),II);
+        Corrs = real(Corrs(IC));
+%         corrs = gather(Corrs);
+%         corrs = unique2all(gather(real(Corrs)),IC);
+        Corrs = reshape(Corrs,[nRis_tilde,nRis_tilde,n_theta_ij/5,5]);
+        corrs = squeeze(mean(Corrs,4));
+        
+        [YY,II] = max(corrs(:));
+        
+        [II,JJ,KK] = ind2sub([nRis_tilde,nRis_tilde,n_theta_ij/5],II);
         
         YY = gather(YY);
         II = gather(II);
         JJ = gather(JJ);
         KK = gather(KK);
-        
+                
         opt_Rs_tilde(i,j)    = II;
         opt_Rs_tilde(j,i)    = JJ;
         opt_thetaij(i,j)     = KK;

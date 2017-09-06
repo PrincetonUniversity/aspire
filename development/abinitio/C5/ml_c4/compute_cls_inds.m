@@ -17,10 +17,10 @@ for i=1:nRisTilde
     cii1 = clAngles2Ind(c_1,n_theta);
     cii2 = clAngles2Ind(c_2,n_theta);
     
-    if cii1 > n_theta/2
-        cii1 = cii1 - n_theta/2;
-        cii2 = cii2 + n_theta/2;
-        cii2 = mod(cii2-1,n_theta)+1;
+    if cii2 > n_theta/2
+        cii2 = cii2 - n_theta/2;
+        cii1 = cii1 + n_theta/2;
+        cii1 = mod(cii1-1,n_theta)+1;
     end
     
     ciis(1,i)  = cii1;
@@ -46,10 +46,10 @@ for i=1:nRisTilde
         c_1s = clAngles2Ind(c_1,n_theta);
         c_2s = clAngles2Ind(c_2,n_theta);
         
-        inds_tmp = find(c_1s > n_theta/2);
-        c_1s(inds_tmp) = c_1s(inds_tmp) - n_theta/2;
-        c_2s(inds_tmp) = c_2s(inds_tmp) + n_theta/2;
-        c_2s(inds_tmp) = mod(c_2s(inds_tmp)-1,n_theta)+1;
+        inds_tmp = find(c_2s > n_theta/2);
+        c_2s(inds_tmp) = c_2s(inds_tmp) - n_theta/2;
+        c_1s(inds_tmp) = c_1s(inds_tmp) + n_theta/2;
+        c_1s(inds_tmp) = mod(c_1s(inds_tmp)-1,n_theta)+1;
         
         c_1s = reshape(c_1s,n_theta_ij/4,4);
         c_2s = reshape(c_2s,n_theta_ij/4,4);

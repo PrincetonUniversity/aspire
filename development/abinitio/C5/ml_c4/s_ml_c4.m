@@ -1,18 +1,18 @@
 tic;
 close all;
 nImages = 50;
-nPoints_sphere  = 200;
-is_use_gt_in_cands = true;
+nPoints_sphere  = 400;
+is_use_gt_in_cands = false;
 is_save_inds_to_cache = false;
 n_r     = 65;  
 n_theta = 360;
 snr = 100000000;
 inplane_rot_res = 1;
 is_handle_equators = true;
-max_shift  = 0;
-shift_step = 1;
+max_shift  = 15; % number of shifts to consider
+shift_step = 0.5; % the shift step (see Yoel's technical report)
 
-initstate; 
+initstate;
 open_log(0)
 
 [projs,refq] = generate_c4_images(nImages,snr,65,'GAUSSIAN',max_shift,shift_step);
@@ -27,7 +27,7 @@ else
     load(file_cache_name);
 end
 
-[vijs,viis,max_corrs_stats] = compute_third_row_outer_prod(npf,ciis,cijs,Ris_tilde,R_theta_ijs,is_handle_equators,refq);
+[vijs,viis,max_corrs_stats] = compute_third_row_outer_prod(npf,ciis,cijs,Ris_tilde,R_theta_ijs,max_shift,shift_step,is_handle_equators,refq);
 
 [vijs,viis,sign_ij_J,sign_ii_J] = global_sync_J(vijs,viis);
 
