@@ -13,7 +13,7 @@ function [pf,freqs]=cryo_pft(p,n_r,n_theta,precision)
 %   n_r        Number of samples along each ray (in the radial direction).
 %   n_theta    Angular resolution. Number of Fourier rays computed for each
 %              projection.
-%   precision  'single' or 'double'. Default is 'single'. The polar Fourier
+%   precision  DEPRICATED\NOT IN USE - 'single' or 'double'. Default is 'single'. The polar Fourier
 %              samples for 'single' are computed to accuracy of 1.e-6.
 %
 % Output parameters:
@@ -35,9 +35,6 @@ function [pf,freqs]=cryo_pft(p,n_r,n_theta,precision)
 %
 % Yoel Shkolnisky, January 2008.
 
-if nargin<4
-    precision='single';
-end
 
 n_proj=1;
 if ndims(p)==3
@@ -65,6 +62,9 @@ end
 
 % precomputed interpolation weights once for the give polar grid. This is
 % used below for computing the polar Fourier transform of all slices
+if ~isa(p,'double') && ~isa(p,'single') 
+    error('Images data type can be ''single'' or ''double'' ');
+end
 
 pf=zeros([n_r,n_theta,n_proj],class(p));
 parfor k=1:n_proj
