@@ -1,4 +1,4 @@
-function [images,refq,ref_shifts] = generate_c5_images(nImages,SNR,projSize,max_shift,shift_step)
+function [images,refq,ref_shifts] = generate_c5_images(nImages,SNR,projSize,c5_type,is_removeEquators,max_shift,shift_step)
 %
 % Generates a set of projection images of a C4 volume
 % 
@@ -6,7 +6,7 @@ function [images,refq,ref_shifts] = generate_c5_images(nImages,SNR,projSize,max_
 %   nImages       Number of images to generate
 %   SNR           Signal to noise ratio
 %   projSize      Size of each projection (e.g., 65 would generate a 65x65 images)
-%   c4_type       (Optional) Type of c4 molecule. May be
+%   c5_type       (Optional) Type of c4 molecule. May be
 %                 'GAUSSIAN','SYNTHETIC','IP3','TRPV1'. Default is GAUSSIAN.
 %   max_shift     The maximum spatial shift each image undergoes
 %   shift_step    (Optional) Resolution used to generate shifts.
@@ -35,15 +35,34 @@ if ~exist('max_shift','var')
 end
 
 refq   = qrand(nImages);
-vol = cryo_gaussian_phantom_3d('C5_params',projSize,1);   
+if is_removeEquators
+    refq = removeEquators(refq);
+end
 
-% if params_simul.debug
-%     %     assertVolumeCentered(symmVol);
-%     %     assertVolumeIsC4(symmVol);
-% end
+if strcmp(c5_type,'80S')    
+    load cleanrib;
+%     volref    = volref(1:end-1,1:end-1,1:end-1);
+    vol_init  = volref;
+    clear volref;
+elseif strcmp(c5_type,'C1')
+    vol_init = cryo_gaussian_phantom_3d('C1_params',projSize,1);
+elseif strcmp(c5_type,'C5')
+    vol_init = cryo_gaussian_phantom_3d('C5_params',projSize,1);
+else
+    error('no such type %s',c5_type);
+end
+
+% make sure it is a c5 molecule
+vol = vol_init;
+for i=1:4
+    vol = vol + fastrotate3z(vol_init,i*360/5);
+end
+vol = vol/5;
+assertVolumeIsC5(vol);
 
 log_message('#images = %d', nImages);
 
+% projs = cryo_project_gaussian('C5_params',projSize,1,refq);
 projs = cryo_project(vol,refq);
 projs = permute(projs,[2,1,3]);
 
@@ -62,5 +81,34 @@ images = cryo_addnoise(projs,SNR,'gaussian');
 %     spnoise_pft = cryo_noise_estimation_pfs(noisy_projs,params.n_r,params.n_theta);
 %     spnoise_pft(spnoise_pft<max(spnoise_pft/10))=1;
 %     noise_cov = diag(spnoise_pft);
+
+end
+
+
+function err = assertVolumeIsC5(vol)
+   
+errs = zeros(1,4);
+for i=1:4
+    vol_rot = fastrotate3z(vol,72*i);
+    errs(i) = norm(vol(:)-vol_rot(:))/norm(vol(:));
+end
+err = max(errs);
+log_message('deviation of volume from c5 symmetry is %.4f',err);
+end
+
+
+function refq = removeEquators(refq)
+
+log_message('removing equator images');
+nImages = size(refq,2);
+is_eq = zeros(1,nImages);
+for i=1:nImages
+    rot = q_to_rot(refq(:,i)).';
+    if abs(acosd(rot(3,3))-90) < 8
+        is_eq(i) = 1;
+    end
+end
+
+refq(:,find(is_eq)) = [];
 
 end

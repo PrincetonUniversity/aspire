@@ -1,22 +1,37 @@
 tic;
 close all;
-nImages = 50;
-nPoints_sphere  = 400;
+nImages = 200;
+nPoints_sphere  = 700;
 is_use_gt_in_cands = false;
-is_save_inds_to_cache = false;
+is_save_inds_to_cache = true;
 n_r     = 65;  
 n_theta = 360;
-snr = 100000000;
+snr = 1/2;
 inplane_rot_res = 1;
 is_handle_equators = true;
-max_shift  = 15; % number of shifts to consider
+max_shift  = 0; % number of shifts to consider
 shift_step = 0.5; % the shift step (see Yoel's technical report)
 
 initstate;
 open_log(0)
 
 [projs,refq] = generate_c4_images(nImages,snr,65,'GAUSSIAN',max_shift,shift_step);
-[npf,~]      = cryo_pft(projs,n_r,n_theta,'double');
+
+if snr <= 1 
+    %% Mask projections
+    mask_radius = round(size(projs,1)*0.3);
+    log_message('Masking projections. Masking radius is %d pixels',mask_radius);
+    [masked_projs,~] = mask_fuzzy(projs,mask_radius);
+else
+    masked_projs = projs;
+end
+
+[npf,~]  = cryo_pft(masked_projs,n_r,n_theta,'double');
+
+if snr <= 1
+    
+    npf = gaussian_filter_imgs(npf);
+end
 
 file_cache_name  = sprintf('ml_cached_inds_%d.mat',nPoints_sphere);
 

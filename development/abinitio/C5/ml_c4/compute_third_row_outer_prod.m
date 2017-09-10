@@ -90,17 +90,22 @@ for i=1:nImages
         Rj_tilde = Ris_tilde(:,:,JJ);
         R_theta_ij = R_theta_ijs(:,:,KK);
         
-        Rij = Ri_tilde.'*R_theta_ij*Rj_tilde;
-        
-        Ri_gt = q_to_rot(refq(:,i)).';
-        Rj_gt = q_to_rot(refq(:,j)).';
-        
-        diff = zeros(1,4);
-        for s=0:3
-            Rij_gs_gt = Ri_gt.'*g^s*Rj_gt;
-            diff(s+1) = min(norm(Rij-Rij_gs_gt,'fro'),norm(Rij-J*Rij_gs_gt*J,'fro'));
+        % TODO: move outside the loop
+        if exist('refq','var') && ~isempty(refq)
+            
+            
+            Rij = Ri_tilde.'*R_theta_ij*Rj_tilde;
+            
+            Ri_gt = q_to_rot(refq(:,i)).';
+            Rj_gt = q_to_rot(refq(:,j)).';
+            
+            diff = zeros(1,4);
+            for s=0:3
+                Rij_gs_gt = Ri_gt.'*g^s*Rj_gt;
+                diff(s+1) = min(norm(Rij-Rij_gs_gt,'fro'),norm(Rij-J*Rij_gs_gt*J,'fro'));
+            end
+            diffs(counter) = min(diff);
         end
-        diffs(counter) = min(diff);
         
         vijs(:,:,counter) = 0.25*Ri_tilde.'*(R_theta_ij+g*R_theta_ij+g^2*R_theta_ij+g^3*R_theta_ij)*Rj_tilde;
         
@@ -115,7 +120,9 @@ for i=1:nImages
     end
 end
 
-mse_vij = sum(diffs.^2)/numel(diffs);
-log_message('MSE of vij: %e',mse_vij);
+if exist('refq','var') && ~isempty(refq)
+    mse_vij = sum(diffs.^2)/numel(diffs);
+    log_message('MSE of vij: %e',mse_vij);
+end
 
 end

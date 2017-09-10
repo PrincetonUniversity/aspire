@@ -1,21 +1,23 @@
 tic;
 close all;
-nImages = 500;
-nPoints_sphere  = 100;
+nImages = 1000;
+nPoints_sphere  = 1000;
 is_use_gt_in_cands = false;
 is_save_inds_to_cache = false;
 n_r     = 65;  
 n_theta = 360;
-snr = 100000000;
-is_handle_equators = false;
+snr = 1000000000;
 inplane_rot_res = 1;
-max_shift  = 3;
+c5_type = '80S';
+is_removeEquators = true;
+max_shift  = 0;
 shift_step = 0.5;
 
 initstate; 
 open_log(0)
 
-[projs,refq] = generate_c5_images(nImages,1000000000,65,max_shift,shift_step);
+[projs,refq] = generate_c5_images(nImages,snr,65,c5_type,is_removeEquators,max_shift,shift_step);
+nImages = size(refq,2);
 
 [npf,~]      = cryo_pft(projs,n_r,n_theta,'double');
 
@@ -28,7 +30,7 @@ else
     load(file_cache_name);
 end
 
-[vijs,viis,max_corrs_stats] = compute_third_row_outer_prod(npf,ciis,cijs,Ris_tilde,R_theta_ijs,max_shift,shift_step,is_handle_equators,refq);
+[vijs,viis,max_corrs_stats] = compute_third_row_outer_prod(npf,ciis,cijs,Ris_tilde,R_theta_ijs,max_shift,shift_step,refq);
 
 [vijs,viis,sign_ij_J,sign_ii_J] = global_sync_J(vijs,viis);
 % 

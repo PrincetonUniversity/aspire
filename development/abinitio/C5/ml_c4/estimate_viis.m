@@ -87,32 +87,34 @@ for i=1:nImages
     viis(:,:,i) = 0.5*(Rii+Rii.');
 end
 
-diffs = zeros(1,nImages);
-for i=1:nImages
-    Ri_gt = q_to_rot(refq(:,i)).';
-    vi_gt = Ri_gt(3,:);
-    vii_gt = vi_gt.'*vi_gt;
+if exist('refq','var') && ~isempty(refq)
     
-    vii = viis(:,:,i);
-   
-    diffs(i) =  min([norm(  vii     - vii_gt,'fro'),...
-        norm(  vii.'   - vii_gt,'fro')...
-        norm(J*vii*J   - vii_gt,'fro'),...
-        norm(J*vii.'*J - vii_gt,'fro')]);    
+    diffs = zeros(1,nImages);
+    for i=1:nImages
+        Ri_gt = q_to_rot(refq(:,i)).';
+        vi_gt = Ri_gt(3,:);
+        vii_gt = vi_gt.'*vi_gt;
+        
+        vii = viis(:,:,i);
+        
+        diffs(i) =  min([norm(  vii     - vii_gt,'fro'),...
+            norm(  vii.'   - vii_gt,'fro')...
+            norm(J*vii*J   - vii_gt,'fro'),...
+            norm(J*vii.'*J - vii_gt,'fro')]);
+    end
+    
+    mse_vii = sum(diffs.^2)/numel(diffs);
+    log_message('MSE of vii: %e',mse_vii);
+    
+    bad_inds = find(diffs > 0.1);
+    bad_polar_angs = zeros(1,numel(bad_inds));
+    for i=1:numel(bad_inds)
+        ind = bad_inds(i);
+        bad_rot = q_to_rot(refq(:,ind)).';
+        bad_polar_angs(i) = acosd(bad_rot(3,3));
+    end
+    figure; hist(bad_polar_angs,180); 
 end
-
-mse_vii = sum(diffs.^2)/numel(diffs);
-log_message('MSE of vii: %e',mse_vii);
-
-
-bad_inds = find(diffs > 0.1);
-bad_polar_angs = zeros(1,numel(bad_inds));
-for i=1:numel(bad_inds)
-    ind = bad_inds(i);
-    bad_rot = q_to_rot(refq(:,ind)).';
-    bad_polar_angs(i) = acosd(bad_rot(3,3));
-end
-figure; hist(bad_polar_angs,180);
 
 end
 
