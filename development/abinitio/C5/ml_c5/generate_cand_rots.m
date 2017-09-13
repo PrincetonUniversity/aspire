@@ -60,7 +60,7 @@ else
         
     end
     
-    vis_pert = zeros(size(vis_gt));
+    vis_pert = zeros(nImages,3);
     for i=1:nImages
         % add some pertrubation to each row
         noise = randn(1,3);
@@ -69,8 +69,8 @@ else
         vis_pert(i,:) = vis_pert(i,:)./norm(vis_pert(i,:));
     end
     
-    vis_bad = zeros(3*nImages,3);
-    for i=1:3*nImages
+    vis_bad = zeros(2*nImages,3);
+    for i=1:size(vis_bad,1)
         tmp = randn(3,3); [Q,~] = qr(tmp);
         vis_bad(i,:) = Q(3,:);
     end
