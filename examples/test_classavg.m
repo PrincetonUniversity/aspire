@@ -96,7 +96,7 @@ log_message('Relative MSE of denoised images after PCA is %f',mse_spca)
 
 log_message('Starting initial classification');
 tic_init=tic;
-[ class_f, class_refl_f, rot_f, corr_f,  timing_f ] = Initial_classification_FD_update(sPCA_data, n_nbor, isrann );
+[ class_f, class_refl_f, rot_f, corr_f,  timing_f ] = Initial_classification_FD(sPCA_data, n_nbor, isrann );
 toc_init=toc(tic_init);
 log_message('Finished initial classification');
 disp('Improving initial classification with vector diffusion maps...');

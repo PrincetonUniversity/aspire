@@ -1,4 +1,4 @@
-function [ class, class_refl, rot, corr,  timing ] = Initial_classification_FD(sPCA_data, n_nbor, isrann )
+function [ class, class_refl, rot, corr,  timing ] = Initial_classification_FD_update(sPCA_data, n_nbor, isrann )
 %Description:
 %This function does initial classfication on preprocessed data.
 %   Input: 
@@ -20,40 +20,40 @@ function [ class, class_refl, rot, corr,  timing ] = Initial_classification_FD(s
 % Zhizhen Zhao Updated Jan 2015
 
 
-Coeff = [sPCA_data.Coeff, conj(sPCA_data.Coeff)]; % Tejal April 2016
+%Coeff = [sPCA_data.Coeff, conj(sPCA_data.Coeff)]; % Tejal April 2016
+Coeff = sPCA_data.Coeff;
 Freqs = sPCA_data.Freqs;
+clear sPCA_data;
 %rad_Freqs = sPCA_data.rad_Freqs;
-n_im = (size(Coeff, 2))/2; % Tejal April 21, 2017
+n_im = size(Coeff, 2);
+%n_im = (size(Coeff, 2))/2; % Tejal April 21, 2017
 %normalize the coefficients
-Coeff(Freqs==0, :)=Coeff(Freqs==0, :)/sqrt(2);
-for i=1:2*n_im  %% Tejal April 21, 2017
-    Coeff(:, i)=Coeff(:, i)/norm(Coeff(:, i));
+Coeff(Freqs==0, :) = Coeff(Freqs==0, :)/sqrt(2);
+for i=1:n_im  %% Tejal April 21, 2017 %% No need to double the coefficients
+    Coeff(:, i) = Coeff(:, i) / norm(Coeff(:, i));
 end;
 Coeff(Freqs==0, :)=Coeff(Freqs==0, :)*sqrt(2);
-
-
 %Compute bispectrum
 %[ Coeff_b, toc_bispec ] = Bispec_2Drot_large( Coeff, Freqs ); %If the number of images and number of Coefficients are large use Bispec_2Drot_large
-[ Coeff_b,  toc_bispec ] = Bispec_2Drot_1( Coeff, Freqs );
+%[ Coeff_b,  toc_bispec ] = Bispec_2Drot_1( Coeff, Freqs );
+[ Coeff_b, Coeff_b_r, toc_bispec ] = Bispec_2Drot_large_v2( Coeff, Freqs );
 
 if n_im<=10000
     %%For small dataset, search for nearest neighbors
     tic_nn=tic;
-    corr=real(Coeff_b(:, 1:n_im)'*Coeff_b);
-    %corr=real((Coeff_b(:, 1:n_im))'*[Coeff_b, Coeff_b_r]); % Tejal April 21 2016
-    corr=corr-sparse(1:n_im, 1:n_im, ones(n_im, 1), n_im, 2*n_im);
-    [~, class]=sort(corr(1:n_im, :), 2, 'descend');
-    class=class(:, 1:n_nbor);
-    toc_nn=toc(tic_nn);
+    corr=real((Coeff_b(:, 1:n_im))'*[Coeff_b, Coeff_b_r]); % Tejal April 21 2016 %Change back from Tejal's modification
+    corr = corr - sparse(1:n_im, 1:n_im, ones(n_im, 1), n_im, 2*n_im);
+    [~, class] = sort(corr(1:n_im, :), 2, 'descend');
+    class = class(:, 1:n_nbor);
+    toc_nn = toc(tic_nn);
     %This part is the brute force nearest neighbor search.
 else
-    tic_nn=tic;
+    tic_nn = tic;
     if ~isrann
         %Brute Force
         P_max=2000;
         for i=1:ceil(n_im/P_max)
-            corr = real(Coeff_b(:, (i-1)*P_max+1:min(i*P_max, n_im))'*Coeff_b);
-            %corr=real(Coeff_b(:, (i-1)*P_max+1:min(i*P_max, P))'*[Coeff_b, Coeff_b_r]); % Tejal April 21 2016
+            corr=real(Coeff_b(:, (i-1)*P_max+1:min(i*P_max, n_im))'*[Coeff_b, Coeff_b_r]); % Tejal April 21 2016 %Change back from Tejal's modification
             [~, tmp]=sort(corr, 2, 'descend');
             class((i-1)*P_max+1:min(i*P_max, n_im), :) = tmp(:, 2:n_nbor+1);
             fprintf('\nCorrelation step %d\n', i);
@@ -64,24 +64,24 @@ else
     end;
     toc_nn=toc(tic_nn);
 end
-
+clear Coeff_b Coeff_b_r
 % Rotational alignment for nearest neighbor pairs
 k_max=max(Freqs);
 Cell_Coeff=cell(k_max+1, 1);
 for i=1:k_max+1
-    Cell_Coeff{i}= Coeff(Freqs==i-1, :);
+%    Cell_Coeff{i}= Coeff(Freqs==i-1, :);
+    Cell_Coeff{i}=[Coeff(Freqs==i-1, :), conj(Coeff(Freqs==i-1, :))]; %Generate the reflected images
 end;
 list=[class(:), repmat([1:n_im]', n_nbor, 1)];
 
 %Initial in-plane rotational alignment within nearest neighbors
 tic_rot=tic;
-[corr, rot ] = rot_align(max(Freqs), Cell_Coeff, list);
-toc_rot=toc(tic_rot);
-
+[ corr, rot ] = rot_align( max(Freqs), Cell_Coeff, list );
+toc_rot = toc( tic_rot );
 corr = reshape(corr, n_im, n_nbor);
 rot=reshape(rot, n_im, n_nbor);
 class=reshape(class, n_im, n_nbor);
-[corr, id_corr]=sort(corr, 2, 'descend');
+[corr, id_corr] = sort(corr, 2, 'descend');
 
 for i=1:n_im
     class(i, :)=class(i, id_corr(i, :));
