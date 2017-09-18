@@ -39,26 +39,24 @@ if is_removeEquators
     refq = removeEquators(refq);
 end
 
-if strcmp(c5_type,'80S')    
-    load cleanrib;
-%     volref    = volref(1:end-1,1:end-1,1:end-1);
-    vol_init  = volref;
-    clear volref;
+if strcmp(c5_type,'80S')
+%     vol_init_mat = cryo_fetch_emdID(2660);
+    vol_init_mat = '/tmp/tp8641e8a4_c426_4a2d_8028_6e2d046b7cb0/pub/databases/emdb/structures/EMD-2660/map/emd_2660.map';
+    vol_init = ReadMRC(vol_init_mat);
+    vol_init = cryo_downsample(vol_init,89);
+    vol_lp = GaussFilt(vol_init,0.15);
+    masked_vol = cryo_mask_volume(vol_lp,25,5);
+    vol = make_vol_c5(masked_vol);
+    vol = cryo_mask_volume(vol,25,5);
+    assertVolumeIsC5(vol);
 elseif strcmp(c5_type,'C1')
     vol_init = cryo_gaussian_phantom_3d('C1_params',projSize,1);
+    vol = make_vol_c5(vol_init);
 elseif strcmp(c5_type,'C5')
-    vol_init = cryo_gaussian_phantom_3d('C5_params',projSize,1);
+    vol = cryo_gaussian_phantom_3d('C5_params',projSize,1);
 else
     error('no such type %s',c5_type);
 end
-
-% make sure it is a c5 molecule
-vol = vol_init;
-for i=1:4
-    vol = vol + fastrotate3z(vol_init,i*360/5);
-end
-vol = vol/5;
-assertVolumeIsC5(vol);
 
 log_message('#images = %d', nImages);
 
@@ -81,6 +79,17 @@ images = cryo_addnoise(projs,SNR,'gaussian');
 %     spnoise_pft = cryo_noise_estimation_pfs(noisy_projs,params.n_r,params.n_theta);
 %     spnoise_pft(spnoise_pft<max(spnoise_pft/10))=1;
 %     noise_cov = diag(spnoise_pft);
+
+end
+
+
+function vol_out = make_vol_c5(vol_in)
+
+vol_out = vol_in;
+for i=1:4
+    vol_out = vol_out + fastrotate3z(vol_in,i*360/5);
+end
+vol_out = vol_out/5;
 
 end
 
