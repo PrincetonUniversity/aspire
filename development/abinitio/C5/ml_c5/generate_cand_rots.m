@@ -1,7 +1,8 @@
 function [Ris_tilde,R_theta_ijs] = generate_cand_rots(nPoints_sphere,inplane_rot_res,is_use_gt_in_cands,refq)
 
 vis = generate_vis(nPoints_sphere,is_use_gt_in_cands,refq);
-
+% log_message('USING EYTAN CODE FOR SAMPLING POINS ON SPHERE');
+% vis = SaffKuijlaars(nPoints_sphere);
 nRisTilde = size(vis,1);
 Ris_tilde  = zeros(3,3,nRisTilde);
 for i=1:nRisTilde
@@ -40,7 +41,19 @@ if ~is_use_gt
     vis = randn(nPoints_sphere,3);
     for i=1:nPoints_sphere
         % normalize (TODO: what happens if norm is too small. need to discard)
-        vis(i,:) = vis(i,:)./norm(vis(i,:));
+        vis(i,:) = vis(i,:)/norm(vis(i,:));
+    end
+    
+    eq_inds = find(abs(acosd(vis(:,3))-90) < 7);
+    
+    for i=1:numel(eq_inds)
+        eq_ind = eq_inds(i);
+        vi = vis(eq_ind,:);
+        while abs(acosd(vi(3))-90) < 7
+            vi = randn(1,3);
+            vi = vi/norm(vi);
+        end
+        vis(eq_ind,:) = vi;
     end
     
     nImages = size(refq,2);
