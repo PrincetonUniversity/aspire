@@ -1,6 +1,6 @@
 tic;
 close all;
-nImages = 100;
+nImages = 1000;
 nPoints_sphere  = 1000;
 is_use_gt_in_cands = false;
 is_save_inds_to_cache = false;
@@ -20,7 +20,13 @@ open_log(0)
 [projs,refq] = generate_c5_images(nImages,snr,65,c5_type,is_removeEquators,max_shift,shift_step);
 nImages = size(refq,2);
 
-[npf,~]      = cryo_pft(projs,n_r,n_theta,'double');
+figure; viewstack(projs,5,5);
+
+masked_projs = mask_fuzzy(projs,23);
+
+[npf,~]      = cryo_pft(masked_projs,n_r,n_theta,'double');
+
+npf = gaussian_filter_imgs(npf);
 
 file_cache_name  = sprintf('ml_c5_cached_inds_new_%d.mat',nPoints_sphere);
 
