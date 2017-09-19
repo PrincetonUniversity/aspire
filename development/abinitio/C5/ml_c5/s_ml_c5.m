@@ -1,15 +1,16 @@
 tic;
 close all;
-nImages = 1000;
+nImages = 100;
 nPoints_sphere  = 1000;
 is_use_gt_in_cands = false;
 is_save_inds_to_cache = false;
 n_r     = 65;  
 n_theta = 360;
-snr = 1000000000;
+snr = 1;
 inplane_rot_res = 1;
-c5_type = '80S';
+c5_type = 'C1';
 is_removeEquators = true;
+is_viz_cls = false;
 max_shift  = 0;
 shift_step = 0.5;
 
@@ -21,7 +22,7 @@ nImages = size(refq,2);
 
 [npf,~]      = cryo_pft(projs,n_r,n_theta,'double');
 
-file_cache_name  = sprintf('ml_c5_cached_inds_%d.mat',nPoints_sphere);
+file_cache_name  = sprintf('ml_c5_cached_inds_new_%d.mat',nPoints_sphere);
 
 if is_use_gt_in_cands || is_save_inds_to_cache
     [Ris_tilde,R_theta_ijs] = generate_cand_rots(nPoints_sphere,inplane_rot_res,is_use_gt_in_cands,refq);
@@ -30,7 +31,7 @@ else
     load(file_cache_name);
 end
 
-[vijs,viis,max_corrs_stats] = compute_third_row_outer_prod(npf,ciis,cijs,Ris_tilde,R_theta_ijs,max_shift,shift_step,refq);
+[vijs,viis,max_corrs_stats] = compute_third_row_outer_prod(npf,ciis,cijs,Ris_tilde,R_theta_ijs,max_shift,shift_step,refq,is_viz_cls);
 
 [vijs,viis,sign_ij_J,sign_ii_J] = global_sync_J(vijs,viis);
 % 
