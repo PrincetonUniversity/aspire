@@ -41,11 +41,11 @@ for groupid=1:numgroups
     
     
     log_message('Starting computing steerable PCA');
-    [sPCA_data, sPCA_coeff_cell, basis, recon_spca]=data_sPCA(prewhitened_projs,  var_n);
+    sPCA_data=data_sPCA(prewhitened_projs,  var_n);
     log_message('Finished computing steerable PCA');
     
     log_message('Starting class averaging initial classificaiton');
-    [ class, class_refl, rot, ~,  ~] = Initial_classification_FD(sPCA_data,...
+    [ class, class_refl, rot, ~,  ~] = Initial_classification_FD_update(sPCA_data,...
         str2double(workflow.classification.n_nbor),...
         str2double(workflow.classification.isrann));    
     log_message('Finished class averaging initial classificaiton');
@@ -59,7 +59,7 @@ for groupid=1:numgroups
     
     matname=fullfile(workflow.info.working_dir,sprintf('VDM_data_%d.mat',groupid));
     save(matname,'class','class_refl','rot','sPCA_data','class_VDM',...
-        'class_VDM_refl','class_VDM_refl','VDM_angles','recon_spca');
+        'class_VDM_refl','class_VDM_refl','VDM_angles');
     
     log_message('Saved %s (MD5: %s)',matname,MD5(matname));
 end

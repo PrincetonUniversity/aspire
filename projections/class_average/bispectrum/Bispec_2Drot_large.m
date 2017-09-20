@@ -1,4 +1,4 @@
-function [ Coeff_b, Coeff_b_r, toc_bispec ] = Bispec_2Drot_large( Coeff, Freqs )
+function [ Coeff_b, Coeff_b_r, toc_bispec ] = Bispec_2Drot_large( Coeff, Freqs, eigval )
 %This function computes rotationally invariant bispectral-like features for 2D images.
 %   Input: 
 %       Coeff:
@@ -27,24 +27,28 @@ assert(max(check(:))~=1);
 clear check
 Phase=Coeff(Freqs~=0, :)./abs(Coeff(Freqs~=0, :));
 Phase=atan2(imag(Phase), real(Phase));
+eigval = eigval(Freqs~=0);
 [O1, O2] = bispec_Operator_1(Freqs(Freqs~=0));
+clear Coeff;
+%disp('cleared coefficients');
+%generate the variance of the bispectral coefficients
+N = 4000;
+M = exp(O1*log(eigval.^(alpha)));
+pM = M/sum(M);
+x = rand(length(M), 1);
+M_id = find(x<N*pM); 
+length(M_id)
+%[ ~, M_id ] = sort(M, 'descend');
+O1 = O1(M_id, :);
+O2 = O2(M_id, :);
 
-%For large data, use the top 10000 to approximate the low dimensional
-%projecion
+M=exp(O1*Coeff_norm+sqrt(-1)*O2*Phase);
 
-BatchSize = 10000;
-nB = ceil(N/BatchSize);
-M=exp(O1*Coeff_norm(:, 1:min(N, BatchSize))+sqrt(-1)*O2*Phase(:, 1:min(N, BatchSize)));
-
-%% PCA the bispectrum
-[ U, ~, ~ ] = pca_Y( M, min([200 size(M)]) );
-Coeff_b = zeros( min([200 size(M)]), N);
-Coeff_b_r = zeros( min([200 size(M)]), N);
-for i = 1:nB
-    M = exp(O1*Coeff_norm(:, (i-1)*BatchSize+1: min(i*BatchSize, N)) + sqrt(-1)*O2*Phase(:, (i-1)*BatchSize+1: min(i*BatchSize, N)));
-    Coeff_b(:, (i-1)*BatchSize+1: min(i*BatchSize, N)) = U'*M;       %reduced rotationally invariant features
-    Coeff_b_r(:, (i-1)*BatchSize+1: min(i*BatchSize, N)) = U'*conj(M);      %reduced rotationally invariant features for reflected images.
-end;
+%% svd of the reduced bispectrum
+[ U, S, V ] = pca_Y( M, 300 );
+%disp('PCA done');
+Coeff_b = S*V';
+Coeff_b_r = U'*conj(M);
 
 for i=1:size(Coeff_b, 2)
     Coeff_b(:, i) = Coeff_b(:, i) / norm(Coeff_b(:, i));

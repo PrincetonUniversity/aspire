@@ -50,8 +50,8 @@ for groupid=1:numgroups
     delete(fullfile(tmpdir,'*')); % Delete any leftovers from the temp directory
 
     list_recon=1:prewhitened_projs.dim(3);
-    [ shifts, corr, averagesfname, norm_variance ] = align_main( prewhitened_projs,...
-        VDM_angles, class_VDM, class_VDM_refl, sPCA_data, nnavg, 15, list_recon, recon_spca, tmpdir);
+    [ shifts, corr, unsortedaveragesfname, norm_variance ] = align_main( prewhitened_projs,...
+        VDM_angles, class_VDM, class_VDM_refl, sPCA_data, nnavg, 15, list_recon, tmpdir);
     log_message('Finished align_main');         
 
     
@@ -116,7 +116,8 @@ for groupid=1:numgroups
         'shifts','corr','averages_contrast','classcoreidx','VDM_angles',...
         'class_VDM', 'class_VDM_refl','doflip');
     
-    log_message('Saving %s (MD5: %s)',reloadname,MD5(reloadname));
+    log_message('Saving %s (MD5: %s)',fullfile(workflow.info.working_dir,reloadname)...
+        ,MD5(fullfile(workflow.info.working_dir,reloadname)));
     
     delete(fullfile(tmpdir,'*')); % Clean the temp directory.
 %     

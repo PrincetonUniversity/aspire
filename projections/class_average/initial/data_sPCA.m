@@ -1,5 +1,4 @@
-function [sPCA_data, sPCA_coeff, basis, recon_spca ] =  data_sPCA(images, noise_v_r, adaptive_support)
-% Tejal April 2016
+function [ sPCA_data ] =  data_sPCA(images, noise_v_r, adaptive_support)
 
 if nargin < 3 || isempty(adaptive_support)
     adaptive_support = false;
@@ -60,19 +59,38 @@ end;
 %Freqs = Freqs(1:id_cum);
 %RadFreqs = RadFreqs(1:id_cum);
 
-sPCA_data.U = U;
+sPCA_data.eigval = D;
 sPCA_data.Freqs = Freqs;
 sPCA_data.RadFreqs = RadFreqs;
 sPCA_data.Coeff = sCoeff;
 sPCA_data.Mean = mean_coeff;
-%sPCA_data.FBcoeff = coeff;
 sPCA_data.c=c;
 sPCA_data.R=R;
 
+%Compute the eigenimages
 L0=size(images,1);
 n_max=size(images,3); % Number of images to denoise
 %Computes eigen images, need output from IFT_FB.m.
 [ fn ] = IFT_FB(R, c);
-log_message('Start reconstructing images after sPCA')
-[~, recon_spca] = denoise_images_analytical(U, fn, mean_coeff, sPCA_coeff, L0, R, n_max);
-log_message('Finished reconstructing images after sPCA')
+max_ang_freqs = size(U, 1)-1; %Should be the maximum angular frequency
+%Computes eigen images, need output from IFT_FB.m.
+eig_im = zeros(4*R^2, length(D));
+for k = 1:length(D)
+    tmp = fn{Freqs(k) + 1};
+    tmp = reshape(tmp, (2*R)^2, size(tmp, 3));
+    eig_im(:, k) = tmp*U{Freqs(k) + 1}(:, RadFreqs(k));
+end;
+
+sPCA_data.eigval = D;
+sPCA_data.Freqs = Freqs;
+sPCA_data.RadFreqs = RadFreqs;
+sPCA_data.Coeff = sCoeff;
+sPCA_data.Mean = mean_coeff;
+sPCA_data.c=c;
+sPCA_data.R=R;
+sPCA_data.eig_im = eig_im;
+sPCA_data.fn0 = reshape(fn{1}, (2*R)^2, size(fn{1}, 3));
+
+
+
+end

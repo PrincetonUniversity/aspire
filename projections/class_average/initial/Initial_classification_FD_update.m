@@ -23,6 +23,7 @@ function [ class, class_refl, rot, corr,  timing ] = Initial_classification_FD_u
 %Coeff = [sPCA_data.Coeff, conj(sPCA_data.Coeff)]; % Tejal April 2016
 Coeff = sPCA_data.Coeff;
 Freqs = sPCA_data.Freqs;
+eigval = sPCA_data.eigval;
 clear sPCA_data;
 %rad_Freqs = sPCA_data.rad_Freqs;
 n_im = size(Coeff, 2);
@@ -36,7 +37,8 @@ Coeff(Freqs==0, :)=Coeff(Freqs==0, :)*sqrt(2);
 %Compute bispectrum
 %[ Coeff_b, toc_bispec ] = Bispec_2Drot_large( Coeff, Freqs ); %If the number of images and number of Coefficients are large use Bispec_2Drot_large
 %[ Coeff_b,  toc_bispec ] = Bispec_2Drot_1( Coeff, Freqs );
-[ Coeff_b, Coeff_b_r, toc_bispec ] = Bispec_2Drot_large_v2( Coeff, Freqs );
+%[ Coeff_b, Coeff_b_r, toc_bispec ] = Bispec_2Drot_large_v2( Coeff, Freqs );
+[ Coeff_b, Coeff_b_r, toc_bispec ] = Bispec_2Drot_large( Coeff, Freqs, eigval );
 
 if n_im<=10000
     %%For small dataset, search for nearest neighbors

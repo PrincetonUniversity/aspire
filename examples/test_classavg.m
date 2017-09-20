@@ -28,8 +28,8 @@
 %       Number of nearest neighbors for initial classification.
 %
 % Use new FB coefficients, new Init_class function
-% Tejal April 17, 2016
-% New align_main: Tejal March 2017
+% Tejal April 17, 2016, modified Zhizhen Zhao Sep 2017: remove steerable PCA reconstruction
+% New align_main: Tejal March 2017, Zhao align_main: modified September 2017
 fname='clean_data.mat';
 if exist(fname,'file')==2
     log_message('Loading dataset %s',fname);
@@ -89,14 +89,14 @@ allims=imagestackReader(fname);
 log_message('Finished saving');
 
 log_message('Starting fast steerable PCA to compress and denoise images')
-[sPCA_data, sPCA_coeff_cell, basis, recon_spca]=data_sPCA(images_fl,  noise_v_r);
-[mse_spca] = calc_MSE_v6(recon_spca, data.projections(:,:,1:K),sPCA_data.R);
+[sPCA_data]=data_sPCA(images_fl,  noise_v_r);
+%[mse_spca] = calc_MSE_v6(recon_spca, data.projections(:,:,1:K),sPCA_data.R);
 log_message('Finished steerable PCA');
-log_message('Relative MSE of denoised images after PCA is %f',mse_spca)
+%log_message('Relative MSE of denoised images after PCA is %f',mse_spca)
 
 log_message('Starting initial classification');
 tic_init=tic;
-[ class_f, class_refl_f, rot_f, corr_f,  timing_f ] = Initial_classification_FD(sPCA_data, n_nbor, isrann );
+[ class_f, class_refl_f, rot_f, corr_f,  timing_f ] = Initial_classification_FD_update(sPCA_data, n_nbor, isrann );
 toc_init=toc(tic_init);
 log_message('Finished initial classification');
 disp('Improving initial classification with vector diffusion maps...');
@@ -127,7 +127,7 @@ log_message('Using temporary folder %s',tmp_dir);
 max_shift=0;
 log_message('Starting align_main');
 tic_align = tic;
-[ shifts, corr, averagesfname, norm_variance ] = align_main( allims, rot_f_vdm, class_VDM, class_VDM_refl, sPCA_data, k_VDM_out, max_shift, list_recon, recon_spca, tmp_dir);
+[ shifts, corr, averagesfname, norm_variance ] = align_main( allims, rot_f_vdm, class_VDM, class_VDM_refl, sPCA_data, k_VDM_out, max_shift, list_recon, tmp_dir);
 toc_align = toc(tic_align);
 log_message('Finished generating class averages');
 log_message('Checking simulation results');

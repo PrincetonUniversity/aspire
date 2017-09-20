@@ -86,7 +86,7 @@ if precomp==0
             shift=[-s1 -s2 -s3];
             shift = -shift+n_shift;
             kernel(idx1,idx2,idx3) = anufft3( ...
-                exp(1i*(omega*shift(:))), omega', Nd);
+                single(exp(1i*(omega*shift(:)))), omega', Nd);
         end
     end
     s3=-n+1;% use toepliz property
