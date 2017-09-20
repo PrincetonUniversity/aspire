@@ -47,8 +47,7 @@ if mod(size(map,1),2)==0 % Make odd-sized
     map=map(1:end-1,1:end-1,1:end-1);
 end
 
-initstate;
-q=qrand(Nprojs);  % Generate Nprojs projections to orient.
+rots = rand_rots(Nprojs);  % Generate Nprojs projections to orient.
 log_message('Generating %d projections of size %dx%d',Nprojs,n,n);
 
 %debugprojs=zeros(n,n,Nprojs);
@@ -59,7 +58,7 @@ idx=0; % How many projectioned were generated so far.
 while idx<Nprojs
     tmpk=min(chunksize,Nprojs-idx); % Generate images in chuncks of chunksize.
     log_message('Generating projections %d to %d',idx+1,idx+tmpk);
-    projs=cryo_project(map,q(:,idx+1:idx+tmpk),n);
+    projs=cryo_project(map,rots(:,:,idx+1:idx+tmpk),n);
     projs=permute(projs,[2,1,3]);
     outstack.append(projs);
     %debugprojs(:,:,idx+1:idx+tmpk)=projs;

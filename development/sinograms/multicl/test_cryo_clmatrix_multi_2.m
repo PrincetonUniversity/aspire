@@ -19,7 +19,7 @@ thetaTol=5;  % A common line is considered correct if it deviates from the
 snr=1/10;  % Not used. Only clean proejctions are used.
 
 % Generate noisy proejctions. 
-[~,noisy_projs,~,refq]=cryo_gen_projections(n,K,snr,max_shift_2d,shift_step_2d);
+[~,noisy_projs,~,rots_ref]=cryo_gen_projections(n,K,snr,max_shift_2d,shift_step_2d);
 
 % take Fourier transform of projections.
 n_theta=360;  

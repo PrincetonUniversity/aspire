@@ -13,11 +13,11 @@
 
 K=400;
 initstate;
-q=qrand(K);
+rots = rand_rots(K);
 
 %L=1.0E15; % L is very large to reduce discretization errors due to finite angular resolution.
 L=360;
-clmatrix=clmatrix_cheat_q(q,L);
+clmatrix=clmatrix_cheat(rots,L);
 % XXX p=0.25 crashes!!!
 p=0.3; % The estimation is accurate up p~0.2
 %p=1;

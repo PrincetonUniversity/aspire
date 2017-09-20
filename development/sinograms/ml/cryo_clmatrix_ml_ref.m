@@ -1,6 +1,6 @@
 function [clstack,coststack,shift_equations,shift_equations_map,clstack_mask]=...
     cryo_clmatrix_ml_ref(pf,M,KNN,noise_cov,max_itr,verbose,max_shift,shift_step,...
-    ref_clmatrix,ref_shifts_2d,ref_q)
+    ref_clmatrix,ref_shifts_2d,rots_ref)
 %
 %   Generate common-lines matrix for the projection images' polar Fourier
 %   lines given pf via maximum likelihood algorithm.
@@ -33,7 +33,7 @@ function [clstack,coststack,shift_equations,shift_equations_map,clstack_mask]=..
 %        shift_step can be any positive real number. Default: 1.
 %   ref_clmatrix    True common-lines matrix (for debugging).
 %   ref_shifts_2d   True 2D shifts between projections (for debugging).
-%   ref_q           True quaternions used to generate the projections.
+%   rots_ref        True rotations used to generate the projections.
 % Returned variables:
 %
 %   clstack     Common lines matrix. (k1,k2) and (k2,k1) contain the index
@@ -104,7 +104,7 @@ if nargin<10
 end
 
 if nargin<11
-    ref_q=0;
+    rots_ref=0;
 end
 
 % Set flag for progress and debug messages
@@ -127,9 +127,9 @@ else
     fprintf('Reference shifts not found\n');
 end
 
-found_ref_q=0;
-if ~isscalar(ref_q)
-    found_ref_q=1;
+found_rots_ref=0;
+if ~isscalar(rots_ref)
+    found_rots_ref=1;
 else
     fprintf('Reference shifts not found\n');
 end
@@ -158,7 +158,7 @@ end;
 
 verbose_plot_neighbors=0;
 if bitand(verbose,16) 
-    if isscalar(ref_q) 
+    if isscalar(rots_ref) 
         fprintf('Only partial information will be plotted. Reference the true projections orientation is missing\n');
     end
     verbose_plot_neighbors=1;
@@ -225,8 +225,8 @@ if verbose_plot_cl && verbose_detailed_debugging
     h3=figure;
 end
 %S2CORD=0;
-if verbose_plot_neighbors && found_ref_q
- %   S2CORD=Q2S2(ref_q,n_theta); % compute S2 group of rotation matrix
+if verbose_plot_neighbors && found_rots_ref
+ %   S2CORD=R2S2(permute(rots_ref, [2 1 3]),n_theta); % compute S2 group of rotation matrix
 end
 
 %% Maximum likelihood based common line detector

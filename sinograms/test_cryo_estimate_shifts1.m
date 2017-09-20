@@ -6,7 +6,7 @@
 % estimates to the reference shifts.
 % The rotations used by cryo_estimate_shifts to find the common lines
 % between projections are the reference rotations computed from the
-% quaternions the generated the projections.
+% rotation matrices which generated the projections.
 % For comparison, we also estimate the 2D shifts using the shift equations
 % computed by cryo_clmatrix.
 %
@@ -28,7 +28,7 @@ dummySNR=1;
 max_shift=3;
 shift_step=0.1;
 initstate;
-[projs,noisy_projs,shifts_2d_ref,q_ref]=cryo_gen_projections(n,n_projs,dummySNR,max_shift,shift_step);
+[projs,noisy_projs,shifts_2d_ref,rots_ref]=cryo_gen_projections(n,n_projs,dummySNR,max_shift,shift_step);
 viewstack(projs,5,5);
 masked_projs=mask_fuzzy(projs,floor(n/2)); % Applly circular mask
 
@@ -40,12 +40,12 @@ n_r=ceil(n/2);
 
 rotations_ref=zeros(3,3,n_projs);
  for k=1:n_projs
-    rotations_ref(:,:,k)=(q_to_rot(q_ref(:,k))).';
+    rotations_ref(:,:,k)=rots_ref(:,:,k).';
  end
 
  %% Compte common lines matrix
 % Compute reference common lines matrix
-clstack_ref=clmatrix_cheat_q(q_ref,n_theta);
+clstack_ref=clmatrix_cheat(rots_ref,n_theta);
 
 % Search for common lines in the presence of shifts
 open_log(0);

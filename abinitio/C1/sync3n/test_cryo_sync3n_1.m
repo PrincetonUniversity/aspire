@@ -16,9 +16,9 @@
 initstate;
 TOL=1.0e-14;
 K=50;
-refq=qrand(K);
+rots_ref = rand_rots(K);
 L=1E15;     % Use a large number of lines per image, so we don't have discretization errors.
-cl=clmatrix_cheat_q(refq,L);
+cl=clmatrix_cheat(rots_ref,L);
 
 open_log(0);
 [Rijs, ~, ~, ~] = cryo_sync3n_estimate_all_Rijs(cl, L);
@@ -54,7 +54,7 @@ end
 
 Rref=zeros(3,3,K);
 for k=1:K
-    R=q_to_rot(refq(:,k));
+    R=rots_ref(:,:,k);
     Rref(:,:,k)=R.';
 end
 

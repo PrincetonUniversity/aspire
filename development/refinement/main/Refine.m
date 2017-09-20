@@ -33,7 +33,7 @@ rot=zeros(P, 1);
 shifts_b=zeros(P, 2);
 iter=0;
 norm_diff_ratio = 1.0;
-q = qrand(ref_k);
+rots = rand_rots(ref_k);
 
 if ~exist('./results','dir')
     if ~mkdir('./results')
@@ -44,7 +44,7 @@ end
 while (iter<iter_max && norm_diff_ratio>tol )
     filename=sprintf('%s_iter%d', filename, iter+1); %save the results for each iteration
     
-    [ref]=cryo_project(real(v), q); %generate references
+    [ref]=cryo_project(real(v), rots); %generate references
     ref = permute(ref, [2, 1, 3]);
     %
     for i=1:N
@@ -62,7 +62,7 @@ while (iter<iter_max && norm_diff_ratio>tol )
     
     R=zeros(3, 3, ref_k);
     for i=1:ref_k
-        R(:, :, i)=q_to_rot(q(:, i));
+        R(:, :, i) = rots(:,:,i);
     end;
     inv_rot=zeros(3, 3, length(d));
     for i=1:length(d)

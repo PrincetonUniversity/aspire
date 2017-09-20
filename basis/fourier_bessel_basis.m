@@ -164,6 +164,24 @@ function x = fourier_bessel_evaluate(v, basis)
 
     x = zeros([prod(basis.sz) size(v, 2)], class(v));
     for ell = 0:basis.ell_max
+        idx_radial = ind_radial + [0:basis.k_max(ell+1)-1];
+
+        nrms = zeros(numel(idx_radial), 1);
+        for k = 1:numel(idx_radial)
+            nrms(k) = basis_norm(basis, ell, k);
+        end
+
+        if ~is_precomp
+            radial = zeros(size(r_unique, 1), numel(idx_radial));
+            for k = 1:numel(idx_radial)
+                radial(:,k) = sph_bessel(ell, basis.r0(k,ell+1)*r_unique);
+            end
+        else
+            radial = basis.precomp.radial(:,idx_radial);
+        end
+
+        radial = bsxfun(@times, radial, 1./nrms');
+
         for m = -ell:ell
             if ~is_precomp
                 ang = real_sph_harmonic(ell, m, ang_unique(:,1), ang_unique(:,2));
@@ -171,29 +189,17 @@ function x = fourier_bessel_evaluate(v, basis)
                 ang = basis.precomp.ang(:,ind_ang);
             end
 
-            for k = 1:basis.k_max(ell+1)
-                nrm = basis_norm(basis, ell, k);
+            ang_radial = bsxfun(@times, ang(ang_idx), radial(r_idx,:));
 
-                if ~is_precomp
-                    radial = sph_bessel(ell, basis.r0(k,ell+1)*r_unique);
-                else
-                    radial = basis.precomp.radial(:,ind_radial);
-                end
+            idx = ind + [0:numel(idx_radial)-1];
 
-                x(mask,:) = x(mask,:) + ...
-                    (nrm^(-1)*radial(r_idx).* ...
-                    ang(ang_idx))*v(ind,:);
+            x(mask,:) = x(mask,:) + ang_radial*v(idx,:);
 
-                ind = ind+1;
-                ind_radial = ind_radial+1;
-            end
-
+            ind = ind + numel(idx);
             ind_ang = ind_ang+1;
-
-            ind_radial = ind_radial-basis.k_max(ell+1);
         end
 
-        ind_radial = ind_radial+basis.k_max(ell+1);
+        ind_radial = ind_radial + numel(idx_radial);
     end
 
     x = reshape(x, [basis.sz size(x, 2)]);
@@ -220,6 +226,24 @@ function v = fourier_bessel_evaluate_t(x, basis)
 
     v = zeros([basis.count size(x, 2)], class(x));
     for ell = 0:basis.ell_max
+        idx_radial = ind_radial + [0:basis.k_max(ell+1)-1];
+
+        nrms = zeros(numel(idx_radial), 1);
+        for k = 1:numel(idx_radial)
+            nrms(k) = basis_norm(basis, ell, k);
+        end
+
+        if ~is_precomp
+            radial = zeros(size(r_unique, 1), numel(idx_radial));
+            for k = 1:numel(idx_radial)
+                radial(:,k) = sph_bessel(ell, basis.r0(k,ell+1)*r_unique);
+            end
+        else
+            radial = basis.precomp.radial(:,idx_radial);
+        end
+
+        radial = bsxfun(@times, radial, 1./nrms');
+
         for m = -ell:ell
             if ~is_precomp
                 ang = real_sph_harmonic(ell, m, ang_unique(:,1), ang_unique(:,2));
@@ -227,27 +251,17 @@ function v = fourier_bessel_evaluate_t(x, basis)
                 ang = basis.precomp.ang(:,ind_ang);
             end
 
-            for k = 1:basis.k_max(ell+1)
-                nrm = basis_norm(basis, ell, k);
+            ang_radial = bsxfun(@times, ang(ang_idx), radial(r_idx,:));
 
-                if ~is_precomp
-                    radial = sph_bessel(ell, basis.r0(k,ell+1)*r_unique);
-                else
-                    radial = basis.precomp.radial(:,ind_radial);
-                end
+            idx = ind + [0:numel(idx_radial)-1];
 
-                v(ind,:) = (nrm^(-1)*radial(r_idx).*ang(ang_idx))'*x(mask,:);
+            v(idx,:) = ang_radial'*x(mask,:);
 
-                ind = ind+1;
-                ind_radial = ind_radial+1;
-            end
-
+            ind = ind + numel(idx);
             ind_ang = ind_ang+1;
-
-            ind_radial = ind_radial-basis.k_max(ell+1);
         end
 
-        ind_radial = ind_radial+basis.k_max(ell+1);
+        ind_radial = ind_radial + numel(idx_radial);
     end
 
     v = roll_dim(v, sz_roll);

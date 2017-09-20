@@ -89,7 +89,7 @@ fprintf('Error in rotation: %e\n',err);
 
 initstate;
 N=65;
-R=q_to_rot(qrand(1));
+R=rand_rots(1);
 
 volx=cryo_gaussian_phantom_3d('beadX_params',N,1);
 volrx=fastrotate3d(volx,R);
@@ -125,7 +125,7 @@ fprintf('err=%e\n',norm(R-Rest,'fro'));
 
 %% Finally, test that rotating th volume back and forth restres the original volume.
 vol=cryo_gaussian_phantom_3d('C1_params',65,1); % Use N=129 for double precision accuracy.
-R=q_to_rot(qrand(1));
+R=rand_rots(1);
 
 [psi,theta,phi]=rot2xyz(R.');
 assert(norm((Rz(phi)*Ry(theta)*Rx(psi))*R-eye(3))<1.0e-13)
