@@ -9,7 +9,7 @@ n_theta = 360;
 snr = 1;
 inplane_rot_res = 1;
 c5_type = 'C1';
-is_removeEquators = true;
+is_removeEquators = false;
 is_viz_cls = false;
 max_shift  = 0;
 shift_step = 0.5;
@@ -28,7 +28,7 @@ masked_projs = mask_fuzzy(projs,23);
 
 npf = gaussian_filter_imgs(npf);
 
-file_cache_name  = sprintf('ml_c5_cached_inds_new_%d.mat',nPoints_sphere);
+file_cache_name  = sprintf('ml_c5_cached_inds_%d.mat',nPoints_sphere);
 
 if is_use_gt_in_cands || is_save_inds_to_cache
     [Ris_tilde,R_theta_ijs] = generate_cand_rots(nPoints_sphere,inplane_rot_res,is_use_gt_in_cands,refq);

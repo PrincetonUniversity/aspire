@@ -26,6 +26,11 @@ J = diag([1,1,-1]);
 % g = gpuDevice(1);
 counter = 0;
 
+
+% find which of the candidates rotations are equator images
+equators_inds = find(abs(acosd(Ris_tilde(3,3,:)) - 90) < 7);
+equators_inds = squeeze(equators_inds);
+
 inds = sub2ind([n_theta,n_theta/2],cijs(:,:,:,:,1),cijs(:,:,:,:,2));
 clear cijs;
 [C,~,IC] = unique(inds(:));
@@ -75,6 +80,8 @@ for i=1:nImages
         
         Corrs = real(Corrs(g_IC));
         Corrs = reshape(Corrs,[nRis_tilde,nRis_tilde,n_theta_ij/5,5]);
+        
+        Corrs(equators_inds,equators_inds,:,:) = -inf;
         %average over the five common-lines
         Corrs = squeeze(mean(Corrs,4));
         [YY,II] = max(Corrs(:));
@@ -268,9 +275,25 @@ if exist('refq','var') && ~isempty(refq)
     end
     
     is_close_angle = rel_rot_angles + tril(inf*ones(size(rel_rot_angles)))< 10;
-    detec_rate_ex_close_planes =  sum(sum(or(is_correct,is_close_angle)))/nchoosek(nImages,2);
-    log_message('\ncommon lines detection rate excluding close planes =%.2f%%',detec_rate_ex_close_planes*100);
+    
+    
+    both_eqtr_ims = false(nImages,nImages);
+    im_eqtr_inds = [];
+    for i=1:nImages
+        Ri_gt = q_to_rot(refq(:,i)).';
+        if(abs(acosd(Ri_gt(3,3)) - 90) < 7)
+            im_eqtr_inds(end+1) = i;
+        end
+    end
+    
+    both_eqtr_ims(im_eqtr_inds,im_eqtr_inds) = true;
+    is_both_eqtr_ims = both_eqtr_ims & tril(false*ones(size(both_eqtr_ims)));
+    
+    detec_rate_ex =  sum(sum(is_correct | is_close_angle | is_both_eqtr_ims))/nchoosek(nImages,2);
+    log_message('\ncommon lines detection rate excluding close-planes and both planes are equators=%.2f%%',detec_rate_ex*100);
    
+   
+    
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Calculate the mse of outer-product of third rows
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
