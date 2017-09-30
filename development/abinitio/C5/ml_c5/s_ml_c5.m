@@ -48,4 +48,4 @@ rots = estimate_inplane_rotations4(npf,vis,inplane_rot_res,max_shift,shift_step)
 toc
 
 estimatedVol = reconstruct_ml_c5(projs,rot_alligned,n_r,n_theta,max_shift,shift_step);
-WriteMRC(estimatedVol,1,'ml_cn.mrc');
+WriteMRC(estimatedVol,1,'ml_c5.mrc');
