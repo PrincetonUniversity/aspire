@@ -1,4 +1,4 @@
-function [images,refq,ref_shifts] = generate_c5_images(nImages,SNR,projSize,c5_type,is_removeEquators,max_shift,shift_step)
+function [images,refq,ref_shifts] = generate_c5_images(nImages,SNR,projSize,c5_type,max_shift,shift_step)
 %
 % Generates a set of projection images of a C4 volume
 % 
@@ -35,9 +35,6 @@ if ~exist('max_shift','var')
 end
 
 refq   = qrand(nImages);
-if is_removeEquators
-    refq = removeEquators(refq);
-end
 
 if strcmp(c5_type,'80S')
 %     vol_init_mat = cryo_fetch_emdID(2660);
@@ -106,18 +103,18 @@ log_message('deviation of volume from c5 symmetry is %.4f',err);
 end
 
 
-function refq = removeEquators(refq)
-
-log_message('removing equator images');
-nImages = size(refq,2);
-is_eq = zeros(1,nImages);
-for i=1:nImages
-    rot = q_to_rot(refq(:,i)).';
-    if abs(acosd(rot(3,3))-90) < 8
-        is_eq(i) = 1;
-    end
-end
-
-refq(:,find(is_eq)) = [];
-
-end
+% function refq = removeEquators(refq)
+% 
+% log_message('removing equator images');
+% nImages = size(refq,2);
+% is_eq = zeros(1,nImages);
+% for i=1:nImages
+%     rot = q_to_rot(refq(:,i)).';
+%     if abs(acosd(rot(3,3))-90) < 8
+%         is_eq(i) = 1;
+%     end
+% end
+% 
+% refq(:,find(is_eq)) = [];
+% 
+% end

@@ -44,18 +44,6 @@ if ~is_use_gt
         vis(i,:) = vis(i,:)/norm(vis(i,:));
     end
     
-    eq_inds = find(abs(acosd(vis(:,3))-90) < 7);
-    
-    for i=1:numel(eq_inds)
-        eq_ind = eq_inds(i);
-        vi = vis(eq_ind,:);
-        while abs(acosd(vi(3))-90) < 7
-            vi = randn(1,3);
-            vi = vi/norm(vi);
-        end
-        vis(eq_ind,:) = vi;
-    end
-    
     nImages = size(refq,2);
     vis_gt = zeros(nImages,3);
     for i=1:nImages

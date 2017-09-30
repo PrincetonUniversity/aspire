@@ -1,15 +1,14 @@
 tic;
 close all;
-nImages = 1000;
+nImages = 100;
 nPoints_sphere  = 1000;
 is_use_gt_in_cands = false;
 is_save_inds_to_cache = false;
 n_r     = 65;  
 n_theta = 360;
-snr = 1;
+snr = 100000000000;
 inplane_rot_res = 1;
 c5_type = 'C1';
-is_removeEquators = false;
 is_viz_cls = false;
 max_shift  = 0;
 shift_step = 0.5;
@@ -17,7 +16,7 @@ shift_step = 0.5;
 initstate; 
 open_log(0)
 
-[projs,refq] = generate_c5_images(nImages,snr,65,c5_type,is_removeEquators,max_shift,shift_step);
+[projs,refq] = generate_c5_images(nImages,snr,65,c5_type,max_shift,shift_step);
 nImages = size(refq,2);
 
 figure; viewstack(projs,5,5);
