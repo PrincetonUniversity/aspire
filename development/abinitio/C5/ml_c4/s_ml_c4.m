@@ -16,7 +16,7 @@ shift_step = 0.5;
 initstate; 
 open_log(0);
 
-[projs,refq] = generate_c4_images(nImages,snr,65,'80s',max_shift,shift_step);
+[projs,refq] = generate_c4_images(nImages,snr,65,'80S',max_shift,shift_step);
 nImages = size(refq,2);
 
 figure; viewstack(projs,5,5);
