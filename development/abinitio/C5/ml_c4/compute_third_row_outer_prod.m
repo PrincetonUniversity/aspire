@@ -6,7 +6,7 @@ n_theta_ij = size(R_theta_ijs,3);
 
 %precompile the shift phases
 shift_phases = calc_shift_phases(n_r,max_shift,shift_step);
-viis = estimate_viis(ciis,Ris_tilde,npf,shift_phases,is_handle_equators,refq);
+viis = estimate_viis(ciis,Ris_tilde,npf,max_shift,shift_step,shift_phases,is_handle_equators,refq);
 
 g_shift_phases = gpuArray(single(shift_phases));
 [~,nshifts] = size(shift_phases);

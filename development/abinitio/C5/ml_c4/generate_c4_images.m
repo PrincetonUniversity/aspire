@@ -48,6 +48,12 @@ if strcmp(c4_type,'80S')
     assertVolumeIsC4(vol);
 elseif strcmp(c4_type,'C4')
     vol = cryo_gaussian_phantom_3d('C4_params',projSize,1);
+    assertVolumeIsC4(vol);
+elseif strcmp(c4_type,'C1')
+    vol = cryo_gaussian_phantom_3d('C1_params',projSize,1);
+    vol = make_vol_c4(vol);
+    assertVolumeIsC4(vol);
+    WriteMRC(vol,1,'C1_forceC4_init.mrc');
 else
     error('no such type %s',c4_type);
 end

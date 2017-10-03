@@ -6,11 +6,11 @@ is_use_gt_in_cands = false;
 is_save_inds_to_cache = false;
 n_r     = 65;  
 n_theta = 360;
-snr = 100000000000;
+snr = 1/2;
 is_handle_equators = true;
 inplane_rot_res = 1;
 is_viz_cls = false;
-max_shift  = 0;
+max_shift  = 5;
 shift_step = 0.5;
 
 initstate; 
@@ -21,11 +21,17 @@ nImages = size(refq,2);
 
 figure; viewstack(projs,5,5);
 
-masked_projs = mask_fuzzy(projs,23);
+if snr <=1
+    masked_projs = mask_fuzzy(projs,23);
+else
+    masked_projs = projs;
+end
 
 [npf,~]      = cryo_pft(masked_projs,n_r,n_theta,'double');
 
-npf = gaussian_filter_imgs(npf);
+if snr <=1
+    npf = gaussian_filter_imgs(npf);
+end
 
 file_cache_name  = sprintf('ml_c4_cached_inds_%d.mat',nPoints_sphere);
 

@@ -1,4 +1,4 @@
-function [viis,mse_vii] = estimate_viis(ciis,Ris_tilde,npf,shift_phases,is_handle_equators,refq)
+function [viis,mse_vii] = estimate_viis(ciis,Ris_tilde,npf,max_shift,shift_step,shift_phases,is_handle_equators,refq)
 
 [~,n_theta,nImages] = size(npf);
 
@@ -9,7 +9,7 @@ cii_equators_inds = find(abs(acosd(Ris_tilde(3,3,:)) - 90) < 7);
 cii_equators_inds = squeeze(cii_equators_inds);
 if is_handle_equators && ~isempty(cii_equators_inds)
     [viis_equators,inds_eq_images] = ...
-        handle_equator_images(npf,Ris_tilde,ciis,cii_equators_inds,0,1,10,0.1,refq);
+        handle_equator_images(npf,Ris_tilde,ciis,cii_equators_inds,max_shift,shift_step,10,0.1,refq);
     
     viis(:,:,inds_eq_images) = viis_equators;
     
