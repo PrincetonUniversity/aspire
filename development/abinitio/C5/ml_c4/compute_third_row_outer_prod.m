@@ -1,11 +1,20 @@
 function [vijs,viis,max_corrs_stats,mse_vij,detec_rate] = ...
     compute_third_row_outer_prod(npf,ciis,cijs,Ris_tilde,R_theta_ijs,max_shift,shift_step,is_handle_equators,refq,is_viz_cls)
+
+if ~exist('is_viz_cls','var')
+    is_viz_cls = false;
+end
+
 [n_r,n_theta,nImages] = size(npf);
 nRis_tilde = size(Ris_tilde,3);
 n_theta_ij = size(R_theta_ijs,3);
 
 %precompile the shift phases
 shift_phases = calc_shift_phases(n_r,max_shift,shift_step);
+
+if ~exist('refq','var')
+    refq = [];
+end
 viis = estimate_viis(ciis,Ris_tilde,npf,max_shift,shift_step,shift_phases,is_handle_equators,refq);
 
 g_shift_phases = gpuArray(single(shift_phases));
