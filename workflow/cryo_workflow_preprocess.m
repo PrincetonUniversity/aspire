@@ -36,8 +36,11 @@ workflow=convert(tree);
 message='Phaseflip projections? ';
 do_phaseflip=multichoice_question(message,{'Y','N'},[ 1, 0],'Y');
 if do_phaseflip==1
-    ctfdata=fmtinput('Enter full path of CTF file: ','','%s');
+    ctfdata=fmtinput('Enter full path of STAR file (containing CTF data): ','','%s');
 end
+
+% Read pixel size
+pixA=fmtinput('Enter pixel size in Angstrom (-1 to read from STAR file): ',-1,'%f');
 
 % Do downsample?
 [~,mrc_header]=ReadMRC(workflow.info.rawdata,1, 1);
@@ -93,6 +96,7 @@ workflow.preprocess.ctfdata='';
 if do_phaseflip
     workflow.preprocess.ctfdata=ctfdata;
 end
+workflow.preprocess.pixA=pixA;
 workflow.preprocess.nprojs=nprojs;
 workflow.preprocess.do_crop=do_crop;
 workflow.preprocess.croppeddim=croppeddim;

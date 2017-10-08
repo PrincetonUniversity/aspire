@@ -14,7 +14,9 @@ function PFprojs=cryo_phaseflip(CTFdata,projs,prefix)
 % 
 % PFprojs=cryo_phaseflip(CTFdata,projs,pixA) 
 %   Use pixA for pixel size (in Angstroms).
-
+%   If pixA==-1, then the function is trying to read pixel size from the
+%   CTFdata. Otherwise, uses the give pixA.
+%
 % Example:
 %   CTFdata=readSTAR(fname);
 %   FPprojs=cryo_phaseflip(CTFdata,100); % Phase flip the first 100 projections
@@ -89,8 +91,20 @@ for k=1:Nprojs
         projsinit=1;
     end;
     
-    [voltage,DefocusU,DefocusV,DefocusAngle,Cs,pixA,A]=...
+    [voltage,DefocusU,DefocusV,DefocusAngle,Cs,tmppixA,A]=...
         cryo_parse_Relion_CTF_struct(CTFdata.data{k});
+    if pixA==-1
+        if tmppixA~=-1
+            pixA=tmppixA; % Use pixel size from STAR file
+        else
+            errmsg=sprintf(strcat('Pixel size not provided and does not appear in STAR file.\n',...
+            'Provide it manually, or in the STAR file using the fields ',...
+            'pixA or rlnDetectorPixelSize together with rlnMagnification.\n',...
+            'You can use addfieldtoSTARdata to add pixA manually to the STAR file.'));
+        error('%s',errmsg);
+        end
+    end
+    
     h=cryo_CTF_Relion(n,voltage,DefocusU,DefocusV,DefocusAngle,Cs,pixA,A);
     
     % Phase flip

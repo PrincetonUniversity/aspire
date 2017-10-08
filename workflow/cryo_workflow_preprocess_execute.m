@@ -46,6 +46,12 @@ if szprojs(1)~=szprojs(2)
     error('Input projections must be square.')
 end
 
+pixA=str2double(workflow.preprocess.pixA);
+log_message('Supplied pixel size is %d Angstrom',pixA);
+if pixA==-1
+    log_message('Expecting pixel size in STAR file');
+end
+
 % Phaseflip
 if str2double(workflow.preprocess.phaseflip)
     log_message('Start phaseflipping...')
@@ -61,7 +67,7 @@ if str2double(workflow.preprocess.phaseflip)
     PFfname=tempmrcname; %PF stands for phaseflipped
     log_message('Phaseflipped images will be saved to temporary file %s',PFfname);
     log_message('Running cryo_phaseflip_outofcore');
-    cryo_phaseflip_outofcore(CTFdata,SRCname,PFfname);
+    cryo_phaseflip_outofcore(CTFdata,SRCname,PFfname,pixA);
     log_message('Finished phaseflipping')
     
     delete(SRCname);

@@ -43,7 +43,8 @@ for groupid=1:numgroups
     load(matname);
     
     log_message('Starting align_main');
-    tmpdir=fullfile(workflow.info.working_dir,'tmp');
+    tmpdir=fullfile(tempmrcdir,'align_main');
+    log_message('Using temporary directory %s',tmpdir);
     if ~exist(tmpdir,'dir')
         mkdir(tmpdir);
     end
