@@ -79,43 +79,13 @@ function im_bp = cryo_mean_backproject(im, params, mean_est_opt)
         return;
     end
 
-    if mod(L, 2) == 0 && mean_est_opt.half_pixel
-        [X, Y] = ndgrid(-L/2:L/2-1, -L/2:L/2-1);
-    end
-
-    pts_rot = rotated_grids(L, params.rot_matrices, mean_est_opt.half_pixel);
+    im = bsxfun(@times, im, reshape(params.ampl, [1 1 n]));
 
     im = im_translate(im, -params.shifts);
 
     im = im_filter(im, params.ctf(:,:,params.ctf_idx));
 
-    im = permute(im, [2 1 3]);
+    im_bp = im_backproject(im, params.rot_matrices, mean_est_opt.half_pixel);
 
-    if mod(L, 2) == 0 && mean_est_opt.half_pixel
-        phase_shift = 2*pi*(X+Y)/(2*L);
-        im = bsxfun(@times, im, exp(-1i*phase_shift));
-    end
-
-    im_f = 1/L^2*cfft2(im);
-
-    im_f = bsxfun(@times, im_f, reshape(params.ampl, [1 1 n]));
-
-    if mod(L, 2) == 0
-        if ~mean_est_opt.half_pixel
-            pts_rot = pts_rot(:,2:end,2:end,:);
-
-            im_f = im_f(2:end,2:end,:);
-        else
-            phase_shift = -reshape(sum(pts_rot, 1), [L*ones(1, 2) n])/2;
-            phase_shift = phase_shift + 2*pi*(X+Y+1)/(2*L);
-            im_f = bsxfun(@times, im_f, exp(-1i*phase_shift));
-        end
-    end
-
-    pts_rot = reshape(pts_rot, 3, []);
-    im_f = reshape(im_f, [], 1);
-
-    im_bp = 1/n*anufft3(im_f, pts_rot, L*ones(1, 3));
-
-    im_bp = real(im_bp);
+    im_bp = im_bp/n;
 end
