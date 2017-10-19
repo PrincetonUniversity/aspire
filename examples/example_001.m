@@ -60,13 +60,13 @@ vol_est = cryo_estimate_mean(ims, params, basis, mean_est_opt);
 %%% Evaluate results %%%
 
 % Calculate relative MSE of volume estimation.
-rmse_vol = tnorm(vol_est-vol_true)^2/tnorm(vol_true)^2;
+nrmse_vol = tnorm(vol_est-vol_true)/tnorm(vol_true);
 
 % Reproject estimated volume and compare with clean images.
 ims_est = cryo_project(vol_est, rots_true);
 ims_est = permute(ims_est, [2 1 3]);
 
-rmse_ims = tnorm(ims_est-ims_clean)^2/tnorm(ims_clean)^2;
+nrmse_ims = tnorm(ims_est-ims_clean)/tnorm(ims_clean);
 
-fprintf('%-40s%20g\n', 'Estimated volume relative MSE:', rmse_vol);
-fprintf('%-40s%20g\n', 'Reprojected images relative MSE:', rmse_ims);
+fprintf('%-40s%20g\n', 'Estimated volume normalized RMSE:', nrmse_vol);
+fprintf('%-40s%20g\n', 'Reprojected images normalized MSE:', nrmse_ims);
