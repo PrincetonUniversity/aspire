@@ -21,6 +21,8 @@
 %    mean_est_opt: A struct containing the fields:
 %          - 'precision': The precision of the kernel. Either 'double'
 %             (default) or 'single'.
+%          - 'half_pixel': If true, centers the rotation around a half-pixel
+%             (default false).
 %          - 'batch_size': The size of the batches in which to compute the
 %             backprojection, if set to a non-empty value. If empty, there are
 %             no batchces and the entire set of images is used. A small batch
@@ -47,6 +49,7 @@ function im_bp = cryo_mean_backproject(im, params, mean_est_opt)
 
     mean_est_opt = fill_struct(mean_est_opt, ...
         'precision', 'double', ...
+        'half_pixel', false, ...
         'batch_size', []);
 
     if ~isempty(mean_est_opt.batch_size)
@@ -76,7 +79,11 @@ function im_bp = cryo_mean_backproject(im, params, mean_est_opt)
         return;
     end
 
-    pts_rot = rotated_grids(L, params.rot_matrices);
+    if mod(L, 2) == 0 && mean_est_opt.half_pixel
+        [X, Y] = ndgrid(-L/2:L/2-1, -L/2:L/2-1);
+    end
+
+    pts_rot = rotated_grids(L, params.rot_matrices, mean_est_opt.half_pixel);
 
     im = im_translate(im, -params.shifts);
 
@@ -84,14 +91,25 @@ function im_bp = cryo_mean_backproject(im, params, mean_est_opt)
 
     im = permute(im, [2 1 3]);
 
+    if mod(L, 2) == 0 && mean_est_opt.half_pixel
+        phase_shift = 2*pi*(X+Y)/(2*L);
+        im = bsxfun(@times, im, exp(-1i*phase_shift));
+    end
+
     im_f = 1/L^2*cfft2(im);
 
     im_f = bsxfun(@times, im_f, reshape(params.ampl, [1 1 n]));
 
     if mod(L, 2) == 0
-        pts_rot = pts_rot(:,2:end,2:end,:);
+        if ~mean_est_opt.half_pixel
+            pts_rot = pts_rot(:,2:end,2:end,:);
 
-        im_f = im_f(2:end,2:end,:);
+            im_f = im_f(2:end,2:end,:);
+        else
+            phase_shift = -reshape(sum(pts_rot, 1), [L*ones(1, 2) n])/2;
+            phase_shift = phase_shift + 2*pi*(X+Y+1)/(2*L);
+            im_f = bsxfun(@times, im_f, exp(-1i*phase_shift));
+        end
     end
 
     pts_rot = reshape(pts_rot, 3, []);
