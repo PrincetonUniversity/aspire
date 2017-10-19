@@ -78,6 +78,7 @@ mean_est_opt = struct();
 mean_est_opt.verbose = false;               % Don't output progress info.
 mean_est_opt.max_iter = 10;                 % Maximum number of iterations.
 mean_est_opt.rel_tolerance = 1e-3;          % Stopping tolerance.
+mean_est_opt.half_pixel = true;             % Center volumes around half pixel.
 
 % Estimate volume using least squares.
 vol_est = cryo_estimate_mean(ims, params, basis, mean_est_opt);
