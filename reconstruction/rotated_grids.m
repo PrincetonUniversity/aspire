@@ -19,7 +19,7 @@ function pts_rot = rotated_grids(L, rot_matrices, half_pixel)
 
     mesh2d = mesh_2d(L);
 
-    if half_pixel
+    if mod(L, 2) == 0 && half_pixel
         mesh2d.x = mesh2d.x + 1/L;
         mesh2d.y = mesh2d.y + 1/L;
     end
