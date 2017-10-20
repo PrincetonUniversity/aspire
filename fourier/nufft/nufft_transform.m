@@ -92,6 +92,8 @@ function sig_f = nufft_transform(plan, sig)
 			epsilon = 1e-8;
 		end
 
+		sig = double(sig);
+
 		if dims == 1
 			sig_f = finufft1d2( ...
 				plan.fourier_pts(1,:), ...
