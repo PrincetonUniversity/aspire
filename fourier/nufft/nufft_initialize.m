@@ -1,16 +1,22 @@
 % NUFFT_INITIALIZE Initialize NUFFT plan
 %
 % Usage
-%    plan = nufft_initialize(sz, num_pts);
+%    plan = nufft_initialize(sz, num_pts, nufft_opt);
 %
 % Input
 %    sz: A size vector of length 1, 2, or 3.
 %    num_pts: The number of Fourier nodes.
+%    nufft_opt: A struct containing the fields:
+%       - epsilon: The desired precision of the NUFFT (default 1e-15).
 %
 % Output
 %    plan: An NUFFT plan.
 
-function plan = nufft_initialize(sz, num_pts)
+function plan = nufft_initialize(sz, num_pts, nufft_opt)
+	if nargin < 3
+		nufft_opt = [];
+	end
+
 	if numel(sz) < 1 || numel(sz) > 3
 		error('Input ''sz'' vector must be of length 1, 2, or 3.');
 	end
@@ -18,6 +24,9 @@ function plan = nufft_initialize(sz, num_pts)
 	if num_pts < 1 || ~isfinite(num_pts) || floor(num_pts) ~= num_pts
 		error('Input ''num_pts'' must be a positive finite integer.')
 	end
+
+	nufft_opt = fill_struct(nufft_opt, ...
+		'epsilon', 1e-15);
 
 	lib_code = pick_nufft_library(sz);
 
@@ -27,7 +36,7 @@ function plan = nufft_initialize(sz, num_pts)
 	plan.sz = sz;
 	plan.num_pts = num_pts;
 
-	plan.epsilon = 1e-15;
+	plan.epsilon = nufft_opt.epsilon;
 
 	if lib_code == 3
 		m = epsilon_to_nfft_cutoff(plan.epsilon);
