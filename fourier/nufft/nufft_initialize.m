@@ -27,6 +27,8 @@ function plan = nufft_initialize(sz, num_pts)
 	plan.sz = sz;
 	plan.num_pts = num_pts;
 
+	plan.epsilon = 1e-15;
+
 	if lib_code == 3
 		if numel(sz) == 1
 			plan.nfft_plan_id = nfft_init_1d(sz(1), num_pts);
