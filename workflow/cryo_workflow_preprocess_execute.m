@@ -25,60 +25,78 @@ log_message('Loaded XML file %s (MD5: %s)',workflow_fname,MD5(workflow_fname));
 matname=fullfile(workflow.info.working_dir,'preprocess_info.mat'); % mat file
     % to save intermediate data.
 
-% Load data
-%nprojs=str2double(workflow.preprocess.nprojs);
-%log_message('Loading data %d projections from %s',nprojs,workflow.info.rawdata);
-%projs=ReadMRC(workflow.info.rawdata,1,nprojs);
-%szprojs=size(projs);
+% The processing of a STAR file and of an MRC file start differently, but
+% after phaseflipping merge back to the same workflow.
+% For a STAR file we start with phase flipping (if needed). For MRC we skip
+% phse flipping.
 
-% Create backup of the raw data
-log_message('Computing MD5 of %s',workflow.info.rawdata);
-log_message('Using raw data %s (MD5: %s)',...
-    workflow.info.rawdata,MD5(workflow.info.rawdata));
-log_message('Creating backup of raw data.');
-SRCname=tempmrcname; % SRC stands for "source".
-log_message('Copying raw data from %s to temporary file %s',workflow.info.rawdata,SRCname);
-copyfile(workflow.info.rawdata,SRCname);
+nprojs=str2double(workflow.preprocess.nprojs); % Number of images from the 
+    % stack to process
+log_message('Processing %d images from the data set',nprojs);
 
-rawdataReader=imagestackReader(SRCname);
-szprojs=rawdataReader.dim;
-if szprojs(1)~=szprojs(2)
-    error('Input projections must be square.')
-end
-
-pixA=str2double(workflow.preprocess.pixA);
-log_message('Supplied pixel size is %d Angstrom',pixA);
-if pixA==-1
-    log_message('Expecting pixel size in STAR file');
-end
-
-% Phaseflip
-if str2double(workflow.preprocess.phaseflip)
-    log_message('Start phaseflipping...')
-    if ~exist(workflow.preprocess.ctfdata,'file')
-        error('Cannot read STAR file %s',workflow.preprocess.ctfdata);
+[data_dir,~,data_ext]=fileparts(workflow.info.rawdata);
+if strcmpi(data_ext,'.star')    
+    % Phaseflip
+    if str2double(workflow.preprocess.phaseflip)
+        
+        % Input is given as a STAR file
+        pixA=str2double(workflow.preprocess.pixA);
+        log_message('User provided pixel size is %d Angstrom',pixA);
+        if pixA==-1
+            log_message('Expecting pixel size in STAR file');
+        end
+        
+        log_message('Start phaseflipping...')
+        if ~exist(workflow.info.rawdata,'file')
+            error('Cannot read STAR file %s',workflow.info.rawdata);
+        end
+        log_message('Reading CTF data %s (MD5: %s)',...
+            workflow.info.rawdata,...
+            MD5(workflow.info.rawdata));
+        
+        CTFdata=readSTAR(workflow.info.rawdata,1);
+        CTFdata.data=CTFdata.data(1:nprojs);
+        PFfname=tempmrcname; %PF stands for phaseflipped
+        log_message('Phaseflipped images will be saved to temporary file %s',PFfname);
+        log_message('Running cryo_phaseflip_outofcore');
+        cryo_phaseflip_outofcore(CTFdata,data_dir,PFfname,pixA,1);
+        log_message('Finished phaseflipping')
+    else
+        PFfname=tempmrcname; %PF stands for phaseflipped
+        log_message('Skipping phaseflip. Creating MRC from STAR file');
+        log_message('Generating MRC file %s',PFfname);
+        % Copy raw images to temporary file
+        star2mrc(workflow.info.rawdata,PFfname,data_dir,0,nprojs,1)
     end
-    log_message('Reading CTF data %s (MD5: %s)',...
-        workflow.preprocess.ctfdata,...
-        MD5(workflow.preprocess.ctfdata));
     
-    CTFdata=readSTAR(workflow.preprocess.ctfdata);
-    %PFprojs=cryo_phaseflip(CTFdata,projs);
-    PFfname=tempmrcname; %PF stands for phaseflipped
-    log_message('Phaseflipped images will be saved to temporary file %s',PFfname);
-    log_message('Running cryo_phaseflip_outofcore');
-    cryo_phaseflip_outofcore(CTFdata,SRCname,PFfname,pixA);
-    log_message('Finished phaseflipping')
-    
-    delete(SRCname);
 else
-    log_message('Skipping phaseflip');
-    % Copy raw images to temporary file
+    % Input is given as a (phase flipped MRC file)cr
+    % Create backup of the raw data
+    log_message('Computing MD5 of %s',workflow.info.rawdata);
+    log_message('Using raw data %s (MD5: %s)',...
+        workflow.info.rawdata,MD5(workflow.info.rawdata));
+    log_message('Creating backup of raw data.');
+    SRCname=tempmrcname; % SRC stands for "source".
+    log_message('Copying raw data from %s to temporary file %s',workflow.info.rawdata,SRCname);
+    
+    rawdataReader=imagestackReader(workflow.info.rawdata);
+    szprojs=rawdataReader.dim;
+    if szprojs(1)~=szprojs(2)
+        error('Input projections must be square.')
+    end
+
+    printProgressBarHeader;
+    SRCstackcopy=imagestackWriter(SRCname,nprojs);
+    for k=1:nprojs
+        progressTicFor(k,nprojs);
+        im=rawdataReader.getImage(k);
+        SRCstackcopy.append(im);
+    end
+    SRCstackcopy.close;
+        
+    log_message('Skipping phaseflip (images are expcted to be phase flipped)');
     PFfname=SRCname; % No phaseflip so continute with the raw data file.
 end
-
-%PFprojs=ReadMRC(PFfname);
-%clear projs
 
 % Crop
 if str2double(workflow.preprocess.do_crop)
@@ -279,107 +297,107 @@ for groupid=1:numgroups
         ,groupid,fullfilename,MD5(fullfilename));
     
     
-    % Generate CTF data for the downsampled images in STAR format.
-    % XXX This code is ratherslow due to the cell arrays - optimize.
-    if ~isempty(workflow.preprocess.ctfdata)
-        log_message('Generating CTF for downsampled images of group %d',groupid);
-        CTFdownsampled=createSTARdata(K2,'rlnVoltage','rlnDefocusU','rlnDefocusV',...
-            'rlnDefocusAngle','rlnSphericalAberration',...
-            'rlnAmplitudeContrast','pixA','phaseflipped');
-        
-        
-        % Compute pixel size of downsampled images.
-        idx=shuffleidx((groupid-1)*K2+1); % Read parameters of the first image
-        % in the current group.
-        [~,~,~,~,~,pixA,~]=cryo_parse_Relion_CTF_struct(CTFdata.data{idx});
-        % Read pixel size
-        pixAdownsampled=pixA*pixelscaling;
-        workflow.preprocess.pixA=pixA;
-        workflow.preprocess.pixAdownsampled=pixAdownsampled;
-        tree=struct2xml(workflow);
-        save(tree,workflow_fname);
-        log_message('Pixel size of original images %4.2f Angstroms',pixA);
-        log_message('Pixel size of downsampled images %4.2f Angstroms',pixAdownsampled);
-        
-        log_message('Create CTF data for downsampled images');
-        printProgressBarHeader;
-        
-        for k=1:K2
-            progressTicFor(k,K2);
-            idx=shuffleidx((groupid-1)*K2+k);
-            [voltage,DefocusU,DefocusV,DefocusAngle,Cs,pixA,A]=...
-                cryo_parse_Relion_CTF_struct(CTFdata.data{idx});
-            % Convert defocus to angstroms and defocus angle to degrees.
-            CTFdownsampled=addrecordtoSTARdata(CTFdownsampled,k,'rlnVoltage',voltage,...
-                'rlnDefocusU',DefocusU*10,'rlnDefocusV',DefocusV*10,...
-                'rlnDefocusAngle',DefocusAngle*180/pi,...
-                'rlnSphericalAberration',Cs,...
-                'rlnAmplitudeContrast',A,'pixA',pixA*pixelscaling,...
-                'phaseflipped',str2double(workflow.preprocess.phaseflip));
-            
-            if workflow.preprocess.pixA~=pixA
-                error('Pixel size varies in original data');
-            end
-        end
-        
-        fname=sprintf('ctfs_group%d.star',groupid);
-        fullfilename=fullfile(workflow.info.working_dir,fname);
-        log_message('Saving CTF data for group %d to %s',groupid,fullfilename);
-        writeSTAR(CTFdownsampled,fullfilename);
-        %log_message('Finished saving CTF data of downsampled images into %s',fullfilename);
-
-        %     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        %     % Generate filter reponse of the CTFs of the downsampled images.
-        %     % Can be used for testing the above code.
-        %
-        %     log_message('Generating CTF for group %d',groupid);
-        %     n=size(prewhitened_projs,1);
-        %     CTFds=zeros(n,n,K2,class(prewhitened_projs)); % CTF response
-        %     % of the downsampled images in each group.
-        %     for k=1:K2
-        %         idx=shuffleidx((groupid-1)*K2+k);
-        %         [voltage,DefocusU,DefocusV,DefocusAngle,Cs,pixA,A]=...
-        %             cryo_parse_Relion_CTF_struct(CTFdata.data{idx});
-        %         h=cryo_CTF_Relion(n,voltage,DefocusU,DefocusV,DefocusAngle,...
-        %             Cs,pixA*pixelscaling,A);
-        %         if str2double(workflow.preprocess.phaseflip)
-        %             h=abs(h);
-        %         end
-        %         CTFds(:,:,k)=h;
-        %     end
-        %
-        %     fname=sprintf('ctfs_group%d.mrc',groupid);
-        %     fullfilename=fullfile(workflow.info.working_dir,fname);
-        %     WriteMRC(single(CTFds),1,fullfilename);
-        %
-        %     CTFdownsampled_response=zeros(n,n,K2,class(prewhitened_projs)); % CTF response
-        %
-        %     for k=1:K2
-        %         [voltage,DefocusU,DefocusV,DefocusAngle,Cs,pixA,A]=...
-        %             cryo_parse_Relion_CTF_struct(CTFdownsampled.data{k});
-        %         h=cryo_CTF_Relion(n,voltage,DefocusU,DefocusV,DefocusAngle,...
-        %             Cs,pixA,A);
-        %         if str2double(workflow.preprocess.phaseflip)
-        %             h=abs(h);
-        %         end
-        %         CTFdownsampled_response(:,:,k)=h;
-        %     end
-        %
-        %     assert(norm(CTFdownsampled_response(:)-CTFds(:))/norm(CTFds(:))<1.0e-14);
-        %
-        %     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        
-        % Save CTF parameters of raw images in each group. We don't save the
-        % reponse for each image since these images may be very large.
-        
-        CTFraw=CTFdata;
-        CTFraw.data=CTFraw.data(shuffleidx((groupid-1)*K2+1:groupid*K2));
-        fname=sprintf('ctfs_raw_group%d.star',groupid);
-        fullfilename=fullfile(workflow.info.working_dir,fname);
-        log_message('Save CTF parameters of raw images group %d into %s',groupid,fullfilename);
-        writeSTAR(CTFraw,fullfilename);
-        
-    end
+%     % Generate CTF data for the downsampled images in STAR format.
+%     % XXX This code is ratherslow due to the cell arrays - optimize.
+%     if ~isempty(workflow.preprocess.ctfdata)
+%         log_message('Generating CTF for downsampled images of group %d',groupid);
+%         CTFdownsampled=createSTARdata(K2,'rlnVoltage','rlnDefocusU','rlnDefocusV',...
+%             'rlnDefocusAngle','rlnSphericalAberration',...
+%             'rlnAmplitudeContrast','pixA','phaseflipped');
+%         
+%         
+%         % Compute pixel size of downsampled images.
+%         idx=shuffleidx((groupid-1)*K2+1); % Read parameters of the first image
+%         % in the current group.
+%         [~,~,~,~,~,pixA,~]=cryo_parse_Relion_CTF_struct(CTFdata.data{idx});
+%         % Read pixel size
+%         pixAdownsampled=pixA*pixelscaling;
+%         workflow.preprocess.pixA=pixA;
+%         workflow.preprocess.pixAdownsampled=pixAdownsampled;
+%         tree=struct2xml(workflow);
+%         save(tree,workflow_fname);
+%         log_message('Pixel size of original images %4.2f Angstroms',pixA);
+%         log_message('Pixel size of downsampled images %4.2f Angstroms',pixAdownsampled);
+%         
+%         log_message('Create CTF data for downsampled images');
+%         printProgressBarHeader;
+%         
+%         for k=1:K2
+%             progressTicFor(k,K2);
+%             idx=shuffleidx((groupid-1)*K2+k);
+%             [voltage,DefocusU,DefocusV,DefocusAngle,Cs,pixA,A]=...
+%                 cryo_parse_Relion_CTF_struct(CTFdata.data{idx});
+%             % Convert defocus to angstroms and defocus angle to degrees.
+%             CTFdownsampled=addrecordtoSTARdata(CTFdownsampled,k,'rlnVoltage',voltage,...
+%                 'rlnDefocusU',DefocusU*10,'rlnDefocusV',DefocusV*10,...
+%                 'rlnDefocusAngle',DefocusAngle*180/pi,...
+%                 'rlnSphericalAberration',Cs,...
+%                 'rlnAmplitudeContrast',A,'pixA',pixA*pixelscaling,...
+%                 'phaseflipped',str2double(workflow.preprocess.phaseflip));
+%             
+%             if workflow.preprocess.pixA~=pixA
+%                 error('Pixel size varies in original data');
+%             end
+%         end
+%         
+%         fname=sprintf('ctfs_group%d.star',groupid);
+%         fullfilename=fullfile(workflow.info.working_dir,fname);
+%         log_message('Saving CTF data for group %d to %s',groupid,fullfilename);
+%         writeSTAR(CTFdownsampled,fullfilename);
+%         %log_message('Finished saving CTF data of downsampled images into %s',fullfilename);
+% 
+%         %     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         %     % Generate filter reponse of the CTFs of the downsampled images.
+%         %     % Can be used for testing the above code.
+%         %
+%         %     log_message('Generating CTF for group %d',groupid);
+%         %     n=size(prewhitened_projs,1);
+%         %     CTFds=zeros(n,n,K2,class(prewhitened_projs)); % CTF response
+%         %     % of the downsampled images in each group.
+%         %     for k=1:K2
+%         %         idx=shuffleidx((groupid-1)*K2+k);
+%         %         [voltage,DefocusU,DefocusV,DefocusAngle,Cs,pixA,A]=...
+%         %             cryo_parse_Relion_CTF_struct(CTFdata.data{idx});
+%         %         h=cryo_CTF_Relion(n,voltage,DefocusU,DefocusV,DefocusAngle,...
+%         %             Cs,pixA*pixelscaling,A);
+%         %         if str2double(workflow.preprocess.phaseflip)
+%         %             h=abs(h);
+%         %         end
+%         %         CTFds(:,:,k)=h;
+%         %     end
+%         %
+%         %     fname=sprintf('ctfs_group%d.mrc',groupid);
+%         %     fullfilename=fullfile(workflow.info.working_dir,fname);
+%         %     WriteMRC(single(CTFds),1,fullfilename);
+%         %
+%         %     CTFdownsampled_response=zeros(n,n,K2,class(prewhitened_projs)); % CTF response
+%         %
+%         %     for k=1:K2
+%         %         [voltage,DefocusU,DefocusV,DefocusAngle,Cs,pixA,A]=...
+%         %             cryo_parse_Relion_CTF_struct(CTFdownsampled.data{k});
+%         %         h=cryo_CTF_Relion(n,voltage,DefocusU,DefocusV,DefocusAngle,...
+%         %             Cs,pixA,A);
+%         %         if str2double(workflow.preprocess.phaseflip)
+%         %             h=abs(h);
+%         %         end
+%         %         CTFdownsampled_response(:,:,k)=h;
+%         %     end
+%         %
+%         %     assert(norm(CTFdownsampled_response(:)-CTFds(:))/norm(CTFds(:))<1.0e-14);
+%         %
+%         %     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%         
+%         % Save CTF parameters of raw images in each group. We don't save the
+%         % reponse for each image since these images may be very large.
+%         
+%         CTFraw=CTFdata;
+%         CTFraw.data=CTFraw.data(shuffleidx((groupid-1)*K2+1:groupid*K2));
+%         fname=sprintf('ctfs_raw_group%d.star',groupid);
+%         fullfilename=fullfile(workflow.info.working_dir,fname);
+%         log_message('Save CTF parameters of raw images group %d into %s',groupid,fullfilename);
+%         writeSTAR(CTFraw,fullfilename);
+%         
+%     end
 end
 
 delete(PFCDNWGfname);
