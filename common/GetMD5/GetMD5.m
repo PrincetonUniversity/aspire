@@ -1,4 +1,4 @@
-function GetMD5
+function md5=GetMD5(varargin)
 % GetMD5 - 128 bit MD5 checksum: file, string, array, byte stream
 % This function calculates a 128 bit checksum for arrays or files.
 % Digest = GetMD5(Data, Mode, Format)
@@ -92,6 +92,7 @@ if isempty(FirstRun)
    if ok
       FirstRun = false;
    end
+   md5=GetMD5(varargin{:});
 else
    error(['JSimon:', mfilename, ':MissMEX'], ...
       'Cannot find Mex file: %s', [mfilename, '.', mexext]);
