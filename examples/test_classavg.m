@@ -31,18 +31,19 @@
 % Tejal April 17, 2016, modified Zhizhen Zhao Sep 2017: remove steerable PCA reconstruction
 % New align_main: Tejal March 2017, Zhao align_main: modified September 2017
 fname='clean_data.mat';
-if exist(fname,'file')==2
-    log_message('Loading dataset %s',fname);
-	data=load('clean_data.mat');
-    log_message('Finished loading dataset');
-else
+if exist(fname,'file')~=2
     log_message('Dataset not found. Generating...(may take time)');
-	gen_simulation_data;
+    gen_simulation_data;
     log_message('Finished generating data');
 end
 
+log_message('Loading dataset %s',fname);
+data=load('clean_data.mat');
+log_message('Finished loading dataset');
+
 K=1000; %K is the number of images
 SNR = 1/10; %SNR
+%SNR=1000000;
 use_shifted=0;
 log_message('Using K=%d images with use_shifts=%d',K,use_shifted);
 
@@ -63,7 +64,7 @@ log_message('Adding noise to images at SNR=%d',SNR)
 log_message('Finished adding noise');
 
 clear g_proj_CTF
-q = data.q(:, 1:K);
+rots_ref = data.rots(:, :, 1:K);
 L = size(images, 1);
 n_nbor = 10; %number of nearest neighbors for initial classification.
 n_nbor_large=50;
@@ -109,18 +110,18 @@ if(use_VDM)
 	log_message('Finished VDM classification');
 	% Check Classification result
     log_message('Printing simuation results with VDM classification');
-	[ d_f, error_rot_f ] = check_simulation_results(class_VDM, class_VDM_refl, rot_f_vdm, q); % should use minus sign for init class, no minus sign for VDM 
+	[ d_f, error_rot_f ] = check_simulation_results(class_VDM, class_VDM_refl, rot_f_vdm, rots_ref); % should use minus sign for init class, no minus sign for VDM 
 else
 	rot_f_vdm = rot_f;
 	class_VDM = class_f;
 	class_VDM_refl = class_refl_f;
 	k_VDM_out = k_VDM_in;
     log_message('Printing simuation results WITHOUT VDM classification');
-	[ d_f, error_rot_f ] = check_simulation_results(class_f, class_refl_f, -rot_f, q); % should use minus sign for init class, no minus sign for VDM 
+	[ d_f, error_rot_f ] = check_simulation_results(class_f, class_refl_f, -rot_f, rots_ref); % should use minus sign for init class, no minus sign for VDM 
 end
 
 log_message('Start generating class averages (align_main)');
-list_recon = [1:size(images_fl, 3)];
+list_recon = 1:size(images_fl, 3);
 %[tmp_dir]=fmtinput('Please enter the destination path to an empty folder for class averaged images. The default destination is your home directory','~/.','%s');
 tmp_dir=tempmrcdir;
 log_message('Using temporary folder %s',tmp_dir);
@@ -134,10 +135,12 @@ log_message('Checking simulation results');
 % Check Classification result
 d = d_f;
 error_rot = error_rot_f;
-[ N, X ] = hist(acosd(d), [0:180]);
+[ N, X ] = hist(acosd(d), 0:180);
 figure; bar(N);
 xlabel('a$\cos\langle v_i, v_j \rangle$', 'interpreter', 'latex');
 log_message('The histogram shows the angular distance in degrees between images classified into the same class. In the case of good classification, this distance should be as close to zero as possible.')
+log_message('Errors (degrees): mean=%5.2f, median=%5.2f, std=%5.2f',...
+    mean(acosd(d)),median(acosd(d)), std(acosd(d)));
 log_message('Removing temporary files')
 delete(sprintf('%s/*',tmp_dir));
 rmdir(tmp_dir);

@@ -54,6 +54,7 @@ shift_step = 1;
 prop=comparecl( clstack, ref_clmatrix, n_theta, 10 );
 fprintf('Percentage of correct common lines: %f%%\n\n',prop*100);
 [ est_shifts, shift_err] = test_shifts( shift_equations, shifts);
+est_shifts=full(est_shifts);
 
 %% Assign orientation using common lines, using least squares method.
 % The resulting MSE should be small (of the order of 1e-4).
@@ -70,4 +71,5 @@ est_inv_rots,-est_shifts, 1e-6, 30, zeros(65,65,65));
 assert(norm(imag(v(:)))/norm(v(:))<1.0e-4);
 v=real(v);
 WriteMRC(v,1,'example1.mrc'); % Output density map reconstructed from projections.
+fprintf('Saved example1.mrc\n');
 

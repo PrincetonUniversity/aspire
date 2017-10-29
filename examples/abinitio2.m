@@ -53,3 +53,4 @@ rotations,[], 1e-6, 30, zeros(65,65,65));
 assert(norm(imag(v(:)))/norm(v(:))<1.0e-3);
 v=real(v);
 WriteMRC(v,1,'example2.mrc'); % Output density map reconstructed from projections.
+fprintf('Saved example2.mrc\n');
