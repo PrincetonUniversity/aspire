@@ -59,7 +59,7 @@ est_shifts=full(est_shifts);
 %% Assign orientation using common lines, using least squares method.
 % The resulting MSE should be small (of the order of 1e-4).
 
-[est_inv_rots] = est_orientations_LS(clstack, n_theta);
+[est_inv_rots] = est_orientations_LUD(clstack, n_theta);
 fprintf('MSE of the estimated rotations: %f\n\n', ...
     check_MSE(est_inv_rots,rots));
 

@@ -1,1 +1,1 @@
-cd mex -O ksden.cpp
+mex -O ksden.cpp
