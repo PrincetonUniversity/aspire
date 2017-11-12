@@ -28,7 +28,7 @@ for i=1:nImages
 %     V((i-1)*3+1:i*3,(i-1)*3+1:i*3) = viis(:,:,i);
     for j=i+1:nImages
         ind = uppertri_ijtoind(i,j,nImages);
-        V((i-1)*3+1:i*3,(j-1)*3+1:j*3) = vijs(:,:,ind);
+        V((i-1)*3+1:i*3,(j-1)*3+1:j*3) = viis(:,:,i)*vijs(:,:,ind)*viis(:,:,j);
     end
 end
 
