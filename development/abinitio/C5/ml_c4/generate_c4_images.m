@@ -53,7 +53,6 @@ elseif strcmp(c4_type,'C1')
     vol = cryo_gaussian_phantom_3d('C1_params',projSize,1);
     vol = make_vol_c4(vol);
     assertVolumeIsC4(vol);
-    WriteMRC(vol,1,'C1_forceC4_init.mrc');
 else
     error('no such type %s',c4_type);
 end
