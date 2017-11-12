@@ -71,36 +71,104 @@ for i=1:nImages
 
     Riig  = Ri_opt.'*g*Ri_opt;
     Riigg = Ri_opt.'*g*g*Ri_opt;
-    viis(:,:,i) = 1/5*(Riig+Riig.'+Riigg+Riigg.'+eye(3));  
+    viis(:,:,i) = 1/5*(Riig+Riig.'+Riigg+Riigg.'+eye(3));
 end
 
-
-diffs = zeros(1,nImages);
-for i=1:nImages
-    Ri_gt = q_to_rot(refq(:,i)).';
-    vi_gt = Ri_gt(3,:);
-    vii_gt = vi_gt.'*vi_gt;
+if exist('refq','var') && ~isempty(refq)
     
-    vii = viis(:,:,i);
-   
-    diffs(i) =  min([norm(  vii     - vii_gt,'fro'),...
-        norm(  vii.'   - vii_gt,'fro')...
-        norm(J*vii*J   - vii_gt,'fro'),...
-        norm(J*vii.'*J - vii_gt,'fro')]);    
+    diffs = zeros(1,nImages);
+    for i=1:nImages
+        Ri_gt = q_to_rot(refq(:,i)).';
+        vi_gt = Ri_gt(3,:);
+        vii_gt = vi_gt.'*vi_gt;
+        
+        vii = viis(:,:,i);
+        
+        diffs(i) =  min([norm(  vii     - vii_gt,'fro'),...
+            norm(  vii.'   - vii_gt,'fro')...
+            norm(J*vii*J   - vii_gt,'fro'),...
+            norm(J*vii.'*J - vii_gt,'fro')]);
+    end
+    
+    mse_vii = sum(diffs.^2)/numel(diffs);
+    log_message('MSE of vii: %e',mse_vii);
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    is_correct = zeros(1,nImages);
+    hand_idx = zeros(1,nImages);
+    angle_tol_err = 10/180*pi; % how much angular deviation we allow for a self-common-line to have
+    for i=1:nImages
+        
+        
+        Ri_gt = q_to_rot(refq(:,i)).';
+        
+        
+        Rii_g_gt = Ri_gt.'*g*Ri_gt;
+        
+        c_1_gt = [-Rii_g_gt(8) ;  Rii_g_gt(7)]; %[-Riig(2,3)  Riig(1,3)];
+        c_2_gt = [ Rii_g_gt(6) ; -Rii_g_gt(3)]; %[ Riig(3,2) -Riig(3,1)];
+        
+        cigi_gt = clAngles2Ind(c_1_gt,n_theta);
+        cgii_gt = clAngles2Ind(c_2_gt,n_theta);
+        
+        
+        
+        Ri_tilde   = Ris_tilde(:,:,opt_Ris_tilde_ind(i));
+        
+        diff_s = zeros(1,4);
+        hand_idx_s = zeros(1,4);
+        for s=1:4
+            Rii_g = Ri_tilde.'*g^(s)*Ri_tilde;
+            
+            c_1 = [-Rii_g(8) ;  Rii_g(7)]; %[-Riig(2,3)  Riig(1,3)];
+            c_2 = [ Rii_g(6) ; -Rii_g(3)]; %[ Riig(3,2) -Riig(3,1)];
+            
+            cigi = clAngles2Ind(c_1,n_theta);
+            cgii = clAngles2Ind(c_2,n_theta);
+            
+            
+            cigi_diff = (cigi_gt-cigi)*2*pi./n_theta;
+            cgii_diff = (cgii_gt-cgii)*2*pi./n_theta;
+            
+            % take absolute cosine because of handedness
+            % there might be +180 independendt diff for each image which at this stage
+            % hasn't been taken care yet.
+            diff = acos(cos(cigi_diff))    + acos(cos(cgii_diff));
+            diff_J = acos(cos(cigi_diff+pi)) + acos(cos(cgii_diff+pi));
+            if diff < diff_J
+                diff_s(s) = diff;
+                hand_idx_s(s) = 1;
+            else
+                diff_s(s) = diff_J;
+                hand_idx_s(s) = 2;
+            end
+        end
+        [min_diff_s,min_idx] = min(diff_s);
+        if min_diff_s < 2*angle_tol_err
+            is_correct(i) = 1;
+            hand_idx(i) = hand_idx_s(min_idx);
+        end
+    end
+    
+    scl_dist = histc(hand_idx,1:2)/nImages;
+    scl_detec_rate = sum(is_correct)/nImages;
+    log_message('\nself common lines detection rate=%.2f%%',scl_detec_rate*100);
+    log_message('scl_J_dist=[%.2f %.2f]',scl_dist);
+    
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    
+    bad_inds = find(diffs > 0.1);
+    bad_polar_angs = zeros(1,numel(bad_inds));
+    for i=1:numel(bad_inds)
+        ind = bad_inds(i);
+        bad_rot = q_to_rot(refq(:,ind)).';
+        bad_polar_angs(i) = acosd(bad_rot(3,3));
+    end
+    figure; hist(bad_polar_angs,180);
+    
 end
-
-mse_vii = sum(diffs.^2)/numel(diffs);
-log_message('MSE of vii: %e',mse_vii);
-
-
-bad_inds = find(diffs > 0.1);
-bad_polar_angs = zeros(1,numel(bad_inds));
-for i=1:numel(bad_inds)
-    ind = bad_inds(i);
-    bad_rot = q_to_rot(refq(:,ind)).';
-    bad_polar_angs(i) = acosd(bad_rot(3,3));
-end
-figure; hist(bad_polar_angs,180);
 
 end
 
