@@ -301,4 +301,6 @@ function x = fourier_bessel_expand_t(v, basis)
     x = conj_grad(A, b, cg_opt);
 
     x = roll_dim(x, sz_roll);
+
+    x = vec_to_vol(x);
 end
