@@ -63,6 +63,7 @@ function basis = fourier_bessel_basis(sz, ell_max)
     basis = struct();
 
     basis.sz = sz;
+
     basis.count = sum(k_max.*(2*[0:ell_max]'+1));
 
     basis.ell_max = ell_max;
@@ -99,7 +100,7 @@ function [k, r0] = num_besselj_zeros(ell, r)
     k = numel(r0);
 end
 
-function [r_unique, ang_unique, r_idx, ang_idx, mask] = unique_coordinates(N)
+function [r_unique, ang_unique, r_idx, ang_idx, mask] = unique_coordinates_3d(N)
     mesh3d = mesh_3d(N);
 
     mask = mesh3d.r<=1;
@@ -112,48 +113,65 @@ function [r_unique, ang_unique, r_idx, ang_idx, mask] = unique_coordinates(N)
     [ang_unique, ~, ang_idx] = unique([theta phi], 'rows');
 end
 
-function nrm = basis_norm(basis, ell, k)
+function nrm = basis_norm_3d(basis, ell, k)
     nrm = abs(sph_bessel(ell+1, basis.r0(k,ell+1)))/sqrt(2)* ...
         sqrt(prod(basis.sz/2));
 end
 
 function precomp = fourier_bessel_precomp(basis)
-    [r_unique, ang_unique, r_idx, ang_idx, mask] = ...
-        unique_coordinates(basis.sz(1));
+    d = numel(basis.sz);
 
-    ind_radial = 1;
-    ind_ang = 1;
+    if d == 2
+        precomp = [];
+    elseif d == 3
+        [r_unique, ang_unique, r_idx, ang_idx, mask] = ...
+            unique_coordinates_3d(basis.sz(1));
 
-    radial = zeros(size(r_unique, 1), sum(basis.k_max));
-    ang = zeros(size(ang_unique, 1), sum(2:[0:basis.ell_max]+1));
+        ind_radial = 1;
+        ind_ang = 1;
 
-    for ell = 0:basis.ell_max
-        for k = 1:basis.k_max(ell+1)
-            radial(:,ind_radial) = sph_bessel(ell, basis.r0(k,ell+1)*r_unique);
+        radial = zeros(size(r_unique, 1), sum(basis.k_max));
+        ang = zeros(size(ang_unique, 1), sum(2:[0:basis.ell_max]+1));
 
-            ind_radial = ind_radial+1;
+        for ell = 0:basis.ell_max
+            for k = 1:basis.k_max(ell+1)
+                radial(:,ind_radial) = ...
+                    sph_bessel(ell, basis.r0(k,ell+1)*r_unique);
+
+                ind_radial = ind_radial+1;
+            end
+
+            for m = -ell:ell
+                ang(:,ind_ang) = real_sph_harmonic(ell, m, ...
+                    ang_unique(:,1), ang_unique(:,2));
+
+                ind_ang = ind_ang+1;
+            end
         end
 
-        for m = -ell:ell
-            ang(:,ind_ang) = real_sph_harmonic(ell, m, ...
-                ang_unique(:,1), ang_unique(:,2));
-
-            ind_ang = ind_ang+1;
-        end
+        precomp = struct();
+        precomp.radial = radial;
+        precomp.ang = ang;
     end
-
-    precomp = struct();
-    precomp.radial = radial;
-    precomp.ang = ang;
 end
 
 function x = fourier_bessel_evaluate(v, basis)
     basis_check_evaluate(v, basis);
 
+    d = numel(basis.sz);
+
+    if d == 2
+        x = [];
+    elseif d == 3
+        x = fourier_bessel_evaluate_3d(v, basis);
+    end
+end
+
+function x = fourier_bessel_evaluate_3d(v, basis)
     [v, sz_roll] = unroll_dim(v, 2);
 
     [r_unique, ang_unique, r_idx, ang_idx, mask] = ...
-        unique_coordinates(basis.sz(1));
+        unique_coordinates_3d(basis.sz(1));
 
     is_precomp = isfield(basis, 'precomp');
 
@@ -168,7 +186,7 @@ function x = fourier_bessel_evaluate(v, basis)
 
         nrms = zeros(numel(idx_radial), 1);
         for k = 1:numel(idx_radial)
-            nrms(k) = basis_norm(basis, ell, k);
+            nrms(k) = basis_norm_3d(basis, ell, k);
         end
 
         if ~is_precomp
@@ -210,12 +228,22 @@ end
 function v = fourier_bessel_evaluate_t(x, basis)
     basis_check_expand(x, basis);
 
+    d = numel(basis.sz);
+
+    if d == 2
+        v = [];
+    elseif d == 3
+        v = fourier_bessel_evaluate_t_3d(x, basis);
+    end
+end
+
+function v = fourier_bessel_evaluate_t_3d(x, basis)
     [x, sz_roll] = unroll_dim(x, numel(basis.sz)+1);
 
     x = reshape(x, [prod(basis.sz) size(x, numel(basis.sz)+1)]);
 
     [r_unique, ang_unique, r_idx, ang_idx, mask] = ...
-        unique_coordinates(basis.sz(1));
+        unique_coordinates_3d(basis.sz(1));
 
     is_precomp = isfield(basis, 'precomp');
 
@@ -230,7 +258,7 @@ function v = fourier_bessel_evaluate_t(x, basis)
 
         nrms = zeros(numel(idx_radial), 1);
         for k = 1:numel(idx_radial)
-            nrms(k) = basis_norm(basis, ell, k);
+            nrms(k) = basis_norm_3d(basis, ell, k);
         end
 
         if ~is_precomp
@@ -290,11 +318,19 @@ end
 function x = fourier_bessel_expand_t(v, basis)
     basis_check_evaluate(v, basis);
 
+    d = numel(basis.sz);
+
     [v, sz_roll] = unroll_dim(v, 2);
 
-    b = vol_to_vec(basis.evaluate(v));
+    if d == 2
+        b = 0;
 
-    A = @(x)(vol_to_vec(basis.evaluate(basis.evaluate_t(vec_to_vol(x)))));
+        A = @(x)(x);
+    elseif d == 3
+        b = vol_to_vec(basis.evaluate(v));
+
+        A = @(x)(vol_to_vec(basis.evaluate(basis.evaluate_t(vec_to_vol(x)))));
+    end
 
     % TODO: Check that this tolerance make sense for multiple columns in x
 
