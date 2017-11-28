@@ -5,7 +5,7 @@
 %
 % Input
 %    sz: The size of the vectors for which to define the basis. Currently
-%       only cubic volumes are supported.
+%       only square images and cubic volumes are supported.
 %    ell_max: The maximum order ell of the basis elements.
 %
 % Output
@@ -22,8 +22,9 @@
 %    For example, we can generate a random vector in the standard basis and
 %    project it onto the Fourier-Bessel basis through
 %
-%       basis = fourier_bessel_basis(sz, mask);
-%       x = randn([sz 1]);
+%       sz = 16*ones(1, 2);
+%       basis = fourier_bessel_basis(sz, floor(sz(1)/2));
+%       x = randn(sz);
 %       v = basis.expand(x);
 %
 %    Likewise, we can map a random coefficient vector into the standard basis
@@ -34,6 +35,42 @@
 %
 %    The adjoints of the expand and evaluate functions are obtained through
 %    basis.expand_t and basis.evaluate_t functions, respectively.
+%
+%    This particular basis is a Fourier-Bessel basis in two or three
+%    dimensions. It is a separable basis consisting of a radial part multiplied
+%    by an angular part.
+%
+%    The radial part is a Bessel function in 2D or a spherical Bessel function
+%    in 3D. These are dilated to obtain a given number of zeros on the
+%    interval [0, 1]. Specifically, they are of the form
+%
+%       f_{ell,k}(r) = Z_ell(R_{ell,k} r),
+%
+%    where Z_ell is the ellth-order (spherical) Bessel function and R_{l,k} is
+%    its kth zero.
+%
+%    The angular part is given by a sinusoid in 2D or a real spherical harmonic
+%    function in 3D. Specifically, for ell = 0, the angular part is constant,
+%    while for ell > 0, it is either a sine or a cosine.
+%
+%    All of the basis vectors are normalized so that their 2-norm, as continuous
+%    functions, is equal to 1. Additionally, the basis functions are orthogonal,
+%    again in the continuous case. Due to the discrete sampling, these
+%    properties only hold asymptotically as max(sz) goes to infinity.
+%
+%    The parameter ell_max determines the highest frequency of the angular
+%    sinusoids in 2D and the highest degree of the real spherical harmonics in
+%    3D. For each ell, the maximum number of zeros in the radial part f_{ell,k}
+%    is determined by ensuring that the Fourier transform of the entire basis
+%    function is mostly concentrated within the Nyquist disk or ball. This
+%    maximum number is denoted by k_max(ell) and is stored in the basis object.
+%
+%    The coefficients of the basis are ordered by increasing ell, from 0 to
+%    ell_max. For each ell, the basis functions are ordered by the radial index
+%    k from 1 to k_max(ell). In 2D, for each radial index, we then have the
+%    cosine part followed by the sine part (except for ell = 0, in which case we
+%    only have the cosine part). In 3D, we instead have the coefficients
+%    arranged by order m, ranging from -ell to +ell.
 
 function basis = fourier_bessel_basis(sz, ell_max)
     if numel(sz) ~= 3 && numel(sz) ~= 2
