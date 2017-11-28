@@ -36,13 +36,15 @@
 %    basis.expand_t and basis.evaluate_t functions, respectively.
 
 function basis = fourier_bessel_basis(sz, ell_max)
-    if numel(sz) ~= 3
-        error('Only three-dimesional basis functions are supported.');
+    if numel(sz) ~= 3 && numel(sz) ~= 2
+        error('Only two- or three-dimesional basis functions are supported.');
     end
 
     if ~all(sz == sz(1))
         error('Only cubic domains are supported.');
     end
+
+    d = numel(sz);
 
     N = sz(1);
 
@@ -51,7 +53,7 @@ function basis = fourier_bessel_basis(sz, ell_max)
     r0 = cell(1, ell_max+1);
 
     for ell = 0:ell_max
-        [k_max(ell+1), r0{ell+1}] = num_besselj_zeros(ell+1/2, N*pi/2);
+        [k_max(ell+1), r0{ell+1}] = num_besselj_zeros(ell+(d-2)/2, N*pi/2);
     end
 
     for ell = 0:ell_max
@@ -64,13 +66,21 @@ function basis = fourier_bessel_basis(sz, ell_max)
 
     basis.sz = sz;
 
-    basis.count = sum(k_max.*(2*[0:ell_max]'+1));
+    if d == 2
+        basis.count = k_max(1) + sum(2*k_max(2:end));
+    elseif d == 3
+        basis.count = sum(k_max.*(2*[0:ell_max]'+1));
+    end
 
     basis.ell_max = ell_max;
     basis.k_max = k_max;
     basis.r0 = r0;
 
     basis.precomp = fourier_bessel_precomp(basis);
+
+    if isempty(basis.precomp)
+        basis = rmfield(basis, 'precomp');
+    end
 
     basis.evaluate = @(v)(fourier_bessel_evaluate(v, basis));
     basis.evaluate_t = @(x)(fourier_bessel_evaluate_t(x, basis));
@@ -100,6 +110,18 @@ function [k, r0] = num_besselj_zeros(ell, r)
     k = numel(r0);
 end
 
+function [r_unique, ang_unique, r_idx, ang_idx, mask] = unique_coordinates_2d(N)
+    mesh2d = mesh_2d(N);
+
+    mask = mesh2d.r<=1;
+
+    r = mesh2d.r(mask);
+    phi = mesh2d.phi(mask);
+
+    [r_unique, ~, r_idx] = unique(r);
+    [ang_unique, ~, ang_idx] = unique(phi);
+end
+
 function [r_unique, ang_unique, r_idx, ang_idx, mask] = unique_coordinates_3d(N)
     mesh3d = mesh_3d(N);
 
@@ -111,6 +133,15 @@ function [r_unique, ang_unique, r_idx, ang_idx, mask] = unique_coordinates_3d(N)
 
     [r_unique, ~, r_idx] = unique(r);
     [ang_unique, ~, ang_idx] = unique([theta phi], 'rows');
+end
+
+function nrm = basis_norm_2d(basis, ell, k)
+    nrm = abs(besselj(ell+1, basis.r0(k,ell+1)))*sqrt(pi/2)* ...
+        sqrt(prod(basis.sz/2));
+
+    if ell == 0
+        nrm = nrm*sqrt(2);
+    end
 end
 
 function nrm = basis_norm_3d(basis, ell, k)
@@ -161,10 +192,62 @@ function x = fourier_bessel_evaluate(v, basis)
     d = numel(basis.sz);
 
     if d == 2
-        x = [];
+        x = fourier_bessel_evaluate_2d(v, basis);
     elseif d == 3
         x = fourier_bessel_evaluate_3d(v, basis);
     end
+end
+
+function x = fourier_bessel_evaluate_2d(v, basis)
+    [v, sz_roll] = unroll_dim(v, 2);
+
+    [r_unique, ang_unique, r_idx, ang_idx, mask] = ...
+        unique_coordinates_2d(basis.sz(1));
+
+    ind = 1;
+
+    x = zeros([prod(basis.sz) size(v, 2)], class(v));
+    for ell = 0:basis.ell_max
+        k_max = basis.k_max(ell+1);
+
+        nrms = zeros(k_max, 1);
+        for k = 1:k_max
+            nrms(k) = basis_norm_2d(basis, ell, k);
+        end
+
+        radial = zeros(size(r_unique, 1), k_max);
+        for k = 1:k_max
+            radial(:,k) = besselj(ell, basis.r0(k,ell+1)*r_unique);
+        end
+
+        radial = bsxfun(@times, radial, 1./nrms');
+
+        if ell == 0
+            sgns = 1;
+        else
+            sgns = [1 -1];
+        end
+
+        for sgn = sgns
+            if sgn == 1
+                ang = cos(ell*ang_unique);
+            else
+                ang = sin(ell*ang_unique);
+            end
+
+            ang_radial = bsxfun(@times, ang(ang_idx), radial(r_idx,:));
+
+            idx = ind + [0:k_max-1];
+
+            x(mask,:) = x(mask,:) + ang_radial*v(idx,:);
+
+            ind = ind + numel(idx);
+        end
+    end
+
+    x = reshape(x, [basis.sz size(x, 2)]);
+
+    x = roll_dim(x, sz_roll);
 end
 
 function x = fourier_bessel_evaluate_3d(v, basis)
@@ -231,10 +314,63 @@ function v = fourier_bessel_evaluate_t(x, basis)
     d = numel(basis.sz);
 
     if d == 2
-        v = [];
+        v = fourier_bessel_evaluate_t_2d(x, basis);
     elseif d == 3
         v = fourier_bessel_evaluate_t_3d(x, basis);
     end
+end
+
+function v = fourier_bessel_evaluate_t_2d(x, basis)
+    [x, sz_roll] = unroll_dim(x, numel(basis.sz)+1);
+
+    x = reshape(x, [prod(basis.sz) size(x, numel(basis.sz)+1)]);
+
+    [r_unique, ang_unique, r_idx, ang_idx, mask] = ...
+        unique_coordinates_2d(basis.sz(1));
+
+    ind = 1;
+
+    v = zeros([basis.count size(x, 2)], class(x));
+
+    for ell = 0:basis.ell_max
+        k_max = basis.k_max(ell+1);
+
+        nrms = zeros(k_max, 1);
+        for k = 1:k_max
+            nrms(k) = basis_norm_2d(basis, ell, k);
+        end
+
+        radial = zeros(size(r_unique, 1), k_max);
+        for k = 1:k_max
+            radial(:,k) = besselj(ell, basis.r0(k,ell+1)*r_unique);
+        end
+
+        radial = bsxfun(@times, radial, 1./nrms');
+
+        if ell == 0
+            sgns = 1;
+        else
+            sgns = [1 -1];
+        end
+
+        for sgn = sgns
+            if sgn == 1
+                ang = cos(ell*ang_unique);
+            else
+                ang = sin(ell*ang_unique);
+            end
+
+            ang_radial = bsxfun(@times, ang(ang_idx), radial(r_idx,:));
+
+            idx = ind + [0:k_max-1];
+
+            v(idx,:) = ang_radial'*x(mask,:);
+
+            ind = ind + numel(idx);
+        end
+    end
+
+    v = roll_dim(v, sz_roll);
 end
 
 function v = fourier_bessel_evaluate_t_3d(x, basis)
@@ -323,9 +459,9 @@ function x = fourier_bessel_expand_t(v, basis)
     [v, sz_roll] = unroll_dim(v, 2);
 
     if d == 2
-        b = 0;
+        b = im_to_vec(basis.evaluate(v));
 
-        A = @(x)(x);
+        A = @(x)(im_to_vec(basis.evaluate(basis.evaluate_t(vec_to_im(x)))));
     elseif d == 3
         b = vol_to_vec(basis.evaluate(v));
 
