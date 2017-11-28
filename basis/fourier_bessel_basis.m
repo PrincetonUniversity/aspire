@@ -153,7 +153,39 @@ function precomp = fourier_bessel_precomp(basis)
     d = numel(basis.sz);
 
     if d == 2
-        precomp = [];
+        [r_unique, ang_unique, r_idx, ang_idx, mask] = ...
+            unique_coordinates_2d(basis.sz(1));
+
+        ind_radial = 1;
+        ind_ang = 1;
+
+        radial = zeros(size(r_unique, 1), sum(basis.k_max));
+        ang = zeros(size(ang_unique, 1), 1+2*(basis.ell_max-1));
+
+        for ell = 0:basis.ell_max
+            for k = 1:basis.k_max(ell+1)
+                radial(:,ind_radial) = ...
+                    besselj(ell, basis.r0(k,ell+1)*r_unique);
+
+                ind_radial = ind_radial+1;
+            end
+
+            if ell == 0
+                sgns = 1;
+            else
+                sgns = [1 -1];
+            end
+
+            for sgn = sgns
+                if sgn == 1
+                    ang(:,ind_ang) = cos(ell*ang_unique);
+                else
+                    ang(:,ind_ang) = sin(ell*ang_unique);
+                end
+
+                ind_ang = ind_ang+1;
+            end
+        end
     elseif d == 3
         [r_unique, ang_unique, r_idx, ang_idx, mask] = ...
             unique_coordinates_3d(basis.sz(1));
@@ -179,11 +211,11 @@ function precomp = fourier_bessel_precomp(basis)
                 ind_ang = ind_ang+1;
             end
         end
-
-        precomp = struct();
-        precomp.radial = radial;
-        precomp.ang = ang;
     end
+
+    precomp = struct();
+    precomp.radial = radial;
+    precomp.ang = ang;
 end
 
 function x = fourier_bessel_evaluate(v, basis)
@@ -204,20 +236,31 @@ function x = fourier_bessel_evaluate_2d(v, basis)
     [r_unique, ang_unique, r_idx, ang_idx, mask] = ...
         unique_coordinates_2d(basis.sz(1));
 
+    is_precomp = isfield(basis, 'precomp');
+
     ind = 1;
+
+    ind_radial = 1;
+    ind_ang = 1;
 
     x = zeros([prod(basis.sz) size(v, 2)], class(v));
     for ell = 0:basis.ell_max
         k_max = basis.k_max(ell+1);
+
+        idx_radial = ind_radial + [0:k_max-1];
 
         nrms = zeros(k_max, 1);
         for k = 1:k_max
             nrms(k) = basis_norm_2d(basis, ell, k);
         end
 
-        radial = zeros(size(r_unique, 1), k_max);
-        for k = 1:k_max
-            radial(:,k) = besselj(ell, basis.r0(k,ell+1)*r_unique);
+        if ~is_precomp
+            radial = zeros(size(r_unique, 1), k_max);
+            for k = 1:k_max
+                radial(:,k) = besselj(ell, basis.r0(k,ell+1)*r_unique);
+            end
+        else
+            radial = basis.precomp.radial(:,idx_radial);
         end
 
         radial = bsxfun(@times, radial, 1./nrms');
@@ -229,10 +272,14 @@ function x = fourier_bessel_evaluate_2d(v, basis)
         end
 
         for sgn = sgns
-            if sgn == 1
-                ang = cos(ell*ang_unique);
+            if ~is_precomp
+                if sgn == 1
+                    ang = cos(ell*ang_unique);
+                else
+                    ang = sin(ell*ang_unique);
+                end
             else
-                ang = sin(ell*ang_unique);
+                ang = basis.precomp.ang(:,ind_ang);
             end
 
             ang_radial = bsxfun(@times, ang(ang_idx), radial(r_idx,:));
@@ -242,7 +289,11 @@ function x = fourier_bessel_evaluate_2d(v, basis)
             x(mask,:) = x(mask,:) + ang_radial*v(idx,:);
 
             ind = ind + numel(idx);
+
+            ind_ang = ind_ang + 1;
         end
+
+        ind_radial = ind_radial + numel(idx_radial);
     end
 
     x = reshape(x, [basis.sz size(x, 2)]);
