@@ -276,6 +276,8 @@ function v = fourier_bessel_expand(x, basis)
 
     A = @(v)(basis.evaluate_t(basis.evaluate(v)));
 
+    % TODO: Check that this tolerance make sense for multiple columns in x
+
     cg_opt.max_iter = Inf;
     cg_opt.rel_tolerance = 1e-15;
     cg_opt.verbose = false;
@@ -293,6 +295,8 @@ function x = fourier_bessel_expand_t(v, basis)
     b = vol_to_vec(basis.evaluate(v));
 
     A = @(x)(vol_to_vec(basis.evaluate(basis.evaluate_t(vec_to_vol(x)))));
+
+    % TODO: Check that this tolerance make sense for multiple columns in x
 
     cg_opt.max_iter = Inf;
     cg_opt.rel_tolerance = 1e-15;
