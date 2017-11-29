@@ -49,6 +49,10 @@ if strcmp(c5_type,'80S')
 elseif strcmp(c5_type,'C1')
     vol_init = cryo_gaussian_phantom_3d('C1_params',projSize,1);
     vol = make_vol_c5(vol_init);
+elseif strcmp(c5_type,'C1_eytan')
+    vol = cryo_gaussian_phantom_3d('C1_params',projSize,1);
+    vol = make_vol_c5_Eytan(vol);
+    assertVolumeIsC5(vol);
 elseif strcmp(c5_type,'C5')
     vol = cryo_gaussian_phantom_3d('C5_params',projSize,1);
 else
@@ -78,6 +82,26 @@ images = cryo_addnoise(projs,SNR,'gaussian');
 %     noise_cov = diag(spnoise_pft);
 
 end
+
+
+function vol_out = make_vol_c5_Eytan(vol_in)
+
+inn = size(vol_in,1);
+
+vol_tmp = zeros(24+inn,24+inn,24+inn);
+% 
+% bttm = -floor(inn/2);
+% top  = floor(inn/2);
+vol_tmp(1:inn,1:inn,1:inn) = vol_in;
+
+vol_out = vol_tmp;
+for i=1:4
+    vol_out = vol_out + fastrotate3z(vol_tmp,i*360/5);
+end
+vol_out = vol_out/5;
+
+end
+
 
 
 function vol_out = make_vol_c5(vol_in)

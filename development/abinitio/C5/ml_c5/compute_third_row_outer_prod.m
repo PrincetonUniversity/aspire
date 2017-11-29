@@ -1,11 +1,21 @@
 function [vijs,viis,max_corrs_stats,mse_vij,detec_rate] = ...
     compute_third_row_outer_prod(npf,ciis,cijs,Ris_tilde,R_theta_ijs,max_shift,shift_step,refq,is_viz_cls)
+
+if ~exist('is_viz_cls','var')
+    is_viz_cls = false;
+end
+
+
 [n_r,n_theta,nImages] = size(npf);
 nRis_tilde = size(Ris_tilde,3);
 n_theta_ij = size(R_theta_ijs,3);
 
 %precompile the shift phases
 shift_phases = calc_shift_phases(n_r,max_shift,shift_step);
+
+if ~exist('refq','var')
+    refq = [];
+end
 viis = estimate_viis(ciis,Ris_tilde,npf,shift_phases,refq);
 
 g_shift_phases = gpuArray(single(shift_phases));
@@ -33,22 +43,20 @@ equators_inds = squeeze(equators_inds);
 
 inds = sub2ind([n_theta,n_theta/2],cijs(:,:,:,:,1),cijs(:,:,:,:,2));
 clear cijs;
-[C,~,IC] = unique(inds(:));
-clear inds;
-g_C = gpuArray(single(C));
-clear C;
-g_IC = gpuArray(single(IC));
-clear IC;
+g_inds = gpuArray(single(inds));
+
+for i=1:nImages
+    % nomalize each ray to be norm 1
+    npf_i = npf(:,:,i);
+    norms   = sqrt(sum((abs(npf_i)).^2));
+    npf_i = bsxfun(@rdivide,npf_i,norms);
+    npf(:,:,i) = npf_i;
+end
+
 for i=1:nImages
     
     npf_i = npf(:,:,i);
     g_npf_i = gpuArray(single(npf_i));
-    % ignoring dc-term
-    g_npf_i(1,:) = 0;
-    
-    % nomalize each ray to be norm 1
-    norms   = sqrt(sum((abs(g_npf_i)).^2));
-    g_npf_i = bsxfun(@rdivide,g_npf_i,norms);
     
     for j=i+1:nImages
         
@@ -59,26 +67,19 @@ for i=1:nImages
         npf_j = npf(:,1:n_theta/2,j);
         g_npf_j = gpuArray(single(npf_j));
         
-        Corrs = zeros([numel(g_C),1],'gpuArray');
+        g_npf_j_shifted = zeros([n_r,n_theta/2,nshifts],'gpuArray');
         for s=1:nshifts
-            g_npf_j_shifted = bsxfun(@times,g_npf_j,g_shift_phases(:,s));
-            
-            % ignoring dc-term
-            g_npf_j_shifted(1,:) = 0;
-            
-            % nomalize each ray to be norm 1
-            norms           = sqrt(sum((abs(g_npf_j_shifted)).^2));
-            g_npf_j_shifted = bsxfun(@rdivide,g_npf_j_shifted,norms);
-            
-            
-            PiPj = g_npf_i'*g_npf_j_shifted;
-            
-            Corrs_s = PiPj(g_C);
-            
-            Corrs = max([Corrs real(Corrs_s(:))],[],2);
+            g_npf_j_shifted(:,:,s) = bsxfun(@times,g_npf_j,g_shift_phases(:,s));
         end
         
-        Corrs = real(Corrs(g_IC));
+        g_npf_j_shifted = reshape(g_npf_j_shifted,n_r,n_theta/2*nshifts);
+        
+        Corrs = g_npf_i'*g_npf_j_shifted; % Corrs is of dimension (n_theta x n_theta/2*nshifts)
+        
+        Corrs = reshape(Corrs,n_theta*n_theta/2,nshifts);
+        Corrs = max(real(Corrs),[],2);
+        
+        Corrs = Corrs(g_inds);
         Corrs = reshape(Corrs,[nRis_tilde,nRis_tilde,n_theta_ij/5,5]);
         
         Corrs(equators_inds,equators_inds,:,:) = -inf;
@@ -145,6 +146,7 @@ if exist('refq','var') && ~isempty(refq)
             R_theta_ij = R_theta_ijs(:,:,opt_thetaij(i,j));
             
             diff_s = zeros(1,5);
+            hand_idx_s = zeros(1,5);
             for s=1:5
                 Rij_g = Ri_tilde.'*g^(s-1)*R_theta_ij*Rj_tilde;
                     
@@ -165,16 +167,16 @@ if exist('refq','var') && ~isempty(refq)
                 diff_J = acos(cos(cij_diff+pi)) + acos(cos(cji_diff+pi));
                 if diff < diff_J
                     diff_s(s) = diff;
-                    hand_idx(s) = 1;
+                    hand_idx_s(s) = 1;
                 else
                     diff_s(s) = diff_J;
-                    hand_idx(s) = 2;
+                    hand_idx_s(s) = 2;
                 end
             end
             [min_diff_s,min_idx] = min(diff_s);
             if min_diff_s < 2*angle_tol_err
                 is_correct(i,j) = 1;
-                hand_idx(counter) = hand_idx(min_idx);
+                hand_idx(counter) = hand_idx_s(min_idx);
             end
         end
     end
