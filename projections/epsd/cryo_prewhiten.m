@@ -32,8 +32,10 @@ end
 delta=eps(class(proj));
 
 n=size(proj, 3);
-L=size(proj, 1); 
+L=size(proj, 1);
+l=floor(L/2);
 K=size(noise_response, 1);
+k=ceil(K/2);
 
 if size(noise_response, 3) ~= n && size(noise_response, 3) ~= 1
     error('The number of filters must be either 1 or n.');
@@ -42,6 +44,7 @@ end
 % The whitening filter is the sqrt of of the power spectrum of the noise.
 % Also, normalized the enetgy of the filter to one.
 filter=sqrt(noise_response);      
+filter=filter/norm(filter(:));
 
 % The power spectrum of the noise must be positive, and then, the values
 % in filter are all real. If they are not, this means that noise_response
@@ -49,13 +52,14 @@ filter=sqrt(noise_response);
 assert(norm(imag(filter(:)))<10*delta*size(filter, 3)); % Allow loosing one digit.
 filter=real(filter);  % Get rid of tiny imaginary components, if any.
 
-% The filter should be cicularly symmetric. In particular, it should have
-% reflection symmetry.
-filter_flipped = fourier_flip(filter, [1 2]);
-assert(norm(filter(:)-filter_flipped(:))<10*delta*size(filter, 3)); 
+% The filter should be cicularly symmetric. In particular, it is up-down
+% and left-right symmetric.
+assert(norm(filter-flipud(filter))<10*delta); 
+assert(norm(filter-fliplr(filter))<10*delta);
 
 % Get rid of any tiny asymmetries in the filter.
-filter = 0.5*(filter + filter_flipped);
+filter=(filter+flipud(filter))./2;
+filter=(filter+fliplr(filter))./2;
 
 % The filter may have very small values or even zeros. We don't want to
 % process these so make a list of all large entries.
@@ -69,34 +73,34 @@ nzidx = nzidx(:);
 
 fnz=filter(nzidx);
 
-if size(filter, 3) == 1
-    % TODO: Batch this to avoid memory trouble with large n if the noise_response
-    % is much larger than the projections.
-
-    pp = pad_signal(proj, K*ones(1, 2));
+% Pad the input projections
+pp=zeros(K);
+p2=zeros(L,L,n);
+for idx=1:n
+    if mod(L,2)==1 % Odd-sized image
+        pp(k-l:k+l, k-l:k+l)=proj(:,:,idx); % Zero pad the image to twice the size.
+    else
+        pp(k-l:k+l-1, k-l:k+l-1)=proj(:,:,idx); % Zero pad the image to twice the size.
+    end
+    
     fp=cfft2(pp); % Take the Fourier transform of the padded image.
-    fp = reshape(fp, [L^2 n]);
-    p=zeros([L^2 n]);
+    p=zeros(size(fp));
+
     % Divide the image by the whitening filter, 
     % but onlyin places where the filter is
     % large. In frequnecies where the filter is
     % tiny  we cannot pre-whiten so we just put
     % zero.
-    p(nzidx,:) = bsxfun(@times, fp(nzidx,:), 1./fnz);
-    p = reshape(p, [L*ones(1, 2) n]);
-else
-    pp = pad_signal(proj, K*ones(1, 2));
+    p(nzidx) = bsxfun(@times, fp(nzidx), 1./fnz);
+    pp2 = icfft2(p); % pp2 for padded p2.
+    assert(norm(imag(pp2(:)))/norm(pp2(:))<1.0e-13); % The resulting image should be real.
+    
+    if mod(L,2)==1
+        p2(:,:,idx) = pp2(k-l:k+l, k-l:k+l);
+    else
+        p2(:,:,idx) = pp2(k-l:k+l-1, k-l:k+l-1);
+    end
 
-    fp = cfft2(pp);
-
-    p = zeros([L*ones(1, 2) n]);
-
-    p(nzidx) = fp(nzidx)./fnz;
 end
-p2 = icfft2(p);
-assert(norm(imag(p2(:)))/norm(p2(:))<1.0e-13); % The resulting image should be real.
-p2 = unpad_signal(p2, L*ones(1, 2));
 proj = real(p2);
-
-end
 
