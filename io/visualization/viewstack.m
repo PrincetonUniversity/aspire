@@ -114,6 +114,7 @@ end
 end
 
 function sldCallback(source,event)
+figure(get(source,'parent'));
 val = source.Value;
 % For R2014a and earlier:
 % val = get(source,'Value');
