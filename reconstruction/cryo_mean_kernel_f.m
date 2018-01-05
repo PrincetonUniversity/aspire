@@ -22,6 +22,8 @@
 %    mean_est_opt: A struct containing the fields:
 %          - 'precision': The precision of the kernel. Either 'double'
 %             (default) or 'single'.
+%          - 'half_pixel': If true, centers the rotation around a half-pixel
+%             (default false).
 %          - 'batch_size': The size of the batches in which to compute the
 %             kernel, if set to a non-empty value. If empty, there are no
 %             batches and the entire parameter set is used. A small batch size
@@ -47,6 +49,7 @@ function mean_kernel_f = cryo_mean_kernel_f(L, params, mean_est_opt)
 
     mean_est_opt = fill_struct(mean_est_opt, ...
         'precision', 'double', ...
+        'half_pixel', false, ...
         'batch_size', []);
 
     if ~isempty(mean_est_opt.batch_size)
@@ -74,7 +77,7 @@ function mean_kernel_f = cryo_mean_kernel_f(L, params, mean_est_opt)
         return;
     end
 
-    pts_rot = rotated_grids(L, params.rot_matrices);
+    pts_rot = rotated_grids(L, params.rot_matrices, mean_est_opt.half_pixel);
 
     filter = abs(params.ctf(:,:,params.ctf_idx)).^2;
 
@@ -82,7 +85,7 @@ function mean_kernel_f = cryo_mean_kernel_f(L, params, mean_est_opt)
 
     filter = bsxfun(@times, filter, reshape(params.ampl.^2, [1 1 n]));
 
-    if mod(L, 2) == 0
+    if mod(L, 2) == 0 && ~mean_est_opt.half_pixel
         pts_rot = pts_rot(:,2:end,2:end,:);
 
         filter = filter(2:end,2:end,:);

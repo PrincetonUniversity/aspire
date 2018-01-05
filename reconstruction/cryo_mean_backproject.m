@@ -21,6 +21,8 @@
 %    mean_est_opt: A struct containing the fields:
 %          - 'precision': The precision of the kernel. Either 'double'
 %             (default) or 'single'.
+%          - 'half_pixel': If true, centers the rotation around a half-pixel
+%             (default false).
 %          - 'batch_size': The size of the batches in which to compute the
 %             backprojection, if set to a non-empty value. If empty, there are
 %             no batchces and the entire set of images is used. A small batch
@@ -47,6 +49,7 @@ function im_bp = cryo_mean_backproject(im, params, mean_est_opt)
 
     mean_est_opt = fill_struct(mean_est_opt, ...
         'precision', 'double', ...
+        'half_pixel', false, ...
         'batch_size', []);
 
     if ~isempty(mean_est_opt.batch_size)
@@ -76,28 +79,13 @@ function im_bp = cryo_mean_backproject(im, params, mean_est_opt)
         return;
     end
 
-    pts_rot = rotated_grids(L, params.rot_matrices);
+    im = bsxfun(@times, im, reshape(params.ampl, [1 1 n]));
 
     im = im_translate(im, -params.shifts);
 
     im = im_filter(im, params.ctf(:,:,params.ctf_idx));
 
-    im = permute(im, [2 1 3]);
+    im_bp = im_backproject(im, params.rot_matrices, mean_est_opt.half_pixel);
 
-    im_f = 1/L^2*cfft2(im);
-
-    im_f = bsxfun(@times, im_f, reshape(params.ampl, [1 1 n]));
-
-    if mod(L, 2) == 0
-        pts_rot = pts_rot(:,2:end,2:end,:);
-
-        im_f = im_f(2:end,2:end,:);
-    end
-
-    pts_rot = reshape(pts_rot, 3, []);
-    im_f = reshape(im_f, [], 1);
-
-    im_bp = 1/n*anufft3(im_f, pts_rot, L*ones(1, 3));
-
-    im_bp = real(im_bp);
+    im_bp = im_bp/n;
 end

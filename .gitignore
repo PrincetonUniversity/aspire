@@ -6,3 +6,7 @@ extern/
 *.mat
 *.fig
 *.ofig
+
+docs/*.log
+docs/*.pdf
+docs/*.aux

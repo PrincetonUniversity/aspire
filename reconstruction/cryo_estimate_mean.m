@@ -23,6 +23,15 @@
 %    mean_est_opt: A struct containing the fields:
 %          - 'precision': The precision of the kernel. Either 'double'
 %             (default) or 'single'.
+%          - 'half_pixel': If true, centers the rotation around a half-pixel
+%             (default false).
+%          - 'batch_size': The size of the batches in which to compute the
+%             kernel, if set to a non-empty value. If empty, there are no
+%             batches and the entire parameter set is used. A small batch size
+%             can help with certain NUFFT libraries (like the Chemnitz NFFT
+%             package), which cannot handle too many nodes at once (default
+%             empty).
+%
 %          - 'preconditioner': One of the following values specifying the
 %             preconditioner for the conjugate gradient method:
 %                - 'none': No preconditioner is used.

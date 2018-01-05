@@ -24,8 +24,7 @@
 
 function install_finufft(url, location, fftw_location)
 	if nargin < 1 || isempty(url)
-		url = ['https://github.com/ahbarnett/finufft/archive/' ...
-			   'a960a0f17e196864e6f6bede8bdc21bb8ff5e653.zip'];
+		url = 'https://github.com/ahbarnett/finufft/archive/master.zip';
 	end
 
 	if nargin < 2 || isempty(location)

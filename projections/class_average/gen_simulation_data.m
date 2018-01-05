@@ -21,7 +21,7 @@ rots = rand_rots(K);
 shifts=round((rand(K,2)-1/2)*2*max_shift/step_size)*step_size;
 load volume.mat
 projections=cryo_project(vol,rots,size(vol,1),'single');
-save(fullfile(pathstr,'clean_data'), '-v7.3', 'projections', 'q', 'shifts')
+save(fullfile(pathstr,'clean_data'), '-v7.3', 'projections', 'rots', 'shifts')
 clear all;
 
 

@@ -63,7 +63,7 @@ log_message('Adding noise to images at SNR=%d',SNR)
 log_message('Finished adding noise');
 
 clear g_proj_CTF
-q = data.q(:, 1:K);
+rots_ref = data.rots(:, 1:K);
 L = size(images, 1);
 n_nbor = 10; %number of nearest neighbors for initial classification.
 n_nbor_large=50;
@@ -109,14 +109,14 @@ if(use_VDM)
 	log_message('Finished VDM classification');
 	% Check Classification result
     log_message('Printing simuation results with VDM classification');
-	[ d_f, error_rot_f ] = check_simulation_results(class_VDM, class_VDM_refl, rot_f_vdm, q); % should use minus sign for init class, no minus sign for VDM 
+	[ d_f, error_rot_f ] = check_simulation_results(class_VDM, class_VDM_refl, rot_f_vdm, rots_ref); % should use minus sign for init class, no minus sign for VDM 
 else
 	rot_f_vdm = rot_f;
 	class_VDM = class_f;
 	class_VDM_refl = class_refl_f;
 	k_VDM_out = k_VDM_in;
     log_message('Printing simuation results WITHOUT VDM classification');
-	[ d_f, error_rot_f ] = check_simulation_results(class_f, class_refl_f, -rot_f, q); % should use minus sign for init class, no minus sign for VDM 
+	[ d_f, error_rot_f ] = check_simulation_results(class_f, class_refl_f, -rot_f, rots_ref); % should use minus sign for init class, no minus sign for VDM 
 end
 
 log_message('Start generating class averages (align_main)');

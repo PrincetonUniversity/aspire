@@ -8,7 +8,7 @@
 %    url: The url from which the package should be downloaded. By default,
 %       this is
 %
-%          http://cims.nyu.edu/cmcl/nufft/nufftall-1.3.3.tar.gz
+%          https://cims.nyu.edu/cmcl/nufft/nufftall-1.3.3.tar.gz
 %
 %    location: The location in which the package should be installed. By
 %       default, this is the subfolder 'extern' of the ASPIRE root folder.
@@ -24,7 +24,7 @@
 
 function install_cims_nufft(url, location, force_compile)
 	if nargin < 1 || isempty(url)
-		url = 'http://cims.nyu.edu/cmcl/nufft/nufftall-1.3.3.tar.gz';
+		url = 'https://cims.nyu.edu/cmcl/nufft/nufftall-1.3.3.tar.gz';
 	end
 
 	if nargin < 2 || isempty(location)
