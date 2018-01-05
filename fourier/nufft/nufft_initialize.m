@@ -41,18 +41,35 @@ function plan = nufft_initialize(sz, num_pts, nufft_opt)
 	if lib_code == 3
 		m = epsilon_to_nfft_cutoff(plan.epsilon);
 
-		nfft_flags = PRE_PHI_HUT | PRE_PSI | FFT_OUT_OF_PLACE;
-		fftw_flags = FFTW_ESTIMATE;
+		NFFT_SORT_NODES = bitshift(uint32(1), 11);
+		FFTW_DESTROY_INPUT = bitshift(uint32(1), 0);
+
+		nfft_flags = 0;
+		nfft_flags = bitor(nfft_flags, PRE_PHI_HUT, 'uint32');
+		nfft_flags = bitor(nfft_flags, PRE_PSI, 'uint32');
+		nfft_flags = bitor(nfft_flags, FFT_OUT_OF_PLACE, 'uint32');
+
+		if numel(sz) > 1
+			nfft_flags = bitor(nfft_flags, NFFT_SORT_NODES, 'uint32');
+			nfft_flags = ...
+				bitor(nfft_flags, NFFT_OMP_BLOCKWISE_ADJOINT, 'uint32');
+		end
+
+		fftw_flags = uint32(0);
+		fftw_flags = bitor(fftw_flags, FFTW_ESTIMATE, 'uint32');
+		fftw_flags = bitor(fftw_flags, FFTW_DESTROY_INPUT, 'uint32');
+
+		sz1 = 2*pow2(nextpow2(sz));
 
 		if numel(sz) == 1
 			plan.nfft_plan_id = nfft_init_guru(1, sz(1), ...
-				num_pts, 2*sz(1), m, nfft_flags, fftw_flags);
+				num_pts, sz1(1), m, nfft_flags, fftw_flags);
 		elseif numel(sz) == 2
 			plan.nfft_plan_id = nfft_init_guru(2, sz(1), sz(2), ...
-				num_pts, 2*sz(1), 2*sz(2), m, nfft_flags, fftw_flags);
+				num_pts, sz1(1), sz1(2), m, nfft_flags, fftw_flags);
 		elseif numel(sz) == 3
 			plan.nfft_plan_id = nfft_init_guru(3, sz(1), sz(2), sz(3), ...
-				num_pts, 2*sz(1), 2*sz(2), 2*sz(3), m, nfft_flags, fftw_flags);
+				num_pts, sz1(1), sz1(2), sz1(3), m, nfft_flags, fftw_flags);
 		end
 	elseif ~ismember(lib_code, [1 2 4])
 		error('Invalid library code.');
