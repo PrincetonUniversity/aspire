@@ -32,7 +32,7 @@ function sig_f = nufft_transform(plan, sig)
 		error('Input ''sig'' must be of size plan.sz.');
 	end
 
-	precision = class(sig);
+	epsilon = max(plan.epsilon, eps(class(sig)));
 
 	if plan.lib_code == 1
 		if dims == 1
@@ -43,13 +43,10 @@ function sig_f = nufft_transform(plan, sig)
 			sig_f = nudft3(sig, plan.fourier_pts);
 		end
 	elseif plan.lib_code == 2
-		if strcmp(precision, 'double')
-			epsilon = 1e-16;
-		elseif strcmp(precision, 'single')
-			epsilon = 1e-8;
-		end
-
 		sig = double(sig(:));
+
+		% NUFFT errors if we give epsilon in single precision.
+		epsilon = double(epsilon);
 
 		if dims == 1
 			sig_f = nufft1d2(plan.num_pts, ...
@@ -86,13 +83,10 @@ function sig_f = nufft_transform(plan, sig)
 		nfft_trafo(plan.nfft_plan_id);
 		sig_f = nfft_get_f(plan.nfft_plan_id);
 	elseif plan.lib_code == 4
-		if strcmp(precision, 'double')
-			epsilon = 1e-16;
-		elseif strcmp(precision, 'single')
-			epsilon = 1e-8;
-		end
-
 		sig = double(sig);
+
+		% FINUFFT errors if we give epsilon in single precision.
+		epsilon = double(epsilon);
 
 		if dims == 1
 			sig_f = finufft1d2( ...
@@ -113,5 +107,5 @@ function sig_f = nufft_transform(plan, sig)
 		end
 	end
 
-	sig_f = cast(sig_f, precision);
+	sig_f = cast(sig_f, class(sig));
 end

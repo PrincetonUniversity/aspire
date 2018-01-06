@@ -26,7 +26,7 @@ function sig = nufft_adjoint(plan, sig_f)
 		error('Input ''sig_f'' must be of size plan.num_pts-by-1.');
 	end
 
-	precision = class(sig_f);
+	epsilon = max(plan.epsilon, eps(class(sig_f)));
 
 	if plan.lib_code == 1
 		if dims == 1
@@ -37,13 +37,10 @@ function sig = nufft_adjoint(plan, sig_f)
 			sig = anudft3(sig_f, plan.fourier_pts, plan.sz);
 		end
 	elseif plan.lib_code == 2
-		if strcmp(precision, 'double')
-			epsilon = 1e-16;
-		elseif strcmp(precision, 'single')
-			epsilon = 1e-8;
-		end
-
 		sig_f = double(sig_f(:));
+
+		% NUFFT errors if we give epsilon in single precision.
+		epsilon = double(epsilon);
 
 		if dims == 1
 			sig = plan.num_pts*nufft1d1(plan.num_pts, ...
@@ -86,13 +83,10 @@ function sig = nufft_adjoint(plan, sig_f)
 			sig = permute(reshape(sig, plan.sz), [3 2 1]);
 		end
 	elseif plan.lib_code == 4
-		if strcmp(precision, 'double')
-			epsilon = 1e-16;
-		elseif strcmp(precision, 'single')
-			epsilon = 1e-8;
-		end
-
 		sig_f = double(sig_f(:));
+
+		% FINUFFT errors if we give epsilon in single precision.
+		epsilon = double(epsilon);
 
 		if dims == 1
 			sig = finufft1d1( ...
@@ -119,5 +113,5 @@ function sig = nufft_adjoint(plan, sig_f)
 		sig = reshape(sig, [plan.sz 1]);
 	end
 
-	sig = cast(sig, precision);
+	sig = cast(sig, class(sig_f));
 end
