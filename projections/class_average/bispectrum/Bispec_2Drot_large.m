@@ -37,7 +37,7 @@ M = exp(O1*log(eigval.^(alpha)));
 pM = M/sum(M);
 x = rand(length(M), 1);
 M_id = find(x<N*pM); 
-length(M_id)
+log_message('Number of bispectrum components is %d',length(M_id));
 %[ ~, M_id ] = sort(M, 'descend');
 O1 = O1(M_id, :);
 O2 = O2(M_id, :);

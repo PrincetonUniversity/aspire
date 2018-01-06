@@ -24,4 +24,3 @@ projections=cryo_project(vol,rots,size(vol,1),'single');
 save(fullfile(pathstr,'clean_data'), '-v7.3', 'projections', 'rots', 'shifts')
 clear all;
 
-

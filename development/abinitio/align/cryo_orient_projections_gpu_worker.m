@@ -27,7 +27,7 @@ log_message('refprojs MD5 %s',MD5var(refprojs));
 Rrefs=zeros(3,3,Nrefs);
 Rrefsvec=zeros(3,3*Nrefs);
 for k=1:Nrefs
-    Rrefs(:,:,k)=rots_ref(:,:,k).'
+    Rrefs(:,:,k)=rots_ref(:,:,k).';
     Rrefsvec(:,3*(k-1)+1:3*k)=Rrefs(:,:,k);
 end
  

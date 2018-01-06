@@ -109,7 +109,7 @@ while iter<=maxiter && roterr>tol && cr<cr_threshold
     
 %     log_message('Reconstructing from the projections and their etimated orientation parameters');
 %     n=size(projs,1);
-%     [ v1, ~, ~ ,~, ~, ~] = recon3d_firm( projs,R1,-shift1.', 1e-8, 100, zeros(n,n,n));
+%     [ v1, ~, ~ ,~, ~, ~] = recon3d_firm_parallel( projs,R1,-shift1.', 1e-8, 100, zeros(n,n,n));
 %     ii1=norm(imag(v1(:)))/norm(v1(:));
 %     log_message('Relative norm of imaginary components = %e\n',ii1);
 %     v1=real(v1);
@@ -136,7 +136,7 @@ while iter<=maxiter && roterr>tol && cr<cr_threshold
     log_message('projs MD5 %s',MD5var(projs));
     log_message('rotations MD5 %s',MD5var(rotations));
     log_message('dx MD5 %s',MD5var(dx));
-    [ v1_refined, ~, ~ ,~, ~, ~] = recon3d_firm( projs,rotations,-dx.', 1e-8, 100, zeros(n,n,n));
+    [ v1_refined, ~, ~ ,~, ~, ~] = recon3d_firm_parallel( projs,rotations,-dx.', 1e-8, 100, zeros(n,n,n));
     log_message('Finished reconstruction');
     log_message('v1_refined MD5 %s',MD5var(v1_refined));
 

@@ -1,7 +1,7 @@
 ASPIRE – Algorithms for Single Particle Reconstruction
 
-Current version: 0.2
-Date: 05/2017
+Current version: 0.3
+Date: 10/2017
 
 Installation
 ------------
@@ -41,4 +41,6 @@ Revisions
 3. Added improved noise estimation
 4. Added Fast steerable PCA
 5. New example scripts
+6. Improved ab-initio reconstruction for non-symmetric molecules
+7. Added routines for reconstruction workflow
 

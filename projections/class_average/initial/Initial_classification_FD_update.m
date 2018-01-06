@@ -30,6 +30,7 @@ n_im = size(Coeff, 2);
 %n_im = (size(Coeff, 2))/2; % Tejal April 21, 2017
 %normalize the coefficients
 Coeff(Freqs==0, :) = Coeff(Freqs==0, :)/sqrt(2);
+log_message('Normalizing sPCA coefficients');
 for i=1:n_im  %% Tejal April 21, 2017 %% No need to double the coefficients
     Coeff(:, i) = Coeff(:, i) / norm(Coeff(:, i));
 end;
@@ -38,10 +39,13 @@ Coeff(Freqs==0, :)=Coeff(Freqs==0, :)*sqrt(2);
 %[ Coeff_b, toc_bispec ] = Bispec_2Drot_large( Coeff, Freqs ); %If the number of images and number of Coefficients are large use Bispec_2Drot_large
 %[ Coeff_b,  toc_bispec ] = Bispec_2Drot_1( Coeff, Freqs );
 %[ Coeff_b, Coeff_b_r, toc_bispec ] = Bispec_2Drot_large_v2( Coeff, Freqs );
+log_message('Start computing bispectrum');
 [ Coeff_b, Coeff_b_r, toc_bispec ] = Bispec_2Drot_large( Coeff, Freqs, eigval );
+log_message('Finished computing bispectrum');
 
 if n_im<=10000
     %%For small dataset, search for nearest neighbors
+    log_message('Number of images less than 10000. Computing nearest neighbors directly.');
     tic_nn=tic;
     corr=real((Coeff_b(:, 1:n_im))'*[Coeff_b, Coeff_b_r]); % Tejal April 21 2016 %Change back from Tejal's modification
     corr = corr - sparse(1:n_im, 1:n_im, ones(n_im, 1), n_im, 2*n_im);
@@ -52,16 +56,20 @@ if n_im<=10000
 else
     tic_nn = tic;
     if ~isrann
-        %Brute Force
+        log_message('Not using randomized nearest neighbors.');        
+        % Brute Force - for each batch of images, compute the correlation of
+        % the images in the batch with all images in the data directly.
         P_max=2000;
+        log_message('Using batches of %d images',P_max);
         for i=1:ceil(n_im/P_max)
             corr=real(Coeff_b(:, (i-1)*P_max+1:min(i*P_max, n_im))'*[Coeff_b, Coeff_b_r]); % Tejal April 21 2016 %Change back from Tejal's modification
             [~, tmp]=sort(corr, 2, 'descend');
             class((i-1)*P_max+1:min(i*P_max, n_im), :) = tmp(:, 2:n_nbor+1);
-            fprintf('\nCorrelation step %d\n', i);
+            log_message('Processed %d/%d images', i*P_max,n_im);
         end;
     else
         %Randomized approximate nearest neighbor search
+        log_message('Using randomized nearest neighbors.');        
         [class, ~]=test_points_from_file64(Coeff_b, n_nbor, 10, 0, 0);
     end;
     toc_nn=toc(tic_nn);
@@ -77,6 +85,7 @@ end;
 list=[class(:), repmat([1:n_im]', n_nbor, 1)];
 
 %Initial in-plane rotational alignment within nearest neighbors
+log_message('Computing initial in-plane rotational alignment within nearest neighbors.');
 tic_rot=tic;
 [ corr, rot ] = rot_align( max(Freqs), Cell_Coeff, list );
 toc_rot = toc( tic_rot );
@@ -98,4 +107,3 @@ rot(class_refl==2) = mod(rot(class_refl==2)+180, 360);
 timing.bispec=toc_bispec;
 timing.nn=toc_nn;
 timing.rot=toc_rot;
-

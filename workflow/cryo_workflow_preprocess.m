@@ -31,38 +31,76 @@ workflow=convert(tree);
 %     end
 % end
 
+[data_dir,~,data_ext]=fileparts(workflow.info.rawdata);
+
 %% Read preprocessing parameters
-% Do phase flip?
-message='Phaseflip projections? ';
-do_phaseflip=multichoice_question(message,{'Y','N'},[ 1, 0],'Y');
-if do_phaseflip==1
-    ctfdata=fmtinput('Enter full path of CTF file: ','','%s');
+
+do_phaseflip=0;
+pixA=-1;
+if ~strcmpi(data_ext,'.star')
+    fprintf('Input data is not a STAR file. Skipping phase flipping\n');
+else        
+    % Do phase flip?
+    message='Phaseflip projections? ';
+    do_phaseflip=multichoice_question(message,{'Y','N'},[ 1, 0],'Y');
+    % Read pixel size
+    if do_phaseflip
+        pixA=fmtinput('Enter pixel size in Angstrom (-1 to read from STAR file): ',-1,'%f');
+    end
 end
 
-% Do downsample?
-[~,mrc_header]=ReadMRC(workflow.info.rawdata,1, 1);
-% Input file has  mrc_header.nz images, each of size mrc_header.nx x
-% mrc_header.ny
-fprintf('%s :%dx%d (%d projections)\n',...
-    workflow.info.rawdata,mrc_header.nx,mrc_header.ny,mrc_header.nz);
-message='Number of projections to read? ';
-nprojs=fmtinput(message,mrc_header.nz,'%d');
+if strcmpi(data_ext,'.star')
+    fprintf('Reading STAR file %s...\n',workflow.info.rawdata);
+    stardata=readSTAR(workflow.info.rawdata,1);
+    nz=numel(stardata.data);
+    
+    % Read the first image from the star data to read the dimensions of the
+    % images.
+    imageID=stardata.data{1}.rlnImageName;
+    imparts=strsplit(imageID,'@');
+    %imageidx=str2double(imparts{1});
+    stackname=imparts{2};
+    
+    MRCname=fullfile(data_dir,stackname);
+    projs1=ReadMRC(MRCname,1,1);
+    nx=size(projs1,1);
+    ny=size(projs1,2);
+else
+    fprintf('Reading MRC file %s...\n',workflow.info.rawdata);
+    [~,mrc_header]=ReadMRC(workflow.info.rawdata,1, 1);
+    % Input file has  mrc_header.nz images, each of size mrc_header.nx x
+    % mrc_header.ny
+    nx=mrc_header.nx;
+    ny=mrc_header.ny;
+    nz=mrc_header.nz;
+end
 
-croppeddim=mrc_header.nx; % Default size of cropped projections is the current size.
+if nx~=ny
+    error('Input projections must be square.')
+end
+
+
+% Do downsample?
+fprintf('%s :%dx%d (%d projections)\n',...
+    workflow.info.rawdata,nx,ny,nz);
+message='Number of projections to read? ';
+nprojs=fmtinput(message,nz,'%d');
+
+croppeddim=nx; % Default size of cropped projections is the current size.
 message='Crop? ';
 do_crop=multichoice_question(message,{'Y','N'},[ 1, 0],'Y');
 if do_crop==1
     message='Crop to size? ';
-    croppeddim=fmtinput(message,mrc_header.nx,'%d');
+    croppeddim=fmtinput(message,nx,'%d');
 end
 
 
-downsampleddim=mrc_header.nx; % Default size of downsampled projections is the current size.
+downsampleddim=nx; % Default size of downsampled projections is the current size.
 message='Downsample? ';
 do_downsample=multichoice_question(message,{'Y','N'},[ 1, 0],'Y');
 if do_downsample==1
     message='Downsample to size? ';
-    downsampleddim=fmtinput(message,mrc_header.nx,'%d');
+    downsampleddim=fmtinput(message,nx,'%d');
 end
 
 % Do normalize background.
@@ -89,10 +127,7 @@ end
 
 %% Update workflow struct
 workflow.preprocess.phaseflip=do_phaseflip;
-workflow.preprocess.ctfdata='';
-if do_phaseflip
-    workflow.preprocess.ctfdata=ctfdata;
-end
+workflow.preprocess.pixA=pixA;
 workflow.preprocess.nprojs=nprojs;
 workflow.preprocess.do_crop=do_crop;
 workflow.preprocess.croppeddim=croppeddim;
