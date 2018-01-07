@@ -22,7 +22,7 @@ if isfield(workflow.preprocess,'pixAdownsampled')
     pixA=workflow.preprocess.pixAdownsampled;
 else
     message='Pixel size (Angstrom)?';
-    pixA=fmtinput(message,'','%d');
+    pixA=fmtinput(message,'','%f');
 end
 
 %% Update workflow struct
