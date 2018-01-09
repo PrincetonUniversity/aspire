@@ -16,7 +16,7 @@ function star2mrc(starname,mrcname,basedir,ignorepath,Nprojs,verbose)
 %   verbose=3   print message for each processed image
 %
 % Example:
-%   star2mrc('shiny_2sets.star','rawdata.mrc','~/datasets/100028/');
+%   star2mrc('shiny_2sets.star','rawdata.mrcs','~/datasets/100028/');
 %
 % Yoel Shkolnisky, December 2016.
 

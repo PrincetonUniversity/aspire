@@ -6,7 +6,7 @@ function fname=gen_spca_simulation_data(Nprojs,n,chunksize)
 % can be used whenever stacks of clean projections are needed.
 %
 % gen_spca_simulation_data(Nprojs,n,chunksize)
-%   Generate an MRC file named projs_n.mrc containing Nprojs clean
+%   Generate an MRC file named projs_n.mrcs containing Nprojs clean
 %   projection of size nxn of the density map EMD2275. At any given moment,
 %   not more than chunksize images are saved in memory.
 %   Defaults: Nprojs=100, n=129, chunksize=10000
@@ -51,7 +51,7 @@ rots = rand_rots(Nprojs);  % Generate Nprojs projections to orient.
 log_message('Generating %d projections of size %dx%d',Nprojs,n,n);
 
 %debugprojs=zeros(n,n,Nprojs);
-fname=sprintf('projs_%d.mrc',n);
+fname=sprintf('projs_%d.mrcs',n);
 outstack=imagestackWriter(fname,Nprojs,1,chunksize); 
 
 idx=0; % How many projectioned were generated so far.

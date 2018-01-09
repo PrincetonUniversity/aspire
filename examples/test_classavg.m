@@ -83,7 +83,7 @@ log_message('Save phase flipped images');
 clear images 
 str=which('gen_simulation_data.m');
 [pathstr,~,~]=fileparts(str);
-fname=fullfile(pathstr,'simulation','noisy_data_fl.mrc');
+fname=fullfile(pathstr,'simulation','noisy_data_fl.mrcs');
 WriteMRC(real(images_fl),1,fname);
 allims=imagestackReader(fname);
 log_message('Finished saving');

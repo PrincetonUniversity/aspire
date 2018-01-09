@@ -45,7 +45,7 @@ v1=real(v1);
 
 %% Reconstruct out-of-core
 log_message('Reconstructing density out-of-core...');
-projs_fname=tempmrcname;
+projs_fname=tempmrcsname;
 mat2mrc(projs_fname,projs);
 [ v2, v_b2, kernel2,err2,iter2,flag2] = recon3d_firm_outofcore( projs_fname,trueRs,[], 1e-6, 30, zeros(n,n,n));
 log_message('Finished reconstructing density.');

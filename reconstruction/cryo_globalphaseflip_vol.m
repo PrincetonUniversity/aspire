@@ -19,7 +19,7 @@ function [vol,doflip,signalmean,noisemean]=cryo_globalphaseflip_vol(vol)
 %       noisemean   Mean of the noise.
 %
 %   Examples:
-%       stack=ReadMrc('vol.mrc');
+%       vol=ReadMrc('vol.mrc');
 %       flippedvol=cryo_globalphaseflip_vol(vol);
 %
 % Yoel Shkolnisky, April 2017

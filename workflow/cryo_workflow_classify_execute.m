@@ -25,8 +25,11 @@ log_message('Loaded XML file %s (MD5: %s)',workflow_fname,MD5(workflow_fname));
 numgroups=str2double(workflow.preprocess.numgroups); 
 
 for groupid=1:numgroups
+    % Clear variables from previous groups   
+    clear sPCA_data class class_refl rot class_VDM class_VDM_refl VDM_angles
+    
     % Read prewhitened projections
-    fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrc',groupid);
+    fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrcs',groupid);
         
     fullfilename=fullfile(workflow.info.working_dir,fname);
     log_message('Loading %s (MD5: %s)',fullfilename,MD5(fullfilename));
@@ -36,7 +39,9 @@ for groupid=1:numgroups
     
     % Estimate variance of the noise. Should be 1 (if images have been normalized).
     log_message('Estimating SNR of images');
-    [~,~,var_n]=cryo_estimate_snr(prewhitened_projs);
+    [snr,var_s,var_n]=cryo_estimate_snr(prewhitened_projs);
+    log_message('Estimated SNR=%d',snr);    
+    log_message('Estimated signal variance=%d',var_s);    
     log_message('Estimated noise variance=%d',var_n);    
     
     

@@ -47,7 +47,7 @@ end
 %% Prepare data files
 vol_fname=tempmrcname;
 WriteMRC(map_downsampled,1,vol_fname);
-projs_fname=tempmrcname;
+projs_fname=tempmrcsname;
 WriteMRC(projs,1,projs_fname);
 
 % Refine 

@@ -35,7 +35,7 @@ t_gpu=toc(t_gpu);
 %% Run cryo_orient_projections_gpu_outofcore
 
 % Write projections to MRC file
-projs_fname='temp.mrc';
+projs_fname='temp.mrcs';
 projswriter=imagestackWriter(projs_fname,Nprojs);
 projswriter.append(projshifted);
 projswriter.close;

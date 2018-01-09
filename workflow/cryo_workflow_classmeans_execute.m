@@ -27,7 +27,7 @@ nnavg=str2double(workflow.classmeans.nnavg);
 numgroups=str2double(workflow.preprocess.numgroups);
 
 for groupid=1:numgroups
-    fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrc',groupid);
+    fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrcs',groupid);
     fullfilename=fullfile(workflow.info.working_dir,fname);
     
     log_message('Loading prewhitened projections from %s (MD5: %s)',fname,MD5(fullfilename));
@@ -40,7 +40,7 @@ for groupid=1:numgroups
     
     matname=fullfile(workflow.info.working_dir,sprintf('VDM_data_%d.mat',groupid));
     log_message('Loading %s (MD5: %s)',matname,MD5(matname));
-    load(matname);
+    classification_data=load(matname);
     
     log_message('Starting align_main');
     tmpdir=fullfile(tempmrcdir,'align_main');
@@ -52,7 +52,9 @@ for groupid=1:numgroups
 
     list_recon=1:prewhitened_projs.dim(3);
     [ shifts, corr, unsortedaveragesfname, norm_variance ] = align_main( prewhitened_projs,...
-        VDM_angles, class_VDM, class_VDM_refl, sPCA_data, nnavg, 15, list_recon, tmpdir);
+        classification_data.VDM_angles, classification_data.class_VDM,...
+        classification_data.class_VDM_refl, classification_data.sPCA_data,...
+        nnavg, 15, list_recon, tmpdir);
     log_message('Finished align_main');         
 
     
@@ -75,7 +77,7 @@ for groupid=1:numgroups
     nprojs=prewhitened_projs.dim(3);
     for k=1:10
         nmeans=round(nprojs*k/10);
-        ii=class_VDM(classcoreidx(1:nmeans),:);
+        ii=classification_data.class_VDM(classcoreidx(1:nmeans),:);
         nrawprojs=numel(unique(ii));
         log_message('\t%3d%%\t %7d \t %7d \t %4.2e',k*10,nmeans,nrawprojs,averages_contrast(classcoreidx(nmeans)));
     end
@@ -90,7 +92,7 @@ for groupid=1:numgroups
     flipflag=(-2)*doflip+1;
     
     % Save averages sorted by norm variance    
-    fname=sprintf('averages_nn%02d_group%d.mrc',nnavg,groupid);
+    fname=sprintf('averages_nn%02d_group%d.mrcs',nnavg,groupid);
     fname=fullfile(workflow.info.working_dir,fname);
     log_message('Writing sorted averages (by contrast) into %s',fname);
             
@@ -107,15 +109,15 @@ for groupid=1:numgroups
 %    average=average(:,:,classcoreidx);
 %    [average,doflip]=cryo_globalphaseflip(average); % Check if a global phase flip should be applied
    
-%     fname=sprintf('averages_nn%02d_group%d.mrc',nnavg,groupid);
+%     fname=sprintf('averages_nn%02d_group%d.mrcs',nnavg,groupid);
 %     fname=fullfile(workflow.info.working_dir,fname);
 %     log_message('Saving %s',fname);
 %     WriteMRC(single(average),1,fname);
     
     reloadname=sprintf('averages_info_nn%02d_group%d.mat',nnavg,groupid);
     save(fullfile(workflow.info.working_dir,reloadname),...
-        'shifts','corr','averages_contrast','classcoreidx','VDM_angles',...
-        'class_VDM', 'class_VDM_refl','doflip');
+        'shifts','corr','averages_contrast','classcoreidx',...
+        'classification_data','doflip');
     
     log_message('Saving %s (MD5: %s)',fullfile(workflow.info.working_dir,reloadname)...
         ,MD5(fullfile(workflow.info.working_dir,reloadname)));
@@ -156,7 +158,7 @@ for groupid=1:numgroups
 %         end
 %         
 %         log_message('Saving effective CTFs for group %d',groupid);
-%         fname=sprintf('ctfs_effective_nn%02d_group%d.mrc',nnavg,groupid);
+%         fname=sprintf('ctfs_effective_nn%02d_group%d.mrcs',nnavg,groupid);
 %         fullfilename=fullfile(workflow.info.working_dir,fname);
 %         WriteMRC(single(effectiveCTFs),1,fullfilename);
 %     end

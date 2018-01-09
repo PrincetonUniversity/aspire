@@ -11,8 +11,8 @@ function [ P,R,R2 ] = cryo_noise_estimation_outofcore( instackname,radius_of_mas
 % See cryo_noise_estimation for more details.
 %
 % Example:
-%   cryo_noise_estimation_outofcore('instack.mrc');
-%   cryo_noise_estimation_outofcore('instack.mrc',32);
+%   cryo_noise_estimation_outofcore('instack.mrcs');
+%   cryo_noise_estimation_outofcore('instack.mrcs',32);
 %
 % Yoel Shkolnisky, May 2016.
 

@@ -9,7 +9,7 @@
 % Yoel Shkolnisky, May 2016.
 
 % Test parameters
-testfname='test.mrc'; % Name of the file containing test images.
+testfname='test.mrcs'; % Name of the file containing test images.
 sz=129;               % Size of each test image.  
 N=35;               % Number of test image;
 

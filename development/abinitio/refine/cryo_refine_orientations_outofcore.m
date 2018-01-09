@@ -74,9 +74,9 @@ else
     L=360;
     n_r=ceil(szvol(1)/2);
     
-    projs_hat_fname=tempmrcname;
+    projs_hat_fname=tempmrcsname;
     cryo_pft_outofcore(projs_fname,projs_hat_fname,n_r,L);
-    projs_hat_normalized_fname=tempmrcname;
+    projs_hat_normalized_fname=tempmrcsname;
     cryo_raynormalize_outofcore(projs_hat_fname,projs_hat_normalized_fname);
     delete(projs_hat_fname);
     projs_hat_fname=projs_hat_normalized_fname;

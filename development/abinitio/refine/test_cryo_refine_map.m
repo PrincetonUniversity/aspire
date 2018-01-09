@@ -1,42 +1,42 @@
 % vol_g1='/home/yoel/Desktop/tmp/80S_89/vol_nn10_nm2000_group1.mrc';
-% projs_g1='/home/yoel/Desktop/tmp/80S_89/averages_nn10_group1.mrc';
+% projs_g1='/home/yoel/Desktop/tmp/80S_89/averages_nn10_group1.mrcs';
 % p1=ReadMRC(projs_g1);
-% projs_g1=tempmrcname;
+% projs_g1=tempmrcsname;
 % WriteMRC(p1(:,:,1:5000),1,projs_g1);
 % clear p1
 % 
 % vol_g2='/home/yoel/Desktop/tmp/80S_89/vol_nn10_nm2000_group2.mrc';
-% projs_g2='/home/yoel/Desktop/tmp/80S_89/averages_nn10_group2.mrc';
+% projs_g2='/home/yoel/Desktop/tmp/80S_89/averages_nn10_group2.mrcs';
 % p2=ReadMRC(projs_g2);
-% projs_g2=tempmrcname;
+% projs_g2=tempmrcsname;
 % WriteMRC(p2(:,:,1:5000),1,projs_g2);
 % clear p2
 
 % vol_g1='/home/yoel/Desktop/tmp/80S_89/vol_nn10_nm2000_group1.mrc';
-% projs_g1='/home/yoel/Desktop/tmp/80S_129/averages_nn10_group1.mrc';
+% projs_g1='/home/yoel/Desktop/tmp/80S_129/averages_nn10_group1.mrcs';
 % p1=ReadMRC(projs_g1);
-% projs_g1=tempmrcname;
+% projs_g1=tempmrcsname;
 % WriteMRC(p1(:,:,1:10000),1,projs_g1);
 % clear p1
 % 
 % vol_g2='/home/yoel/Desktop/tmp/80S_89/vol_nn10_nm2000_group2.mrc';
-% projs_g2='/home/yoel/Desktop/tmp/80S_129/averages_nn10_group2.mrc';
+% projs_g2='/home/yoel/Desktop/tmp/80S_129/averages_nn10_group2.mrcs';
 % p2=ReadMRC(projs_g2);
-% projs_g2=tempmrcname;
+% projs_g2=tempmrcsname;
 % WriteMRC(p2(:,:,1:10000),1,projs_g2);
 % clear p2
 
 vol_g1='/home/yoel/Desktop/tmp/80S_89/vol_nn10_nm2000_group1.mrc';
-projs_g1='/home/yoel/Desktop/tmp/80S_129/phaseflipped_downsampled_prewhitened_group1.mrc';
+projs_g1='/home/yoel/Desktop/tmp/80S_129/phaseflipped_downsampled_prewhitened_group1.mrcs';
 p1=ReadMRC(projs_g1);
-projs_g1=tempmrcname;
+projs_g1=tempmrcsname;
 WriteMRC(p1(:,:,1:end),1,projs_g1);
 clear p1
 
 vol_g2='/home/yoel/Desktop/tmp/80S_89/vol_nn10_nm2000_group2.mrc';
-projs_g2='/home/yoel/Desktop/tmp/80S_129/phaseflipped_downsampled_prewhitened_group2.mrc';
+projs_g2='/home/yoel/Desktop/tmp/80S_129/phaseflipped_downsampled_prewhitened_group2.mrcs';
 p2=ReadMRC(projs_g2);
-projs_g2=tempmrcname;
+projs_g2=tempmrcsname;
 WriteMRC(p2(:,:,1:end),1,projs_g2);
 clear p2
 

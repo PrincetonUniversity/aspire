@@ -30,7 +30,7 @@ t_refined=toc(t_refined);
 fprintf('Refining orientations %5.1f seconds\n',t_refined);
 
 % Refine orientations out-of-core 
-projs_fname=tempmrcname;
+projs_fname=tempmrcsname;
 imstackwriter=imagestackWriter(projs_fname,Nprojs);
 imstackwriter.append(projshifted);
 imstackwriter.close;

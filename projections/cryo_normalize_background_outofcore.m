@@ -15,8 +15,8 @@ function cryo_normalize_background_outofcore(instackname,outstackname,r,verbose)
 %   Default: verbose=1.
 %
 % Example:
-%   cryo_normalize_background_outofcore('instack.mrc');
-%   cryo_normalize_background_outofcore('instack.mrc',32);
+%   cryo_normalize_background_outofcore('instack.mrcs');
+%   cryo_normalize_background_outofcore('instack.mrcs',32);
 %
 % Yoel Shkolnisky, May 2016.
 

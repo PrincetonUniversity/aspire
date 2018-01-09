@@ -127,7 +127,7 @@ parfor j=1:length(list_recon)
     tmp = mean(pf_images_shift, 2);
     tmp = reshape(tmp, L, L);
     
-    mrcname=sprintf('average%d.mrc',j);
+    mrcname=sprintf('average%d.mrcs',j);
     mrcname=fullfile(tmpdir,mrcname);
     average = real(icfft2(tmp));
     WriteMRC(average,1, mrcname);    
@@ -141,7 +141,7 @@ averagesfname=tempname;
 averagesfname=fullfile(tmpdir,averagesfname);
 stack=imagestackWriter(averagesfname,numel(list_recon),1,100);
 for j=1:length(list_recon)
-    mrcname=sprintf('average%d.mrc',j);
+    mrcname=sprintf('average%d.mrcs',j);
     mrcname=fullfile(tmpdir,mrcname);
     average = ReadMRC(mrcname);
     stack.append(average);

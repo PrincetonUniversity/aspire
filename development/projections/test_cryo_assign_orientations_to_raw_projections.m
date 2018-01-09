@@ -27,7 +27,7 @@ end
 % [estR,est_shifts,rawimageindices]=cryo_assign_orientations_to_raw_projections(...
 %     alignment_data,averaging_data);
 
-projections=ReadMRC('/home/yoel/tmp/cleansim/phaseflipped_cropped_downsampled_prewhitened_group1.mrc');
+projections=ReadMRC('/home/yoel/tmp/cleansim/phaseflipped_cropped_downsampled_prewhitened_group1.mrcs');
 [ v1, ~, ~ ,~, ~, ~] = recon3d_firm( projections(:,:,rawimageindices),estR,-est_shifts, 1e-6, 100, zeros(129,129,129));
 [ v2, ~, ~ ,~, ~, ~] = recon3d_firm( projections(:,:,rawimageindices),Rref(:,:,rawimageindices),-shifts(rawimageindices,:), 1e-6, 100, zeros(129,129,129));
 [estR,estdx,vol2aligned,reflect]=cryo_align_densities(v1,v2,1,1);

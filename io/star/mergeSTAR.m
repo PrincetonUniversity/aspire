@@ -1,7 +1,7 @@
 function mergeSTAR(outstar,inpattern)
 % MERGESTAR  Combine STAR files
 % 
-% mergeSTAR(outstar,'instar*.mrc')
+% mergeSTAR(outstar,'in*.star')
 %
 % Combine multiple STAR files specified by the pattern inpattern into a
 % single STAR file named outstar. Wildcards in instars are allowed.

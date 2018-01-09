@@ -59,7 +59,7 @@ nWorkers=cp.NumWorkers;
 % workers.
 fnames=cell(nWorkers,1);
 for worker=1:nWorkers
-    fnames{worker}=tempmrcname;
+    fnames{worker}=tempmrcsname;
 end
 
 % Each worker processes chuncksize images.

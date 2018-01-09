@@ -15,7 +15,7 @@ function cryo_phaseflip_outofcore(CTFdata,prefix,outstackname,pixA,verbose)
 %
 % Example:
 %   CTFdata=readSTAR(fname);
-%   cryo_phaseflip_outofcore(CTFdata,'outstack.mrc'); 
+%   cryo_phaseflip_outofcore(CTFdata,'outstack.mrcs'); 
 %
 % Yoel Shkolnisky, May 2016.
 %

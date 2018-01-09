@@ -56,13 +56,13 @@ if strcmpi(data_ext,'.star')
         
         CTFdata=readSTAR(workflow.info.rawdata,1);
         CTFdata.data=CTFdata.data(1:nprojs);
-        PFfname=tempmrcname; %PF stands for phaseflipped
+        PFfname=tempmrcsname; %PF stands for phaseflipped
         log_message('Phaseflipped images will be saved to temporary file %s',PFfname);
         log_message('Running cryo_phaseflip_outofcore');
         cryo_phaseflip_outofcore(CTFdata,data_dir,PFfname,pixA,1);
         log_message('Finished phaseflipping')
     else
-        PFfname=tempmrcname; %PF stands for phaseflipped
+        PFfname=tempmrcsname; %PF stands for phaseflipped
         log_message('Skipping phaseflip. Creating MRC from STAR file');
         log_message('Generating MRC file %s',PFfname);
         % Copy raw images to temporary file
@@ -76,7 +76,7 @@ else
     log_message('Using raw data %s (MD5: %s)',...
         workflow.info.rawdata,MD5(workflow.info.rawdata));
     log_message('Creating backup of raw data.');
-    SRCname=tempmrcname; % SRC stands for "source".
+    SRCname=tempmrcsname; % SRC stands for "source".
     log_message('Copying raw data from %s to temporary file %s',workflow.info.rawdata,SRCname);
     
     rawdataReader=imagestackReader(workflow.info.rawdata);
@@ -104,7 +104,7 @@ if str2double(workflow.preprocess.do_crop)
     log_message('Start cropping...');
     log_message('Cropping to %dx%d',croppeddim, croppeddim);
     % PFCprojs=cryo_crop(PFprojs,[croppeddim croppeddim],1); 
-    PFCfname=tempmrcname; % PFC stands for phaseflipped+cropped
+    PFCfname=tempmrcsname; % PFC stands for phaseflipped+cropped
     log_message('Cropped images will be saved to temporary file %s',PFCfname);
     log_message('Running cryo_crop_outofcore');
     cryo_crop_outofcore(PFfname,PFCfname,[croppeddim croppeddim])
@@ -125,7 +125,7 @@ if str2double(workflow.preprocess.do_downsample)
     downsampleddim=str2double(workflow.preprocess.downsampleddim);
     log_message('Downsampling to %dx%d',downsampleddim, downsampleddim);
     %PFDprojs=cryo_downsample(PFCprojs,[downsampleddim downsampleddim],1); 
-    PFCDfname=tempmrcname; %PFCD stands for phaseflipped+cropped+downsampled
+    PFCDfname=tempmrcsname; %PFCD stands for phaseflipped+cropped+downsampled
     log_message('Downsampled images will be saved to temporary file %s',PFCDfname);
     log_message('Running cryo_downsample_outofcore');
     cryo_downsample_outofcore(PFCfname,PFCDfname,[downsampleddim downsampleddim]);
@@ -151,7 +151,7 @@ if str2double(workflow.preprocess.do_normalize)
 
     PFCDReader=imagestackReader(PFCDfname);
     n=PFCDReader.dim(1);
-    PFCDNfname=tempmrcname; % phaseflipped+cropped+downsampled+normalized
+    PFCDNfname=tempmrcsname; % phaseflipped+cropped+downsampled+normalized
     log_message('Normalized images will be saved to temporary file %s',PFCDNfname);
     log_message('Running cryo_normalize_background_outofcore');
     cryo_normalize_background_outofcore(PFCDfname,PFCDNfname,round(n/2)-10);
@@ -190,10 +190,10 @@ if str2double(workflow.preprocess.do_prewhiten)
     
     %log_message('Prewhitening images');
     %prewhitened_projs = cryo_prewhiten(PFDprojs, psd);
-    %fname=sprintf('phaseflipped_downsampled_prewhitened.mrc');
+    %fname=sprintf('phaseflipped_downsampled_prewhitened.mrcs');
     %WriteMRC(single(prewhitened_projs),1,fullfile(workflow.info.working_dir,fname));
 
-    PFCDNWfname=tempmrcname;
+    PFCDNWfname=tempmrcsname;
         % phaseflipped+cropped+downsampled+normalized+whitened
     log_message('Prewhitened images will be saved to temporary file %s',PFCDNWfname);
     log_message('Running cryo_prewhiten_outofcore');
@@ -227,7 +227,7 @@ end
 % Global phase flip
 log_message('Starting global phaseflip...') 
 %[prewhitened_projs,doflip]=cryo_globalphaseflip(prewhitened_projs);
-fname=sprintf('phaseflipped_downsampled_prewhitened.mrc');
+fname=sprintf('phaseflipped_downsampled_prewhitened.mrcs');
 PFCDNWGfname=fullfile(workflow.info.working_dir,fname);
 doflip=cryo_globalphaseflip_outofcore(PFCDNWfname ,PFCDNWGfname);
 
@@ -270,7 +270,7 @@ K2=floor(K/numgroups);
 
 log_message('Start splitting to %d groups',numgroups);
 for groupid=1:numgroups
-    fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrc',groupid);
+    fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrcs',groupid);
     fullfilename=fullfile(workflow.info.working_dir,fname);
     log_message('Saving group %d into file %s',groupid,fullfilename);
     %WriteMRC(single(prewhitened_projs(:,:,shuffleidx((groupid-1)*K2+1:groupid*K2))),1,fullfilename);
@@ -366,7 +366,7 @@ for groupid=1:numgroups
 %         %         CTFds(:,:,k)=h;
 %         %     end
 %         %
-%         %     fname=sprintf('ctfs_group%d.mrc',groupid);
+%         %     fname=sprintf('ctfs_group%d.mrcs',groupid);
 %         %     fullfilename=fullfile(workflow.info.working_dir,fname);
 %         %     WriteMRC(single(CTFds),1,fullfilename);
 %         %

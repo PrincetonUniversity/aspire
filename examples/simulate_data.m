@@ -51,8 +51,8 @@ log_message('Noise added successully');
 
 %% Save and display results
 mrcdir=tempmrcdir;
-fname_clean=fullfile(mrcdir,'clean.mrc');
-fname_noisy=fullfile(mrcdir,'noisy.mrc');
+fname_clean=fullfile(mrcdir,'clean.mrcs');
+fname_noisy=fullfile(mrcdir,'noisy.mrcs');
 log_message('Saving clean projections to %s',fname_clean);
 WriteMRC(projs,1,fname_clean);
 log_message('Saving noisy (and shifted) projections to %s',fname_noisy);

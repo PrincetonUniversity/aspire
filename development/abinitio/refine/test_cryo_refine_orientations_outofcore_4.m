@@ -23,7 +23,7 @@ t_orient=toc(t_orient);
 fprintf('Assigning orientations took %5.1f seconds\n',t_orient);
 
 % Refine orientations out-of-core
-projs_fname=tempmrcname;
+projs_fname=tempmrcsname;
 imstackwriter=imagestackWriter(projs_fname,Nprojs);
 imstackwriter.append(projshifted);
 imstackwriter.close;
@@ -41,9 +41,9 @@ fprintf('Refining orientations %5.1f seconds\n',t_refined);
 % Compute polar Fourier transform of the projecitons.
 L=360;
 n_r=ceil(size(voldata.volref,1)/2);
-projs_hat_fname=tempmrcname;
+projs_hat_fname=tempmrcsname;
 cryo_pft_outofcore(projs_fname,projs_hat_fname,n_r,L);
-projs_hat_normalized_fname=tempmrcname;
+projs_hat_normalized_fname=tempmrcsname;
 cryo_raynormalize_outofcore(projs_hat_fname,projs_hat_normalized_fname); 
     % Fourier transformed projections are assumed to be normalized.
 
