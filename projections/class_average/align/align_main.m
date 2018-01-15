@@ -34,7 +34,7 @@ r_max = sPCA_data.R;
 %Check if the number of nearest neighbors is too large
 if l<k
     error('myApp:argChk', 'The number of nearest neighbors is too large. \nIt should be smaller or equal to %d', l)
-end;
+end
 
 shifts=zeros(length(list_recon), k+1);
 corr=zeros(length(list_recon), k+1);
@@ -62,7 +62,7 @@ angle(angle==360)=0;
 M=cell(359);
 for i=1:359
     M{i}=fastrotateprecomp(L, L,i);
-end;
+end
 
 
 filelist=dir(fullfile(tmpdir,'*.*'));
@@ -87,14 +87,14 @@ parfor j=1:length(list_recon)
     for i=1:k
         if (refl_j(i)==2)
             images(:, :, i)=flipud(images(:, :, i));
-        end;
-    end;
+        end
+    end
     
     for i=1:k
         if (angle_j(i)~=0)
             images(:, :, i)=fastrotate(images(:, :, i), angle_j(i), M{angle_j(i)});
         end
-    end;
+    end
     
     %Build denoised images from fast steerable PCA
     origin = floor(L/2) + 1;
@@ -112,7 +112,7 @@ parfor j=1:length(list_recon)
     pf_images=zeros(size(images));
     for i=1:k+1
         pf_images(:, :, i)=cfft2(images(:, :, i));
-    end;
+    end
     pf_images=reshape(pf_images, L^2, k+1);
     
     
