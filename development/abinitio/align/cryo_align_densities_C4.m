@@ -312,7 +312,7 @@ timing=toc(timing);
 c_masked=corr(vol1masked(:),vol2maskedaligned(:)); % Masked volumes
 c_orig=corr(vol1(:),vol2aligned(:)); % Original volumes
 fsc=FSCorr(vol1,vol2aligned);
-res=fscres(fsc,0.134);
+res=fscres(fsc,0.143);
 resA=2*pixA*numel(fsc)/res; % Resolution in Angstrom.
 
 log_message('Completed in %7.2f seconds',timing);
