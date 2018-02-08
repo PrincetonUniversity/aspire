@@ -1,4 +1,4 @@
-n = 17;
+n = 65;
 K = 1000;
 SNR = 1000;
 [projections, ~, ~, rotations] = cryo_gen_projections(n, K, SNR);
