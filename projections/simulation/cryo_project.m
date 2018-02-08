@@ -141,11 +141,12 @@ parfor batch=1:ceil(K/batch_size)
     % NUFFT all images in the current batch
     projection_fourier = nufft3(volume, -P',nufft_opt);
     projection_fourier=reshape(projection_fourier,numel(I),actual_batch_size);
+    P = reshape(P, [numel(I), actual_batch_size, 3]);
     
     if mod(n,2)==0
-        projection_fourier(:,k) = projection_fourier.*exp(1i.*sum(P,2)./2);
-        Irep=repmat(I,actual_batch_size,1);
-        Jrep=repmat(J,actual_batch_size,1);
+        projection_fourier = projection_fourier.*exp(1i.*sum(P,3)./2);
+        Irep=repmat(I,1,actual_batch_size);
+        Jrep=repmat(J,1,actual_batch_size);
         projection_fourier = projection_fourier ...
             .* exp(2*pi*1i*(Irep+Jrep-1)/(2*n));
     end
