@@ -23,8 +23,7 @@ function install_fftw(url, location)
 	end
 
 	if nargin < 2 || isempty(location)
-		aspire_root = fileparts(mfilename('fullpath'));
-		location = fullfile(aspire_root, 'extern');
+		location = fullfile(aspire_root(), 'extern');
 	end
 
 	fprintf('Installing the FFTW package.\n');
@@ -37,13 +36,18 @@ function install_fftw(url, location)
 
 	filepath = fullfile(location, filename);
 
-	if exist(filepath, 'file')
+	if exist(filepath, 'file') && get_file_size(filepath) > 0
 		fprintf('Package exists on disk. Skipping download.\n');
 	else
 		try
 			fprintf('Downloading...');
 			urlwrite(url, filepath);
 			fprintf('OK\n');
+
+			if get_file_size(filepath) == 0
+				e = MException('aspire:install_fftw:DownloadFailed');
+				throw(e);
+			end
 		catch
 			fprintf('Failed.\n');
 			fprintf('Please download the package at the URL\n');
@@ -82,7 +86,8 @@ function install_fftw(url, location)
 
 	status = system(['./configure ' ...
 	                 '--prefix=' fullfile(location, 'fftw3') ' ' ...
-	                 '--enable-openmp --enable-shared --enable-threads']);
+	                 '--enable-openmp --enable-shared --enable-threads ' ...
+	                 '--disable-fortran']);
 	if status ~= 0
 		error('''configure'' failed');
 	end

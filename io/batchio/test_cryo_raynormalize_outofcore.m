@@ -13,7 +13,7 @@ pf=cryo_pft(images,n_r,n_theta,'single');
 pf=single(pf); % cryo_pft_outofcore returns single precision.
 
 % Write Fourier rays into an MRC file
-pfin='temppf.mrc';
+pfin='temppf.mrcs';
 imstack=imagestackWriterComplex(pfin,K);
 imstack.append(pf);
 imstack.close;
@@ -22,7 +22,7 @@ imstack.close;
 pf_norm1=cryo_raynormalize(pf);
 
 % Normalize Fourier rays out-of-core
-pfout='temppfnorm.mrc';
+pfout='temppfnorm.mrcs';
 cryo_raynormalize_outofcore(pfin,pfout);
 
 % Compare outputs of in-core and out-of-core functions

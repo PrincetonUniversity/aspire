@@ -27,13 +27,11 @@ function install_chemnitz_nfft(url, location, fftw_location)
 	end
 
 	if nargin < 2 || isempty(location)
-		aspire_root = fileparts(mfilename('fullpath'));
-		location = fullfile(aspire_root, 'extern');
+		location = fullfile(aspire_root(), 'extern');
 	end
 
 	if nargin < 3 || isempty(fftw_location)
-		aspire_root = fileparts(mfilename('fullpath'));
-		fftw_location = fullfile(aspire_root, 'extern', 'fftw3');
+		fftw_location = fullfile(aspire_root(), 'extern', 'fftw3');
 	end
 
 	if ~exist(fftw_location, 'dir')
@@ -51,7 +49,7 @@ function install_chemnitz_nfft(url, location, fftw_location)
 
 	filepath = fullfile(location, filename);
 
-	if exist(filepath, 'file')
+	if exist(filepath, 'file') && get_file_size(filepath) > 0
 		fprintf('Package exists on disk. Skipping download.\n');
 	else
 		if ~exist(location, 'dir')
@@ -62,6 +60,11 @@ function install_chemnitz_nfft(url, location, fftw_location)
 			fprintf('Downloading...');
 			urlwrite(url, filepath);
 			fprintf('OK\n');
+
+			if get_file_size(filepath) == 0
+				e = MException('aspire:install_chemnitz_nfft:DownloadFailed');
+				throw(e);
+			end
 		catch
 			fprintf('Failed.\n');
 			fprintf('Please download the package at the URL\n');

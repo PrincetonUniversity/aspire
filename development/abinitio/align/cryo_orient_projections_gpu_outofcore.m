@@ -35,7 +35,7 @@ end
 
 currentsilentmode=log_silent(verbose==0);
 
-processed_projs_fname=tempmrcname;
+processed_projs_fname=tempmrcsname;
 % Preprocess projections and referece volume.
 if preprocess
     log_message('Start preprocessing projections');    
@@ -68,13 +68,13 @@ L=360;
 
 % Compute polar Fourier transform of the processed projections
 n_r=ceil(szvol(1)/2);
-projs_hat_fname=tempmrcname;
+projs_hat_fname=tempmrcsname;
 log_message('Start computing polar Fourier transforms of input projections. Using n_r=%d L=%d.',n_r,L);
 cryo_pft_outofcore(processed_projs_fname,projs_hat_fname,n_r,L);
 log_message('Computing polar Fourier transform done');
 
 log_message('Start normalizing Fourier transform of input projections (cryo_raynormalize)');
-projs_hat_normalized_fname=tempmrcname;
+projs_hat_normalized_fname=tempmrcsname;
 cryo_raynormalize_outofcore(projs_hat_fname,projs_hat_normalized_fname);
 delete(projs_hat_fname);
 log_message('Normalizing done');

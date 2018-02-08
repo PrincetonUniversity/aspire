@@ -1,7 +1,7 @@
 % VOL_IMAGE Apply forward imaging model to volume
 %
 % Usage
-%    im = vol_image(vol, params, start, num);
+%    im = vol_image(vol, params, start, num, half_pixel);
 %
 % Input
 %    vol: A volume of size L-by-L-by-L.
@@ -17,23 +17,28 @@
 %             of each image.
 %    start: The first index of the parameters to use for the imaging mapping.
 %    num: The number of images to calculate.
+%    half_pixel: If true, centers the rotation around a half-pixel (default false).
 %
 % Output
 %    im: The images obtained from `vol` by projecting, applying CTFs, and
 %       multiplying by the amplitude.
 
-function im = vol_image(vol, params, start, num)
+function im = vol_image(vol, params, start, num, half_pixel)
+    if nargin < 5 || isempty(half_pixel)
+        half_pixel = false;
+    end
+
     L = size(vol, 1);
 
     check_imaging_params(params, L, []);
 
     range = start:start+num-1;
 
-    im = vol_project(vol, params.rot_matrices(:,:,range));
+    im = vol_project(vol, params.rot_matrices(:,:,range), half_pixel);
 
     im = im_filter(im, params.ctf(:,:,params.ctf_idx(range)));
 
     im = bsxfun(@times, im, reshape(params.ampl(range), [1 1 num]));
 
-    im = im_translate(im, params.shifts);
+    im = im_translate(im, params.shifts(:,range));
 end

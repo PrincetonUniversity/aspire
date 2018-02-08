@@ -15,11 +15,23 @@
 %             `ctf` array corresponding to each projection image.
 %          - ampl: A vector of length n specifying the amplitude multiplier
 %             of each image.
+%          - shifts: An array of size 2-by-n containing the offsets in x and y
+%             y (the second and first dimensions of im) which were applied
+%             after the projection.
 %    basis: A basis object used for representing the volumes (default
 %       dirac_basis(L*ones(1, 3))).
 %    mean_est_opt: A struct containing the fields:
 %          - 'precision': The precision of the kernel. Either 'double'
 %             (default) or 'single'.
+%          - 'half_pixel': If true, centers the rotation around a half-pixel
+%             (default false).
+%          - 'batch_size': The size of the batches in which to compute the
+%             kernel, if set to a non-empty value. If empty, there are no
+%             batches and the entire parameter set is used. A small batch size
+%             can help with certain NUFFT libraries (like the Chemnitz NFFT
+%             package), which cannot handle too many nodes at once (default
+%             empty).
+%
 %          - 'preconditioner': One of the following values specifying the
 %             preconditioner for the conjugate gradient method:
 %                - 'none': No preconditioner is used.
@@ -42,8 +54,13 @@
 %       CTF filtering, multiplication), and y_s are the observed images. This
 %       is achieved by forming the normal equations and solving them using the
 %       conjugate gradient method.
+%    cg_info: A structure containing information about the conjugate gradient
+%       method, such as residuals, objectives, etc. See the documentation of
+%       `conj_grad` for more details.
 
-function mean_est = cryo_estimate_mean(im, params, basis, mean_est_opt)
+function [mean_est, cg_info] = cryo_estimate_mean(im, params, basis, ...
+    mean_est_opt)
+
     if nargin < 3
         basis = [];
     end
@@ -84,6 +101,6 @@ function mean_est = cryo_estimate_mean(im, params, basis, mean_est_opt)
 
     im_bp = cryo_mean_backproject(im, params, mean_est_opt);
 
-    mean_est = cryo_conj_grad_mean(kernel_f, im_bp, basis, ...
+    [mean_est, cg_info] = cryo_conj_grad_mean(kernel_f, im_bp, basis, ...
         precond_kernel_f, mean_est_opt);
 end

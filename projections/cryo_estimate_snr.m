@@ -1,17 +1,22 @@
-function snr=cryo_estimate_snr(projs,prewhiten)
+function [snr,var_s,var_n]=cryo_estimate_snr(projs,prewhiten)
 % CRYO_ESTIMATE_SNR     Estimate SNR of projections stack
 %
-% snr=cryo_estimate_snr(projs)
+% [snr,var_s,var_n]=cryo_estimate_snr(projs)
 %   Estimate the snr of a stack of projections by using corner pixels. If
 %   each projections in the stack is of size pxp, then only pixels whose
 %   radius is larger than p/2 are used for estimating the parameters of the
-%   noise. snr is defined as var_s/var_n.
+%   noise. snr is defined as var_s/var_n, where var_s is the variance of
+%   the signal and var_n is the variance of the noise.
 %   Noise in the proejctions is assumed to be white.
 %
-% snr=cryo_estimate_snr(projs,prewhiten)
+% [snr,var_s,var_n]=cryo_estimate_snr(projs,prewhiten)
 %   If prewhiten is non-zero, then prewhiten the projections before
 %   estimating the parameters of the noise.
 %   
+%
+% IMPORTANT: All images must be normalized to have the same noise mean and
+% variance, using, e.g., cryo_normalize_background
+%
 % Yoel Shkolnisky, August 2015.
 
 
@@ -28,9 +33,6 @@ end
 % Masking radius
 p = size(projs, 1); % Image size)
 radius_of_mask = floor(p/2)-1; % 
-
-% Normalize projections, in case each comes with a different normalization.
-projs=cryo_normalize_background(projs,radius_of_mask);
 
 % Compute indices of noise samples
 I = cart2rad(p);

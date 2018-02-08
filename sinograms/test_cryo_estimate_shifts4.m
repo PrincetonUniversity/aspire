@@ -15,11 +15,12 @@ results=zeros(numel(SNRlist),numel(subsamplinglist),4);
 open_log(0);
 
 for snridx=1:numel(SNRlist)
-    [projs,noisy_projs,shifts_2d_ref,q_ref]=cryo_gen_projections(n,n_projs,SNRlist(snridx),max_shift,shift_step);
+    initstate;
+    [projs,noisy_projs,shifts_2d_ref,rots_ref]=cryo_gen_projections(n,n_projs,SNRlist(snridx),max_shift,shift_step);
     
     log_message('SNR=%5.3e',SNRlist(snridx));
     
-    viewstack(noisy_projs,5,5);
+    %viewstack(noisy_projs,5,5);
     masked_projs=mask_fuzzy(noisy_projs,floor(n/2)); % Applly circular mask
             
     % Compute polar Fourier transform, using radial resolution n_r and angular
@@ -30,7 +31,7 @@ for snridx=1:numel(SNRlist)
     
     %% Compte common lines matrix
     % Compute reference common lines matrix
-    clstack_ref=clmatrix_cheat_q(q_ref,n_theta);
+    clstack_ref=clmatrix_cheat(rots_ref,n_theta);
     
     % Search for common lines in the presence of shifts
     [clstack,corrstack,shift_equations1,shift_equations_map,clstack_mask]=...
@@ -44,7 +45,7 @@ for snridx=1:numel(SNRlist)
     %% Estimate shifts using estimated rotations
            
     S=cryo_syncmatrix_vote(clstack,n_theta);
-    [rotations,~,mse]=cryo_syncrotations(S,q_ref);
+    [rotations,~,mse]=cryo_syncrotations(S,rots_ref);
     log_message('MSE of the estimated rotations: %f',mse); %Show be close to zero.
 
     

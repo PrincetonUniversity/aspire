@@ -7,7 +7,7 @@ function makeTestStack(fname,sz,N)
 %   MRC file fname.
 %
 % Example:
-%   makeTestStack('test.mrc',65,1000);
+%   makeTestStack('test.mrcs',65,1000);
 %
 % Yoel Shkolnisky, May 2014.
 

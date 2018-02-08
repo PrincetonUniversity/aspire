@@ -1,5 +1,5 @@
-function [ rotations, angles ] = genRotations( resolution , JRJ, verbose)
-%genRotations generate approximatly equally spaced rotations.
+function [ rotations, angles ] = genRotationsGrid( resolution , JRJ, verbose)
+%genRotationsGrid generate approximatly equally spaced rotations.
 %   Input:
 %       resolution - the number of samples per 2*pi.
 %                    for example:

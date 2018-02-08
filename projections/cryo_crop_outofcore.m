@@ -9,8 +9,8 @@ function cryo_crop_outofcore(instackname,outstackname,croppeddim)
 %   output images.
 %
 % Example:
-%   cryo_phaseflip_outofcore('instack.mrc','outstack.mrc',65); 
-%   cryo_phaseflip_outofcore('instack.mrc','outstack.mrc',[65 65]); 
+%   cryo_phaseflip_outofcore('instack.mrcs','outstack.mrcs',65); 
+%   cryo_phaseflip_outofcore('instack.mrcs','outstack.mrcs',[65 65]); 
 %
 % Yoel Shkolnisky, May 2016.
 

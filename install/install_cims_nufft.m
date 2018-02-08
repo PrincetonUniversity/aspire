@@ -8,7 +8,7 @@
 %    url: The url from which the package should be downloaded. By default,
 %       this is
 %
-%          http://cims.nyu.edu/cmcl/nufft/nufftall-1.3.3.tar.gz
+%          https://cims.nyu.edu/cmcl/nufft/nufftall-1.3.3.tar.gz
 %
 %    location: The location in which the package should be installed. By
 %       default, this is the subfolder 'extern' of the ASPIRE root folder.
@@ -24,12 +24,11 @@
 
 function install_cims_nufft(url, location, force_compile)
 	if nargin < 1 || isempty(url)
-		url = 'http://cims.nyu.edu/cmcl/nufft/nufftall-1.3.3.tar.gz';
+		url = 'https://cims.nyu.edu/cmcl/nufft/nufftall-1.3.3.tar.gz';
 	end
 
 	if nargin < 2 || isempty(location)
-		aspire_root = fileparts(mfilename('fullpath'));
-		location = fullfile(aspire_root, 'extern');
+		location = fullfile(aspire_root(), 'extern');
 	end
 
 	if nargin < 3 || isempty(force_compile)
@@ -47,7 +46,7 @@ function install_cims_nufft(url, location, force_compile)
 
 	filepath = fullfile(location, filename);
 
-	if exist(filepath, 'file')
+	if exist(filepath, 'file') && get_file_size(filepath) > 0
 		fprintf('Package exists on disk. Skipping download.\n');
 	else
 		if ~exist(location, 'dir')
@@ -58,6 +57,11 @@ function install_cims_nufft(url, location, force_compile)
 			fprintf('Downloading...');
 			urlwrite(url, filepath);
 			fprintf('OK\n');
+
+			if get_file_size(filepath) == 0
+				e = MException('aspire:install_cims_nufft:DownloadFailed');
+				throw(e);
+			end
 		catch
 			fprintf('Failed.\n');
 			fprintf('Please download the package at the URL\n');

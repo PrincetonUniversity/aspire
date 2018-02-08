@@ -14,13 +14,13 @@ n_r=ceil(n/2);
 pf1=single(pf1); % cryo_pft_outofcore returns single precision.
 
 % Write images into an MRC file
-imname='tempin.mrc';
+imname='tempin.mrcs';
 imstack=imagestackWriter(imname,K);
 imstack.append(images);
 imstack.close;
 
 % Compute out-of-core pft
-pfname='temppf.mrc';
+pfname='temppf.mrcs';
 freqs2=cryo_pft_outofcore(imname,pfname,n_r,n_theta);
 
 % Make sure both functions return the same frequnecies

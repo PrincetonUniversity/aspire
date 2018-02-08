@@ -7,14 +7,15 @@
 %
 % Yoel Shkolnisky, June 2016.
 clear;
+initstate;
 Nprojs=2000;
-q=qrand(Nprojs);  % Generate Nprojs projections to orient.
+rots = rand_rots(Nprojs);  % Generate Nprojs projections to orient.
 
 log_message('Loading volume');
 voldata=load('cleanrib');
 
 log_message('Generating %d clean projections',Nprojs);
-projs=cryo_project(voldata.volref,q);
+projs=cryo_project(voldata.volref,rots);
 projs=permute(projs,[2,1,3]);
 
 log_message('Adding shifts');
@@ -24,10 +25,10 @@ snr=1/8;
 log_message('Adding noise. snr=%d',snr);
 projshifted=cryo_addnoise(projshifted,snr,'gaussian');
 
-% Convert quaternions to rotations
+% Invert rotations
 trueRs=zeros(3,3,Nprojs);
 for k=1:Nprojs
-    trueRs(:,:,k)=(q_to_rot(q(:,k))).';
+    trueRs(:,:,k)=rots(:,:,k).';
 end
 
 log_message('Orienting projecctions according to reference volume');
@@ -36,41 +37,41 @@ tic;
 t1_gpu=toc;
 
 log_message('Results of the orientation procedure:')
-fprintf('Timing = %5.2f seconds\n',t1_gpu);
+log_message('Timing = %5.2f seconds',t1_gpu);
 
 rot1_L2_error=norm(Rest1(:)-trueRs(:))/norm(trueRs(:));
-fprintf('L2 error in rotations estimation = %e\n',rot1_L2_error);
+log_message('L2 error in rotations estimation = %e',rot1_L2_error);
 
 rot1_Killing_error=diag(dist_between_rot(Rest1,trueRs))/pi*180; %In degrees
-fprintf('Killing error in rotations estimation (in degrees)\n');
-fprintf('\t Max  = %5.3f\n',max(rot1_Killing_error));
-fprintf('\t mean = %5.3f\n',mean(rot1_Killing_error));
-fprintf('\t std  = %5.3f\n',std(rot1_Killing_error));
-fprintf('\t med  = %5.3f\n',median(rot1_Killing_error));
+log_message('Killing error in rotations estimation (in degrees)');
+log_message('\t Max  = %5.3f',max(rot1_Killing_error));
+log_message('\t mean = %5.3f',mean(rot1_Killing_error));
+log_message('\t std  = %5.3f',std(rot1_Killing_error));
+log_message('\t med  = %5.3f',median(rot1_Killing_error));
 
 shifts1_L2_error=norm(dx1.'-ref_shifts)/norm(ref_shifts);
-fprintf('L2 error in shifts estimation= %e\n',shifts1_L2_error);
-fprintf('Max shift error in integral pixels (in each coordinate) = (%d,%d)\n',...
+log_message('L2 error in shifts estimation= %e',shifts1_L2_error);
+log_message('Max shift error in integral pixels (in each coordinate) = (%d,%d)',...
     max(round(ref_shifts)-round(dx1')));
 
 log_message('Reconstructing from the projections and their etimated orientation parameters');
 n=size(projshifted,1);
 [ v1, ~, ~ ,~, ~, ~] = recon3d_firm( projshifted,Rest1,-dx1.', 1e-8, 100, zeros(n,n,n));
 ii1=norm(imag(v1(:)))/norm(v1(:));
-log_message('Relative norm of imaginary components = %e\n',ii1);
+log_message('Relative norm of imaginary components = %e',ii1);
 v1=real(v1);
 
 log_message('Comparing reconstructed volume to reference volume');
 plotFSC(voldata.volref,v1);
 
 % Optimize rotations
-q_ref=qrand(Nprojs);  % Generate Nprojs projections to orient.
+rots_ref=rand_rots(Nprojs);  % Generate Nprojs projections to orient.
 volref=voldata.volref;
-projs_ref=cryo_project(volref,q_ref);
+projs_ref=cryo_project(volref,rots_ref);
 projs_ref=permute(projs_ref,[2,1,3]);
 Rrefs=zeros(3,3,Nprojs);
 for k=1:Nprojs
-    Rrefs(:,:,k)=(q_to_rot(q_ref(:,k))).';
+    Rrefs(:,:,k)=rots_ref(:,:,k).';
 end
 
 L=360;
@@ -93,9 +94,9 @@ parfor k=1:Nprojs
     shifts_L2_error_before_refinement=norm(dx1(:,k)-(ref_shifts(k,:)).');
     shifts_L2_error_after_refinement=norm(estdx_refined(:,k)-(ref_shifts(k,:)).');
 
-    fprintf('k=%d/%d\n',k,Nprojs);
-    fprintf('\t Rotation error: before=%e \t after=%e\n',rot_L2_error_before_refinement,rot_L2_error_after_refinement);
-    fprintf('\t Shift error:    before=%e \t after=%e\n',shifts_L2_error_before_refinement,shifts_L2_error_after_refinement);
+    log_message('k=%d/%d',k,Nprojs);
+    log_message('\t Rotation error: before=%e \t after=%e',rot_L2_error_before_refinement,rot_L2_error_after_refinement);
+    log_message('\t Shift error:    before=%e \t after=%e',shifts_L2_error_before_refinement,shifts_L2_error_after_refinement);
     
     errs(:,k)=[shifts_L2_error_before_refinement;...
         shifts_L2_error_after_refinement;...
@@ -106,7 +107,7 @@ end
 
 [ v2, ~, ~ ,~, ~, ~] = recon3d_firm( projshifted,R_refined,-estdx_refined.', 1e-8, 100, zeros(n,n,n));
 ii1=norm(imag(v2(:)))/norm(v2(:));
-log_message('Relative norm of imaginary components = %e\n',ii1);
+log_message('Relative norm of imaginary components = %e',ii1);
 v2=real(v2);
 
 log_message('Comparing reconstructed volume to reference volume');

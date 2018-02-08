@@ -29,7 +29,7 @@ function [doflip,signalmean,noisemean]=cryo_globalphaseflip_outofcore(instacknam
 %       noisemean   Mean of the noise in all images
 %
 %   Examples:     
-%       cryo_globalphaseflip_outofcore('instack.mrc','outstack.mrc');
+%       cryo_globalphaseflip_outofcore('instack.mrcs','outstack.mrcs');
 %
 %   See also: cryo_globalphaseflip
 %

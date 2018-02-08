@@ -6,7 +6,7 @@ function fname=gen_spca_simulation_data(Nprojs,n,chunksize)
 % can be used whenever stacks of clean projections are needed.
 %
 % gen_spca_simulation_data(Nprojs,n,chunksize)
-%   Generate an MRC file named projs_n.mrc containing Nprojs clean
+%   Generate an MRC file named projs_n.mrcs containing Nprojs clean
 %   projection of size nxn of the density map EMD2275. At any given moment,
 %   not more than chunksize images are saved in memory.
 %   Defaults: Nprojs=100, n=129, chunksize=10000
@@ -47,18 +47,18 @@ if mod(size(map,1),2)==0 % Make odd-sized
     map=map(1:end-1,1:end-1,1:end-1);
 end
 
-q=qrand(Nprojs);  % Generate Nprojs projections to orient.
+rots = rand_rots(Nprojs);  % Generate Nprojs projections to orient.
 log_message('Generating %d projections of size %dx%d',Nprojs,n,n);
 
 %debugprojs=zeros(n,n,Nprojs);
-fname=sprintf('projs_%d.mrc',n);
+fname=sprintf('projs_%d.mrcs',n);
 outstack=imagestackWriter(fname,Nprojs,1,chunksize); 
 
 idx=0; % How many projectioned were generated so far.
 while idx<Nprojs
     tmpk=min(chunksize,Nprojs-idx); % Generate images in chuncks of chunksize.
     log_message('Generating projections %d to %d',idx+1,idx+tmpk);
-    projs=cryo_project(map,q(:,idx+1:idx+tmpk),n);
+    projs=cryo_project(map,rots(:,:,idx+1:idx+tmpk),n);
     projs=permute(projs,[2,1,3]);
     outstack.append(projs);
     %debugprojs(:,:,idx+1:idx+tmpk)=projs;

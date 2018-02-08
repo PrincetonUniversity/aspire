@@ -20,16 +20,17 @@ end
 
 Cs=CTFdata.rlnSphericalAberration; % In mm, No conversion is needed.
 
+pixA=-1;
 if isfield(CTFdata,'rlnDetectorPixelSize')
     PS=CTFdata.rlnDetectorPixelSize; % In microns. Convert to Angstroms below.
     mag=CTFdata.rlnMagnification;
     pixA=PS*10^4/mag; % Convert pixel size on the detector in microns to spatial resoution in Angstroms.
 elseif isfield(CTFdata,'pixA')
     pixA=CTFdata.pixA;
-else
-    errmsg=sprintf(strcat('Cannot get pixel size from CTF data.\n',...
-        'Either pixA or rlnDetectorPixelSize together with rlnMagnification should be given.\n',...
-        'Use addfieldtoSTARdata to add pixA manually to the STAR file.'));
-    error('%s',errmsg);
+% else
+%     errmsg=sprintf(strcat('Cannot get pixel size from CTF data.\n',...
+%         'Either pixA or rlnDetectorPixelSize together with rlnMagnification should be given.\n',...
+%         'Use addfieldtoSTARdata to add pixA manually to the STAR file.'));
+%     error('%s',errmsg);
 end
 A=CTFdata.rlnAmplitudeContrast;

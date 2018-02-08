@@ -11,19 +11,28 @@
 %    sig_f: Non-uniform Fourier transform of sig.
 
 function sig_f = nufft_transform(plan, sig)
+	if ~isfield(plan, 'lib_code') || ~isfield(plan, 'sz') || ...
+		~isfield(plan, 'num_pts')
+		error('Input ''plan'' is not a valid NUFFT plan.');
+	end
+
+	if ~isfield(plan, 'fourier_pts')
+		error('Plan has not been initialized with Fourier points.');
+	end
+
 	dims = numel(plan.sz);
 
 	sig_sz = size(sig);
 
-	if sig_sz(2) == 1
+	if dims == 1 && sig_sz(2) == 1
 		sig_sz = sig_sz(1);
 	end
 
-	if ~all(sig_sz==plan.sz)
+	if numel(sig_sz) ~= dims || any(sig_sz ~= plan.sz)
 		error('Input ''sig'' must be of size plan.sz.');
 	end
 
-	precision = class(sig);
+	epsilon = max(plan.epsilon, eps(class(sig)));
 
 	if plan.lib_code == 1
 		if dims == 1
@@ -34,9 +43,10 @@ function sig_f = nufft_transform(plan, sig)
 			sig_f = nudft3(sig, plan.fourier_pts);
 		end
 	elseif plan.lib_code == 2
-		epsilon = 1e-10;
-
 		sig = double(sig(:));
+
+		% NUFFT errors if we give epsilon in single precision.
+		epsilon = double(epsilon);
 
 		if dims == 1
 			sig_f = nufft1d2(plan.num_pts, ...
@@ -57,6 +67,10 @@ function sig_f = nufft_transform(plan, sig)
 				plan.sz(1), plan.sz(2), plan.sz(3), sig);
 		end
 	elseif plan.lib_code == 3
+		if ~isfield(plan, 'nfft_plan_id')
+			error('Input ''plan'' is not a valid NUFFT plan.');
+		end
+
 		sig = double(sig);
 
 		if dims == 2
@@ -68,7 +82,30 @@ function sig_f = nufft_transform(plan, sig)
 		nfft_set_f_hat(plan.nfft_plan_id, sig);
 		nfft_trafo(plan.nfft_plan_id);
 		sig_f = nfft_get_f(plan.nfft_plan_id);
+	elseif plan.lib_code == 4
+		sig = double(sig);
+
+		% FINUFFT errors if we give epsilon in single precision.
+		epsilon = double(epsilon);
+
+		if dims == 1
+			sig_f = finufft1d2( ...
+				plan.fourier_pts(1,:), ...
+				-1, epsilon, sig);
+		elseif dims == 2
+			sig_f = finufft2d2( ...
+				plan.fourier_pts(1,:), ...
+				plan.fourier_pts(2,:), ...
+				-1, epsilon, sig);
+		elseif dims == 3
+			sig_f = finufft3d2( ...
+				plan.fourier_pts(1,:), ...
+				plan.fourier_pts(2,:), ...
+				plan.fourier_pts(3,:), ...
+				-1, epsilon, ...
+				sig);
+		end
 	end
 
-	sig_f = cast(sig_f, precision);
+	sig_f = cast(sig_f, class(sig));
 end

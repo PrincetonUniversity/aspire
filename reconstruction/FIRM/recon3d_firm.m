@@ -34,6 +34,8 @@ if isempty(tol), tol=1e-3; end
 if isempty(max_it), max_it=100; end
 if isempty(x0), x0 = zeros(n,n,n); end
 
+projections=single(projections);
+
 if isempty(shifts)
     projs_fourier= FFT_projections( projections);
 else

@@ -22,11 +22,11 @@ message=sprintf('Number of class means to use to abinitio reconstruction of each
 nmeans=fmtinput(message,defnmeans,'%d');
 
 % Find all available class means files.
-avgfiles=dir(fullfile(workflow.info.working_dir,'averages_nn*_group*.mrc'));
+avgfiles=dir(fullfile(workflow.info.working_dir,'averages_nn*_group*.mrcs'));
 
 available_nns=zeros(numel(avgfiles),1);
 for k=1:numel(avgfiles)
-    avg_file_params=sscanf(avgfiles(k).name,'averages_nn%d_group%d.mrc');
+    avg_file_params=sscanf(avgfiles(k).name,'averages_nn%d_group%d.mrcs');
     available_nns(k)=avg_file_params(1);
 end
 available_nns=sort(unique(available_nns)); % Available nnavg values.

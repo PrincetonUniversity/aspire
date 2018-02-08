@@ -39,7 +39,7 @@ for groupid=1:numgroups
     reloadname=fullfile(workflow.info.working_dir,reloadname);
     log_message('Loading %s (MD5: %s)',reloadname,MD5(reloadname));
     load(reloadname);
-    fname=sprintf('averages_nn%02d_group%d.mrc',nnavg,groupid);
+    fname=sprintf('averages_nn%02d_group%d.mrcs',nnavg,groupid);
     fname=fullfile(workflow.info.working_dir,fname);
     log_message('Reading averages from %s (MD5: %s)',fname, MD5(fname));
     
@@ -178,7 +178,7 @@ for groupid=1:numgroups
     % The following code uses one raw projection for each class averages.
     % So if the number of averages is 1000, then only 1000 raw
     % images will be used.
-    % % % % %     fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrc',groupid);
+    % % % % %     fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrcs',groupid);
     % % % % %     fullfilename=fullfile(workflow.info.working_dir,fname);
     % % % % %     log_message('Loading prewhitened projection from %s',fname);
     % % % % %     prewhitened_projs=ReadMRC(fullfilename);
@@ -236,7 +236,7 @@ for groupid=1:numgroups
 %     [estR_raw,est_shifts_raw,rawimageindices]=cryo_assign_orientations_to_raw_projections(...
 %         alignment_data,averaging_data);
 %     
-%     fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrc',groupid);
+%     fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrcs',groupid);
 %     fullfilename=fullfile(workflow.info.working_dir,fname);
 %     log_message('Loading prewhitened projection from %s',fname);
 %     prewhitened_projs=ReadMRC(fullfilename);
@@ -256,7 +256,7 @@ for groupid=1:numgroups
 %         'estR_raw','est_shifts_raw','rawimageindices','-append');
     
     %     % Reconstruct downsampled volume with CTF correction
-    %     fname=sprintf('ctfs_effective_nn%02d_group%d.mrc',nnavg,groupid);
+    %     fname=sprintf('ctfs_effective_nn%02d_group%d.mrcs',nnavg,groupid);
     %     fullfilename=fullfile(workflow.info.working_dir,fname);
     %
     %     if exist(fullfilename,'file')~=2

@@ -6,6 +6,7 @@
 % The difference should be zero (both arrays should agree to the bit).
 
 % Generate projections.
+initstate;
 n=65;
 K=5;
 SNR=1; % Dummay SNR
@@ -13,12 +14,12 @@ projs=cryo_gen_projections(n,K,SNR);
 projs=single(projs);
 
 % Write to disk.
-outstack=imagestackWriter('tmp.mrc',K,1,50);
+outstack=imagestackWriter('tmp.mrcs',K,1,50);
 outstack.append(projs);
 outstack.close;
 
 % Read saved images from MRC
-projs2=ReadMRC('tmp.mrc');
+projs2=ReadMRC('tmp.mrcs');
 
 % Compare. projs and projs2 should agree to the bit.
 err=norm(projs(:)-projs2(:));

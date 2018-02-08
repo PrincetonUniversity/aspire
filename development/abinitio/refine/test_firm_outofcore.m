@@ -20,23 +20,24 @@ log_message('Map resampled successully');
 
 %% Project map
 Nprojs=500;  % Number of projections to generate
-q=qrand(Nprojs);  % Generate random orientations for the images
+rots=rand_rots(Nprojs);  % Generate random orientations for the images
 log_message('Generating %d projections of size %dx%d',Nprojs,n,n);
-projs=cryo_project(map,q,n);  % Generate projections of map
+projs=cryo_project(map,rots,n);  % Generate projections of map
 projs=permute(projs,[2,1,3]); % For backward compatability. Will be removed 
                               % in the future.
+projs=single(projs);
 log_message('Projections generated successully');
 
 %% Compute rotations of the simulated projections
 trueRs=zeros(3,3,Nprojs);
 for k=1:Nprojs
-    trueRs(:,:,k)=(q_to_rot(q(:,k))).';
+    trueRs(:,:,k)=rots(:,:,k).';
 end
 
 
 %% Reconstrut in-core
 log_message('Reconstructing density in-core...');
-[ v1, v_b1, kernel1,err1,iter1,flag1] = recon3d_firm( projs,trueRs,[], 1e-6, 30, zeros(n,n,n));
+[ v1, v_b1, kernel1,err1,iter1,flag1] = recon3d_firm(projs,trueRs,[], 1e-6, 30, zeros(n,n,n));
 log_message('Finished reconstructing density.');
 ii=norm(imag(v1(:)))/norm(v1(:));
 log_message('Relative magnitude of imaginary components = % e',ii);
@@ -44,7 +45,7 @@ v1=real(v1);
 
 %% Reconstruct out-of-core
 log_message('Reconstructing density out-of-core...');
-projs_fname='fname.mrc';
+projs_fname=tempmrcsname;
 mat2mrc(projs_fname,projs);
 [ v2, v_b2, kernel2,err2,iter2,flag2] = recon3d_firm_outofcore( projs_fname,trueRs,[], 1e-6, 30, zeros(n,n,n));
 log_message('Finished reconstructing density.');
@@ -58,7 +59,7 @@ fprintf('Difference in reconstructed volume = %e \t',err);
 if err<5*eps('single')
     fprintf('OK\n');
 else
-    fprintd('FAILED');
+    fprintf('FAILED');
 end
 
 err=norm(v_b1(:)-v_b2(:))/norm(v_b1(:));
@@ -66,7 +67,7 @@ fprintf('Difference in kernels = %e \t',err);
 if err<5*eps('single')
     fprintf('OK\n');
 else
-    fprintd('FAILED');
+    fprintf('FAILED');
 end
 
 err=norm(err1(:)-err2(:))/norm(err1(:));
@@ -74,5 +75,5 @@ fprintf('Difference in residuals = %e \t',err);
 if err<5*eps('single')
     fprintf('OK\n');
 else
-    fprintd('FAILED');
+    fprintf('FAILED');
 end

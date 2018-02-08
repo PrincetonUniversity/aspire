@@ -20,7 +20,7 @@ function [stack,doflip,signalmean,noisemean]=cryo_globalphaseflip(stack)
 %       noisemean   Mean of the noise in all images
 %
 %   Examples:
-%       stack=ReadMrc('stack.mrc');
+%       stack=ReadMrc('stack.mrcs');
 %       flippedstack=cryo_globalphaseflip(stack);
 %
 % Yoel Shkolnisky, January 2015

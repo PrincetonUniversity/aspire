@@ -10,8 +10,8 @@ clear;
 
 %% Load and display projections
 % The MAT file p100_shifted contains 100 projections of size 65x65. The
-% orientations (given as quaternions) used to generate these projections
-% are stored in the the variable "q". The shift introduced into each
+% orientations (given as rotation matrices) used to generate these projections
+% are stored in the the variable "rots". The shift introduced into each
 % projection is stored in the variable "shifts". The projections were
 % shifted by random integer shifts of up to +/- 5 pixels, with steps of 1
 % pixel.
@@ -25,7 +25,7 @@ viewstack(projections,10,10);   % Display the proejctions.
 
 n_theta=72; % Angular resolution - number of sinograms computed for each 
             % projection. This corresponds to a resolution of 5 degrees.
-[ref_clmatrix,~]=clmatrix_cheat_q(q,n_theta);
+[ref_clmatrix,~]=clmatrix_cheat(rots,n_theta);
 
 %% Compute common lines from projections
 
@@ -59,7 +59,8 @@ fprintf('Percentage of correct common lines: %f%%\n\n',prop*100);
 % The resulting MSE should be small (of the order of 1e-4).
 
 [est_inv_rots] = est_orientations_LS(clstack, n_theta);
-fprintf('MSE of the estimated rotations: %f\n\n',check_MSE(est_inv_rots,q));
+fprintf('MSE of the estimated rotations: %f\n\n', ...
+    check_MSE(est_inv_rots,rots));
 
 
 %% 3D inversion

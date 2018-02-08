@@ -25,9 +25,9 @@ log_message('Map resampled successully');
 
 %% Project map
 Nprojs=1000;  % Number of projections to generate
-q=qrand(Nprojs);  % Generate random orientations for the images
+rots = rand_rots(Nprojs);  % Generate random orientations for the images
 log_message('Generating %d projections of size %dx%d',Nprojs,n,n);
-projs=cryo_project(map,q,n);  % Generate projections of map
+projs=cryo_project(map,rots,n);  % Generate projections of map
 projs=permute(projs,[2,1,3]); % For backward compatability. Will be removed 
                               % in the future.
 log_message('Projections generated successully');                              
@@ -51,8 +51,8 @@ log_message('Noise added successully');
 
 %% Save and display results
 mrcdir=tempmrcdir;
-fname_clean=fullfile(mrcdir,'clean.mrc');
-fname_noisy=fullfile(mrcdir,'noisy.mrc');
+fname_clean=fullfile(mrcdir,'clean.mrcs');
+fname_noisy=fullfile(mrcdir,'noisy.mrcs');
 log_message('Saving clean projections to %s',fname_clean);
 WriteMRC(projs,1,fname_clean);
 log_message('Saving noisy (and shifted) projections to %s',fname_noisy);

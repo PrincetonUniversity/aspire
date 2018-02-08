@@ -8,13 +8,14 @@
 % Yoel Shkolnisky, May 2016.
 
 %% Write many images to disk
+initstate;
 n=65;
 K=10000;
 SNR=1; % Dummay SNR
 blocksize=1000;
 nimages=0;
 hash1=0;
-fname='tmp.mrc';
+fname='tmp.mrcs';
 outstack=imagestackWriter(fname,K,1,102); % Cache size that does not divide K.
 
 

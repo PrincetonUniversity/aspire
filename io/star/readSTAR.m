@@ -1,4 +1,4 @@
-function datablocks=readSTAR(fname)
+function datablocks=readSTAR(fname,verbose)
 % READSTAR  Read data from a file in STAR format.
 % 
 % datablocks=readSTAR(fname)
@@ -24,6 +24,10 @@ function datablocks=readSTAR(fname)
 %
 % Yoel Shkolnisky, July 2014.
 
+if ~exist('verbose','var')
+    verbose=0;
+end
+
 blockidx=0; % Index of the current data block
 datablocks=struct([]);
 loopstate=0; % Are we currently reading a data table?
@@ -48,7 +52,9 @@ if fid<0
     error('Failed to open %s',fname);
 end
 
-printProgressBarHeader;
+if verbose
+    printProgressBarHeader;
+end
 
 tline = fgets(fid); % Read a line form the file
 while ischar(tline)
@@ -56,7 +62,10 @@ while ischar(tline)
 %     if mod(dataidx,1000)==0
 %         disp(dataidx);
 %     end
-    progressTicFor(bytesread,fsize);
+
+    if verbose
+        progressTicFor(bytesread,fsize);
+    end
     
     tline=strtrim(tline);
     if ~isempty(tline) % if empty line. Skip to the next one

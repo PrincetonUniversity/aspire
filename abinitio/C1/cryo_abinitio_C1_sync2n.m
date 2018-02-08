@@ -5,7 +5,7 @@ function cryo_abinitio_C1_sync2n(instack,outvol,outparams,showfigs,...
 % See cryo_abinitio_C1_sync3n for a detailed description of the paramters.
 %
 % Example:
-% cryo_abinitio_C1_sync2n('projs.mrc','vol.mrc','molec.mat')
+% cryo_abinitio_C1_sync2n('projs.mrcs','vol.mrc','molec.mat')
 %
 % Yoel Shkolnisky, March 2017.
 

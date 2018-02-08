@@ -8,7 +8,7 @@ function cryo_prewhiten_outofcore(instackname, outstackname,noise_response )
 %   The function does not load the entire stack into memory.
 %
 % Example:
-%   cryo_prewhiten_outofcore('instack.mrc','outstack.mrc',noise_response);
+%   cryo_prewhiten_outofcore('instack.mrcs','outstack.mrcs',noise_response);
 
 % See cryo_prewhiten for more details.
 %

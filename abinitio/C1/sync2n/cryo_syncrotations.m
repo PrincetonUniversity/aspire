@@ -1,17 +1,17 @@
-function [rotations,diff,mse,O]=cryo_syncrotations(S,refq,verbose)
+function [rotations,diff,mse,O]=cryo_syncrotations(S,rots_ref,verbose)
 %
 % Compute the rotations from the syncronization matrix S.
-% refq (optional) are the quaternions corresponding to the true rotations.
+% rots_ref (optional) are the true rotations.
 %
 % Output parameters:
 %   rotations   3x3xK array where rotations(:,:,k) is the k'th recovered
 %               rotation.
 %   diff        A vector of length K, whose k'th elements is the difference
 %               between the recovered k'th rotations and the true k'th
-%               rotation as given by refq(:,k). The difference is measured
-%               as the Frobenius norm between the k'th recovered matrix and
-%               the k'th true matrix, after registering the recovered
-%               rotations to the true ones.
+%               rotation as given by rots_ref(:,:,k). The difference is
+%               measured as the Frobenius norm between the k'th recovered
+%               matrix and the k'th true matrix, after registering the
+%               recovered rotations to the true ones.
 %   mse         Mean squared error, computed as the mean of the squares of
 %               the array diff.
 %   verbose     Nonzero to print debug messages. Default is 0.
@@ -27,8 +27,8 @@ if ~exist('verbose','var')
 end
 
 ref=0;
-if exist('refq','var')
-    ref=1;  % Reference quaternions are given.
+if exist('rots_ref','var')
+    ref=1;  % Reference rotations are given.
 end
 
 % Check the input 
@@ -171,8 +171,8 @@ if ref
             R2=rotations(:,:,k2);
             R=R1.'*R2;
             
-            R1ref=q_to_rot(refq(:,k1));
-            R2ref=q_to_rot(refq(:,k2));
+            R1ref=rots_ref(:,:,k1);
+            R2ref=rots_ref(:,:,k2);
             inv_R1ref=R1ref.';
             inv_R2ref=R2ref.';
             
@@ -201,7 +201,7 @@ if ref
     for k=1:K
         R=rotations(:,:,k);
         rot(3*(k-1)+1:3*k,:)=R.';
-        Rref=q_to_rot(refq(:,k));
+        Rref=rots_ref(:,:,k);
         rot1(3*(k-1)+1:3*k,:)=Rref;
         rot2(3*(k-1)+1:3*k,:)=J*Rref*J;
     end
@@ -250,7 +250,7 @@ if ref
     mse=0;
     for k=1:K
         R=rotations(:,:,k);
-        Rref=q_to_rot(refq(:,k));
+        Rref=rots_ref(:,:,k);
         if flag==2
             Rref=J*Rref*J;
         end

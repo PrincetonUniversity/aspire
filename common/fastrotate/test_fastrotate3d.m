@@ -10,7 +10,7 @@ vol=cryo_gaussian_phantom_3d('beadY_params',65,1); % Use N=129 to get an error o
 volr=vol;
 % Rotate by 1 degree 360 times and check error.
 figure;
-for k=1:360;
+for k=1:360
     volr=fastrotate3x(volr,1);
     if mod(k,10)==0
         view3d(volr,2.05e-4);        
@@ -32,7 +32,7 @@ vol=cryo_gaussian_phantom_3d('beadX_params',65,1); % Use N=129 to get an error o
 volr=vol;
 % Rotate by 1 degree 360 times and check error.
 figure;
-for k=1:360;
+for k=1:360
     volr=fastrotate3y(volr,1);
     if mod(k,10)==0
         view3d(volr,2.05e-4);        
@@ -53,7 +53,7 @@ vol=cryo_gaussian_phantom_3d('beadZ_params',65,1); % Use N=129 to get an error o
 volr=vol;
 % Rotate by 1 degree 360 times and check error.
 figure;
-for k=1:360;
+for k=1:360
     volr=fastrotate3z(volr,1);
     if mod(k,10)==0
         view3d(volr,2.05e-4);        
@@ -87,8 +87,9 @@ fprintf('Error in rotation: %e\n',err);
 % clearly in the same direction, which means that the function fastrotate3d
 % applies the matrix R to the input volume.
 
+initstate;
 N=65;
-R=q_to_rot(qrand(1));
+R=rand_rots(1);
 
 volx=cryo_gaussian_phantom_3d('beadX_params',N,1);
 volrx=fastrotate3d(volx,R);
@@ -124,7 +125,7 @@ fprintf('err=%e\n',norm(R-Rest,'fro'));
 
 %% Finally, test that rotating th volume back and forth restres the original volume.
 vol=cryo_gaussian_phantom_3d('C1_params',65,1); % Use N=129 for double precision accuracy.
-R=q_to_rot(qrand(1));
+R=rand_rots(1);
 
 [psi,theta,phi]=rot2xyz(R.');
 assert(norm((Rz(phi)*Ry(theta)*Rx(psi))*R-eye(3))<1.0e-13)
