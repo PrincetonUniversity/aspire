@@ -1,4 +1,4 @@
-function projections=cryo_project_2(volume,rot,n,precision,batch_size)
+function projections=cryo_project(volume,rot,n,precision,batch_size)
 %
 % Project the given volume in a direction given by the rotations rot.
 %
