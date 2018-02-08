@@ -30,11 +30,12 @@ params.ampl = ones(size(projections, 3), 1);
 mean_est_opt.max_iter = max_iter;
 mean_est_opt.rel_tolerance = tol;
 mean_est_opt.verbose = false;
+mean_est_opt.precision = 'single';
 
 basis = dirac_basis(size(projections, 1)*ones(1, 3));
 
 tic;
-v2 = cryo_estimate_mean(projections, params, basis, mean_est_opt);
+v2 = cryo_estimate_mean(single(projections), params, basis, mean_est_opt);
 t2 = toc;
 
 fprintf('Reconstruction took %.2f seconds\n', t2);
