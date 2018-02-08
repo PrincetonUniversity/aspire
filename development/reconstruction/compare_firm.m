@@ -17,8 +17,8 @@ f = load(fullfile('projections', 'simulation', 'maps', 'cleanrib.mat'));
 volref = f.volref;
 
 fprintf('Reconstruction took %.2f seconds\n', t1);
-%fprintf('The relative error of reconstruction is %f.\n',...
-    %norm(v1(:)-volref(:))/norm(volref(:)));
+fprintf('The relative error of reconstruction is %f.\n',...
+    norm(v1(:)-volref(:))/norm(volref(:)));
 
 params = struct();
 params.rot_matrices = inv_rotations;
@@ -39,5 +39,5 @@ v2 = cryo_estimate_mean(single(projections), params, basis, mean_est_opt);
 t2 = toc;
 
 fprintf('Reconstruction took %.2f seconds\n', t2);
-%fprintf('The relative error of reconstruction is %f.\n',...
-    %norm(v2(:)-volref(:))/norm(volref(:)));
+fprintf('The relative error of reconstruction is %f.\n',...
+    norm(v2(:)-volref(:))/norm(volref(:)));
