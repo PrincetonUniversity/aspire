@@ -79,6 +79,10 @@ function im_bp = cryo_mean_backproject(im, params, mean_est_opt)
         return;
     end
 
+    if strcmp(mean_est_opt.precision, 'single')
+        im = single(im);
+    end
+
     im = bsxfun(@times, im, reshape(params.ampl, [1 1 n]));
 
     im = im_translate(im, -params.shifts);
