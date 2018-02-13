@@ -1,16 +1,19 @@
 n = 65;
 K = 1000;
 SNR = 1000;
-[projections, ~, ~, rotations] = cryo_gen_projections(n, K, SNR);
+max_shift = 0.1*n;
+shift_step = max_shift/10;
+[projections, ~, shifts, rotations] = cryo_gen_projections(n, K, SNR, ...
+    max_shift, shift_step);
 
 tol = 1e-6;
 max_iter = 1000;
 
 inv_rotations = invert_rots(rotations);
 
-fprintf('Reconstruction from clean centered projections\n');
+fprintf('Reconstruction from clean projections\n');
 tic;
-v1 = recon3d_firm(projections, inv_rotations, [], tol, max_iter, []);
+v1 = recon3d_firm(projections, inv_rotations, -shifts, tol, max_iter, []);
 t1 = toc;
 
 f = load(fullfile('projections', 'simulation', 'maps', 'cleanrib.mat'));
@@ -24,7 +27,7 @@ params = struct();
 params.rot_matrices = inv_rotations;
 params.ctf = ones(size(projections, 1)*ones(1, 2));
 params.ctf_idx = ones(size(projections, 3), 1);
-params.shifts = zeros(2, size(projections, 3));
+params.shifts = shifts.';
 params.ampl = ones(size(projections, 3), 1);
 
 mean_est_opt.max_iter = max_iter;
