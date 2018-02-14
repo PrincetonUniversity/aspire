@@ -38,7 +38,7 @@ function install_sdplr(url, location)
 
 	filepath = fullfile(location, filename);
 
-	if exist(filepath, 'file')
+	if exist(filepath, 'file') && get_file_size(filepath) > 0
 		fprintf('Package exists on disk. Skipping download.\n');
 	else
 		if ~exist(location, 'dir')
@@ -49,6 +49,11 @@ function install_sdplr(url, location)
 			fprintf('Downloading...');
 			urlwrite(url, filepath);
 			fprintf('OK\n');
+
+			if get_file_size(filepath) == 0
+				e = MException('aspire:install_sdplr:DownloadFailed');
+				throw(e);
+			end
 		catch
 			fprintf('Failed.\n');
 			fprintf('Please download the package at the URL\n');
