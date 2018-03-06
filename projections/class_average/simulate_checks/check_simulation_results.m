@@ -1,7 +1,7 @@
 function [ d, error_rot ] = check_simulation_results( class, class_refl, rot, rots_ref )
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
-P=size(q, 2); n_nbor=size(class, 2);
+P=size(rots_ref, 3); n_nbor=size(class, 2);
 %Check class averaging results.
 list=[class(:), repmat([1:P]', n_nbor, 1)];
 d=zeros(P*n_nbor, 1);
