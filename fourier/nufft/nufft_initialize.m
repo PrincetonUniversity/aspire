@@ -44,20 +44,20 @@ function plan = nufft_initialize(sz, num_pts, nufft_opt)
 		NFFT_SORT_NODES = bitshift(uint32(1), 11);
 		FFTW_DESTROY_INPUT = bitshift(uint32(1), 0);
 
-		nfft_flags = 0;
-		nfft_flags = bitor(nfft_flags, PRE_PHI_HUT, 'uint32');
-		nfft_flags = bitor(nfft_flags, PRE_PSI, 'uint32');
-		nfft_flags = bitor(nfft_flags, FFT_OUT_OF_PLACE, 'uint32');
+		nfft_flags = uint32(0);
+		nfft_flags = bitor(nfft_flags, uint32(PRE_PHI_HUT));
+		nfft_flags = bitor(nfft_flags, uint32(PRE_PSI));
+		nfft_flags = bitor(nfft_flags, uint32(FFT_OUT_OF_PLACE));
 
 		if numel(sz) > 1
-			nfft_flags = bitor(nfft_flags, NFFT_SORT_NODES, 'uint32');
+			nfft_flags = bitor(nfft_flags, uint32(NFFT_SORT_NODES));
 			nfft_flags = ...
-				bitor(nfft_flags, NFFT_OMP_BLOCKWISE_ADJOINT, 'uint32');
+				bitor(nfft_flags, uint32(NFFT_OMP_BLOCKWISE_ADJOINT));
 		end
 
 		fftw_flags = uint32(0);
-		fftw_flags = bitor(fftw_flags, FFTW_ESTIMATE, 'uint32');
-		fftw_flags = bitor(fftw_flags, FFTW_DESTROY_INPUT, 'uint32');
+		fftw_flags = bitor(fftw_flags, uint32(FFTW_ESTIMATE));
+		fftw_flags = bitor(fftw_flags, uint32(FFTW_DESTROY_INPUT));
 
 		sz1 = 2*pow2(nextpow2(sz));
 
