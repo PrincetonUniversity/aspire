@@ -65,7 +65,7 @@ function install_finufft(url, location, fftw_location)
 			if get_file_size(filepath) == 0
 				e = MException('aspire:install_finufft:DownloadFailed');
 				throw(e);
-            end
+			end
 		catch
 			fprintf('Failed.\n');
 			fprintf('Please download the package at the URL\n');
