@@ -10,3 +10,5 @@ extern/
 docs/*.log
 docs/*.pdf
 docs/*.aux
+
+tmpdir.cfg
