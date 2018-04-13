@@ -33,7 +33,7 @@
 %    whose columns correspond to the radial frequency q.
 
 % Written by Zhizhen Zhao - 11/25/2014
-% Reformated and documented by Joakim Anden - 2018-Apr-13
+% Reformatted and documented by Joakim Anden - 2018-Apr-13
 
 function basis = Bessel_ns_radial(c, R, r)
 

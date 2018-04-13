@@ -25,7 +25,7 @@
 
 % Written by Greg von Winckel - 02/25/2004
 % Changed by Zhizhen Zhao - 11/25/2014
-% Reformated and documented by Joakim Anden - 2018-Apr-13
+% Reformatted and documented by Joakim Anden - 2018-Apr-13
 
 function [x,w]=lgwt(N,a,b)
     N=N-1;
