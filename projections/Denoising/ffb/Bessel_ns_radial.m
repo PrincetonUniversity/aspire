@@ -10,10 +10,10 @@
 %
 % Output
 %    basis: A struct containing the fields:
-%           - Phi_ns: cell array of Bessel radial functions,
-%           - ang_freqs: angular frequencies,
-%           - rad_freqs: radial frequencies, and
-%           - n_theta: number of samples on concentric rings.
+%          - Phi_ns: cell array of Bessel radial functions,
+%          - ang_freqs: angular frequencies,
+%          - rad_freqs: radial frequencies, and
+%          - n_theta: number of samples on concentric rings.
 %
 % Description
 %    The radial basis functions computed are of the form
