@@ -11,6 +11,11 @@
 %    n: Number of cores available for parallel computing.
 
 function n = num_cores()
+	if isoctave()
+		n = 1;
+		return;
+	end
+
 	v = ver('distcomp');
 	if isempty(v.Version)
 		n = 1;
