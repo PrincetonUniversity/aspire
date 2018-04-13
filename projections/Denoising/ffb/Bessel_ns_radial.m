@@ -21,9 +21,10 @@
 function basis = Bessel_ns_radial(c, R, r)
 
     % Choose functions that R_{k, q+1} \leq \pi N
-    load bessel.mat
-    B = bessel(bessel(:, 4)<= 2*pi*c*R, :);
-    clear bessel
+    f = load(fullfile(aspire_root(), 'projections', 'Denoising', 'ffb', ...
+        'bessel.mat'));
+    B = f.bessel(f.bessel(:, 4)<= 2*pi*c*R, :);
+    clear f;
 
     ang_freqs = B(:, 1);
     max_ang_freqs = max(ang_freqs);
