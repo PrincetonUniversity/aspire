@@ -6,7 +6,7 @@
 % Input
 %    data: A cell array containing the images. Each element is of size
 %       L-by-L-by-n, where each image is L-by-L and there are n of them.
-%    R: The radius of the  disk on which the basis is supported.
+%    R: The radius of the disk on which the basis is supported.
 %    basis: The basis struct, obtained from precomp_fb.
 %    sample_points: The struct describing the quadrature, obtained from
 %        precomp_fb.
