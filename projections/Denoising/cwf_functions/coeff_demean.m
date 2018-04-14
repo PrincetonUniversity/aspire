@@ -23,7 +23,7 @@ end;
 
 clear data;
 
-[coeff ]= FBcoeff_nfft(data2, R, basis, sample_points, num_pool);
+[coeff ]= FBcoeff_nfft(data2, R, basis, sample_points);
 
 
 end

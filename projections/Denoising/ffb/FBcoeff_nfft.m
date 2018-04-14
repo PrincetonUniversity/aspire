@@ -1,7 +1,7 @@
 % FBCOEFF_NFFT Compute Fourier-Bessel expansion of images
 %
 % Usage
-%    coeff_pos_k = FBcoeff_nfft(data, R, basis, sample_points, num_pool);
+%    coeff_pos_k = FBcoeff_nfft(data, R, basis, sample_points)
 %
 % Input
 %    data: A cell array containing the images. Each element is of size
@@ -10,7 +10,6 @@
 %    basis: The basis struct, obtained from precomp_fb.
 %    sample_points: The struct describing the quadrature, obtained from
 %        precomp_fb.
-%    num_pool: The number of cells in the array data.
 %
 % Output
 %    coeff_pos_k: A cell array of the Fourier-Bessel coefficients. Each cell
@@ -31,10 +30,11 @@
 % Written by Zhizhen Zhao - 09/2015
 % Reformatted and documented by Joakim Anden - 2018-Apr-13
 
-function coeff_pos_k = FBcoeff_nfft(data, R, basis, sample_points, num_pool)
+function coeff_pos_k = FBcoeff_nfft(data, R, basis, sample_points)
     % Initial image size
     L = size(data{1}, 1);
     orig = floor(L/2)+1;
+    num_pool = numel(data);
 
     % Read input data
     Phi_ns = basis.Phi_ns;
