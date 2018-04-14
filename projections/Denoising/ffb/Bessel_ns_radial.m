@@ -1,7 +1,7 @@
 % BESSEL_NS_RADIAL Compute Fourier-Bessel basis, positive angular frequencies
 %
 % Usage
-%    basis = Bessel_nr_radial(c, R, r);
+%    basis = Bessel_ns_radial(c, R, r);
 %
 % Input
 %    c: The band limit in frequency.
