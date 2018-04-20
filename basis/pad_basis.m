@@ -17,8 +17,6 @@ function basis = pad_basis(basis, sz)
         error('The number of elements in sz must be the same as basis.sz');
     end
 
-    basis.type = [basis.type '-pad'];
-
     orig_sz = basis.sz;
     basis.sz = sz;
 
