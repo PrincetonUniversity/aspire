@@ -115,6 +115,8 @@ function basis = fourier_bessel_basis(sz, ell_max)
     basis.k_max = k_max;
     basis.r0 = r0;
 
+    basis.indices = fourier_bessel_indices(basis);
+
     basis.precomp = fourier_bessel_precomp(basis);
 
     if isempty(basis.precomp)
@@ -569,4 +571,59 @@ function x = fourier_bessel_expand_t(v, basis)
     x = roll_dim(x, sz_roll);
 
     x = vec_to_vol(x);
+end
+
+function indices = fourier_bessel_indices(basis)
+    indices = struct();
+
+    d = numel(basis.sz);
+
+    if d == 2
+        indices.ells = zeros(basis.count, 1);
+        indices.ks = zeros(basis.count, 1);
+        indices.sgns = zeros(basis.count, 1);
+
+        ind = 1;
+
+        for ell = 0:basis.ell_max
+            if ell == 0
+                sgns = 1;
+            else
+                sgns = [1 -1];
+            end
+
+            ks = 0:basis.k_max(ell+1)-1;
+
+            for sgn = sgns
+                rng = ind:ind+numel(ks)-1;
+
+                indices.ells(rng) = ell;
+                indices.ks(rng) = ks;
+                indices.sgns(rng) = sgn;
+
+                ind = ind + numel(rng);
+            end
+        end
+    elseif d == 3
+        indices.ells = zeros(basis.count, 1);
+        indices.ms = zeros(basis.count, 1);
+        indices.ks = zeros(basis.count, 1);
+
+        ind = 1;
+
+        for ell = 0:basis.ell_max
+            ks = 0:basis.k_max(ell+1)-1;
+            ms = -ell:ell;
+
+            for m = -ell:ell
+                rng = ind:ind+numel(ks)-1;
+
+                indices.ells(rng) = ell;
+                indices.ms(rng) = m;
+                indices.ks(rng) = ks;
+
+                ind = ind+numel(ks);
+            end
+        end
+    end
 end
