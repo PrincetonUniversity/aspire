@@ -101,6 +101,8 @@ function basis = fourier_bessel_basis(sz, ell_max)
 
     basis = struct();
 
+    basis.type = fourier_bessel_basis_type();
+
     basis.sz = sz;
 
     if d == 2
