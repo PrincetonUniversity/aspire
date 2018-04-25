@@ -63,7 +63,7 @@ log_message('Adding noise to images at SNR=%d',SNR)
 log_message('Finished adding noise');
 
 clear g_proj_CTF
-rots_ref = data.rots(:, 1:K);
+rots_ref = data.rots(:,:,1:K);
 L = size(images, 1);
 n_nbor = 10; %number of nearest neighbors for initial classification.
 n_nbor_large=50;
