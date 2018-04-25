@@ -3,6 +3,7 @@ extern/
 .nfs*
 *.mexa64
 *.mrc
+*.mrcs
 *.mat
 *.fig
 *.ofig
