@@ -38,6 +38,7 @@ if exist(fname,'file')==2
 else
     log_message('Dataset not found. Generating...(may take time)');
 	gen_simulation_data;
+    data=load('clean_data.mat');
     log_message('Finished generating data');
 end
 
