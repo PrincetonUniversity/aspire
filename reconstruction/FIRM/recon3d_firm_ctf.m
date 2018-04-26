@@ -12,10 +12,10 @@ function [ v, v_b, kernel ,err, iter, flag] = recon3d_firm_ctf( projections,...
 %
 %   defocusID: record the defocus group each image belongs to, an array of
 %   length n_proj, the indices are in the set {1,2,...,n_d}.
-%
-%   shifts: the translation parameters for the projections. 
 %   
 %   inv_rot_matrices: a stack of inverse rotation matrices, of size 3x3xn_proj.
+%
+%   shifts: the translation parameters for the projections. 
 %
 %   tol     error toleration
 %   max_it  maximun number of iterations

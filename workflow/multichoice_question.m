@@ -7,7 +7,7 @@ end
     
 
 prompt=sprintf('%s(%s',prompt,options{1});
-for k=2:numel(options);
+for k=2:numel(options)
     prompt=sprintf('%s/%s',prompt,options{k});
 end
 prompt=sprintf('%s)',prompt);

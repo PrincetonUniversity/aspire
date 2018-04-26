@@ -7,9 +7,9 @@ function [ v, v_b, kernel ,err, iter, flag] = recon3d_firm( projections,...
 %   n is the size of a projection, and n_proj is the number of the
 %   projections.
 %   
-%   shifts: the translation parameters for the projections. 
-%   
 %   inv_rot_matrices: a stack of inverse rotation matrices, of size 3x3xn_proj.
+%   
+%   shifts: the translation parameters for the projections. 
 %
 %   tol     error toleration
 %   max_it  maximun number of iterations

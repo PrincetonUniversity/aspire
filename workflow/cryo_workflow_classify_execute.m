@@ -50,7 +50,7 @@ for groupid=1:numgroups
     log_message('Finished computing steerable PCA');
 
     matname=fullfile(workflow.info.working_dir,sprintf('VDM_data_%d.mat',groupid));
-    save(matname,'sPCA_data');
+    save(matname,'-v7.3','sPCA_data');
     
     
     log_message('Starting class averaging initial classificaiton');
