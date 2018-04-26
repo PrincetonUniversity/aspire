@@ -17,6 +17,10 @@ function [snr,var_s,var_n]=cryo_estimate_snr(projs,prewhiten)
 % IMPORTANT: All images must be normalized to have the same noise mean and
 % variance, using, e.g., cryo_normalize_background
 %
+% Revision:
+%   April 22, 2018 Y.S. Fix code to use only signal pixels to compute the
+%                       power of the signal.
+%
 % Yoel Shkolnisky, August 2015.
 
 
@@ -39,7 +43,7 @@ I = cart2rad(p);
 mask = zeros(p);
 mask(I<radius_of_mask) = -1;  % Create a mask.
 noise_idx = find(mask~=-1);   % Indices of noise pixels
-
+signal_idx = find(mask == -1); % Indices of signal pixels
 % Compute noise variance from all projections
 %sum_noise=0;    % Sum of all noise pixels;
 %sum_noise_sq=0; % Sum of noise pixels squared
@@ -53,7 +57,7 @@ parfor k=1:size(projs,3)
     noise_vals=current_proj(noise_idx);
 %    sum_noise=sum_noise+sum(noise_vals);
     noise_means(k)=mean(noise_vals);
-    projs_means(k)=mean(current_proj(:));
+    projs_means(k)=mean(current_proj(signal_idx));
 end
 %mean_noise=sum_noise/total_noise_samples; % Noise mean
 %noise_mean=mean(noise_means);
@@ -73,10 +77,10 @@ parfor k=1:size(projs,3)
     % Note that it is incorrect to subtract the mean image, since then the
     % code won't work for a stack consisting of multiple copies of the same
     % image plus noise.
-    projs_sumsq(k)=sum((abs(current_proj(:)-projs_means(k))).^2);
+    projs_sumsq(k)=sum((abs(current_proj(signal_idx)-projs_means(k))).^2);
 end
 var_n=sum(noise_sumsq)/(total_noise_samples-1);
-var_splusn=sum(projs_sumsq)/(numel(projs)-1);
+var_splusn=sum(projs_sumsq)/(numel(signal_idx)*size(projs, 3)-1);
 %var_n=sum_noise_sq/(total_noise_samples-1); % Noise variance
 
 %mean_proj = mean(projs, 3);
