@@ -120,7 +120,7 @@ T = 1e+1;       % Truncation parameter
 %% mask backgrounds so that we may then assume that sigma=1 for all images
 init_avg_image = cryo_mask(init_avg_image);
 % [init_avg_image,init_img_mean_bg,init_img_sd_bg] = my_cryo_normalize_background(init_avg_image);
-[images,mean_bg_ims,sd_bg_ims] = my_cryo_normalize_background(images,floor(im_size/2),0);
+[images,mean_bg_ims,sd_bg_ims] = cryo_normalize_background(images,floor(im_size/2),0);
 
 %% estimate the snr to get a possible range of scales
 snr_est   = cryo_estimate_snr(images);
@@ -263,7 +263,7 @@ if verbose >= 1; log_message('applying a single m-step on original images using 
 im_size_small = size(images,1);
 im_size_orig = size(images_orig,1);
 L_orig = floor(im_size_orig/2); % Image resolution: (2L+1)x(2L+1) samples on a Cartesian grid
-[images_orig,mean_bg_ims_orig,sd_bg_ims_orig] = my_cryo_normalize_background(images_orig);
+[images_orig,mean_bg_ims_orig,sd_bg_ims_orig] = cryo_normalize_background(images_orig);
 
 %% shift each image according to the mode of the shift using the latest posterier array
 
