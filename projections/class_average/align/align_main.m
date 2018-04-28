@@ -1,4 +1,6 @@
-function [ shifts, corr, averagesfname, norm_variance ] = align_main( data, angle, class_VDM, refl, sPCA_data, k, max_shifts, list_recon, tmpdir)
+function [ shifts, corr, averagesfname, averagesEMfname, norm_variance, loglikelihood ] = ...
+    align_main( data, angle, class_VDM, refl, sPCA_data, k, max_shifts,...
+    list_recon, use_EM, gpu_list,tmpdir)
 % Function for aligning images with its k nearest neighbors to generate
 % class averages.
 %   Input: 
@@ -10,6 +12,9 @@ function [ shifts, corr, averagesfname, norm_variance ] = align_main( data, angl
 %       Coeff, Mean, Freqs
 %       k: number of nearest neighbors for class averages
 %       max_shifts: maximum number of pixels to check for shifts
+%       use_EM  Refine averages using EM algorithm.
+%       gpu_list    List of GPUs to use (list of 1-based indices). Pass -1
+%                   to use all. Default: use all GPUs.
 %       tmpdir  temporary folder for intermetidate files. Must be empty.
 %   Output:
 %       shifts: Pxk matrix. Relative shifts for k nearest neighbors
@@ -21,15 +26,29 @@ function [ shifts, corr, averagesfname, norm_variance ] = align_main( data, angl
 % Zhizhen Zhao Feb 2014
 % Tejal Bhamre, 3/2017: Use recon_spca
 % Zhizhen Zhao, shouldn't use recon_spca, too much memory used, should compute on the fly
-P=data.dim(3);
+
+if ~exist('use_EM','var')
+    use_EM=0;
+end
+
+if use_EM
+    if gpuDeviceCount==0
+        error('Using EM for class averaging requires GPU');
+    end
+end
+
+if ~exist('gpu_list','var')
+    gpu_list=-1;
+end
+
+if isscalar(gpu_list)
+    if gpu_list==-1
+        gpu_list=1:gpuDeviceCount;
+    end
+end
+
 L=data.dim(1);
 l=size(class_VDM, 2);
-
-N=floor(L/2);
-[x, y]=meshgrid(-N:N, -N:N);
-r=sqrt(x.^2+y.^2);
-
-r_max = sPCA_data.R;
 
 %Check if the number of nearest neighbors is too large
 if l<k
@@ -71,17 +90,28 @@ if numel(filelist)>2
 end
 
 printProgressBarHeader;
+delete(gcp('nocreate'))
+
+if use_EM
+    ngpus=numel(gpu_list);
+    parpool(ngpus);
+    spmd
+        gpuid=gpu_list(mod(labindex-1,ngpus)+1);
+        gpuDevice(gpuid);
+        fprintf('Assigning worker %d to GPU %d\n',labindex,gpuid);
+    end
+end
+
+EMiters=3;
+loglikelihood=zeros(numel(list_recon),1);
+
 parfor j=1:length(list_recon)
     progressTic(j,length(list_recon));
     
     angle_j=angle(list_recon(j), 1:k); %rotation alignment
- 
-    refl_j=refl(list_recon(j), 1:k);    %reflections
-    
-    index = class_VDM(list_recon(j), 1:k);
-    
-    images=data.getImage(index); % nearest neighbor images
-    
+    refl_j=refl(list_recon(j), 1:k);    %reflections   
+    index = class_VDM(list_recon(j), 1:k);   
+    images=data.getImage(index); % nearest neighbor images   
     image1=data.getImage(list_recon(j));
     
     for i=1:k
@@ -133,19 +163,71 @@ parfor j=1:length(list_recon)
     WriteMRC(average,1, mrcname);    
     shifts(j, :)=-shifts_list(id, 1) - sqrt(-1)*shifts_list(id, 2);
 
+    if use_EM
+        nIters=EMiters;
+        ang_jump=5;
+        max_shift=6;
+        shift_jump=2;
+        nScalesTicks=10;
+        is_debug=0;
+        remove_outliers=1;
+        %[avg_em,log_like,opt_latent]=em_class_avg(images,average,...
+        %    nIters,ang_jump,max_shift,shift_jump,nScalesTicks,is_debug,[]);
+        [avg_em,im_avg_est_orig,log_like,opt_latent,outlier_ims_inds] = ...
+            em_class_avg_updated(images,average,nIters,ang_jump,...
+            max_shift,shift_jump,nScalesTicks,remove_outliers,1,[]);
+%        loglikelihood(j)=mean(log_like(:,EMiters));
+        mrcname=sprintf('average%d_em.mrcs',j);
+        mrcname=fullfile(tmpdir,mrcname);
+        %WriteMRC(avg_em,1, mrcname);    
+        WriteMRC(im_avg_est_orig,1,mrcname);
+        log_message('Written %s',mrcname);
+    end
+
+
+    % Debug. Remove once done.
+    img_name=sprintf('img_%05d.mrcs',list_recon(j));
+    im=zeros(size(image1,1),size(image1,2),4);
+    im(:,:,1)=image1;
+    im(:,:,2)=average;
+    im(1:size(avg_em,1),1:size(avg_em,1),3)=avg_em; % Save the downsampled average
+    im(:,:,4)=im_avg_est_orig;
+    WriteMRC(im,1,img_name);
+    % End debug.
 end
 
 % Merge all averages into a single file.
+log_message('Merging all averages into a single MRCS');
 averagesfname=tempname;
+log_message('Filename: %s',averagesfname);
 [~, averagesfname]=fileparts(averagesfname);
 averagesfname=fullfile(tmpdir,averagesfname);
 stack=imagestackWriter(averagesfname,numel(list_recon),1,100);
+printProgressBarHeader;
 for j=1:length(list_recon)
+    progressTicFor(j,length(list_recon));
     mrcname=sprintf('average%d.mrcs',j);
     mrcname=fullfile(tmpdir,mrcname);
     average = ReadMRC(mrcname);
     stack.append(average);
 end
 stack.close;
+
+log_message('Merging all EM refined averages into a single MRCS');
+averagesEMfname=tempname;
+log_message('Filename: %s',averagesEMfname);
+[~, averagesEMfname]=fileparts(averagesEMfname);
+averagesEMfname=fullfile(tmpdir,averagesEMfname);
+stackEM=imagestackWriter(averagesEMfname,numel(list_recon),1,100);
+printProgressBarHeader;
+for j=1:length(list_recon)
+    progressTicFor(j,length(list_recon));
+    mrcname=sprintf('average%d_em.mrcs',j);
+    mrcname=fullfile(tmpdir,mrcname);
+    averageEM = ReadMRC(mrcname);
+    stackEM.append(averageEM);
+end
+stackEM.close;
+
 
 end
