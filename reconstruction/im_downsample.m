@@ -14,7 +14,7 @@
 %    im_ds: An array of the form N_ds-by-N_ds-by-M consisting of the blurred
 %       and downsampled images.
 
-function im_ds = im_downsample(im, N_ds)
+function im_ds = im_downsample(im, N_ds, filter)
     if nargin < 3 || isempty(filter)
         filter = 'gaussian';
     end

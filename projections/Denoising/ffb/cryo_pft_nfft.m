@@ -1,51 +1,42 @@
-function [ pf ]=cryo_pft_nfft(p, P)
+% CRYO_PFT_NFFT Compute polar Fourier transform
 %
-% Compute the polar Fourier transform of projections with resolution n_r in
-% the radial direction and resolution n_theta in the angular direction.
+% Usage
+%    pf = cryo_pft_nfft(proj, P);
 %
-% If p is a volume, the function computes the polar Fourier transform of
-% each slice in the volume seperately.
+% Input
+%    proj: An array of images of size L-by-L-by-n.
+%    P: The polar Fourier transform specification struct with the fields:
+%           - freqs: The list of frequencies (see pft_freqs),
+%           - n_theta: The number of samples in each concentric circle, and
+%           - n_r: The number of samples in the radial direction.
 %
-% Input parameters:
-%   p          3D array.  p(:,:,k) is projection k.  
-%              Two first dimensions are x and y of the each projection.
-%   P          NFFT plan
-%   P.freqs    frequency list for polar Fourier transform.
-%   P.n_theta  Angular resolution. Number of Fourier rays computed for each
-%              projection.
-%   P.n_r      Number of samples on each radial line.
+% Output
+%    pf: An array of size n_r-by-n_theta-by-n containing the non-uniform
+%       Fourier transform at the frequncies specified by P.freqs.
 %
-% Output parameters:
-%   pf      Polar Fourier transform of the input array. pf is a matrix of
-%           with n_r rows and n_theta columns. Each column corresponds to
-%           a fixed theta. The first column corresponds a theta=0. The
-%           last column corresponds to theta nearest 2*pi. The first row
-%           corresponds to r=0. The lase row correspond to r nearest pi.
-%           If f is a volume with n slices, pf is a volume of size 
-%           n_r x n_theta x n. The third index is the slice number; the
-%           other two are as above.
-%       
-% Zhizhen Zhao, 3/2015.
-% Tejal Bhamre, 3/2017 : Using NFFT wrapper
+% Description
+%    Compute the polar Fourier transform of projections with resolution n_r in
+%    the radial direction and resolution n_theta in the angular direction.
+%
+%    If p is a volume, the function computes the polar Fourier transform of
+%    each slice in the volume separately.
 
+% Written by Zhizhen Zhao - 3/2015.
+% Modified by Tejal Bhamre (use NFFT wrapper) - 3/2017
+% Reformatted and documented by Joakim Anden - 2018-Apr-13
 
-% precomputed interpolation weights once for the give polar grid. This is
-% used below for computing the polar Fourier transform of all slices
+function pf = cryo_pft_nfft(p, P)
+    freqs = P.freqs;
+    M = length(freqs);
 
+    n_theta = P.n_theta;
+    n_r = P.n_r;
+    n_proj = size(p, 3);
+    pf = zeros(M, n_proj);
 
-N1 = P.nL;
-N2 = P.nL;
-N=[N1;N2];
-freqs = P.freqs;
-M = length(freqs);
+    for i = 1:n_proj
+        pf(:,i) = nufft2(p(:,:,i), -freqs'*2*pi);
+    end
 
-n_theta = P.n_theta;
-n_r = P.n_r;
-n_proj = size(p, 3);
-pf=zeros(M, n_proj);
-
-for i = 1:n_proj
-    pf(:,i)=nufft2(p(:,:,i),-freqs'*2*pi);
-end;
-
-pf = reshape(pf, n_r, n_theta, n_proj);
+    pf = reshape(pf, n_r, n_theta, n_proj);
+end

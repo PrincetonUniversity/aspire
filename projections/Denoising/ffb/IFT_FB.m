@@ -1,59 +1,50 @@
-function [ fn ] = IFT_FB(R, c)
+% IFT_FB Compute inverse Fourier transform of the Fourier-Bessel basis
+%
+% Usage
+%    fn = IFT_FB(R, c);
+%
+% Input
+%    R: The radius of the disk on which the basis is supported.
+%    c: The band limit of the basis in frequency.
+%
+% Output
+%    fn: A cell array containing the inverse Fourier transform (IFT) of the
+%       Fourier-Bessel basis. Each cell contains the IFT for a fixed angular
+%       frequency, constituted of 2D images arranged along the third dimension,
+%       which corresponds to the radial frequency. This is similar to the
+%       output of FBcoeff_nfft and recon_images_FB.
 
-%%% Description
-%The function computes the inverse Fourier transform of Fourier-Bessel Basis
-%   This evaluate Bessel radial functions for an image of size
-%   Table bessel.mat gives the R_ns (3rd column) for n (1st column) and s (2nd column)
-% Input:  
-%       1. c: band limit
-%       2. R: compact support radius in real domain
-% Output: 
-%       1. fn: IFT of FB basis, stored in cell structure. cell number corresponds to the angular index.     
-% Zhizhen Zhao 04/2015
+% Written by Zhizhen Zhao - 04/2015
+% Reformatted, documented, and refactored by Joakim Anden - 2018-Apr-13
 
-[ x, y ] = meshgrid(-R:R-1, -R:R-1);
-r = sqrt(x.^2 + y.^2);
-r0 = r;
-r = r(:);
-theta = atan2(y, x);
-theta = theta(:);
-theta = theta(r(:)<=R);
-r = r(r(:)<=R);
+function fn = IFT_FB(R, c)
+    [x, y] = meshgrid(-R:R-1, -R:R-1);
+    r = sqrt(x.^2+y.^2);
+    theta = atan2(y, x);
 
-load bessel.mat
-bessel = bessel(bessel(:, 4)<= 2*pi*c*R, :);
-k_max = max(bessel(:, 1));
-fn = cell(k_max+1,1);
-for i = 1:k_max+1
-    bessel_k = bessel(bessel(:, 1) == i-1, :);
-    l = size(bessel_k, 1);
-    tmp2 = zeros(2*R);
-    tmp3 = zeros(2*R, 2*R, l);
-    for lr = 1:l
-    	Jk = besselj(i-1, 2*pi*c*r(:));
-    	Rkq = bessel_k(lr, 3);
-    	f_r = 2*c*sqrt(pi)*(-sqrt(-1))^(i-1)*(-1)^lr*Rkq*Jk./((2*pi*c*r).^2 - Rkq^2);
-    	f_theta = exp(sqrt(-1)*(i-1)*theta(:));
-    	tmp = f_r.*f_theta;
-        tmp2(r0<=R) = tmp;
-    	tmp3(:, :, lr) = tmp2;
-    end;
-    fn{i} = tmp3;
-end;
+    mask = r(:)<=R;
 
-%for i = 1:k_max
-%    bessel_k = bessel(bessel(:, 1)==i, :);
-%    l = size(bessel_k, 1);
-%    tmp2 = zeros(2*R);
-%    tmp3 = zeros(2*R, 2*R, l);
-%    for lr = 1:l
-%    	Jk = besselj(i, 2*pi*c*r(:));
-%    	Rkq = bessel_k(lr, 3);
-%    	f_r = 2*c*sqrt(pi)*(sqrt(-1))^(i)*(-1)^lr*Rkq*Jk./((2*pi*c*r).^2 - Rkq^2 );
-%        f_theta = exp(-sqrt(-1)*(i)*theta(:));
-%        tmp = f_r.*f_theta;
-%        tmp2(r0<=R) = tmp;
-%        tmp3(:, :, lr) = tmp2;
-%    end;
-%    fn{i+k_max+1} = tmp3;
-%end;
+    theta = theta(mask);
+    r = r(mask);
+
+    f = load(fullfile(aspire_root(), 'projections', 'Denoising', 'ffb', ...
+        'bessel.mat'));
+    bessel = f.bessel(f.bessel(:,4)<=2*pi*c*R,:);
+    k_max = max(bessel(:,1));
+
+    fn = cell(k_max+1, 1);
+    for i = 1:k_max+1
+        bessel_k = bessel(bessel(:,1)==(i-1),:);
+        l = size(bessel_k, 1);
+        fn_i = zeros((2*R)^2, l);
+        for lr = 1:l
+            Jk = besselj(i-1, 2*pi*c*r);
+            Rkq = bessel_k(lr, 3);
+            f_r = Jk./((2*pi*c*r).^2-Rkq^2);
+            f_r = 2*c*sqrt(pi)*(-1i)^(i-1)*(-1)^lr*Rkq*f_r;
+            f_theta = exp(1i*(i-1)*theta);
+            fn_i(mask,lr) = f_theta.*f_r;
+        end
+        fn{i} = reshape(fn_i, [2*R*ones(1, 2) l]);
+    end
+end

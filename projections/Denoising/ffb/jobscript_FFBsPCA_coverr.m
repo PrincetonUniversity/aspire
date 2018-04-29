@@ -32,7 +32,7 @@ for i = remain+1:num_pool
 end; 
 clear data;
 tic_start = tic;
-[coeff ]= FBcoeff_nfft(data2, R, basis, sample_points, num_pool);
+[coeff ]= FBcoeff_nfft(data2, R, basis, sample_points);
 toc_FBcoeff = toc(tic_start);
 tic_start2 = tic;
 [ U, D, sPCA_coeff, mean_coeff, C_fb, err_cov ] = sPCA_whole_coverr(tr_coeff, coeff, basis, noise_variance);

@@ -116,9 +116,9 @@ function install_cims_nufft(url, location, force_compile)
 			error('Compilation of Fortran files failed!');
 		end
 
-		mex nufft1d.c nufft1df90.o dirft1d.o dfftpack.o next235.o
-		mex nufft2d.c nufft2df90.o dirft2d.o dfftpack.o next235.o
-		mex nufft3d.c nufft3df90.o dirft3d.o dfftpack.o next235.o
+		mex nufft1d.c nufft1df90.o dirft1d.o dfftpack.o next235.o -lgfortran
+		mex nufft2d.c nufft2df90.o dirft2d.o dfftpack.o next235.o -lgfortran
+		mex nufft3d.c nufft3df90.o dirft3d.o dfftpack.o next235.o -lgfortran
 
 		system('rm *.o');
 

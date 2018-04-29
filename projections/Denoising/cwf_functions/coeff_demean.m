@@ -1,30 +1,31 @@
-function [ coeff ] = coeff_demean( data, R, basis, sample_points, num_pool )
+% COEFF_DEMEAN Compute Fourier-Bessel coefficients for images
+%
+% Usage
+%    coeff = coeff_demean(data, R, basis, sample_points, num_pool);
+%
+% Input
+%    data: Array of size L-by-L-by-n containing images.
+%    R: The radius of the disk on which the basis is supported.
+%    basis: The basis struct, obtained from precomp_fb.
+%    sample_points: The struct describing the quadrature, obtained from
+%        precomp_fb.
+%    num_pool: The number of parallel workers to use.
+%
+% Output
+%    coeff: The Fourier-Bessel coefficients in the same format as given by
+%       FBcoeff_nfft.
 
-% Compute Fb coefficients for images after mean subtraction
-% data: Image stack (real space)
-% basis: precomputed basis functions
-% num_pool: Number of workers
-% sample_points: Quadrature points
-% Tejal: updated Oct 2015, Based on Jane's FFB code
+% Written by Tejal Bhamre based on Jane's FFB code - Oct 2015
+% Reformatted, documented, and refactored by Joakim Anden - 2018-Apr-13
 
-n = size(data, 3);
-data2 = cell(num_pool, 1);
-nb = floor(n/num_pool);
-remain = n - nb*num_pool;
+function coeff = coeff_demean(data, R, basis, sample_points, num_pool)
+    n = size(data, 3);
+    nb = floor(n/num_pool);
+    remain = n - nb*num_pool;
 
-for i = 1:remain
-    data2{i} = data(:, :,(nb+1)*(i-1)+1: (nb+1)*i);
-end;
+    partition = [(nb+1)*ones(1, remain) nb*ones(1, num_pool-remain)];
 
-count = (nb+1)*remain;
-for i = remain+1:num_pool
-    data2{i} = data(:, :, count + (i-remain-1)*nb+1: count + (i-remain)*nb);
-end;
+    data = mat2cell(data, size(data, 1), size(data, 2), partition);
 
-clear data;
-
-[coeff ]= FBcoeff_nfft(data2, R, basis, sample_points, num_pool);
-
-
+    coeff = FBcoeff_nfft(data, R, basis, sample_points);
 end
-

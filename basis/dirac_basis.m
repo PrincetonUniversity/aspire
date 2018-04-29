@@ -39,7 +39,7 @@ function basis = dirac_basis(sz, mask)
 
     basis = struct();
 
-    basis.type = 'dirac';
+    basis.type = dirac_basis_type();
 
     basis.sz = sz;
     basis.count = sum(mask(:));

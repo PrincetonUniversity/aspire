@@ -29,7 +29,7 @@ for i = remain+1:num_pool
 end; 
 clear data;
 tic_start = tic;
-[coeff ]= FBcoeff_nfft(data2, R, basis, sample_points, num_pool);
+[coeff ]= FBcoeff_nfft(data2, R, basis, sample_points);
 disp('Finished computing Fourier Bessel coefficients')
 toc_FBcoeff = toc(tic_start);
 tic_start2 = tic;
