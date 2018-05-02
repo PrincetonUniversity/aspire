@@ -3,7 +3,7 @@ function cryo_abinitio_Cn_ml_execute(n_symm,mrc_stack_file,recon_mrc_fname,cache
 
 
 [folder_recon_mrc_fname, ~, ~] = fileparts(recon_mrc_fname);
-if exist(folder_recon_mrc_fname,'file') ~= 7
+if ~isempty(folder_recon_mrc_fname)  && exist(folder_recon_mrc_fname,'file') ~= 7
     error('folder %s does not exist. Please create it first.\n', folder_recon_mrc_fname);
 end
 
