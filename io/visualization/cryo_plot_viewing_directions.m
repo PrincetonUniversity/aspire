@@ -33,7 +33,8 @@ folded_phis=phis;
 idx=find(folded_phis>90);
 folded_phis(idx)=180-folded_phis(idx);
 assert(all(folded_phis<=90))
-thetas(idx)=mod(thetas(idx)+180,180);
+thetas(idx)=thetas(idx)+180;  % Flip the thetas whose view direction was fliiped.
+thetas=mod(thetas+360,360); % Map to [0,360).
 
 % Colors in the maps will be propotional to the density.
 den=ksden(viewingdirs,0.2);
