@@ -1,12 +1,17 @@
-function cryo_workflow_abinitio_Cn_ml_execute2(n_symm,cache_file_name,mrc_stack_file,recon_mrc_fname,first_image_ind,last_image_ind,recon_mat_fname,...
+function cryo_workflow_abinitio_Cn_ml_execute2(n_symm,mrc_stack_file,recon_mrc_fname,cache_file_name,recon_mat_fname,...
     do_downsample,downsample_size,n_r_perc,max_shift_perc,shift_step,mask_radius_perc,do_handle_equators,inplane_rot_res)
 
-% if ~exist('first_image_ind','var')
-%     first_image_ind = 1;
-% end
-% if ~exist('last_image_ind','var')
-%    error('need to implement to be the number rof images in mrc file');
-% end
+if ~exist('cache_file_name','var')
+    n_Points_sphere = 100;
+    n_theta = 360;
+    inplane_rot_res = 1;
+    [folder, ~, ~] = fileparts(recon_mrc_fname);
+    cache_dir_full_path = folder;
+    log_message('Creating cache file under folder: %s',cache_dir_full_path);
+    log_message('#points on sphere=%d, n_theta=%d, inplane_rot_res=%d',n_Points_sphere,n_theta,inplane_rot_res);
+    cache_file_name  = cryo_Cn_ml_create_cache_mat(cache_dir_full_path,n_Points_sphere,n_theta,inplane_rot_res);
+end
+
 if ~exist('recon_mat_fname','var')
     do_save_res_to_mat = false;
 else
@@ -47,11 +52,11 @@ initstate;
 
 log_message('symmetry class is C%d',n_symm);
 
-nImages = last_image_ind - first_image_ind + 1;
 % Load projections
 log_message('Loading mrc image stack file:%s. Plese be patient...', mrc_stack_file);
-log_message('Loading %d images, starting from image index %d',nImages,first_image_ind);
-projs = ReadMRC(mrc_stack_file,first_image_ind,nImages);
+% log_message('Loading %d images, starting from image index %d',nImages,first_image_ind);
+projs = ReadMRC(mrc_stack_file,1,100);
+nImages = size(projs,3);
 log_message('done loading mrc image stack file');
 log_message('projections loaded. Using %d projections of size %d x %d',nImages,size(projs,1),size(projs,2));
 
