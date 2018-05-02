@@ -37,6 +37,7 @@ for k=1:nImages
     end
 end
 
+log_message('Estimating shifts');
 [dxCn,~] = cryo_estimate_shifts(pfCn,RsCn,ceil(2*sqrt(2)*max_shift),shift_step,10000,[],0);
 
 n = size(projs,1);
@@ -47,6 +48,7 @@ for i=1:n_symm
 %     projsCn(:,:,i) = projs;
 end
 
+log_message('Using FIRM to reconstruct');
 [ v1, ~, ~ ,~, ~, ~] = recon3d_firm( projsCn,RsCn,-dxCn, 1e-6, 100, zeros(n,n,n));
 ii1=norm(imag(v1(:)))/norm(v1(:));
 log_message('Relative norm of imaginary components = %e\n',ii1);

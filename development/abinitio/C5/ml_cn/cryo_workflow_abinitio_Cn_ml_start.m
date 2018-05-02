@@ -149,7 +149,6 @@ worflow_do_handle_equators = multichoice_question('handle equator images',{'Y','
 workflow_inplane_rot_res = 1; % need not be equal to the one used to build the cache
 log_message('using inplane rotation resolution of %d degrees', workflow_inplane_rot_res);
 
-
 recon_fname = sprintf('%s_c%d_ims%dto%d',workflow_name,workflow_n_symm,workflow_first_image_ind,workflow_last_image_ind);
 recon_mrc_fname = strcat(recon_fname,'.mrc');
 workflow_recon_mrc_fname = fullfile(workflow.info.working_dir,recon_mrc_fname);

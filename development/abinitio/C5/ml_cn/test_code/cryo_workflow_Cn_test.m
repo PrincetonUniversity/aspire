@@ -24,7 +24,7 @@ proj_size = str2double(workflow.algo.image_size);
 max_shift = ceil(proj_size*str2double(workflow.algo.max_shift_perc)/100);
 shift_step = str2double(workflow.algo.shift_step);
 
-[projs,refq,~,~] = generate_cn_images(n_symm,n_images,snr,65,'C1_Eytan',max_shift,shift_step);
+[projs,refq,~,~] = generate_cn_images(n_symm,n_images,snr,proj_size,'C1_Eytan',max_shift,shift_step);
 
 [projs,refq] = remove_eq_images(projs,refq);
 n_images = size(refq,2);
@@ -99,6 +99,9 @@ if ~exist(workflow_dir,'dir') % Do we need to create directory?
     do_create = multichoice_question(message,{'Y','N'},[ 1, 0],'Y');
     if do_create == 1
         mkdir(workflow_dir);
+    else
+        fprintf('Aborting...\n');
+        return;
     end
 else % Check if directory empty
     listing = dir(workflow_dir);

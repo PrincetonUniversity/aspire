@@ -1,6 +1,12 @@
 function cryo_abinitio_Cn_ml_execute(n_symm,mrc_stack_file,recon_mrc_fname,cache_file_name,recon_mat_fname,...
     do_downsample,downsample_size,n_r_perc,max_shift_perc,shift_step,mask_radius_perc,do_handle_equators,inplane_rot_res)
 
+
+[folder_recon_mrc_fname, ~, ~] = fileparts(recon_mrc_fname);
+if exist(folder_recon_mrc_fname,'file') ~= 7
+    error('folder %s does not exist. Please create it first.\n', folder_recon_mrc_fname);
+end
+
 if ~exist('cache_file_name','var')
     log_message('Cache file not supplied.');
     n_Points_sphere = 1000;
@@ -33,7 +39,7 @@ if ~exist('n_r_perc','var')
     n_r_perc = 50;
 end
 if ~exist('max_shift_perc','var')
-    max_shift_perc = 0;
+    max_shift_perc = 15;
 end
 if ~exist('shift_step','var')
     shift_step = 0.5;
@@ -78,6 +84,13 @@ mask_radius = ceil(size(projs,1)*mask_radius_perc/100);
 if mask_radius > 0
     log_message('Masking projections. Masking radius is %d pixels',mask_radius);
     masked_projs = mask_fuzzy(projs, mask_radius);
+else
+    masked_projs = projs;
+end
+
+if do_save_res_to_mat
+    log_message('Saving masked_projs under: %s', recon_mat_fname);
+    save(recon_mat_fname,'masked_projs');
 end
 
 n_r = ceil(size(projs,1)*n_r_perc/100);
@@ -95,7 +108,7 @@ log_message('Shift step is %d pixels',shift_step);
 
 if do_save_res_to_mat
     log_message('Saving third rows outer prods under: %s', recon_mat_fname);
-    save(recon_mat_fname,'vijs','viis');
+    save(recon_mat_fname,'vijs','viis','-append');
 end
 % [vijs,viis,max_corrs_stats] = compute_third_row_outer_prod_both(npf,ciis,cijs,Ris_tilde,R_theta_ijs,max_shift,shift_step,is_handle_equators);
 
@@ -103,7 +116,7 @@ vijs = mat2flat(vijs,nImages);
 [vijs,viis] = global_sync_J(vijs,viis);
 if do_save_res_to_mat
     log_message('Saving third rows outer prods under: %s', recon_mat_fname);
-    save(recon_mat_fname,'vijs','viis');
+    save(recon_mat_fname,'vijs','viis','-append');
 end
 % 
 vis  = estimate_third_rows_ml(vijs,viis);
