@@ -1,7 +1,8 @@
-function cryo_workflow_abinitio_Cn_ml_execute2(n_symm,mrc_stack_file,recon_mrc_fname,cache_file_name,recon_mat_fname,...
+function cryo_abinitio_Cn_ml_execute(n_symm,mrc_stack_file,recon_mrc_fname,cache_file_name,recon_mat_fname,...
     do_downsample,downsample_size,n_r_perc,max_shift_perc,shift_step,mask_radius_perc,do_handle_equators,inplane_rot_res)
 
 if ~exist('cache_file_name','var')
+    log_message('Cache file not supplied.');
     n_Points_sphere = 1000;
     n_theta = 360;
     inplane_rot_res = 1;
