@@ -2,7 +2,7 @@ function cryo_workflow_abinitio_Cn_ml_execute2(n_symm,mrc_stack_file,recon_mrc_f
     do_downsample,downsample_size,n_r_perc,max_shift_perc,shift_step,mask_radius_perc,do_handle_equators,inplane_rot_res)
 
 if ~exist('cache_file_name','var')
-    n_Points_sphere = 100;
+    n_Points_sphere = 1000;
     n_theta = 360;
     inplane_rot_res = 1;
     [folder, ~, ~] = fileparts(recon_mrc_fname);
@@ -55,7 +55,7 @@ log_message('symmetry class is C%d',n_symm);
 % Load projections
 log_message('Loading mrc image stack file:%s. Plese be patient...', mrc_stack_file);
 % log_message('Loading %d images, starting from image index %d',nImages,first_image_ind);
-projs = ReadMRC(mrc_stack_file,1,100);
+projs = ReadMRC(mrc_stack_file);
 nImages = size(projs,3);
 log_message('done loading mrc image stack file');
 log_message('projections loaded. Using %d projections of size %d x %d',nImages,size(projs,1),size(projs,2));
