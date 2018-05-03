@@ -1,5 +1,5 @@
 function cryo_abinitio_C4(instack,outvol,outparams,...
-    n_projs,n_theta,n_r,max_shift,shift_step)
+    n_images,n_theta,n_r,max_shift,shift_step)
 % CRYO_ABINITO_C4  abinitio reconsturction of a c4 symmetric molecule
 %
 % Parameters
@@ -13,7 +13,7 @@ function cryo_abinitio_C4(instack,outvol,outparams,...
 %               analysis of the results.
 %   ntheta      (Optional) Angular resolution for common lines detection.
 %               Default 360. 
-%   n_projs     (Optional) Number of projections to use from 'instack'. -1
+%   n_images     (Optional) Number of projections to use from 'instack'. -1
 %               means to use all projections. Default: -1 (all projections)
 %   n_r         (Optional) Radial resolution for common line detection.
 %               Default is half the width of the images.
@@ -32,10 +32,10 @@ if ~exist('n_theta','var')
     n_theta = 360;
 end
 
-if ~exist('n_projs','var')
-    n_projs_given = false;
+if ~exist('n_images','var')
+    n_images_given = false;
 else
-    n_projs_given = true;
+    n_images_given = true;
 end
 
 if ~exist('n_r','var')
@@ -61,53 +61,39 @@ end
 % 
 % if n_projs_given
 %     if n_projs == -1
-%         nImages = size(projs,3);
+%         n_images = size(projs,3);
 %     elseif n_projs <= 0 
 %         error('n_projs must be either positive number, or -1 for using all images');
 %     else
 %         assert(n_projs <= size(projs,3));
-%         nImages = n_projs;
+%         n_images = n_projs;
 %     end
 % else % not provided as a parameter so use everything
-%     nImages = size(projs,3);
+%     n_images = size(projs,3);
 % end
 % 
-% im_indeces = randperm(size(projs,3),nImages);
+% im_indeces = randperm(size(projs,3),n_images);
 % save(outparams,'im_indeces');
 % 
 % projs = projs(:,:,im_indeces);
-% assert(size(projs,3) == nImages);
+% assert(size(projs,3) == n_images);
 % 
-
-log_message('***************************************');
-log_message('***************************************');
-log_message('***************************************');
-nImages = n_projs;
-log_message('SAMPLING %d IMAGES',nImages);
-sz = size(ReadMRC(instack,1,1),1);
-projs = zeros(sz,sz,nImages);
-im_indeces  = randperm(40000,nImages);
-im_indeces  = sort(im_indeces);
-save(outparams,'im_indeces');
-
-stack = imagestackReader(instack);
-msg = [];
-for k=1:nImages
-    t1 = clock;
-    ind = im_indeces(k);
-    projs(:,:,k) = stack.getImage(ind);
-       
-    %%%%%%%%%%%%%%%%%%% debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    t2 = clock;
-    t = etime(t2,t1);
-    bs = char(repmat(8,1,numel(msg)));
-    fprintf('%s',bs);
-    msg = sprintf('k=%3d/%3d  t=%7.5f',k,nImages,t);
-    fprintf('%s',msg);
-    %%%%%%%%%%%%%%%%%%% end of debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if n_images_given
+    projs = ReadMRC(instack,1,n_images);
+else
+    projs = ReadMRC(instack,1);
+    n_images = size(projs);
 end
+log_message('Read %d IMAGES',n_images);
 
-log_message('projections loaded. Using %d projections of size %d x %d',nImages,size(projs,1),size(projs,2));
+% sz = size(ReadMRC(instack,1,1),1);
+% projs = zeros(sz,sz,n_images);
+% im_indeces  = randperm(40000,n_images);
+% im_indeces  = sort(im_indeces);
+% save(outparams,'im_indeces');
+% projs = get_ims_from_stack(instack,im_indeces);
+
+log_message('projections loaded. Using %d projections of size %d x %d',n_images,size(projs,1),size(projs,2));
 if size(projs,1)~=size(projs,2)
     error('Input images must be square');
 end
@@ -136,7 +122,7 @@ if ~max_shift_given
     max_shift = ceil(size(projs,1)*0.15); % max_shift is 15% of the image size
 end
 log_message('detecting common-lines');
-clmatrix = cryo_clmatrix(npf,nImages,1,max_shift,shift_step); 
+clmatrix = cryo_clmatrix(npf,n_images,1,max_shift,shift_step); 
 save(outparams,'clmatrix','max_shift','shift_step','-append');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 3  : detect self-common-lines in each image
