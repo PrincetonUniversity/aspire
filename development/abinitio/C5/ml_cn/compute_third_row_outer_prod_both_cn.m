@@ -322,7 +322,7 @@ if exist('refq','var') && ~isempty(refq)
     % correctly. put inf in lower part of matrix since these are all zeros
     bad_inds = find((is_correct + tril(inf*ones(nImages,nImages)))== 0);
     
-    figure; hist(rel_rot_angles(bad_inds)); title('histogram of angles between image planes whose common-lines were miss-detected');
+%     figure; hist(rel_rot_angles(bad_inds)); title('histogram of angles between image planes whose common-lines were miss-detected');
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % visualize those pair of images whose common-lines were not found and
     % the angle between the planes is not small%%%%%%%%%%%%%%%%%%%%%%%%%%%%

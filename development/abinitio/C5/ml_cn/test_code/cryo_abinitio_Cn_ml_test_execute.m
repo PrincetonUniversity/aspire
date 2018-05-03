@@ -1,6 +1,57 @@
 function [err_in_degrees,mse] = cryo_abinitio_Cn_ml_test_execute(n_symm,recon_mrc_fname,cache_file_name,snr,n_images,...
     n_r_perc,max_shift_perc,shift_step,mask_radius_perc,do_handle_equators,inplane_rot_res)
 
+[folder_recon_mrc_fname, ~, ~] = fileparts(recon_mrc_fname);
+if ~isempty(folder_recon_mrc_fname)  && exist(folder_recon_mrc_fname,'file') ~= 7
+    error('Folder %s does not exist. Please create it first.\n', folder_recon_mrc_fname);
+end
+
+if ~exist('cache_file_name','var')
+    log_message('Cache file not supplied.');
+    n_Points_sphere = 1000;
+    n_theta = 360;
+    inplane_rot_res = 1;
+    [folder, ~, ~] = fileparts(recon_mrc_fname);
+    cache_dir_full_path = folder;
+    log_message('Creating cache file under folder: %s',cache_dir_full_path);
+    log_message('#points on sphere=%d, n_theta=%d, inplane_rot_res=%d',n_Points_sphere,n_theta,inplane_rot_res);
+    cache_file_name  = cryo_Cn_ml_create_cache_mat(cache_dir_full_path,n_Points_sphere,n_theta,inplane_rot_res);
+end
+
+
+if ~exist('snr','var')
+    snr = 10000000;
+    log_message('snr not specified. Using %.2e\n',snr);
+end
+
+if ~exist('n_images','var')
+    n_images = 100;
+    log_message('n_images not specified. Using %d\n',n_images);
+end
+
+if ~exist('n_r_perc','var')
+    n_r_perc = 50;
+end
+if ~exist('max_shift_perc','var')
+    max_shift_perc = 15;
+end
+if ~exist('shift_step','var')
+    shift_step = 0.5;
+end
+if ~exist('mask_radius_perc','var')
+    mask_radius_perc = 70;
+    
+end
+if ~exist('do_handle_equators','var')
+    do_handle_equators = false;
+end
+
+if ~exist('inplane_rot_res','var')
+    inplane_rot_res = 1;
+end
+
+initstate;
+
 % open_log(fullfile(workflow.info.working_dir, workflow.info.logfile));
 proj_size = 65;
 max_shift = ceil(proj_size*max_shift_perc/100);
