@@ -40,7 +40,7 @@ if snr <= 1
     
 else
     masked_projs = projs;
-    log_message('SNR=%.2f is greater than 1. Not performing mask', snr);
+    log_message('SNR=%.2e is greater than 1. Not performing mask', snr);
 end
 
 precision = 'double';
@@ -51,7 +51,7 @@ if snr <= 1
     log_message('Guass filtering the images');
     npf = gaussian_filter_imgs(npf);
 else
-    log_message('SNR=%.2f is greater than 1. Not performing gauss filtering', snr);
+    log_message('SNR=%.2e is greater than 1. Not performing gauss filtering', snr);
 end
 
 log_message('computing self common-line indeces for all candidate viewing directions');
