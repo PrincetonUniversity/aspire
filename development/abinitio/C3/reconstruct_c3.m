@@ -1,4 +1,4 @@
-function vol = reconstruct(projs,rots,n_r,n_theta,max_shift,shift_step)
+function vol = reconstruct_c3(projs,rots,n_r,n_theta,max_shift,shift_step)
 
 if ~exist('shift_step','var')
     shift_step = 0.5;

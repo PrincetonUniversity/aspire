@@ -1,4 +1,4 @@
-function [rots,in_plane_rots] = estimate_inplane_rotations2(npf,vis,inplane_rot_res,max_shift,shift_step)
+function [rots,in_plane_rots] = estimate_inplane_rotations2_c3(npf,vis,inplane_rot_res,max_shift,shift_step)
 %
 % General description
 % 

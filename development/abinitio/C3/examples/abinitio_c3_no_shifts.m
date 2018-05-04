@@ -28,17 +28,17 @@ n_r     = 89;  % number of radial points in every radial line
 max_shift  = 0; % number of shifts to consider
 shift_step = 0.5; % the shift step (see Yoel's technical report)
 clmatrix = cryo_clmatrix_gpu(npf,size(npf,3),1,max_shift,shift_step); 
-cl_detection_rate(clmatrix,n_theta,refq);
+cl_detection_rate_c3(clmatrix,n_theta,refq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 3  : detect self-common-lines in each image
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-sclmatrix = cryo_self_clmatrix_gpu(npf,max_shift,shift_step,refq);
+sclmatrix = cryo_self_clmatrix_gpu_c3(npf,max_shift,shift_step,refq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 4  : calculate self-relative-rotations
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Riis = estimate_all_Riis(sclmatrix,n_theta,refq);
+Riis = estimate_all_Riis_c3(sclmatrix,n_theta,refq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 5  : calculate relative-rotations
@@ -51,7 +51,7 @@ Rijs = cryo_c3_estimate_all_Rijs(clmatrix,n_theta,refq);
 is_remove_non_rank1 = true;
 non_rank1_remov_percent = 0.25;
 [vijs,viis,im_inds_to_remove,pairwise_inds_to_remove,...
-    npf,projs,refq] = local_sync_J(Rijs,Riis,npf,...
+    npf,projs,refq] = local_sync_J_c3(Rijs,Riis,npf,...
                                 projs,is_remove_non_rank1,non_rank1_remov_percent,refq);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 7  : outer J-synchronization
@@ -67,16 +67,16 @@ vis  = estimate_third_rows(vijs,viis);
 % step 9  : in-plane rotations angles estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 inplane_rot_res = 1;
-[rots,in_plane_rotations] = estimate_inplane_rotations2(npf,vis,inplane_rot_res,max_shift,shift_step);
+[rots,in_plane_rotations] = estimate_inplane_rotations2_c3(npf,vis,inplane_rot_res,max_shift,shift_step);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 10  : Results Analysis
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[rot_alligned,err_in_degrees,mse] = analyze_results(rots,n_theta,refq);
+[rot_alligned,err_in_degrees,mse] = analyze_results_c3(rots,n_theta,refq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 11  : Reconstructing volume
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-estimatedVol = reconstruct(projs,rot_alligned,n_r,n_theta,max_shift,shift_step);   
+estimatedVol = reconstruct_c3(projs,rot_alligned,n_r,n_theta,max_shift,shift_step);   
 
 WriteMRC(estimatedVol,1,'example1_no_shifts.mrc');

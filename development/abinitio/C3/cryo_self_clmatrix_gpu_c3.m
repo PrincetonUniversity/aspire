@@ -1,4 +1,4 @@
-function [sclmatrix,correlations,shifts] = cryo_self_clmatrix_gpu(npf,max_shift,shift_step,refq)
+function [sclmatrix,correlations,shifts] = cryo_self_clmatrix_gpu_c3(npf,max_shift,shift_step,refq)
 % Input parameters:
 %   npf                     A 3D array where each image npf(:,:,i) corresponds to the Fourier
 %                           transform of projection i.

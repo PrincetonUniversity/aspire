@@ -1,4 +1,4 @@
-function Riis = estimate_all_Riis(self_cls,n_theta,refq)
+function Riis = estimate_all_Riis_c3(self_cls,n_theta,refq)
 %
 % Finds the estimates for the self relative rotation matrices.
 % Each estimate Rii is a rotation matrix that corresponds to either 

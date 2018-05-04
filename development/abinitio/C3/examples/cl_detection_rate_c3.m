@@ -1,4 +1,4 @@
-function [detec_rate,clmatrix_correct] = cl_detection_rate(clmatrix,n_theta,refq)
+function [detec_rate,clmatrix_correct] = cl_detection_rate_c3(clmatrix,n_theta,refq)
 %
 % Checks the detection rate of common-lines between 
 % images of a c4 symmetric molecule which is invariant to handedness ambiguity. 

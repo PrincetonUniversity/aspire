@@ -1,4 +1,4 @@
-function [rot_alligned,err_in_degrees,mse] = analyze_results(rots,n_theta,refq)
+function [rot_alligned,err_in_degrees,mse] = analyze_results_c3(rots,n_theta,refq)
 
 [mse, rot_alligned, sign_g_Ri] = check_rotations_error(rots,refq);
 log_message('MSE of rotations estimate: %e',mse);

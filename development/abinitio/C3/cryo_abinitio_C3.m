@@ -23,7 +23,7 @@ function cryo_abinitio_C3(instack,outvol,outparams,...
 %               that shift_step can be any positive real number. Default:1. 
 %
 % Example:
-% cryo_abinitio_C4('/mnt/ix2/backup/datasets/10005/output/averages_nn100_group1.mrc','vol.mrc','molec_c4.mat')
+% cryo_abinitio_C3('/mnt/ix2/backup/datasets/10005/output/averages_nn100_group1.mrc','vol.mrc','molec_c4.mat')
 %
 
 % Check input and set default parameters
@@ -112,12 +112,12 @@ save(outparams,'clmatrix','max_shift','shift_step','-append');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 3  : detect self-common-lines in each image
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-sclmatrix = cryo_self_clmatrix_gpu(npf,max_shift,shift_step);
+sclmatrix = cryo_self_clmatrix_gpu_c3(npf,max_shift,shift_step);
 save(outparams,'sclmatrix','-append');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 4  : calculate self-relative-rotations
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Riis = estimate_all_Riis(sclmatrix,n_theta);
+Riis = estimate_all_Riis_c3(sclmatrix,n_theta);
 save(outparams,'Riis','-append');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 5  : calculate relative-rotations
@@ -128,7 +128,7 @@ save(outparams,'Rijs','-append');
 % step 6  : inner J-synchronization
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 [vijs,viis,im_inds_to_remove,pairwise_inds_to_remove,...
-    npf,projs] = local_sync_J(Rijs,Riis,npf,projs);
+    npf,projs] = local_sync_J_c3(Rijs,Riis,npf,projs);
 save(outparams,'vijs','viis','im_inds_to_remove','pairwise_inds_to_remove','-append');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 7  : outer J-synchronization
@@ -143,10 +143,10 @@ save(outparams,'vis','-append');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 9  : in-plane rotations angles estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-rots = estimate_inplane_rotations2(npf,vis,1,max_shift,shift_step);
+rots = estimate_inplane_rotations2_c3(npf,vis,1,max_shift,shift_step);
 save(outparams,'rots','-append');
 
-estimatedVol = reconstruct(projs,rots,n_r,n_theta);   
+estimatedVol = reconstruct_c3(projs,rots,n_r,n_theta);   
 WriteMRC(estimatedVol,1,outvol);
 % 
 % 
