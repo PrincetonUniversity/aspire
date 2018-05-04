@@ -8,11 +8,8 @@
 %    url: The url from which the package should be downloaded. By default,
 %       this is
 %
-%          https://github.com/ahbarnett/finufft/archive/
-%             a960a0f17e196864e6f6bede8bdc21bb8ff5e653.zip
+%          https://github.com/ahbarnett/finufft/archive/master.zip
 %
-%       Which is corresponds to version 0.9 of the library released on
-%       2017-06-17.
 %    location: The location in which the package should be installed. By
 %       default, this is the subfolder 'extern' of the ASPIRE root folder.
 %    fftw_location: The location of the FFTW3 package needed to compile FINUFFT.
