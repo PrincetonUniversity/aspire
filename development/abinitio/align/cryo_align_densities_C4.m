@@ -1,4 +1,4 @@
-function [estR,estdx,vol2aligned,reflect]=cryo_align_densities_C4(vol1,vol2,pixA,verbose,Rref,forcereflect,Nprojs)
+function [estR,estdx,vol2aligned,reflect]=cryo_align_densities_C4(vol1,vol2,pixA,verbose,cutoff,Rref,forcereflect,Nprojs)
 % CRYO_ALIGN_DENSITIES  Align two denisity maps
 %
 % [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2)
@@ -20,7 +20,11 @@ function [estR,estdx,vol2aligned,reflect]=cryo_align_densities_C4(vol1,vol2,pixA
 % [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA,verbose)
 %       Set verbose to nonzero for verbose printouts (default is zero).
 %
-% [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,verbose,Rref)
+% [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,verbose,cutoff)
+%       Use given FSC cutoff value. cutoff is the FSC threshold to use
+%       for reporting resolutions. Default is 0.143.
+%
+% [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,verbose,cutoff,Rref)
 %       Use the true rotation between vol1 and vol2 specified by Rref to
 %       provide detailed debugging messages. Rref is ignored if reflection
 %       is detected.
@@ -37,8 +41,11 @@ if ~exist('verbose','var')
 end
 
 if ~exist('Nprojs','var')
-    %Nprojs=100;  % Number of projections to use for alignment.
-    Nprojs=6; % For debug
+    Nprojs=100;  % Number of projections to use for alignment.
+end
+
+if ~exist('cutoff','var')
+    cutoff=0.143;
 end
 
 %% Set verbose logging state
@@ -109,8 +116,8 @@ projs2=permute(projs2,[2,1,3]);
 
 % Estimate rotations of the projections of volume 2.
 log_message('Aligning volumes.')
-%[Rests,dxests]=cryo_orient_projections_gpu(projs2,vol1masked,Nprojs,[],verbose,0);
-[Rests,dxests]=cryo_orient_projections(projs2,vol1masked,Nprojs,[],verbose,0);
+[Rests,dxests]=cryo_orient_projections_gpu(projs2,vol1masked,Nprojs,[],verbose,0);
+%[Rests,dxests]=cryo_orient_projections(projs2,vol1masked,Nprojs,[],verbose,0);
 
 log_message('Refining alignment.');
 Rests=cryo_refine_orientations(projs2,0,vol1masked,Rests,dxests,1,-1);
@@ -224,7 +231,7 @@ if verbose
     log_message('\t with    reflection (%7.4f,%7.4f,%7.4f); condition number = %7.4f',s2(1),s2(2),s2(3),no2);
 end
 
-if no1>1.2 % The condition number of the estimated rotation is 
+if min(no1,no2)>1.2 % The condition number of the estimated rotation is 
        % larger than 1.2, that is, no rotation was recovered. This
        % threshold was set arbitrarily.
        warning('Alignment failed.');
@@ -312,7 +319,7 @@ timing=toc(timing);
 c_masked=corr(vol1masked(:),vol2maskedaligned(:)); % Masked volumes
 c_orig=corr(vol1(:),vol2aligned(:)); % Original volumes
 fsc=FSCorr(vol1,vol2aligned);
-res=fscres(fsc,0.143);
+res=fscres(fsc,cutoff);
 resA=2*pixA*numel(fsc)/res; % Resolution in Angstrom.
 
 log_message('Completed in %7.2f seconds',timing);
@@ -343,7 +350,6 @@ if refgiven
     gamma_ref_degrees=gamma_ref*180/pi;
     log_message('\t Reference \t %5.3f degrees',gamma_ref_degrees);
 end
-
 
 %% Restore log state
 log_silent(logstate);

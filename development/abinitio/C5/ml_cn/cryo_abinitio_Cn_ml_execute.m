@@ -132,8 +132,14 @@ if do_save_res_to_mat
 end
 
 log_message('Reconstructing abinitio volume');
-estimatedVol = reconstruct_ml_cn(masked_projs,rots,n_symm,n_r,n_theta,max_shift,shift_step);
+[estimatedVol,rotations,est_shifts] = reconstruct_ml_cn(masked_projs,rots,n_symm,n_r,n_theta,max_shift,shift_step);
 save_vols(estimatedVol,recon_mrc_fname,n_symm);
+
+if do_save_res_to_mat
+    log_message('Saving estimated rotations and shoifts under: %s', recon_mat_fname);
+    save(recon_mat_fname,'rotations','est_shifts','-append');
+end
+
 
 % close_log();
 

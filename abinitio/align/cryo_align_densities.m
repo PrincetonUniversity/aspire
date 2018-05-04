@@ -1,4 +1,4 @@
-function [estR,estdx,vol2aligned,reflect]=cryo_align_densities_old(vol1,vol2,pixA,verbose,Rref,forcereflect)
+function [estR,estdx,vol2aligned,reflect]=cryo_align_densities_old(vol1,vol2,pixA,verbose,curoff,Rref,forcereflect)
 % 
 % Deprecated function.
 % Ths function is based on brute-force search of the aligment parameters.
@@ -39,6 +39,10 @@ end
 
 if ~exist('verbose','var')
     verbose=0;
+end
+
+if ~exist('cutoff','var')
+    cutoff=0.143;
 end
 
 %% Validate input
@@ -119,7 +123,7 @@ if ~forcereflect
     end
     
     tic;
-    [R0,dx0,corr0,res0,~]=bf3Dmatchaux(vol1ds,vol2ds,rotations,pixA_downsample,1);
+    [R0,dx0,corr0,res0,~]=bf3Dmatchaux(vol1ds,vol2ds,rotations,pixA_downsample,1,cutoff);
     t=toc;
     
     if verbose
@@ -136,7 +140,7 @@ if verbose
 end
 
 tic;
-[R0R,dx0R,corr0R,res0R,~]=bf3Dmatchaux(vol1ds,flip(vol2ds,3),rotations,pixA_downsample,1);
+[R0R,dx0R,corr0R,res0R,~]=bf3Dmatchaux(vol1ds,flip(vol2ds,3),rotations,pixA_downsample,1,cutoff);
 t=toc;
 
 assert(abs(norm(R0R)-1)<1.0e-14); % Verify that nothing bad happened
@@ -179,7 +183,7 @@ if verbose
 end
 
 tic;
-[R1,dx1,corr1,res1,~]=bf3Dmatchaux(vol1ds,vol2ds,newrots,pixA_downsample,1);
+[R1,dx1,corr1,res1,~]=bf3Dmatchaux(vol1ds,vol2ds,newrots,pixA_downsample,1,cutoff);
 t=toc;
 
 
@@ -214,7 +218,7 @@ end
 
 
 tic;
-[R2,dx2,corr2,res2,~]=bf3Dmatchaux(vol1masked,vol2masked,newrots,pixA,1);
+[R2,dx2,corr2,res2,~]=bf3Dmatchaux(vol1masked,vol2masked,newrots,pixA,1,cutoff);
 t=toc;
 
 

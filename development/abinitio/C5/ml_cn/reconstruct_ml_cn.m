@@ -1,4 +1,4 @@
-function vol = reconstruct_ml_cn(projs,rots,n_symm,n_r,n_theta,max_shift,shift_step)
+function [vol,rotations,est_shifts] = reconstruct_ml_cn(projs,rots,n_symm,n_r,n_theta,max_shift,shift_step)
 
 if ~exist('shift_step','var')
     shift_step = 0.5;
@@ -53,3 +53,25 @@ log_message('Using FIRM to reconstruct');
 ii1=norm(imag(v1(:)))/norm(v1(:));
 log_message('Relative norm of imaginary components = %e\n',ii1);
 vol=real(v1);
+
+% n=size(projsCn, 1);
+% params = struct();
+% params.rot_matrices = RsCn;
+% params.ctf = ones(n*ones(1, 2));
+% params.ctf_idx = ones(size(projsCn, 3), 1);
+% params.shifts = dxCn.';
+% params.ampl = ones(size(projsCn, 3), 1);
+% 
+% mean_est_opt.max_iter = 100;
+% mean_est_opt.rel_tolerance = 1.0e-6;
+% mean_est_opt.verbose = false;
+% mean_est_opt.precision = 'single';
+% 
+% basis = dirac_basis(size(projsCn, 1)*ones(1, 3));
+% 
+% tic;
+% v2 = cryo_estimate_mean(single(projsCn), params, basis, mean_est_opt);
+% WriteMRC(v2,1,'vol2.mrc');
+
+rotations=RsCn;
+est_shifts=dxCn;
