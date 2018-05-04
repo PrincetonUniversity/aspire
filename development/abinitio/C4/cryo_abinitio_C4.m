@@ -11,17 +11,18 @@ function cryo_abinitio_C4(instack,outvol,outmat,max_shift_perc,shift_step,n_r_pe
 %               reconstruction algorithm are save (such as estimated
 %               rotations and shifts). Used to debugging and detailed
 %               analysis of the results.
-%   ntheta      (Optional) Angular resolution for common lines detection.
-%               Default 360. 
-%   n_r_perc    (Optional) Radial resolution for common line detection as a
-%               percentage of image size.
-%               Default is half the width of the images.
 %   max_shift_perc (Optional) Maximal 1d shift (as percentage of image size) 
-%               to search between common-lines. Default is 15% of image width of the images.
+%               to search between common-lines. Default is 15
 %   shift_step  (Optional) Resolution of shift estimation in pixels. Note
 %               that shift_step can be any positive real number. Default:0.5. 
 %
-
+%   n_r_perc    (Optional) Radial resolution for common line detection as a
+%               percentage of image size.
+%               Default:50 
+%   mask_radius_perc (Optional) The radius of the masked image as
+%               percentage of image size. Default: 70
+%   ntheta      (Optional) Angular resolution for common lines detection.
+%               Default 360. 
 % Check input and set default parameters
 if ~exist('n_theta','var')
     n_theta = 360;
@@ -93,13 +94,6 @@ end
 projs = ReadMRC(instack);
 n_images = size(projs,3);
 log_message('Read %d images',n_images);
-
-% sz = size(ReadMRC(instack,1,1),1);
-% projs = zeros(sz,sz,n_images);
-% im_indeces  = randperm(40000,n_images);
-% im_indeces  = sort(im_indeces);
-% save(outparams,'im_indeces');
-% projs = get_ims_from_stack(instack,im_indeces);
 
 log_message('projections loaded. Using %d projections of size %d x %d',n_images,size(projs,1),size(projs,2));
 if size(projs,1)~=size(projs,2)
