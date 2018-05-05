@@ -29,8 +29,6 @@ if ~exist('refpsd','var')
     refpsd=0;
 end;
 
-initstate;
-
 T1=1;
 noise=zeros(N,N,K);
 M=2*N-1;    % Need twice the number of random variables

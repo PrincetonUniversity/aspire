@@ -23,7 +23,7 @@ vol=vol.*fuzzymask(n,3,floor(0.45*n),floor(0.05*n));
 %vol=GaussFilt(vol,0.3);
 
 % Mask and filter the projections
-tempstack1=tempmrcname;
+tempstack1=tempmrcsname;
 outstack=imagestackWriter(tempstack1,instack.dim(3));
 for k=1:instack.dim(3)
     p=instack.getImage(k);
@@ -33,6 +33,6 @@ for k=1:instack.dim(3)
 end
 outstack.close;
 
-tempstack2=tempmrcname;
+tempstack2=tempmrcsname;
 cryo_globalphaseflip_outofcore(tempstack1,tempstack2);
 outstackname=tempstack2;

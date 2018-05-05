@@ -12,10 +12,10 @@ function test_cryo_syncmatrix_2
 initstate;
 TOL=1.0e-14;
 K=50;
-refq=qrand(K);
+rots_ref = rand_rots(K);
 L=1E15;     % Use a large number of lines per image, so we don't have discretization errors.
-cl=clmatrix_cheat_q(refq,L);
-S=cryo_syncmatrix_vote(cl,L,refq);
+cl=clmatrix_cheat(rots_ref,L);
+S=cryo_syncmatrix_vote(cl,L,rots_ref);
 s=eig(S);
 s=sort(s);
 
@@ -29,7 +29,7 @@ else
 end
 
 % Check that the MSE of the recovered orientations is very small
-[~,diff,mse]=cryo_syncrotations(S,refq);
+[~,diff,mse]=cryo_syncrotations(S,rots_ref);
 e2=max(diff(:));
 
 if e2>TOL

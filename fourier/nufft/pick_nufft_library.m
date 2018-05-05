@@ -25,7 +25,7 @@ function lib_code = pick_nufft_library(sz)
 		sz = sz(1);
 	end
 
-	if ~all(mod(sz, 2)==0)
+	if ~all(mod(sz, 2)==0) || any(sz<10)
 		lib_codes(lib_codes==3) = [];
 	end
 
@@ -34,4 +34,11 @@ function lib_code = pick_nufft_library(sz)
 	end
 
 	lib_code = lib_codes(1);
+
+	if lib_code == 1
+		warning('aspire:using_nudft', ...
+			['Using naive DFT implementation for non-uniform discrete ' ...
+			'Fourier transform. Please install an NUFFT library by running ' ...
+			'''install_cims_nufft'' or ''install_chemnitz_nfft''.']);
+	end
 end

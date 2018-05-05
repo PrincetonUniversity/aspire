@@ -41,8 +41,6 @@ projections = real(projs);
 p = size(projections, 1);
 noisy_projections=zeros(size(projections));
 
-initstate;
-
 %load color_filter.mat;
 
 %noise_response=ifftshift(S);  %for optimization, so we can use fft2 and

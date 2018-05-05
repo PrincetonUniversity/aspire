@@ -15,7 +15,7 @@ function [numworkers,t1,t2]=estimate_refinement_parallelization(n)
 % Yoel Shkolnisky, July 2016.
 
 Nprojs=200;
-q=qrand(Nprojs);  % Generate Nprojs projections to orient.
+rots = rand_rots(Nprojs);  % Generate Nprojs projections to orient.
 
 log_message('Loading volume');
 
@@ -35,7 +35,7 @@ vol=cryo_downsample(vol,[n n n],0);
 
 
 log_message('Generating %d clean projections of size %dx%d',Nprojs,size(vol,1),size(vol,2));
-projs=cryo_project(vol,q);
+projs=cryo_project(vol,rots);
 projs=permute(projs,[2,1,3]);
 
 log_message('Adding shifts');
@@ -45,11 +45,8 @@ snr=500;
 log_message('Adding noise. snr=%d',snr);
 projshifted=cryo_addnoise(projshifted,snr,'gaussian');
 
-% Convert quaternions to rotations
-trueRs=zeros(3,3,Nprojs);
-for k=1:Nprojs
-    trueRs(:,:,k)=(q_to_rot(q(:,k))).';
-end
+% Invert rotations
+trueRs = permute(rots, [2 1 3]);
 
 log_message('Generating reference timing using single worker.');
 t1=tic;

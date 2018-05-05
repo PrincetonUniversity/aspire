@@ -11,6 +11,8 @@
 % Yoel Shkolsniky, November 2014.
 
 clear;
+initstate;
+
 K=100;     % Number of projections.
 n=65;     % Size of each projection is nxn.
 SNRs=[1000 1 1/2 1/4 1/8 1/16 1/32]; % SNRs to test
@@ -30,8 +32,8 @@ fprintf('SNR \t \t NS- \t \t NS+ \t \t CM- \t \t CM+ \t \t MS- \t \t MS+\n');
 
 for j=1:numel(SNRs)
     snr=SNRs(j);
-    [projs,noisy_projs,~,q]=cryo_gen_projections(n,K,snr,3,1);  % Generate projections.
-    clstack_ref=clmatrix_cheat_q(q,n_theta); % True common lines matrix.
+    [projs,noisy_projs,~,rots]=cryo_gen_projections(n,K,snr,3,1);  % Generate projections.
+    clstack_ref=clmatrix_cheat(rots,n_theta); % True common lines matrix.
 
     % Noisy projections with no preprocessing
     pf=cryo_pft(noisy_projs,n_r,n_theta);

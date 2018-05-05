@@ -14,12 +14,11 @@ n_projs=size(projs_hat,3);
 % Generate Nrefs references projections of the given volume using random
 % orientations.
 log_message('Start generating %d reference projections of size %dx%d.',Nrefs,szvol(1),szvol(1));
-initstate;
-qrefs=qrand(Nrefs);
-refprojs=cryo_project(vol,qrefs,szvol(1));
+rots_ref = rand_rots(Nrefs);
+refprojs=cryo_project(vol,rots_ref,szvol(1));
 refprojs=permute(refprojs,[2 1 3]);
 log_message('Generating reference projections done');
-log_message('qrefs MD5 %s',MD5var(qrefs));
+log_message('rots_ref MD5 %s',MD5var(rots_ref));
 log_message('refprojs MD5 %s',MD5var(refprojs));
 
 % Save the orientations used to generate the proejctions. These would be
@@ -28,7 +27,7 @@ log_message('refprojs MD5 %s',MD5var(refprojs));
 Rrefs=zeros(3,3,Nrefs);
 Rrefsvec=zeros(3,3*Nrefs);
 for k=1:Nrefs
-    Rrefs(:,:,k)=(q_to_rot(qrefs(:,k))).';
+    Rrefs(:,:,k)=rots_ref(:,:,k).';
     Rrefsvec(:,3*(k-1)+1:3*k)=Rrefs(:,:,k);
 end
  
@@ -76,12 +75,12 @@ if exist(Ctblfname,'file')
     
     if isfield(precompdata,'Mkj') && ...
             isfield(precompdata,'Ckj') && isfield(precompdata,'Cjk') &&...
-        isfield(precompdata,'qrefs') && isfield(precompdata,'L')
+        isfield(precompdata,'rots_ref') && isfield(precompdata,'L')
         Mkj=precompdata.Mkj;
         Ckj=precompdata.Ckj;
         Cjk=precompdata.Cjk;
         if size(Mkj,1)==Nrots && size(Mkj,2)==Nrefs && ...
-                norm(qrefs-precompdata.qrefs)<1.0e-14 && ...
+                norm(rots_ref(:)-precompdata.rots_ref(:))<1.0e-14 && ...
                 L==precompdata.L
             skipprecomp=1;
         else
@@ -154,7 +153,7 @@ if ~skipprecomp
     t=toc;
     log_message('Precomputing tables took %5.2f seconds.',t);
         
-    save(Ctblfname,'Ckj','Cjk','Mkj','qrefs', 'L');
+    save(Ctblfname,'Ckj','Cjk','Mkj','rots_ref', 'L');
     system(sprintf('chmod a+rwx %s',Ctblfname));
 end
 

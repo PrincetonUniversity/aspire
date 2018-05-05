@@ -1,4 +1,4 @@
-projs=ReadMRC('~/tmp/80S_89/averages_nn50_group1.mrc');
+projs=ReadMRC('~/tmp/80S_89/averages_nn50_group1.mrcs');
 projs=projs(:,:,1:500);
 
 open_log(0);

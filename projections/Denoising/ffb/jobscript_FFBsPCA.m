@@ -17,9 +17,6 @@ function [ timing, coeff, mean_coeff, sPCA_coeff, U, D ] = jobscript_FFBsPCA(dat
 
 %n_r = ceil(4*c*R);
 n = size(data, 3);
-%[ basis, sample_points ] = precomp_fb( n_r, R, c );
-%num_pool = maxNumCompThreads;
-%num_pool = 30;
 data2 = cell(num_pool, 1);
 nb = floor(n/num_pool);
 remain = n - nb*num_pool;
@@ -32,9 +29,11 @@ for i = remain+1:num_pool
 end; 
 clear data;
 tic_start = tic;
-[coeff ]= FBcoeff_nfft(data2, R, basis, sample_points, num_pool);
+[coeff ]= FBcoeff_nfft(data2, R, basis, sample_points);
+disp('Finished computing Fourier Bessel coefficients')
 toc_FBcoeff = toc(tic_start);
 tic_start2 = tic;
+disp('Steerable PCA: computing compressed coefficients')
 [ U, D, sPCA_coeff, mean_coeff ] = sPCA_whole( coeff, basis, noise_variance);
 toc_sPCA = toc(tic_start2);
 toc_FFBsPCA = toc_sPCA + toc_FBcoeff;

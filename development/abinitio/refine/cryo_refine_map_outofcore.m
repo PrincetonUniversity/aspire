@@ -23,7 +23,7 @@ vol=cryo_globalphaseflip_vol(vol);
 log_message('Volume phase-flipped');
 
 log_message('Applying global phase-flip projections');
-projs_fname_phaseflipped=tempmrcname;
+projs_fname_phaseflipped=tempmrcsname;
 cryo_globalphaseflip_outofcore(projs_fname,projs_fname_phaseflipped);
 log_message('Projections phase-flipped');
 
@@ -45,7 +45,7 @@ szvol=size(vol); % Dimensions of volume may have changed due to resampling
 % Preprocess projections and referece volume.
 log_message('Start preprocessing projections');
 n=szvol(1);
-projs_fname_normalized=tempmrcname;
+projs_fname_normalized=tempmrcsname;
 cryo_mask_outofcore(projs_fname_phaseflipped,projs_fname_normalized,floor(0.45*n),floor(0.05*n)); % Mask projections
 log_message('Preprocessing done');
 delete(projs_fname_phaseflipped);
@@ -65,11 +65,11 @@ L=360;
 % Compute polar Fourier transform of the processed projections
 n_r=ceil(szvol(1)/2);
 log_message('Start computing polar Fourier transforms of input projections. Using n_r=%d L=%d.',n_r,L);
-projs_fname_pft=tempmrcname;
+projs_fname_pft=tempmrcsname;
 cryo_pft_outofcore(projs_fname_normalized,projs_fname_pft,n_r,L);
 log_message('Computing polar Fourier transform done');
 
-projs_fname_pft_n=tempmrcname;
+projs_fname_pft_n=tempmrcsname;
 log_message('Start normalizing Fourier transform of input projections (cryo_raynormalize)');
 cryo_raynormalize_outofcore(projs_fname_pft,projs_fname_pft_n);
 log_message('Normalizing done');

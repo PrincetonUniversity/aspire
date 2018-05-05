@@ -26,7 +26,7 @@ function cryo_abinitio_C1_sync3n(instack,outvol,outparams,showfigs,...
 %               that shift_step can be any positive real number. Default:1. 
 %
 % Example:
-% cryo_abinitio_C1_sync3n('projs.mrc','vol.mrc','molec.mat')
+% cryo_abinitio_C1_sync3n('projs.mrcs','vol.mrc','molec.mat')
 %
 % Yoel Shkolnisky, March 2017.
 

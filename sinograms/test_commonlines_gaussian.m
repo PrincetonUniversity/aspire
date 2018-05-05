@@ -2,19 +2,18 @@
 % Test on clean images
 fprintf('Commonline detection for clean shifted images using Gaussian filter.\n');
 fprintf('=====================================================================\n');
+n = 89;
 K=100;
 n_r=100;
 n_theta=72;
 
 max_shift=5;
 step_size=1;
-noise_type='gaussian';
-silent=1;
 mask_radius = 55;
 % fprecomp='p100_shifted';
-[p, np, shifts, q] = ...
-    gen_projections(K,1,max_shift,step_size,noise_type,silent);
-[ref_clmatrix,clcorr]=clmatrix_cheat_q(q,n_theta);
+[p, np, shifts, rots] = ...
+    cryo_gen_projections(n,K,1,max_shift,step_size);
+[ref_clmatrix,clcorr]=clmatrix_cheat(rots,n_theta);
 [np,sigma]=mask_fuzzy(np,mask_radius);
 [npf,freqs]=cryo_pft(np,n_r,n_theta);
 max_shift = 15;
@@ -39,12 +38,10 @@ for k=1:6
     fprintf('\nSNR=1/%d, ',2^k)
     max_shift=5;
     step_size=1;
-    noise_type='gaussian';
-    silent=1;
     mask_radius = 55;
-    [p, np, shifts, q] = ...
-        gen_projections(K,SNR,max_shift,step_size,noise_type,silent);
-    [ref_clmatrix,clcorr]=clmatrix_cheat_q(q,n_theta);
+    [p, np, shifts, rots] = ...
+        cryo_gen_projections(n,K,SNR,max_shift,step_size);
+    [ref_clmatrix,clcorr]=clmatrix_cheat(rot,n_theta);
     [np,sigma]=mask_fuzzy(np,mask_radius);
     [npf,freqs]=cryo_pft(np,n_r,n_theta);
     max_shift = 15;

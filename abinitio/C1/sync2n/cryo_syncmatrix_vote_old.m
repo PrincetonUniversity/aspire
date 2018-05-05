@@ -1,10 +1,10 @@
-function S=cryo_syncmatrix_vote_old(clmatrix,L,refq,is_perturbed)
+function S=cryo_syncmatrix_vote_old(clmatrix,L,rots_ref,is_perturbed)
 %
 % Construct the CryoEM synchronization matrix, given a common lines matrix
 % clmatrix, that was constructed using angular resolution of L radial lines
 % per image.
 %
-% refq (optional) are the quaternions used to computed the common lines
+% rots_ref (optional) are the rotations used to computed the common lines
 % matrix. 
 %
 % is_perturbed descrbies which common lines are correct. It is of the same
@@ -15,8 +15,8 @@ function S=cryo_syncmatrix_vote_old(clmatrix,L,refq,is_perturbed)
 % 
 % Yoel Shkolnisky, September 2010.
 
-if ~exist('refq','var')
-    refq=0;
+if ~exist('rots_ref','var')
+    rots_ref=0;
 end
 
 if ~exist('is_perturbed','var')
@@ -41,7 +41,7 @@ for k1=1:K-1
     Stmp=zeros(2,2,K);    
     parfor k2=k1+1:K
     %for k2=k1+1:K
-        Stmp(:,:,k2)=cryo_syncmatrixIJ_vote_old(clmatrix,k1,k2,1:K,L,refq,is_perturbed);
+        Stmp(:,:,k2)=cryo_syncmatrixIJ_vote_old(clmatrix,k1,k2,1:K,L,rots_ref,is_perturbed);
     end
     
     for k2=k1+1:K

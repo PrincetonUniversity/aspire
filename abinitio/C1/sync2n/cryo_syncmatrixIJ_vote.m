@@ -1,10 +1,10 @@
-function R22=cryo_syncmatrixIJ_vote(clmatrix,k1,k2,K3,L,refq,is_perturbed)
+function R22=cryo_syncmatrixIJ_vote(clmatrix,k1,k2,K3,L,rots_ref,is_perturbed)
 %
 % Compute the (k1,k2) rotation block of the cryo-EM syncronization matrix,
 % using the list of images specified in K3. For example,
-%   R11=cryo_syncmatrixIJ(clmatrix,1,1,1:K,360,refq)
+%   R11=cryo_syncmatrixIJ(clmatrix,1,1,1:K,360,rots_ref)
 %
-% refq (optional) are the quaternions used to computed the common lines
+% rots_ref (optional) are the rotations used to computed the common lines
 % matrix.
 %
 % Yoel Shkolnisky, August 2010.
@@ -15,11 +15,11 @@ function R22=cryo_syncmatrixIJ_vote(clmatrix,k1,k2,K3,L,refq,is_perturbed)
 %       rotratio_eulerangle_vec.
 
 ref=0;
-if exist('refq','var')
-    if refq==0
+if exist('rots_ref','var')
+    if rots_ref==0
         ref=0;
     else
-        ref=1;  % Reference quaternions are given.
+        ref=1;  % Reference rotations are given.
     end
 end
 
@@ -44,7 +44,7 @@ TOL=1.0E-12; % This tolerance is relevant only if L is very large (1.0e15),
 
 J=[1 0 0; 0 1 0; 0 0 -1]; % Reflection matrix
 
-[goodK3,~,~]=cryo_voteIJ(clmatrix,L,k1,k2,K3,refq,is_perturbed);
+[goodK3,~,~]=cryo_voteIJ(clmatrix,L,k1,k2,K3,rots_ref,is_perturbed);
 
 
 % %%% START reference code
@@ -68,8 +68,8 @@ J=[1 0 0; 0 1 0; 0 0 -1]; % Reflection matrix
 %                 % Compare resulting rotation computed using common
 %                 % lines to the rotations computed using the true
 %                 % rotations.
-%                 R1ref=q_to_rot(refq(:,k1));
-%                 R2ref=q_to_rot(refq(:,k2));
+%                 R1ref=rots_ref(:,:,k1);
+%                 R2ref=rots_ref(:,:,k2);
 %                 inv_R1ref=R1ref.';
 %                 inv_R2ref=R2ref.';
 %                 Rref=(inv_R1ref.'*inv_R2ref+J*inv_R1ref.'*inv_R2ref*J)/2;
@@ -103,12 +103,12 @@ J=[1 0 0; 0 1 0; 0 0 -1]; % Reflection matrix
 %     % [ cos(theta) sin(theta) 0 ;...
 %     %  -sin(theta) cos(theta) 0 ;...
 %     %       0           0     1 ]
-%     % Here we cheat and compute it using the quaternions.
-%     % If refq is not given, just put zero.
+%     % Here we cheat and compute it using the rotations.
+%     % If rots_ref is not given, just put zero.
 %     Rk=zeros(3,3);
 %     if ref
-%         R1ref=q_to_rot(refq(:,k1));
-%         R2ref=q_to_rot(refq(:,k2));
+%         R1ref=rots_ref(:,:,k1);
+%         R2ref=rots_ref(:,:,k2);
 %         inv_R1ref=R1ref.';
 %         inv_R2ref=R2ref.';
 %         
@@ -140,7 +140,7 @@ J=[1 0 0; 0 1 0; 0 0 -1]; % Reflection matrix
 %tic;
 
 [Rs,goodratios]=rotratio_eulerangle_vec(clmatrix,k1,k2,goodK3,L);
-Rk=mean(Rs,3);
+Rk=sum(Rs,3)/size(Rs,3);
 
 %Rks2=zeros(2,2,numel(goodratios));
 
@@ -155,8 +155,8 @@ if ref
         % Compare resulting rotation computed using common
         % lines to the rotations computed using the true
         % rotations.
-        R1ref=q_to_rot(refq(:,k1));
-        R2ref=q_to_rot(refq(:,k2));
+        R1ref=rots_ref(:,:,k1);
+        R2ref=rots_ref(:,:,k2);
         inv_R1ref=R1ref.';
         inv_R2ref=R2ref.';
         Rref=(inv_R1ref.'*inv_R2ref+J*inv_R1ref.'*inv_R2ref*J)/2;
@@ -189,12 +189,12 @@ else
     % [ cos(theta) sin(theta) 0 ;...
     %  -sin(theta) cos(theta) 0 ;...
     %       0           0     1 ]
-    % Here we cheat and compute it using the quaternions.
-    % If refq is not given, just put zero.
+    % Here we cheat and compute it using the rotations.
+    % If rots_ref is not given, just put zero.
     Rk=zeros(3,3);
     if ref
-        R1ref=q_to_rot(refq(:,k1));
-        R2ref=q_to_rot(refq(:,k2));
+        R1ref=rots_ref(:,:,k1);
+        R2ref=rots_ref(:,:,k2);
         inv_R1ref=R1ref.';
         inv_R2ref=R2ref.';
         

@@ -16,7 +16,7 @@ if exist(fname,'file')==2
     name=sprintf('%s_sav',name);
     bakname=fullfile(pathstr,[name ext]);
     copyfile(fname,bakname);
-    log_message('File %s alreadey exists. Moving it to %s',fname,bakname);    
+    log_message('File %s alreadey exists. Renaming existing file to %s',fname,bakname);    
 end
 
 fid=fopen(fname,'w');

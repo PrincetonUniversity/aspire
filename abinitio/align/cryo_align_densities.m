@@ -105,11 +105,7 @@ vol2ds=cryo_downsample(vol2masked,[n_downsample n_downsample n_downsample]);
 
 
 % Nrots=5000;
-% qrots=qrand(Nrots);
-% rotations=zeros(3,3,Nrots);
-% for jj=1:Nrots
-%     rotations(:,:,jj)=q_to_rot(qrots(:,jj));
-% end
+% rotations=rand_rots(Nrots);
 rotations=genRotationsGrid(75);
 
 corr0=0;
@@ -256,7 +252,7 @@ estR=bestR.';
 estdx=bestdx;
 
 fsc=FSCorr(vol1,vol2aligned);
-bestRes=fscres(fsc,0.134);
+bestRes=fscres(fsc,0.143);
 bestResA=2*pixA*numel(fsc)/bestRes; % Resolution in Angstrom.
 
 

@@ -9,7 +9,7 @@ function cryo_downsample_outofcore(instackname,outstackname,szout,verbose)
 %   The function does not load the entire stack into memory.
 %
 % Example:
-%   cryo_downsample_outofcore('instack.mrc','outstack.mrc',[65 65]);
+%   cryo_downsample_outofcore('instack.mrcs','outstack.mrcs',[65 65]);
 %
 % Yoel Shkolnisky, May 2016.
 

@@ -1,13 +1,13 @@
 
- INPUTDIR='/home/yoel/data/';%projs500.mrc
+ INPUTDIR='/home/yoel/data/';%projs500.mrcs
  OUTPUTDIR='/tmp/clml';
 
  open_log(0);
 
     %% abinitio reconstruction
 N=500;
-%fname='projs500.mrc';
-fname='projs500_simulated.mrc';
+%fname='projs500.mrcs';
+fname='projs500_simulated.mrcs';
 average=ReadMRC(fullfile(INPUTDIR,fname));
 stack=average(:,:,1:N); 
 % Normalize background noise to mean 0 and std 1
@@ -85,5 +85,5 @@ n=size(stack,1);
 ii1=norm(imag(v1(:)))/norm(v1(:));
 fprintf('Relative norm of imaginary components = %e\n',ii1);
 v1=real(v1);
-volname=sprintf('projs500.mrc');
+volname=sprintf('projs500.mrcs');
 WriteMRC(v1,1,fullfile(OUTPUTDIR,volname));

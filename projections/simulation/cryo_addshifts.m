@@ -48,8 +48,7 @@ if ~isempty(shifts)
     ref_shifts=shifts;
 else
     ref_shifts=zeros(K,2);
-    if shift_step>0
-        rng(1234,'twister');
+    if shift_step>0        
         ref_shifts=round((rand(K,2)-1/2)*2*max_shift/shift_step)*shift_step;
     end
 

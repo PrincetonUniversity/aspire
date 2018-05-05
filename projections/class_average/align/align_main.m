@@ -1,4 +1,4 @@
-function [ shifts, corr, averagesfname, norm_variance ] = align_main( data, angle, class_VDM, refl, FBsPCA_data, k, max_shifts, list_recon,tmpdir)
+function [ shifts, corr, averagesfname, norm_variance ] = align_main( data, angle, class_VDM, refl, sPCA_data, k, max_shifts, list_recon, tmpdir)
 % Function for aligning images with its k nearest neighbors to generate
 % class averages.
 %   Input: 
@@ -6,21 +6,21 @@ function [ shifts, corr, averagesfname, norm_variance ] = align_main( data, angl
 %       angle: Pxl (l>=k) matrix. Rotational alignment angle
 %       class_VDM: Pxl matrix. Nearest neighbor list
 %       refl: Pxl matrix. 1: no reflection. 2: reflection
-%       FBsPCA_data: Fourier-Bessel steerable PCA data with r_max, UU,
+%       sPCA_data: steerable PCA data with eig_im, Coeff, Freqs, R
 %       Coeff, Mean, Freqs
 %       k: number of nearest neighbors for class averages
-%       max_shifts: maximum number of pixels to check for shift
-%       list_recon: indices for images to compute class averages
+%       max_shifts: maximum number of pixels to check for shifts
 %       tmpdir  temporary folder for intermetidate files. Must be empty.
 %   Output:
 %       shifts: Pxk matrix. Relative shifts for k nearest neighbors
 %       corr: Pxk matrix. Normalized cross correlation of each image with
 %       its k nearest neighbors
-%       average: LxLxP matrix. Class averages
+%       averagesfname: Class averages folder name
 %       norm_variance: compute the variance of each class averages.
 %
 % Zhizhen Zhao Feb 2014
-
+% Tejal Bhamre, 3/2017: Use recon_spca
+% Zhizhen Zhao, shouldn't use recon_spca, too much memory used, should compute on the fly
 P=data.dim(3);
 L=data.dim(1);
 l=size(class_VDM, 2);
@@ -29,22 +29,15 @@ N=floor(L/2);
 [x, y]=meshgrid(-N:N, -N:N);
 r=sqrt(x.^2+y.^2);
 
-r_max = FBsPCA_data.r_max;
-UU = FBsPCA_data.UU;
-Coeff = FBsPCA_data.Coeff;
-Mean = FBsPCA_data.Mean;
-Freqs = FBsPCA_data.Freqs;
-clear FBsPCA_data;
+r_max = sPCA_data.R;
 
 %Check if the number of nearest neighbors is too large
 if l<k
     error('myApp:argChk', 'The number of nearest neighbors is too large. \nIt should be smaller or equal to %d', l)
-end;
+end
 
 shifts=zeros(length(list_recon), k+1);
 corr=zeros(length(list_recon), k+1);
-%average=zeros(L, L, length(list_recon));
-%average=imagestackWriter('/tmp/align_main_tmp.mrc',length(list_recon),1,100);
 norm_variance=zeros(length(list_recon), 1);
 
 %generate grid. Precompute phase for shifts
@@ -69,13 +62,8 @@ angle(angle==360)=0;
 M=cell(359);
 for i=1:359
     M{i}=fastrotateprecomp(L, L,i);
-end;
+end
 
-% %Go concurrent
-% ps=matlabpool('size');
-% if ps==0
-%     matlabpool open
-% end
 
 filelist=dir(fullfile(tmpdir,'*.*'));
 if numel(filelist)>2
@@ -85,7 +73,6 @@ end
 printProgressBarHeader;
 parfor j=1:length(list_recon)
     progressTic(j,length(list_recon));
-
     
     angle_j=angle(list_recon(j), 1:k); %rotation alignment
  
@@ -97,26 +84,26 @@ parfor j=1:length(list_recon)
     
     image1=data.getImage(list_recon(j));
     
-    %Build denoised images from FBsPCA
-    %reconstruct the images.
-    tmp = 2*real(UU(:, Freqs~=0)*Coeff(Freqs~=0, list_recon(j)));
-    tmp = tmp + UU(:, Freqs==0)*real(Coeff(Freqs==0, list_recon(j)));
-    I = zeros(L);
-    I(r<=r_max)=tmp;
-    I = I+Mean;
-    I = mask_fuzzy(I, r_max-5);
-    
     for i=1:k
         if (refl_j(i)==2)
             images(:, :, i)=flipud(images(:, :, i));
-        end;
-    end;
+        end
+    end
     
     for i=1:k
         if (angle_j(i)~=0)
             images(:, :, i)=fastrotate(images(:, :, i), angle_j(i), M{angle_j(i)});
         end
-    end;
+    end
+    
+    %Build denoised images from fast steerable PCA
+    origin = floor(L/2) + 1;
+    R = sPCA_data.R;
+    mean_im = sPCA_data.fn0*sPCA_data.Mean;    
+    tmp = sPCA_data.eig_im(:, sPCA_data.Freqs == 0)*sPCA_data.Coeff(sPCA_data.Freqs == 0, j) + 2*real(sPCA_data.eig_im(:, sPCA_data.Freqs~=0)*sPCA_data.Coeff(sPCA_data.Freqs~=0, j));
+    tmp = tmp + mean_im;
+    I = zeros(L);
+    I(origin-R:origin+R-1, origin-R:origin+R-1, :) = reshape(tmp, 2*R, 2*R); 
     
     pf1 = cfft2(I);
     pf1 = pf1(:);
@@ -125,7 +112,7 @@ parfor j=1:length(list_recon)
     pf_images=zeros(size(images));
     for i=1:k+1
         pf_images(:, :, i)=cfft2(images(:, :, i));
-    end;
+    end
     pf_images=reshape(pf_images, L^2, k+1);
     
     
@@ -140,11 +127,10 @@ parfor j=1:length(list_recon)
     tmp = mean(pf_images_shift, 2);
     tmp = reshape(tmp, L, L);
     
-    mrcname=sprintf('average%d.mrc',j);
+    mrcname=sprintf('average%d.mrcs',j);
     mrcname=fullfile(tmpdir,mrcname);
-    average = icfft2(tmp);
-    WriteMRC(average,1,mrcname);
-    
+    average = real(icfft2(tmp));
+    WriteMRC(average,1, mrcname);    
     shifts(j, :)=-shifts_list(id, 1) - sqrt(-1)*shifts_list(id, 2);
 
 end
@@ -155,7 +141,7 @@ averagesfname=tempname;
 averagesfname=fullfile(tmpdir,averagesfname);
 stack=imagestackWriter(averagesfname,numel(list_recon),1,100);
 for j=1:length(list_recon)
-    mrcname=sprintf('average%d.mrc',j);
+    mrcname=sprintf('average%d.mrcs',j);
     mrcname=fullfile(tmpdir,mrcname);
     average = ReadMRC(mrcname);
     stack.append(average);

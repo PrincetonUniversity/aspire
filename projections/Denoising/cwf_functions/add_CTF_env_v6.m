@@ -13,7 +13,7 @@ function [proj_CTF, CTF, index]=  add_CTF_env_v6(proj, ndef, def1,def2,B, lambda
 % proj_CTF: stack of projections with CTF applied
 % CTF: stack of CTFs
 % index: Index for the CTF for each image in the stack
-% Tejal updated Oct 2015
+% Tejal Bhamre: updated Oct 2015
 
 
 

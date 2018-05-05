@@ -70,12 +70,12 @@ for snridx=1:numel(SNRlist)
 
                 %% Generate projections
                 initstate; % So we get the same results every time for reproducibility.
-                refq=qrand(K);  % Generate random uniform quaternions.
+                rots_ref = rand_rots(K); % Generate random uniform rotations.
                 
                 load cleanrib
                 volref=real(volref);
                 volref=Downsample(volref,[n,n,n]);
-                projs=cryo_project(volref,refq,n);
+                projs=cryo_project(volref,rots_ref,n);
                 projs=permute(projs,[2 1 3]); % Swap dimensions for compitability with old gen_projections.
                 [projs,~]=cryo_addshifts(projs,[],max_shift_2d,shift_step_2d);
                 noisy_projs=cryo_addnoise(projs,SNR,'gaussian');
@@ -96,7 +96,7 @@ for snridx=1:numel(SNRlist)
                 t_corr=toc;
                 
                 % Find reference common lines and compare
-                [ref_clstack,~]=clmatrix_cheat_q(refq,n_theta);
+                [ref_clstack,~]=clmatrix_cheat(rots_ref,n_theta);
                 prop_corr=comparecl( clstack, ref_clstack, n_theta, 5 );
                 log_message('Percentage of correct common lines: %f%%',prop_corr*100);
 

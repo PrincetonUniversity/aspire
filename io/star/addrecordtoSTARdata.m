@@ -22,6 +22,7 @@ trimmedlabels=arrayfun(stripcomment,datablock.labels);
 
 % Verify that all fields were provided
 fieldnames=varargin(1:2:end);
+fieldnames=string(fieldnames);
 vals=varargin(2:2:end);
 
 if numel(fieldnames)~=numel(vals)

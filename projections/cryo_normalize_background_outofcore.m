@@ -15,8 +15,8 @@ function cryo_normalize_background_outofcore(instackname,outstackname,r,verbose)
 %   Default: verbose=1.
 %
 % Example:
-%   cryo_normalize_background_outofcore('instack.mrc');
-%   cryo_normalize_background_outofcore('instack.mrc',32);
+%   cryo_normalize_background_outofcore('instack.mrcs');
+%   cryo_normalize_background_outofcore('instack.mrcs',32);
 %
 % Yoel Shkolnisky, May 2016.
 
@@ -59,6 +59,10 @@ for kk=1:K
     % Compute mean and standard deviation of background pixels
     mm=mean(background_pixels);
     sd=std(background_pixels);
+        
+    if sd<1.0e-5
+        warning('Variance of background of image %d too small (sd=%5.3e). Cannot normalize...',kk,sd);
+    end
     
     % Normalize the projections
     proj=(proj-mm)./sd;

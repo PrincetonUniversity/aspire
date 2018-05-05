@@ -1,4 +1,22 @@
 function [ denoised_coeff, cov, eigims, err_cov]  = jobscript_CCWF_cgshrink_cl(index, CTF_rad_all, basis, sample_points,  mean_coeff, coeff_pos_k, tr_coeff_pos_k,  noise_v)
+%Tejal Bhamre, Oct 2015
+%INPUTS:
+%index : CTF indices
+%CTF_rad_all: CTF evaluated along radial quadrature points
+%basis: Precomputed basis functions
+%sample_points: Quadrature points
+%mean_coeff: Coefficients of mean image
+%coeff_pos_k: Fourier Bessel coefficients for positive angular frequencies
+%tr_coeff_pos_k: Fourier Bessel coefficients of clean images
+%noise_v: Noise variance
+%OUTPUTS:
+%denoised_coeff: Coeffs of denoised images
+%cov: Covariance matrix (blocks for positive angular frequencies)
+%eigims: Eigenimages
+%err_cov: Relative error of the covariance matrix
+
+
+OUTPUTS:
 
 nim=length(index);
 ang_freqs=basis.ang_freqs;
@@ -14,7 +32,7 @@ for k=unique(ang_freqs)'
     
     if k>=0
         tmp=coeff_pos_k{k+1};
-        tr_c=tr_coeff_pos_k{k+1};
+	tr_c=tr_coeff_pos_k{k+1};
         tr_cov_k=real(tr_c*tr_c')/numel(index);
        % tr_sample_k=tr_samplecov{k+1};
         %tmp1=conj(tmp);

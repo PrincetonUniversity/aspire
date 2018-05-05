@@ -36,7 +36,7 @@ if log_bytes_written>log_max_bytes
     return; 
 end
 
-newline=10;
+newline=char(10);
 
 if numel(log_run_silent)==0
     log_run_silent=0;

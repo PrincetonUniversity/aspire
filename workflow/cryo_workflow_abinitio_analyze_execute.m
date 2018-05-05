@@ -165,26 +165,25 @@ for groupid=1:numgroups
     [h1,h2]=cryo_plot_viewing_directions(s.rotations);
     
     
-    figure(h1);
     rotFIGname=fullfile(workflow.info.working_dir,...
         sprintf('rotations_nn%d_nm_%d_group%d_polar.fig',nnavg,nmeans,groupid));
     rotEPSname=fullfile(workflow.info.working_dir,...
         sprintf('rotations_nn%d_nm_%d_group%d_polar.eps',nnavg,nmeans,groupid));
-    hgsave(rotFIGname);
+    hgsave(h1,rotFIGname);
     log_message('Saved %s',rotFIGname);
-    print('-depsc',rotEPSname);
+    print(h1,'-depsc',rotEPSname);
     log_message('Saved %s',rotEPSname);
-    close(h1);
     
-    figure(h2);
     rotFIGname=fullfile(workflow.info.working_dir,...
         sprintf('rotations_nn%d_nm_%d_group%d_S2.fig',nnavg,nmeans,groupid));
     rotEPSname=fullfile(workflow.info.working_dir,...
         sprintf('rotations_nn%d_nm_%d_group%d_S2.eps',nnavg,nmeans,groupid));
-    hgsave(rotFIGname);
+    hgsave(h2,rotFIGname);
     log_message('Saved %s',rotFIGname);
-    print('-depsc',rotEPSname);
+    print(h2,'-depsc',rotEPSname);
     log_message('Saved %s',rotEPSname);
+    
+    close(h1);
     close(h2);
 end
 

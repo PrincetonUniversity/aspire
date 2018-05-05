@@ -13,15 +13,13 @@ function q=qrand(K)
 % same group elements, so we take a>=0.
 %
 
-%initstate;
-
 q = randn(4,K);
 %q(:,1) = [0;1;0;1];
 l2_norm = sqrt(q(1,:).^2 + q(2,:).^2 + q(3,:).^2 + q(4,:).^2);
-for i=1:4;
+for i=1:4
     q(i,:) = q(i,:) ./ l2_norm;
 end;
-for k=1:K;
+for k=1:K
     if (q(1,k) < 0)
         q(:,k) = -q(:,k);
     end;

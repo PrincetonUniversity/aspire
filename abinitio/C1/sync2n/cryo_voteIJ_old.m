@@ -1,4 +1,4 @@
-function [goodK3,peakh,alpha]=cryo_voteIJ(clmatrix,L,k1,k2,K3,refq,is_perturbed)
+function [goodK3,peakh,alpha]=cryo_voteIJ(clmatrix,L,k1,k2,K3,rots_ref,is_perturbed)
 %
 % Apply the voting algorithm for images k1 and k2. clmatrix is the common
 % lines matrix, constructed using angular reslution L. K3 are the images to
@@ -153,13 +153,13 @@ if idx>1
 %     hold off;
 
 
-    if ~isscalar(refq)
+    if ~isscalar(rots_ref)
         % For debugging, compute the true angle between the images, and compare to
         % the estimated one. The following debugging code is correct only when
         % p=1, for otherwise, it is hard to predict how the errors would affect
         % the results.
-        R1=(q_to_rot(refq(:,k1)))';
-        R2=(q_to_rot(refq(:,k2)))';
+        R1=rots_ref(:,:,k1)';
+        R2=rots_ref(:,:,k2)';
         alpharef=dot(R1(:,3),R2(:,3));
 
 

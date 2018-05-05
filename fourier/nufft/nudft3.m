@@ -17,6 +17,14 @@
 %    nufft3
 
 function vol_f = nudft3(vol, fourier_pts)
+	if ndims(vol) ~= 3
+		error('Input ''vol'' must be of the form N1-by-N2-by-N3.');
+	end
+
+	if ndims(fourier_pts) > 2 || size(fourier_pts, 1) ~= 3
+		error('Input ''fourier_pts'' must be of the form 3-by-K.');
+	end
+
 	N = size(vol, 1);
 
 	if size(vol, 2) ~= N || size(vol, 3) ~= N

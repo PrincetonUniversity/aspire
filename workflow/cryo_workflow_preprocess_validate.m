@@ -14,7 +14,6 @@ assertfield(workflow,'info','logfile');
 assertfield(workflow,'info','rawdata');
 
 assertfield(workflow,'preprocess','phaseflip');
-assertfield(workflow,'preprocess','ctfdata');
 assertfield(workflow,'preprocess','nprojs');
 assertfield(workflow,'preprocess','do_crop');
 assertfield(workflow,'preprocess','croppeddim');

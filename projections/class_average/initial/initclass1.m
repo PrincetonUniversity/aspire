@@ -48,7 +48,7 @@ B=10; % decay envelope parameter
 [g_proj_CTF,CTF,defocus_group]=  add_CTF_env_v6(cfft2(data.projections(:,:,1:K)), ndef, def1,def2,B, lambda, use_CTF);
 [images, noise_v_r]=addnoise_v6(icfft2(g_proj_CTF), SNR);
 % Use this for test with clean data
-q = data.q(:, 1:K);
+rots_ref = data.rots(:, 1:K);
 %images = data.projections(:, :, 1:K);
 %clear data;
 L = size(images, 1);
@@ -63,7 +63,7 @@ disp('Phase flipped');
 [ class_f, class_refl_f, rot_f, corr_f,  timing_f ] = Initial_classification_FD(sPCA_data, n_nbor, isrann );
 disp('Finished initial classification...');
 % Check Classification result
-[ d_f, error_rot_f ] = check_simulation_results(class_f, class_refl_f, -rot_f, q); % should use minus sign for init class, no minus sign for VDM 
+[ d_f, error_rot_f ] = check_simulation_results(class_f, class_refl_f, -rot_f, rots_ref); % should use minus sign for init class, no minus sign for VDM 
 [ N_f, X_f ] = hist(acosd(d_f), [0:180]);
 figure; bar(N_f); title('sPCA')
 xlabel('a$\cos\langle v_i, v_j \rangle$', 'interpreter', 'latex');

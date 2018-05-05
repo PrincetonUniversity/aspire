@@ -5,7 +5,7 @@ classdef imagestackReaderComplex < imagestackReader
 % 100 complex arrays).
 %
 % Example:
-%       stack=imagestackReaderComplex('FFTdata.mrc');
+%       stack=imagestackReaderComplex('FFTdata.mrcs');
 %       projs=zeros(65,65,100);
 %       for k=1:100;
 %            projs(:,:,j)=stack.getImage(k);

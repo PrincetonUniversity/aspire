@@ -109,6 +109,10 @@ for k=1:K
     end        
     
     proj=instack.getImage(k);
+    
+    if sum(isnan(proj(:)))>0
+        error('Image %d in stack contains NaNs', k);
+    end
 
     % Mask all pixels that are not used to autocorrelation estimation.
     samples=zeros(p);

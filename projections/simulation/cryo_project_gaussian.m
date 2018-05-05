@@ -1,8 +1,8 @@
-function p=cryo_project_gaussian(def,n,rmax,q)
+function p=cryo_project_gaussian(def,n,rmax,rots)
 %
 % Compute 2D analytic projections of the 3D Guassian phantom.
 %
-% q is an array of quaternions, where each quaternion corresponds to a
+% rots is an array of rotation matrices, where each matrix corresponds to a
 % projection direction. Each projection is of size nxn, sampled on a
 % Cartesian grid between -rmax and rmax (default [-1,1]). 
 %
@@ -11,27 +11,26 @@ function p=cryo_project_gaussian(def,n,rmax,q)
 %     n     Dimension of each projection.
 %     rmax  Physical dimensions of each projection. Each projection has n
 %           samples in each dimension between -rmax and rmax.
-%     q     Array of quaternions (as generated for eaxmple by qrand).
+%     rots  Array of size 3-by-3-by-K containing rotation matrices along which
+%           to project.
 %
 %
 % Output parameters;
-%     p         3D array of size n x n x length(q).
+%     p         3D array of size n x n x size(rots, 3).
 %               p(:,:,k) is the projection in the direction determined by
-%               the quaternion q.
+%               the rotation matrix rot(:,:,k).
 %
 % Example:
 %
-%     q=qrand(100);
-%     p=cryo_project_gaussian('C1_params',65,1,q);
+%     rots = rand_rots(100);
+%     p=cryo_project_gaussian('C1_params',65,1,rots);
 %
 % Another example: (code sanity check)
-%     q=[1;0;0;0];   % Quaternion of indentity rotation
-%     q=q./norm(q);  % No need to normalize for the identity rotation, but 
-%                    % in case you change the above rotation.
+%     rot = eye(3);
 %     n=129; 
 %     rmax=1;
 %     vol=cryo_gaussian_phantom_3d('C4_params',n,rmax); 
-%     p=cryo_project_gaussian('C4_params',n,rmax,q);
+%     p=cryo_project_gaussian('C4_params',n,rmax,rot);
 %     p2=sum(vol,3)*2/(n-1);
 %     max(abs(p2(:)-p(:)))  % should be tiny
 %     norm(p2(:)-p(:))/norm(p(:))  % should be tiny
@@ -59,7 +58,7 @@ u=u(:);
 v=v(:);
 l_u=size(u,1);
 
-nproj=size(q,2);
+nproj=size(rots,3);
 p=zeros(s_u(1),s_u(2),nproj);
 gparams = feval(def);
 
@@ -95,10 +94,7 @@ for j = 1:size(gparams,1)
 
     r0=[x0;y0;z0];
     
-    inv_rot_matrices = zeros(3,3,nproj);
-    for k=1:nproj;
-        inv_rot_matrices(:,:,k) = q_to_rot(q(:,k))';
-    end;
+    inv_rot_matrices = permute(rots, [2 1 3]);
     
     for k=1:nproj
         %
