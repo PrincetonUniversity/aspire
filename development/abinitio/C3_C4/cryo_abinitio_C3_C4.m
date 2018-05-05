@@ -1,8 +1,9 @@
-function cryo_abinitio_C4(instack,outvol,outmat,max_shift_perc,shift_step,n_r_perc,mask_radius_perc,n_theta)
+function cryo_abinitio_C3_C4(n_symm,instack,outvol,outmat,max_shift_perc,shift_step,n_r_perc,mask_radius_perc,n_theta)
 
 % CRYO_ABINITO_C4  abinitio reconsturction of a c4 symmetric molecule
 %
 % Parameters
+%   n_symm      Either 3 (for c_3) or 4 (for c_4)
 %   instack     Name of MRC file containing the projections (or class
 %               averages) from which to estimate an abinitio model.
 %   outvol      Name of MRC file into which to save the reconstructed
@@ -24,6 +25,11 @@ function cryo_abinitio_C4(instack,outvol,outmat,max_shift_perc,shift_step,n_r_pe
 %   ntheta      (Optional) Angular resolution for common lines detection.
 %               Default 360. 
 % Check input and set default parameters
+
+if n_symm ~= 3 && n_symm ~= 4
+    error('n_symm may be either 3 or 4');
+end
+
 if ~exist('n_theta','var')
     n_theta = 360;
 end
@@ -130,7 +136,7 @@ end
 % step 3  : detect self-common-lines in each image
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 is_handle_equator_ims = true;
-sclmatrix = cryo_self_clmatrix_gpu(npf,max_shift,shift_step,is_handle_equator_ims);
+sclmatrix = cryo_self_clmatrix_gpu_c3_c4(n_symm,npf,max_shift,shift_step,is_handle_equator_ims);
 if do_save_res_to_mat
     log_message('Saving sclmatrix to %s',outmat);
     save(outmat,'sclmatrix','-append');
@@ -138,7 +144,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 4  : calculate self-relative-rotations
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Riis = estimate_all_Riis(sclmatrix,n_theta);
+Riis = estimate_all_Riis_c3_c4(n_symm,sclmatrix,n_theta);
 if do_save_res_to_mat
     log_message('Saving Riis to %s',outmat);
     save(outmat,'Riis','-append');
@@ -146,7 +152,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 5  : calculate relative-rotations
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Rijs = cryo_c4_estimate_all_Rijs(clmatrix,n_theta);
+Rijs = cryo_estimate_all_Rijs_c3_c4(n_symm,clmatrix,n_theta);
 if do_save_res_to_mat
     log_message('Saving Rijs to %s',outmat);
     save(outmat,'Rijs','-append');
@@ -155,7 +161,7 @@ end
 % step 6  : inner J-synchronization
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 [vijs,viis,im_inds_to_remove,pairwise_inds_to_remove,...
-    npf,projs] = local_sync_J(Rijs,Riis,npf,projs);
+    npf,projs] = local_sync_J_c3_c4(n_symm,Rijs,Riis,npf,projs);
 if do_save_res_to_mat
     log_message('Saving npf to %s',outmat);
     log_message('Saving vijs to %s',outmat);
@@ -184,14 +190,14 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 9  : in-plane rotations angles estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-rots = estimate_inplane_rotations4(npf,vis,1,max_shift,shift_step);
+rots = estimate_inplane_rotations2_c3_c4(n_symm,npf,vis,1,max_shift,shift_step);
 if do_save_res_to_mat
     log_message('Saving rots to %s',outmat);
     save(outmat,'rots','-append');
 end
 
 % estimatedVol = reconstruct_vol(projs,npf,rot_alligned,max_shift,shift_step);
-estimatedVol = reconstruct(projs,rots,n_r,n_theta,max_shift,shift_step);   
+estimatedVol = reconstruct_c3_c4(n_symm,projs,rots,n_r,n_theta,max_shift,shift_step);   
 WriteMRC(estimatedVol,1,outvol);
 % 
 % 

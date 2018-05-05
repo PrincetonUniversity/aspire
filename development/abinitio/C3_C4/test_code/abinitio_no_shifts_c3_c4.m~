@@ -46,9 +46,9 @@ cl_detection_rate_c3_c4(n_symm,clmatrix,n_theta,refq);
 if n_symm == 3
     is_handle_equator_ims = false;
 else
-    is_handle_equator_ims = true;
 end
-sclmatrix = cryo_self_clmatrix_gpu_c3_c4(n_symm,npf,max_shift,shift_step,is_handle_equator_ims,refq);
+
+sclmatrix = cryo_self_clmatrix_gpu_c3_c4(n_symm,npf,max_shift,shift_step,refq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 4  : calculate self-relative-rotations

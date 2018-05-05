@@ -46,7 +46,12 @@ cl_detection_rate_c3_c4(n_symm,clmatrix,n_theta,refq);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 3  : detect self-common-lines in each image
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-sclmatrix = cryo_self_clmatrix_gpu_c3_c4(n_symm,npf,max_shift_1d,shift_step_1d,refq);
+if n_symm == 3
+    is_handle_equator_ims = false;
+else
+    is_handle_equator_ims = true;
+end
+sclmatrix = cryo_self_clmatrix_gpu_c3_c4(n_symm,npf,max_shift_1d,shift_step_1d,is_handle_equator_ims,refq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 4  : calculate self-relative-rotations

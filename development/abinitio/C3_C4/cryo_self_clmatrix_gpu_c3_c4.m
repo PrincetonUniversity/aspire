@@ -1,4 +1,4 @@
-function [sclmatrix,correlations,shifts] = cryo_self_clmatrix_gpu_c3_c4(n_symm,npf,max_shift,shift_step,refq)
+function [sclmatrix,correlations,shifts] = cryo_self_clmatrix_gpu_c3_c4(n_symm,npf,max_shift,shift_step,is_handle_equator_ims,refq)
 % Input parameters:
 
 %   n_symm                  Either 3 (for c_3) or 4 (for c_4)
@@ -41,10 +41,12 @@ if ~exist('equator_res_fact','var')
     equator_res_fact = 10;
 end
 
-if ~exist('is_handle_equator_ims','var') && n_symm == 4
-    is_handle_equator_ims = true;
-else
-    is_handle_equator_ims = false;
+if ~exist('is_handle_equator_ims','var')
+    if n_symm == 4
+        is_handle_equator_ims = true;
+    else
+        is_handle_equator_ims = false;
+    end
 end
 
 if ~exist('shift_step','var')
