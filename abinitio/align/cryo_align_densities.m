@@ -256,7 +256,7 @@ estR=bestR.';
 estdx=bestdx;
 
 fsc=FSCorr(vol1,vol2aligned);
-bestRes=fscres(fsc,0.143);
+bestRes=fscres(fsc,cutoff);
 bestResA=2*pixA*numel(fsc)/bestRes; % Resolution in Angstrom.
 
 
