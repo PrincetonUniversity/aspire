@@ -1,9 +1,18 @@
-function [rot_alligned,err_in_degrees,mse] = analyze_results(rots,n_theta,refq)
+function [rot_alligned,err_in_degrees,mse] = analyze_results_c3_c4(n_symm,rots,n_theta,refq)
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% !!!!!!!This function is obsolete!!!!!!!!. Should replace it with analyze_results_cn
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-[mse, rot_alligned, sign_g_Ri] = check_rotations_error(rots,refq);
+if n_symm ~= 3 && n_symm ~= 4
+    error('n_symm may be either 3 or 4');
+end
+
+[mse, rot_alligned, sign_g_Ri] = check_rotations_error(n_symm,rots,refq);
 log_message('MSE of rotations estimate: %e',mse);
 
-err_in_degrees = check_degrees_error(rot_alligned,n_theta,refq);
+err_in_degrees = check_degrees_error(n_symm,rot_alligned,n_theta,refq);
 log_message('median error in degrees: %e',median(err_in_degrees));
 log_message('mean error in degrees: %e',mean(err_in_degrees));
 log_message('std error in degrees: %e',std(err_in_degrees));
@@ -13,12 +22,12 @@ log_message('max error in degrees: %e',max(err_in_degrees));
 end
 
 
-function [mse, rot_alligned, sign_g_Ri] = check_rotations_error(rotations,refq)
+function [mse, rot_alligned, sign_g_Ri] = check_rotations_error(n_symm,rotations,refq)
 % Our estimate for each rotation matrix Ri may be R_i, gRi, g^{2}Ri or
 % g^{3}Ri independently of other rotation matrices. 
 % As such, for error analysis we perform a g-synchronization.
 
-[rotations, sign_g_Ri] = g_sync(rotations,refq);
+[rotations, sign_g_Ri] = g_sync(n_symm,rotations,refq);
 
 nImages   = size(rotations,3);
 % Register estimated rotations to true ones, and compute the difference
@@ -103,20 +112,19 @@ end
 
 
 
-function err_in_degrees = check_degrees_error(rots,n_theta,refq)
+function err_in_degrees = check_degrees_error(n_symm,rots,n_theta,refq)
 
-
-FOUR = 4; % place-holder for a parameter that would be used for C3 as well
 nImages = size(refq,2);
 assert(size(rots,3) == nImages);
 d_theta = 2*pi/n_theta;
 
-g = [0 -1 0; ...
-     1  0 0; ...
-     0  0 1]; % rotation matrix of 90 degress about z-axis
+g = [cosd(360/n_symm) -sind(360/n_symm) 0; ...
+     sind(360/n_symm)  cosd(360/n_symm) 0; ...
+     0                 0  1]; % rotation matrix of 120 degress around z-axis
+
 % precalculate g^s, s=0..params.FOUR-1
-g_s = zeros(3,3,FOUR);
-for s = 1:FOUR
+g_s = zeros(3,3,n_symm);
+for s = 1:n_symm
     g_s(:,:,s) = g^(s-1);
 end
 
@@ -131,8 +139,8 @@ for k = 1:nImages
             sin((j-1)*d_theta).*Rk_gt(:,2);
     end
     
-    c_err_in_degrees = cell(1,4);
-    for s = 1:FOUR
+    c_err_in_degrees = cell(1,n_symm);
+    for s = 1:n_symm
         rays = zeros(n_theta,3);
         Rk   = g_s(:,:,s)*rots(:,:,k);
         for j = 1:n_theta
@@ -160,7 +168,7 @@ end
 
 end
 
-function [rotations_g_synced,sign_g_Ri] = g_sync(rotations, refq)
+function [rotations_g_synced,sign_g_Ri] = g_sync(n_symm,rotations, refq)
 
 % The in-plain rotation stage retrieves all rotation matrices. However, every calculated rotation might 
 % be a the rotated version of g^s, s=1,...,n from the ground truth. 
@@ -173,17 +181,16 @@ function [rotations_g_synced,sign_g_Ri] = g_sync(rotations, refq)
 nImages = size(rotations,3);
 assert(nImages == size(refq,2));
 
-g = [0 -1 0; ...
-     1  0 0; ...
-     0  0 1]; % rotation matrix of 90 degress about z-axis
+g = [cosd(360/n_symm) -sind(360/n_symm) 0; ...
+     sind(360/n_symm)  cosd(360/n_symm) 0; ...
+     0                 0  1]; % rotation matrix of 120 or 90 degress around z-axis
 
 J = diag([1 1 -1]); % Reflection matrix
 
-FOUR = 4; % place holder as the code for C3 is similar
-ALPHA = pi/2; % place holder as the code for C3 is similar
+ALPHA = 2*pi/n_symm; % place holder as the code for C3 is similar
 
-gs = zeros(3,3,4);
-for s=1:FOUR
+gs = zeros(3,3,n_symm);
+for s=1:n_symm
     gs(:,:,s) = g^(s-1);
 end
 
@@ -212,8 +219,8 @@ for i = 1:nImages-1
     Ri    = rotations(:,:,i);
     Rjs   = rotations(:,:,i+1:end);
     
-    RiRjs  = zeros(3,3,nImages-i,FOUR);
-    for s  = 1:FOUR
+    RiRjs  = zeros(3,3,nImages-i,n_symm);
+    for s  = 1:n_symm
         g_s = gs(:,:,s);
         RiRjs(:,:,:,s) = multiprod(Ri.'*g_s, Rjs);
     end
@@ -222,8 +229,8 @@ for i = 1:nImages-1
     norm_diff      = (bsxfun(@minus,RiRjs_t,    RiRjs)).^2;
     J_norm_diff_J = (bsxfun(@minus,J_RiRjs_J_t,RiRjs)).^2;
     
-    norm_diff     = reshape(norm_diff,9,nImages-i,FOUR);
-    J_norm_diff_J = reshape(J_norm_diff_J,9,nImages-i,FOUR);
+    norm_diff     = reshape(norm_diff,9,nImages-i,n_symm);
+    J_norm_diff_J = reshape(J_norm_diff_J,9,nImages-i,n_symm);
     
     % we don't care if there is conjugation or not - all we want is to know
     % s for g^s
@@ -232,7 +239,7 @@ for i = 1:nImages-1
     [~,ii] = min(sum(norm_diff_concat),[],3);
     
     % remove the effect of concatination above.
-    ii = mod(ii,4);
+    ii = mod(ii,n_symm);
     
     A_g(i,i+1:end) = exp(-sqrt(-1)*ALPHA*(ii-1)); 
     
@@ -251,7 +258,7 @@ evect1 = v(:,ind(1));
 log_message('Outer g syn first 5 eigenvalues=[%.2f %.2f %.2f %.2f %.2f]',...
     evals(1),evals(2),evals(3),evals(4),evals(5));
 
-angles = exp(sqrt(-1)*ALPHA*(0:FOUR-1))';
+angles = exp(sqrt(-1)*ALPHA*(0:n_symm-1))';
 rotations_g_synced = zeros(3,3,nImages);
 sign_g_Ri = zeros(nImages,1);
 for ii  = 1:nImages
@@ -263,7 +270,7 @@ for ii  = 1:nImages
     angleDists = abs(angle(zi./angles));
     
     [~,I] = min(angleDists);
-    sign_g_Ri(ii) = FOUR-(I(1)-1);
+    sign_g_Ri(ii) = n_symm-(I(1)-1);
     R = rotations(:,:,ii);
     rotations_g_synced(:,:,ii) = g^(sign_g_Ri(ii))*R;    
 end

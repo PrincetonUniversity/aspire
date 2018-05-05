@@ -1,12 +1,13 @@
-function [detec_rate,clmatrix_correct] = cl_detection_rate_c3(clmatrix,n_theta,refq)
+function [detec_rate,clmatrix_correct] = cl_detection_rate_c3_c4(n_symm,clmatrix,n_theta,refq)
 %
 % Checks the detection rate of common-lines between 
-% images of a c4 symmetric molecule which is invariant to handedness ambiguity. 
+% images of a c4 or c3 symmetric molecule which is invariant to handedness ambiguity. 
 % For each pair of images (i,j) the method checks if the
 % single pair of common line found is one of the four pairs of common lines
 % that are shared by the images.
 % 
 % Input parameters:
+%   n_symm      either 3 (for c_3) or 4 (for c_4)
 %   clmatrix    A n-by-n table where n represens the number of images.  
 %               The (i,j) entry contains the index of a
 %               common-line in image i betwen images i and j. 
@@ -28,11 +29,15 @@ function [detec_rate,clmatrix_correct] = cl_detection_rate_c3(clmatrix,n_theta,r
 %                     four pairs of common lines between images i and j,
 %                     and is 0 otherwise. 
 
+if n_symm ~= 3 && n_symm ~= 4
+    error('n_symm may be either 3 or 4');
+end
+
 angle_tol_err = 10/180*pi; % how much angular deviation we allow for a common-line to have
 nImages = size(clmatrix,1);
 clmatrix_correct = zeros(size(clmatrix));
-% clmatrix_gt is a n*n*4 matrix representing the four pairs of common-lines between each two images
-clmatrix_gt = find_cl_gt(n_theta,refq); 
+% clmatrix_gt is a n*n*n_symm matrix representing the four pairs of common-lines between each two images
+clmatrix_gt = find_cl_gt(n_symm,n_theta,refq); 
 
 clmatrix_diff = bsxfun(@minus,clmatrix_gt,clmatrix);
 clmatrix_diff_angle = clmatrix_diff*2*pi./n_theta;
@@ -70,18 +75,21 @@ log_message('cl_J_dist=[%.2f %.2f]',cl_dist);
 
 end
 
-function clmatrix_gt = find_cl_gt(n_theta,refq)
+function clmatrix_gt = find_cl_gt(n_symm,n_theta,refq)
 
+if n_symm ~= 3 && n_symm ~= 4
+    error('n_symm may be either 3 or 4');
+end
 
 nImages = size(refq,2);
-clmatrix_gt = zeros(nImages,nImages,4);
+clmatrix_gt = zeros(nImages,nImages,n_symm);
 
-g = [cosd(120) -sind(120) 0; ...
-     sind(120)  cosd(120) 0; ...
-     0                 0  1]; % rotation matrix of 120 degress around z-axis
+g = [cosd(360/n_symm) -sind(360/n_symm) 0; ...
+     sind(360/n_symm)  cosd(360/n_symm) 0; ...
+     0                 0  1]; % rotation matrix of 120 or 90 degress around z-axis
 
 gs = zeros(3,3,3);
-for s=0:2
+for s=0:n_symm-1
     gs(:,:,s+1) = g^s;
 end
 
@@ -89,7 +97,7 @@ for i=1:nImages
     for j=i+1:nImages
         Ri = q_to_rot(refq(:,i))';
         Rj = q_to_rot(refq(:,j))';
-        for s=0:2
+        for s=0:n_symm-1
             U = Ri.'*gs(:,:,s+1)*Rj;
             c1 = [-U(2,3)  U(1,3)]';
             c2 = [ U(3,2) -U(3,1)]';

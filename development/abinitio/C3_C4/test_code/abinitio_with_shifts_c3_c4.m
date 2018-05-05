@@ -3,13 +3,24 @@ tic;
 initstate; 
 open_log(0);
 
+n_symm = 4;
+
+if n_symm ~= 3 && n_symm ~= 4
+    error('n_symm may be either 3 or 4');
+end
+
+
 %% Load and display projections
 % The MAT file p100_c4_shifted contains 100 projections of size 65x65. The
 % orientations (given as quaternions) used to generate these projections
 % are stored in the the variable "refq". The projection were generated using the following command:
 max_shift_2d  = 5;
 shift_step_2d = 1;
-[projs,refq] = generate_c3_images(100,1000000,65,'GAUSSIAN',max_shift_2d,shift_step_2d);
+if n_symm == 3 
+    [projs,refq] = generate_c3_images(100,1000000,65,'GAUSSIAN',max_shift_2d,shift_step_2d);
+else
+    [projs,refq] = generate_c4_images(100,1000000,65,'GAUSSIAN',max_shift_2d,shift_step_2d);
+end
 
 % load p100_c4_gaussian_no_shifts;
 viewstack(projs,5,5);   % Display the proejctions.
@@ -30,22 +41,22 @@ n_r     = 89;  % number of radial points in every radial line
 max_shift_1d  = ceil(2*sqrt(2)*max_shift_2d);
 shift_step_1d = 0.5;
 clmatrix = cryo_clmatrix_gpu(npf,size(npf,3),1,max_shift_1d,shift_step_1d); 
-cl_detection_rate_c3(clmatrix,n_theta,refq);
+cl_detection_rate_c3_c4(n_symm,clmatrix,n_theta,refq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 3  : detect self-common-lines in each image
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-sclmatrix = cryo_self_clmatrix_gpu_c3(npf,max_shift_1d,shift_step_1d,refq);
+sclmatrix = cryo_self_clmatrix_gpu_c3_c4(n_symm,npf,max_shift_1d,shift_step_1d,refq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 4  : calculate self-relative-rotations
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Riis = estimate_all_Riis_c3(sclmatrix,n_theta,refq);
+Riis = estimate_all_Riis_c3_c4(n_symm,sclmatrix,n_theta,refq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 5  : calculate relative-rotations
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Rijs = cryo_c3_estimate_all_Rijs(clmatrix,n_theta,refq);
+Rijs = cryo_estimate_all_Rijs_c3_c4(n_symm,clmatrix,n_theta,refq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 6  : inner J-synchronization
@@ -53,7 +64,7 @@ Rijs = cryo_c3_estimate_all_Rijs(clmatrix,n_theta,refq);
 is_remove_non_rank1 = true;
 non_rank1_remov_percent = 0.25;
 [vijs,viis,im_inds_to_remove,pairwise_inds_to_remove,...
-    npf,projs,refq] = local_sync_J_c3(Rijs,Riis,npf,...
+    npf,projs,refq] = local_sync_J_c3_c4(n_symm,Rijs,Riis,npf,...
                                 projs,is_remove_non_rank1,non_rank1_remov_percent,refq);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 7  : outer J-synchronization
@@ -69,16 +80,16 @@ vis  = estimate_third_rows(vijs,viis);
 % step 9  : in-plane rotations angles estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 inplane_rot_res = 1;
-[rots,in_plane_rotations] = estimate_inplane_rotations2_c3(npf,vis,inplane_rot_res,max_shift_1d,shift_step_1d);
+[rots,in_plane_rotations] = estimate_inplane_rotations2_c3_c4(n_symm,npf,vis,inplane_rot_res,max_shift_1d,shift_step_1d);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 10  : Results Analysis
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[rot_alligned,err_in_degrees,mse] = analyze_results_c3(rots,n_theta,refq);
+[rot_alligned,err_in_degrees,mse] = analyze_results_c3_c4(n_symm,rots,n_theta,refq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 11  : Reconstructing volume
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-estimatedVol = reconstruct_c3(projs,rot_alligned,n_r,n_theta);   
+estimatedVol = reconstruct_c3_c4(n_symm,projs,rot_alligned,n_r,n_theta);   
 
 WriteMRC(estimatedVol,1,'example1_with_shifts.mrc');
