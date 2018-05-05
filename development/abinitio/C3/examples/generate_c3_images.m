@@ -54,7 +54,8 @@ end
 
 log_message('#images = %d', nImages);
 
-projs = cryo_project(vol,refq);
+rots = q_to_rot(refq);
+projs = cryo_project(vol,rots);
 projs = permute(projs,[2,1,3]);
 
 log_message('max shifts=%d, shift step=%7.5f',max_shift,shift_step);
