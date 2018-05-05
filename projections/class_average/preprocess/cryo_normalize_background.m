@@ -1,4 +1,4 @@
-function stack=cryo_normalize_background(stack,r,verbose)
+function [stack,mean_bg,sd_bg]=cryo_normalize_background(stack,r,verbose)
 %
 % CRYO_NORMALIZE_BACKGROUND Normalize background to mean 0 and std 1.
 %
@@ -43,6 +43,8 @@ background_pixels_idx=radiisq>r*r;
 if verbose
     printProgressBarHeader;
 end
+sd_bg = zeros(1,K);
+mean_bg = zeros(1,K);
 for kk=1:K
     if verbose
         progressTic(kk,K);
@@ -63,4 +65,7 @@ for kk=1:K
     
     proj=(proj-mm)./sd;
     stack(:,:,kk)=proj;
+    
+    sd_bg(kk) = sd;
+    mean_bg(kk) = mm;
 end
