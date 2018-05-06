@@ -1,10 +1,17 @@
 % instack = '/scratch/yoel/denoised/10081/denoised_group1.mrcs';
-instack = '10081_denoised_group1_small.mrcs';
-recon_folder = './results_tmp';
+
+n_symm = 3;
+if n_symm == 3
+    instack = '10004_averages_nn100_selected_small.mrcs';
+    recon_folder = './results_tmp_C3';
+else
+    instack = '10081_denoised_group1_small.mrcs';
+    recon_folder = './results_tmp_C4';
+end
+
 outvol = fullfile(recon_folder,'out.mrc');
 
 %% option 1: using minimal set of input variables
-n_symm = 4;
 cryo_abinitio_C3_C4(n_symm,instack,outvol);
 
 %% option 2: using all input variables

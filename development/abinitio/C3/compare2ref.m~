@@ -1,7 +1,0 @@
-mapFile = cryo_fetch_emdID(6267);
-vol_ref = ReadMRC(mapFile);
-vol_ref_down_sam = cryo_downsample(vol_ref,[129,129,129]);
-
-vol2 = ReadMRC('vol_10024_grp1_3000.mrc');
-[~,~,vol2aligned] = cryo_align_densities_C4(vol_ref_down_sam,vol2,pixA,verbose,Rref,forcereflect,Nprojs);
-[resA,h] = plotFSC(vol_ref_down_sam,vol2aligned,0.143,2.82);
