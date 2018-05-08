@@ -139,6 +139,7 @@ function install_finufft(url, location, fftw_location)
 
 	addpath(fullfile(location, 'finufft', 'matlab'));
 	try
+		if isoctave(), clear functions; end
 		finufft1d1(0, 0, 1, 1, 1);
 	catch
 		error('Flatiron Institute NUFFT installation failed\n');
