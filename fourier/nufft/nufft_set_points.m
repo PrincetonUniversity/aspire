@@ -7,8 +7,8 @@
 %    plan: An NUFFT plan.
 %    fourier_pts: The points in Fourier space where the Fourier transform is to
 %       be calculated, arranged as an N-by-d array, where d is the dimension-
-%       ality of the plan. These need to be in the range [-pi, pi] in each dimen-
-%       sion.
+%       ality of the plan. These need to be in the range [-pi, pi] in each
+%       dimension.
 
 function plan = nufft_set_points(plan, fourier_pts)
 	dims = numel(plan.sz);

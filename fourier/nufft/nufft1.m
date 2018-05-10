@@ -6,8 +6,8 @@
 % Input
 %    sig: An array of size N-by-1 containing a signal.
 %    fourier_pts: The frequencies in Fourier space at which the Fourier trans-
-%       form is to be calculated. These are arranged as an array of size 1-by-K,
-%       with values in the range [-pi, pi].
+%       form is to be calculated. These are arranged as an array of size
+%       1-by-K, with values in the range [-pi, pi].
 %    nufft_opt: A struct containing the fields:
 %       - epsilon: The desired precision of the NUFFT (default 1e-15).
 %
