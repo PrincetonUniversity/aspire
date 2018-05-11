@@ -3,7 +3,7 @@ function [ clstack,corrstack, shift_equations,shift_equations_map]...
 % Detect the commonlines by searching for the maximun cross-correlation 
 % between the rays on the polar Fourier Transforms. Gaussian filter applied 
 % to damp the noise in the high frequency domain.
-
+%
 % Input: 
 %
 %   pf       3D array where each image pf(:,:,k) corresponds to the Fourier
@@ -58,7 +58,7 @@ n_shift=2*max_shift/shift_step+1; % Number of shifts to try.
 % (2xn_r-1)xn_theta, that is, take then entire ray through the origin.
 pf=[flipdim(pf(2:end,n_theta/2+1:end,:),1) ; pf(:,1:n_theta/2,:) ];
 temp = pf;
-pf = zeros(2*n_r - 1, n_theta, n_proj);
+pf = zeros(2*n_r - 1, n_theta, n_proj, class(temp));
 pf(:,1: n_theta/2, :) = temp;
 pf(:, n_theta/2 + 1: end, :) = flipdim(temp, 1);
 pf = reshape(pf, 2*n_r - 1, n_theta * n_proj);
@@ -116,7 +116,7 @@ rk2=rk(1:rmax);
 % Accelerate the searching process by comparing one slice
 % with all the other shifted slices in each iteration.
 for k=1:n_proj
-    temp_coef=zeros(N,n_theta,n_shift);
+    temp_coef=zeros(N,n_theta,n_shift,class(coefficients));
     % Generate all the shifted copies of k_th slice.
     for shiftidx=1:n_shift
         shift=-max_shift+(shiftidx-1)*shift_step;

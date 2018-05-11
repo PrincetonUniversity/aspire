@@ -14,7 +14,7 @@ function [psi,theta,phi]=rot2xyz(R)
 %
 % Examples:
 %
-%   R=q_to_rot(qrand(1))
+%   R=rand_rots(1);
 %   [psi,theta,phi]=rot2xyz(R);
 %
 %Yoel Shkolnisky, November 2013.

@@ -27,13 +27,12 @@ clear check
 Phase=Coeff(Freqs~=0, :)./abs(Coeff(Freqs~=0, :));
 Phase=atan2(imag(Phase), real(Phase));
 [O1, O2]=bispec_Operator(Freqs(Freqs~=0));
-fprintf('\nLength of the bispectrum is %d \n', size(O1, 1));
 M=exp(O1*Coeff_norm+sqrt(-1)*O2*Phase);
 clear Coeff_norm Phase O1 O2
 
 %% PCA the bispectrum
 
-[U, S, V]=pca_Y(M, 200);
+[U, S, V]=pca_Y(M, min([200 size(M)]));
 Coeff_b=S*V';       %reduced rotationally invariant features
 Coeff_b_r=U'*conj(M);      %reduced rotationally invariant features for reflected images.
 clear M U S V

@@ -42,13 +42,6 @@ proj=zeros(size(projections));
 a=floor(L/2);
 defocus_group=zeros(K, 1);
 
-
-%Go concurrent
-ps=matlabpool('size');
-if ps==0
-    matlabpool open
-end
-
 parfor i=1:K
     tmp=cfft2(projections(:, :, i));
     tmp2=tmp.*c(:,:, mod(i, num_defocus)+1);

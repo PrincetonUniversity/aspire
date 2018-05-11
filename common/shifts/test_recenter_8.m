@@ -11,6 +11,8 @@
 % Yoel Shkolsniky, November 2014.
 
 clear;
+initstate;
+
 K=100;     % Number of projections.
 n=65;     % Size of each projection is nxn.
 SNRs=[1000 1 1/2 1/4 1/8 1/16 1/32]; % SNRs to test
@@ -30,16 +32,16 @@ fprintf('SNR \t \t NS- \t \t NS+ \t \t CM- \t \t CM+ \t \t MS- \t \t MS+\n');
 
 for j=1:numel(SNRs)
     snr=SNRs(j);
-    [projs,noisy_projs,~,q]=cryo_gen_projections(n,K,snr,3,1);  % Generate projections.
-    clstack_ref=clmatrix_cheat_q(q,n_theta); % True common lines matrix.
+    [projs,noisy_projs,~,rots]=cryo_gen_projections(n,K,snr,3,1);  % Generate projections.
+    clstack_ref=clmatrix_cheat(rots,n_theta); % True common lines matrix.
 
     % Noisy projections with no preprocessing
     pf=cryo_pft(noisy_projs,n_r,n_theta);
     open_log(0);
     
-    clstack1=cryo_clmatrix_gpu(pf,K,VERBOSE,0,1); % Noisy projections ignore shifts
+    clstack1=cryo_clmatrix(pf,K,VERBOSE,0,1); % Noisy projections ignore shifts
     prob1=comparecl(clstack1,clstack_ref,n_theta,5);
-    clstack2=cryo_clmatrix_gpu(pf,K,VERBOSE,10,1); % Noisy projections consider shifts
+    clstack2=cryo_clmatrix(pf,K,VERBOSE,10,1); % Noisy projections consider shifts
     prob2=comparecl(clstack2,clstack_ref,n_theta,5);
 
 
@@ -55,9 +57,9 @@ for j=1:numel(SNRs)
     pf=cryo_pft(projs_aligned,n_r,n_theta);
     open_log(0);
     
-    clstack3=cryo_clmatrix_gpu(pf,K,VERBOSE,0,1); % CM corrected ignore shifts
+    clstack3=cryo_clmatrix(pf,K,VERBOSE,0,1); % CM corrected ignore shifts
     prob3=comparecl(clstack3,clstack_ref,n_theta,5);
-    clstack4=cryo_clmatrix_gpu(pf,K,VERBOSE,10,1);% CM corrected consider shifts
+    clstack4=cryo_clmatrix(pf,K,VERBOSE,10,1);% CM corrected consider shifts
     prob4=comparecl(clstack4,clstack_ref,n_theta,5);
 
     % Apply masking then center of mass correction then masking
@@ -71,9 +73,9 @@ for j=1:numel(SNRs)
     pf=cryo_pft(projs_masked,n_r,n_theta);
     open_log(0);
 
-    clstack5=cryo_clmatrix_gpu(pf,K,VERBOSE,0,1); % masked+CM corrected ignore shifts
+    clstack5=cryo_clmatrix(pf,K,VERBOSE,0,1); % masked+CM corrected ignore shifts
     prob5=comparecl(clstack5,clstack_ref,n_theta,5);
-    clstack6=cryo_clmatrix_gpu(pf,K,VERBOSE,10,1);% masked+CM corrected consider shifts
+    clstack6=cryo_clmatrix(pf,K,VERBOSE,10,1);% masked+CM corrected consider shifts
     prob6=comparecl(clstack6,clstack_ref,n_theta,5);
 
 %         % Apply filtering then masking then center of mass correction then
@@ -88,7 +90,7 @@ for j=1:numel(SNRs)
 %     pf=cryo_pft(projs_filt,n_r,n_theta);
 %     open_log(0);
 % 
-%     clstack7=cryo_clmatrix_gpu(pf,K,VERBOSE,10,1); % masked+CM corrected ignore shifts
+%     clstack7=cryo_clmatrix(pf,K,VERBOSE,10,1); % masked+CM corrected ignore shifts
 %     prob7=comparecl(clstack7,clstack_ref,n_theta,5);
     clstack7=clstack6;
     for k=1:K

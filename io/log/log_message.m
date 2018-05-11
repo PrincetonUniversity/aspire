@@ -25,13 +25,18 @@ global log_max_bytes
 %%% HACK
 %return;
 
+if isempty(log_last_prefix_time)
+    warning('log system was not initialized. Initalizing log to print to screen.');
+    open_log(0);
+end
+
 % Do not allow log files that are too big . If more than log_max_bytes (say
 % 100MB) have been written then do nothing.
 if log_bytes_written>log_max_bytes
     return; 
 end
 
-newline=10;
+newline=char(10);
 
 if numel(log_run_silent)==0
     log_run_silent=0;
@@ -47,10 +52,8 @@ end
 % time since last message was more than a second. Otherwise use the old
 % prefix string.
 current_time=clock;
-if isempty(log_last_prefix_time)
-    error('log system was not initialized. Call open_log first.');
-end
-if etime(current_time,log_last_prefix_time)>1
+timediff=etime(current_time,log_last_prefix_time);
+if timediff>1
     log_prefix=datestr(clock);
     log_last_prefix_time=current_time;
 end
@@ -60,7 +63,9 @@ if ~isempty(str) % '' stand for "print newline without a timestamp".
     msg=[log_prefix ' ' str newline];
 end
 
-if log_current_line>log_max_lines
+if (log_current_line>log_max_lines) || (timediff>30)
+    % Flush if cache full or last message was written more than 30 seconds
+    % ago. Change in the future to flush log at least every 30 seconds.
     log_flush;
 end
 

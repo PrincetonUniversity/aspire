@@ -1,12 +1,10 @@
 function [R,x,cnt]=cryo_epsdR(vol,samples_idx,max_d,verbose)
-% EPSDR  Estimate the 1D isotropic autocorrelation of an image stack.
+% CRYO_EPSDR  Estimate the 1D isotropic autocorrelation of an image stack.
 %
 % [R,x,cnt]=cryo_epsdR(vol,samples_idx,max_d,verbose)
-
-% Compute the 1D isotropic autocorrelation function of a stack of images.
-% The samples to use in each image are given in samples_idx. The
-% correlation is computed up to a maximal distance of max_d.
-%
+%   Estimate the 1D isotropic autocorrelation function of a stack of
+%   images. The samples to use in each image are given in samples_idx. The
+%   correlation is computed up to a maximal distance of max_d.
 %
 % Inputs parameters:
 %    vol          Stack of square pxp images.

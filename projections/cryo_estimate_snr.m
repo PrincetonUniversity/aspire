@@ -1,17 +1,26 @@
-function snr=cryo_estimate_snr(projs,prewhiten)
+function [snr,var_s,var_n]=cryo_estimate_snr(projs,prewhiten)
 % CRYO_ESTIMATE_SNR     Estimate SNR of projections stack
 %
-% snr=cryo_estimate_snr(projs)
+% [snr,var_s,var_n]=cryo_estimate_snr(projs)
 %   Estimate the snr of a stack of projections by using corner pixels. If
 %   each projections in the stack is of size pxp, then only pixels whose
 %   radius is larger than p/2 are used for estimating the parameters of the
-%   noise. snr is defined as var_s/var_n.
+%   noise. snr is defined as var_s/var_n, where var_s is the variance of
+%   the signal and var_n is the variance of the noise.
 %   Noise in the proejctions is assumed to be white.
 %
-% snr=cryo_estimate_snr(projs,prewhiten)
+% [snr,var_s,var_n]=cryo_estimate_snr(projs,prewhiten)
 %   If prewhiten is non-zero, then prewhiten the projections before
 %   estimating the parameters of the noise.
 %   
+%
+% IMPORTANT: All images must be normalized to have the same noise mean and
+% variance, using, e.g., cryo_normalize_background
+%
+% Revision:
+%   April 22, 2018 Y.S. Fix code to use only signal pixels to compute the
+%                       power of the signal.
+%
 % Yoel Shkolnisky, August 2015.
 
 
@@ -19,7 +28,7 @@ function snr=cryo_estimate_snr(projs,prewhiten)
 if nargin==2
     if prewhiten
         psd = cryo_noise_estimation(projs);
-        prewhitened_projs = Prewhiten_image2d(projs, psd);
+        prewhitened_projs = cryo_prewhiten(projs, psd);
         projs=prewhitened_projs;
         clear prewhitened_projs;
     end
@@ -29,15 +38,12 @@ end
 p = size(projs, 1); % Image size)
 radius_of_mask = floor(p/2)-1; % 
 
-% Normalize projections, in case each comes with a different normalization.
-projs=cryo_normalize_background(projs,radius_of_mask);
-
 % Compute indices of noise samples
 I = cart2rad(p);
 mask = zeros(p);
 mask(I<radius_of_mask) = -1;  % Create a mask.
 noise_idx = find(mask~=-1);   % Indices of noise pixels
-
+signal_idx = find(mask == -1); % Indices of signal pixels
 % Compute noise variance from all projections
 %sum_noise=0;    % Sum of all noise pixels;
 %sum_noise_sq=0; % Sum of noise pixels squared
@@ -51,7 +57,7 @@ parfor k=1:size(projs,3)
     noise_vals=current_proj(noise_idx);
 %    sum_noise=sum_noise+sum(noise_vals);
     noise_means(k)=mean(noise_vals);
-    projs_means(k)=mean(current_proj(:));
+    projs_means(k)=mean(current_proj(signal_idx));
 end
 %mean_noise=sum_noise/total_noise_samples; % Noise mean
 %noise_mean=mean(noise_means);
@@ -71,10 +77,10 @@ parfor k=1:size(projs,3)
     % Note that it is incorrect to subtract the mean image, since then the
     % code won't work for a stack consisting of multiple copies of the same
     % image plus noise.
-    projs_sumsq(k)=sum((abs(current_proj(:)-projs_means(k))).^2);
+    projs_sumsq(k)=sum((abs(current_proj(signal_idx)-projs_means(k))).^2);
 end
 var_n=sum(noise_sumsq)/(total_noise_samples-1);
-var_splusn=sum(projs_sumsq)/(numel(projs)-1);
+var_splusn=sum(projs_sumsq)/(numel(signal_idx)*size(projs, 3)-1);
 %var_n=sum_noise_sq/(total_noise_samples-1); % Noise variance
 
 %mean_proj = mean(projs, 3);

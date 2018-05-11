@@ -25,9 +25,9 @@ function [est_shifts,shift_equations]=cryo_estimate_shifts(pf,rotations,...
 %   memoryfactor  If there are N projections, then the system of
 %              eqations solved for the shifts is of size 2N x N(N-1)/2 (2N
 %              unknowns and N(N-1)/2 equations). This may too big if N is
-%              large. If meryfactors between 0 and 1, then it i the
+%              large. If memoryfactor between 0 and 1, then it i the
 %              fraction of equation to retain. That is, the system of 
-%              equations solved will be of size 2N x N*(N-1)/2*memoryfaor.
+%              equations solved will be of size 2N x N*(N-1)/2*memoryfactor.
 %              If memoryfactor is larger than 100, then the number of
 %              equations is estimated such the memory used by the equations
 %              is roughly memoryfactor megabytes. Default is 1 (use all 
@@ -44,7 +44,7 @@ if ~exist('shift_step','var')
 end
 
 if ~exist('memoryfactor','var')
-    memoryfactor=1;
+    memoryfactor=10000;
 end
 
 if ~exist('shifts_2d_ref','var') || isempty(shifts_2d_ref)
@@ -70,19 +70,30 @@ memtotal=NequationsTotal*2*n_projs*8; % Estimated memory requirements for the fu
                                      % ignore it.
 
                                      
-if memoryfactor<1                                     
+if memoryfactor<=1                                     
     Nequations = ceil(n_projs*(n_projs-1)*memoryfactor/2); % Number of equations that will be used to estimation the shifts
 else
-    subsampingfactor=(memoryfactor*10^6)/memtotal; % By how much we need to 
+    subsamplingfactor=(memoryfactor*10^6)/memtotal; % By how much we need to 
         % subsample the system of equations in order to use roughly
         % memoryfactor MB.
-    if subsampingfactor<1
-        Nequations = ceil(n_projs*(n_projs-1)*subsampingfactor/2);
+    if subsamplingfactor<1
+        Nequations = ceil(n_projs*(n_projs-1)*subsamplingfactor/2);
     else
         Nequations = NequationsTotal;
     end
 end
-                                                        
+
+
+if Nequations<n_projs
+    warning('Too few equations. Increase memoryfactor. Setting Nequations to n_projs');
+    Nequations=n_projs;
+end
+
+if Nequations<2*n_projs
+    warning('Number of equations is small. Consider increase memoryfactor.');
+end
+
+
 % Allocate storage for the equations of determining the 2D shift of each
 % projection. The shift equations are represented using a sparse matrix,
 % since each row in the system contains four non-zeros (as it involves
@@ -122,7 +133,6 @@ idxI=pairsI(pairsJ>pairsI);
 idxJ=pairsJ(pairsJ>pairsI);
 Icl=[idxI,idxJ];
 % Pick Nequations indices from I at random.
-initstate;
 rp=randperm(size(Icl,1));
 Icl=Icl(rp(1:Nequations),:);
 %Icl=Icl((1:Nequations),:);
@@ -214,7 +224,8 @@ end
 
 shift_equations=sparse(shift_I,shift_J,shift_eq,Nequations,2*n_projs);
 shift_equations=[shift_equations shift_b(1:shift_equation_idx)];
-est_shifts=shift_equations(:,1:end-1)\shift_equations(:,end);
+%est_shifts=shift_equations(:,1:end-1)\shift_equations(:,end);
+est_shifts=lsqr(shift_equations(:,1:end-1),shift_equations(:,end),1.0e-8,100);
 est_shifts=full(transpose(reshape(est_shifts,2,n_projs)));
 
 if ~isscalar(shifts_2d_ref) 
@@ -231,7 +242,8 @@ if ~isscalar(shifts_2d_ref)
                 log_message('cryo_estimate_shifts error: %8.5e',...
                     (norm(V.'*(s1-s2))/norm(V.'*s1)));
             else
-                log_message('norm(V.''*s1) = %7.5e',norm(V.'*s1));
+                % Print absolute error
+                log_message('norm(V.''*s1) = %7.5e',norm(V.'*s2));
             end
     else
         log_message('Not comparing to reference shifts - too many equations\n');

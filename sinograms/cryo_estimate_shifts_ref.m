@@ -10,7 +10,7 @@ function [est_shifts,shift_equations]=...
 %   Estimate 2D shifts in projections using the estimated rotations and the
 %   common line matrix.
 %   The function processes the projections exactly as cryo_clmatrix_gpu and
-%   returens shift equations which are identical to those returned by
+%   returns shift equations which are identical to those returned by
 %   cryo_clmatrix_gpu. This code is used as a reference code used for the
 %   development of cryo_estimate_shifts.
 

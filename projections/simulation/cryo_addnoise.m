@@ -8,9 +8,10 @@ function [noisy_projections, noise, I, sigma] = cryo_addnoise( projections, SNR,
 %    SNR            Signal to noise of the output noisy projections.
 %   noise_type      'color' or 'gaussian'
 %   seed            Seed parameter for initializing the the random number
-%                   generator of the noise samples. If not provided, a
-%                   default value is used which guarantees reproducible
-%                   results between different calls of this function.
+%                   generator of the noise samples. If not provided, the
+%                   current state of the random number generator is used.
+%                   In such a case the results of the function are not
+%                   reproducible.
 %
 % Output parameters:
 %    noisy_projections  Stack of noisy projections. Same size as the input
@@ -37,8 +38,6 @@ sigma=sqrt(var(reshape(projections(:, :, 1), p^2, 1))/SNR);
 %  Initialize the random number generator.
 if exist('seed','var')
     initstate(seed); 
-else
-    initstate;
 end
 
 %for optimization, so we can use fft2 and
@@ -53,15 +52,14 @@ end;
 
 % Color Noise Response
 I = cart2rad(2*p+1);
+I1=ones(size(I));
 I=1./sqrt((1+I.^2));
-%I = exp(-I/5);
+I=0*I1 + 1*I;
 I=I/norm(I(:));
 noise_response = sqrt(I); 
 
 for k=1:K
     gn=randn(2*p+1);
-%     proj=projections(:,:,k);
-%     sigma=sqrt(var(proj(:))/SNR);
     if strcmpi(noise_type,'gaussian')
         cn=gn;
     else

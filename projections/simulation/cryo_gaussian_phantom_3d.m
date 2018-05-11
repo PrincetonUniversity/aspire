@@ -83,7 +83,10 @@ for k = 1:size(gparams,1)
        ];
  
    u= S^(-1)*A*(coord-repmat([x0 y0 z0].',1,size(coord,2)));
-   tmp=rho*exp(-(u(1,:).^2+u(2,:).^2+u(3,:).^2));
+   tmp=rho*exp(-(u(1,:).^2+u(2,:).^2+u(3,:).^2)); 
+   
+  
+   
    
    %tmp=rho*exp(-(u(1,:).^2+u(2,:).^2+u(3,:).^2)/2)/(sqrt(2*pi))^3 / det(S);   
    %tmp=rho*exp(-(u(1,:).^2+u(2,:).^2+u(3,:).^2)/2)/(sqrt(det(2*pi*S^2)));

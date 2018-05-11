@@ -23,6 +23,7 @@ function have_library = have_nufft_library(lib_code)
 	elseif lib_code == 2
 		have_library = true;
 		try
+			if isoctave(), clear functions; end
 			nufft1d1(1, 0, 0, 1, 1, 1);
 		catch
 			have_library = false;
@@ -32,6 +33,14 @@ function have_library = have_nufft_library(lib_code)
 		try
 			p = nfft_init_1d(2, 1);
 			nfft_finalize(p);
+		catch
+			have_library = false;
+		end
+	elseif lib_code == 4
+		have_library = true;
+		try
+			if isoctave(), clear functions; end
+			finufft1d1(0, 0, 1, 1, 1);
 		catch
 			have_library = false;
 		end

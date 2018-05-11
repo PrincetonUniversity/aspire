@@ -12,6 +12,8 @@
 % Yoel Shkolsniky, November 2014.
 
 clear;
+initstate;
+
 K=100;     % Number of projections.
 n=65;     % Size of each projection is nxn.
 SNRs=[1000 1 1/2 1/4 1/8 1/16 1/32]; % SNRs to test

@@ -12,6 +12,8 @@
 N=129; % Each noise image is of size NxN.
 Ks=[100 1000 10000]; % Number of noise images to generate.
 
+initstate;
+
 % Generate a stack of noise images
 [noise,Sfft,Sref]=noise_fakectf(N,max(Ks));
 
@@ -20,13 +22,15 @@ for j=1:numel(Ks)
     
     % Estimate power spectrum of noise images    
     max_d=floor(N/2);
-    [P2,R,x]=cryo_epsdS(noise(:,:,1:Ks(j)),1:N^2,max_d,1);
+    [P2,R,~,x]=cryo_epsdS(noise(:,:,1:Ks(j)),1:N^2,max_d,1);
     
     if j==1 % Allocate memory for all power spectra of all tests.
         xs=zeros(numel(R),numel(Ks));
         Rs=zeros(numel(R),numel(Ks));
         P2s=zeros(2*N-1,2*N-1,numel(Ks));
     end
+
+    P2 = P2/norm(P2(:));
     
     Rs(:,j)=R;
     P2s(:,:,j)=P2;

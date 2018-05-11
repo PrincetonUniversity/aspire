@@ -2,7 +2,8 @@ function [lower_index,upper_index] = bsearch(x,LowerBound,UpperBound)
 % BSEARCH Binary search in a sorted vector.
 %
 % Binary O(log2(N)) search of the range of indices of all elements of x
-% between LowerBound and UpperBound. 
+% between LowerBound and UpperBound. If no elements between LowerBound and
+% Upperbound are found, the returned lower_index and upper_index are empty.
 % The array x is assumed to be sorted from low to high, and is NOT verified
 % for such sorting.
 %
@@ -80,3 +81,11 @@ if x(upper_index_b)<=UpperBound
 else
     upper_index = upper_index_a;
 end
+
+if upper_index<lower_index
+    % The requested range of keys not found in the array.
+    % Return empty lower and uppoer bounds.
+    lower_index = [];
+    upper_index = [];
+end
+    

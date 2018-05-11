@@ -7,9 +7,9 @@ function [ v, v_b, kernel ,err, iter, flag] = recon3d_firm( projections,...
 %   n is the size of a projection, and n_proj is the number of the
 %   projections.
 %   
-%   shifts: the translation parameters for the projections. 
-%   
 %   inv_rot_matrices: a stack of inverse rotation matrices, of size 3x3xn_proj.
+%   
+%   shifts: the translation parameters for the projections. 
 %
 %   tol     error toleration
 %   max_it  maximun number of iterations
@@ -33,6 +33,8 @@ n=size(projections,1);
 if isempty(tol), tol=1e-3; end
 if isempty(max_it), max_it=100; end
 if isempty(x0), x0 = zeros(n,n,n); end
+
+projections=single(projections);
 
 if isempty(shifts)
     projs_fourier= FFT_projections( projections);

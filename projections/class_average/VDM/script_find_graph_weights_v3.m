@@ -13,21 +13,24 @@ function [ W ]=script_find_graph_weights_v3(X, c, n, k)
 % cd /scratch/summer2011/post_classaveraging/
 % setup;
 % cd /u/zhizhenz/matlab_cryo
+    N=length(X);
 
-N=length(X);
+    f = X;
+    A = [eye(N); -eye(N)];
+    b = [ones(N, 1); zeros(N, 1)];
 
-cvx_begin
-    variable W(N)
-    minimize( W'*X );
-    subject to
-        W<=1;
-        W>=0;
-        for i=1:n
-            id1=find(c(:, 1)==i);
-            id2=find(c(id1, 2)>i);
-            id3=find(c(:, 2)==i);
-            id4=find(c(id3, 1)<i);
-            id=[id1(id2); id3(id4)];
-            sum(W(id))==k;
-        end;
-cvx_end
+    Aeq = zeros(n, N);
+    beq = k*ones(n, 1);
+
+    for i = 1:n
+        id1=find(c(:, 1)==i);
+        id2=find(c(id1, 2)>i);
+        id3=find(c(:, 2)==i);
+        id4=find(c(id3, 1)<i);
+        id=[id1(id2); id3(id4)];
+
+        Aeq(i, id) = 1;
+    end
+
+    W = linprog(f, A, b, Aeq, beq);
+end

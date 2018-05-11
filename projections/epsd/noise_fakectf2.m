@@ -21,8 +21,6 @@ function [noise,P,S]=noise_fakectf2(N,K)
 %
 % Revised: Yoel Shkolnisky, October 2014.
 
-initstate;
-
 noise=zeros(N,N,K);
 M=2*N-1;    % Need twice the number of random variables
 

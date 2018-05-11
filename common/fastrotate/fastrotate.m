@@ -63,7 +63,7 @@ for k=1:size(INPUT,3)
     switch M.mult90
         case 0
         case 1
-            INPUT(:,:,k)=rot90(INPUT(:,:,k));
+            INPUT(:,:,k)=rot90_fastrotate(INPUT(:,:,k));
         case 2
             INPUT(:,:,k)=rot180(INPUT(:,:,k));
         case 3

@@ -54,8 +54,13 @@ for kk=1:K
     % Compute mean and standard deviation of background pixels
     mm=mean(background_pixels);
     sd=std(background_pixels);
-    
+%    sprintf('Subtracting background mean: %f and normalizing by background stdev: %f',mm, sd)
     % Normalize the projections
+    
+    if sd<1.0e-5
+        warning('Variance of background of image %d too small (sd=%5.3e). Cannot normalize...',kk,sd);
+    end
+    
     proj=(proj-mm)./sd;
     stack(:,:,kk)=proj;
 end

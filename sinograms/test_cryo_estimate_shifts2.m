@@ -6,7 +6,7 @@
 % estimates to the reference shifts.
 % The rotations used by cryo_estimate_shifts to find the common lines
 % between projections are the reference rotations computed from the
-% quaternions the generated the projections.
+% rotations matrices which generated the projections.
 % For comparison, we also estimate the 2D shifts using the shift equations
 % computed by cryo_clmatrix.
 %
@@ -31,11 +31,12 @@ results=zeros(numel(SNRlist),4);
 open_log(0);
 
 for snridx=1:numel(SNRlist)
-    [projs,noisy_projs,shifts_2d_ref,q_ref]=cryo_gen_projections(n,n_projs,SNRlist(snridx),max_shift,shift_step);
+    initstate;
+    [projs,noisy_projs,shifts_2d_ref,rots_ref]=cryo_gen_projections(n,n_projs,SNRlist(snridx),max_shift,shift_step);
     
     log_message('SNR=%5.3e',SNRlist(snridx));
     
-    viewstack(noisy_projs,5,5);
+    %viewstack(noisy_projs,5,5);
     masked_projs=mask_fuzzy(noisy_projs,floor(n/2)); % Applly circular mask
             
     % Compute polar Fourier transform, using radial resolution n_r and angular
@@ -46,16 +47,16 @@ for snridx=1:numel(SNRlist)
     
     rotations_ref=zeros(3,3,n_projs);
     for k=1:n_projs
-        rotations_ref(:,:,k)=(q_to_rot(q_ref(:,k))).';
+        rotations_ref(:,:,k)=rots_ref(:,:,k).';
     end
     
     %% Compte common lines matrix
     % Compute reference common lines matrix
-    clstack_ref=clmatrix_cheat_q(q_ref,n_theta);
+    clstack_ref=clmatrix_cheat(rots_ref,n_theta);
     
     % Search for common lines in the presence of shifts
     [clstack,corrstack,shift_equations1,shift_equations_map,clstack_mask]=...
-        cryo_clmatrix_gpu(pf,n_projs,0,ceil(2*sqrt(2)*max_shift),shift_step);
+        cryo_clmatrix(pf,n_projs,0,ceil(2*sqrt(2)*max_shift),shift_step);
     
     % Print the percentage of correctly detected commonlines. Shoule be very
     % close to 100%.

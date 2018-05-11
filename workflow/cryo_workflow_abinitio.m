@@ -22,11 +22,11 @@ message=sprintf('Number of class means to use to abinitio reconstruction of each
 nmeans=fmtinput(message,defnmeans,'%d');
 
 % Find all available class means files.
-avgfiles=dir(fullfile(workflow.info.working_dir,'averages_nn*_group*.mrc'));
+avgfiles=dir(fullfile(workflow.info.working_dir,'averages_nn*_group*.mrcs'));
 
 available_nns=zeros(numel(avgfiles),1);
 for k=1:numel(avgfiles)
-    avg_file_params=sscanf(avgfiles(k).name,'averages_nn%d_group%d.mrc');
+    avg_file_params=sscanf(avgfiles(k).name,'averages_nn%d_group%d.mrcs');
     available_nns(k)=avg_file_params(1);
 end
 available_nns=sort(unique(available_nns)); % Available nnavg values.
@@ -34,16 +34,22 @@ available_nns=sort(unique(available_nns)); % Available nnavg values.
 % Convert available_nns into a cell array for use as input in
 % multichoice_question.
 cell_nn=cell(numel(available_nns),1);
-for k=1:numel(available_nns);
+for k=1:numel(available_nns)
     cell_nn{k}=num2str(available_nns(k));
 end
 message=sprintf('Averaging value (nnavg) to use ');
 nnavg=multichoice_question(message,cell_nn,available_nns,num2str(available_nns(end)));
 
+% Choose reconstruction algorithm
+message='Which abinitio reconstruction algorithm to use?';
+algo=multichoice_question(message,{'sync3N','sync2N','LUD'},[ 1, 2, 3],'sync3N');
+
+
 %% Update workflow struct
 
 workflow.abinitio.nmeans=nmeans; % Number of means to use to abinitio reconstruction.
 workflow.abinitio.nnavg=nnavg;   % nnavg to use to abinitio reconstruction.
+workflow.abinitio.algo=algo;
 
 tree=struct2xml(workflow);
 save(tree,workflow_fname); 
