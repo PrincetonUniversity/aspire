@@ -48,8 +48,8 @@
 %
 %       f_{ell,k}(r) = Z_ell(R_{ell,k} r),
 %
-%    where Z_ell is the ellth-order (spherical) Bessel function and R_{l,k} is
-%    its kth zero.
+%    where Z_ell is the ellth-order (spherical) Bessel function and R_{ell,k}
+%    is its kth zero.
 %
 %    The angular part is given by a sinusoid in 2D or a real spherical harmonic
 %    function in 3D. Specifically, for ell = 0, the angular part is constant,
