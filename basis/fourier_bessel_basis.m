@@ -550,7 +550,7 @@ function v = fourier_bessel_expand(x, basis)
     % TODO: Check that this tolerance make sense for multiple columns in x
 
     cg_opt.max_iter = Inf;
-    cg_opt.rel_tolerance = 1e-15;
+    cg_opt.rel_tolerance = 10*eps(class(x));
     cg_opt.verbose = false;
 
     v = conj_grad(A, b, cg_opt);
@@ -578,7 +578,7 @@ function x = fourier_bessel_expand_t(v, basis)
     % TODO: Check that this tolerance make sense for multiple columns in x
 
     cg_opt.max_iter = Inf;
-    cg_opt.rel_tolerance = 1e-15;
+    cg_opt.rel_tolerance = 10*eps(class(v));
     cg_opt.verbose = false;
 
     x = conj_grad(A, b, cg_opt);
