@@ -84,8 +84,6 @@ function [x, obj, info] = conj_grad(Afun, b, cg_opt, init)
         Ax = zeros(size(x));
     end
 
-    old_res = sqrt(real(sum(conj(r).*s, 1)));
-
     obj = real(sum(conj(x).*Ax, 1)) - 2*real(sum(conj(b).*x, 1));
 
     if ~isfield(init, 'p') || isempty(init.p)
