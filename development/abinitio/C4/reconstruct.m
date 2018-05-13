@@ -37,7 +37,20 @@ end
 
 n = size(projs,1);
 projsC4 = cat(3,projs,projs,projs,projs);
-[ v1, ~, ~ ,~, ~, ~] = recon3d_firm( projsC4,RsC4,-dxC4, 1e-6, 100, zeros(n,n,n));
+%[ v1, ~, ~ ,~, ~, ~] = recon3d_firm( projsC4,RsC4,-dxC4, 1e-6, 100, zeros(n,n,n));
+params = struct();
+params.rot_matrices = RsC4;
+params.ctf = ones(n*ones(1, 2));
+params.ctf_idx = ones(size(projsC4, 3), 1);
+params.shifts = dxC4.';
+params.ampl = ones(size(projsC4, 3), 1);
+mean_est_opt.max_iter = 100;
+mean_est_opt.rel_tolerance = 1.0e-6;
+mean_est_opt.verbose = false;
+mean_est_opt.precision = 'single';
+basis = dirac_basis(size(projsC4, 1)*ones(1, 3));
+v1 = cryo_estimate_mean(single(projsC4), params, basis, mean_est_opt);
+
 ii1=norm(imag(v1(:)))/norm(v1(:));
 log_message('Relative norm of imaginary components = %e\n',ii1);
 vol=real(v1);
