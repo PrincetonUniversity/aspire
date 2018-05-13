@@ -1,4 +1,4 @@
-function [estR,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA,verbose,Rref,forcereflect,Nprojs)
+function [estR,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA,verbose,cutoff,Rref,forcereflect,Nprojs)
 % CRYO_ALIGN_DENSITIES  Align two denisity maps
 %
 % [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2)
@@ -20,10 +20,12 @@ function [estR,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA,ve
 % [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA,verbose)
 %       Set verbose to nonzero for verbose printouts (default is zero).
 %
-% [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,verbose,Rref)
+% [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,verbose,cutoff,Rref)
 %       Use the true rotation between vol1 and vol2 specified by Rref to
 %       provide detailed debugging messages. Rref is ignored if reflection
 %       is detected.
+%
+% cutoff is the FSC threshold to use for reporting resolutions.
 %
 % Yoel Shkolnisky, June 2016.
 
@@ -38,6 +40,10 @@ end
 
 if ~exist('Nprojs','var')
     Nprojs=100;  % Number of projections to use for alignment.
+end
+
+if ~exist('cutoff','var')
+    cutoff=0.143;
 end
 
 %% Set verbose logging state
@@ -254,7 +260,7 @@ estR=Omat;
 c_masked=corr(vol1masked(:),vol2maskedaligned(:)); % Masked volumes
 c_orig=corr(vol1(:),vol2aligned(:)); % Original volumes
 fsc=FSCorr(vol1,vol2aligned);
-res=fscres(fsc,0.143);
+res=fscres(fsc,cutoff);
 resA=2*pixA*numel(fsc)/res; % Resolution in Angstrom.
 
 log_message('Completed in %7.2f seconds',timing);

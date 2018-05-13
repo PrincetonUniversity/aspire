@@ -1,4 +1,4 @@
-function [estR,estdx,vol2aligned,reflect]=cryo_align_densities_old(vol1,vol2,pixA,verbose,Rref,forcereflect)
+function [estR,estdx,vol2aligned,reflect]=cryo_align_densities_old(vol1,vol2,pixA,verbose,cutoff,Rref,forcereflect)
 % 
 % Deprecated function.
 % Ths function is based on brute-force search of the aligment parameters.
@@ -39,6 +39,10 @@ end
 
 if ~exist('verbose','var')
     verbose=0;
+end
+
+if ~exist('cutoff','var')
+    cutoff=0.143;
 end
 
 %% Validate input
@@ -252,7 +256,7 @@ estR=bestR.';
 estdx=bestdx;
 
 fsc=FSCorr(vol1,vol2aligned);
-bestRes=fscres(fsc,0.143);
+bestRes=fscres(fsc,cutoff);
 bestResA=2*pixA*numel(fsc)/bestRes; % Resolution in Angstrom.
 
 
