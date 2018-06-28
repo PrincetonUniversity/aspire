@@ -1,4 +1,4 @@
-function [ projections_man_den,projections_svs_den,projections_sPca,projections_man_EM_den,rndPermIdx,lScore] = rotInvManDeNoise_v3( filePath,beta,T,N,nImSMH,maxEigIdx,useSPCA,useWienerFilt,shuffle,nImCV,olN,nn_p,gpuDeviceIdx)
+function [ projections_man_den,projections_svs_den,projections_sPca,projections_man_EM_den,permIdx_man_den,permIdx_svs_den,permIdx_sPca,permIdx_man_EM_den,lScore] = rotInvManDeNoise_v3( filePath,beta,T,N,nImSMH,maxEigIdx,useSPCA,useWienerFilt,shuffle,nImCV,olN,nn_p,gpuDeviceIdx)
 %
 % XXXFUNCTIONAMEXXX     Manifold denoising of cryo-EM images.
 %
@@ -161,30 +161,32 @@ for j = 1:nImages
 %         nVarVec(j + nImages / 2) = var(currImageT(r>r_max));
 end
 
+%% Shuffle the images
+if shuffle
+    permIdx = randperm(nImages);
+    projections = projections(:,:,permIdx);
+    nVarVec = nVarVec(permIdx);
+    sVarVec = sVarVec(permIdx);
+else
+    permIdx = 1:nImages;
+end
+
 %% Remove outliers
 [~,idx] = sort(nVarVec,'ascend');
 idx_ol1 = [idx(1:olN),idx((end-olN+1):end)];
 projections(:,:,idx_ol1) = [];
 nVarVec(idx_ol1) = [];
 sVarVec(idx_ol1) = [];
+permIdx(idx_ol1) = [];
 
 [~,idx] = sort(sVarVec,'ascend');
 idx_ol2 = [idx(1:olN),idx((end-olN+1):end)];
 projections(:,:,idx_ol2) = [];
 nVarVec(idx_ol2) = [];
 sVarVec(idx_ol2) = [];
+permIdx(idx_ol2) = [];
 
 nImages = size(projections,3);
-
-%% Shuffle the images
-if shuffle
-    rndPermIdx = randperm(nImages);
-    projections = projections(:,:,rndPermIdx);
-    nVarVec = nVarVec(rndPermIdx);
-    sVarVec = sVarVec(rndPermIdx);
-else
-    rndPermIdx = 1:nImages;
-end
 
 %% Estimate noise variance and signal power
 nv = mean(nVarVec);
@@ -464,3 +466,9 @@ end
 %     projections_svs_den(:,:,rndPermIdx) = projections_svs_den;
 %     projections_sPca(:,:,rndPermIdx) = projections_sPca;
 % end
+
+%% Create order vectors for denoised datasets
+permIdx_man_den = permIdx(1:nImSMH);
+permIdx_svs_den = permIdx;
+permIdx_sPca = permIdx;
+permIdx_man_EM_den = permIdx(1:nImSMH);
