@@ -40,9 +40,12 @@ if gpuDeviceCount>0
         use_EM=0;
     end
     
-    % Select gpus
-    message=sprintf('Which GPUs to use (comma seperated list). Use -1 for all. Available GPUs 1-%d',gpuDeviceCount);
-    [gpu_list,~]=fmtlistinput(message,-1,'%d');
+    gpu_list=-1;
+    if use_EM
+        % Select gpus
+        message=sprintf('Which GPUs to use (comma seperated list). Use -1 for all. Available GPUs 1-%d',gpuDeviceCount);
+        [gpu_list,~]=fmtlistinput(message,-1,'%d');
+    end
 else
     fprintf('No GPUs found. Cannot use EM to refine class averages.\n');
 end

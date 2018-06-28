@@ -1,4 +1,4 @@
-clc;
+% clc;
 close all;
 
 %% Load example dataset 

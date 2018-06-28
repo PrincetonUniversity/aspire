@@ -80,7 +80,8 @@ mu =mean(PSWF_coeff(ang_freqs==0,:),2);
 PSWF_coeff(ang_freqs==0,:) = bsxfun(@minus,PSWF_coeff(ang_freqs==0,:),mu);
 
 for m=0:max(ang_freqs)
-    clc; disp(['Performing preliminairy de-noising of angular index: ',num2str(m),', out of ',num2str(max(ang_freqs))]);
+    %clc; 
+    disp(['Performing preliminairy de-noising of angular index: ',num2str(m),', out of ',num2str(max(ang_freqs))]);
     [PSWF_coeff_denSVS(ang_freqs==m,:), rank(m+1),w,pc,coeff,sd_c] = matrixDenoise(PSWF_coeff(ang_freqs==m,:),nv);
     wTot = [wTot w.'];
     Psi_spca = [Psi_spca Psi(:,ang_freqs==m)*pc];

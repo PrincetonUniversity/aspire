@@ -84,6 +84,11 @@ for i=1:359
 end
 
 
+if ~exist(tmpdir,'dir')
+    log_message('Creating temporary folder %s',tmpdir);
+    mkdir(tmpdir);
+end
+
 filelist=dir(fullfile(tmpdir,'*.*'));
 if numel(filelist)>2
     error('Directory %s is not empty. Aborting',tmpdir)
@@ -190,8 +195,10 @@ parfor j=1:length(list_recon)
     im=zeros(size(image1,1),size(image1,2),4);
     im(:,:,1)=image1;
     im(:,:,2)=average;
-    im(1:size(avg_em,1),1:size(avg_em,1),3)=avg_em; % Save the downsampled average
-    im(:,:,4)=im_avg_est_orig;
+    if use_EM
+        im(1:size(avg_em,1),1:size(avg_em,1),3)=avg_em; % Save the downsampled average
+        im(:,:,4)=im_avg_est_orig;
+    end
     WriteMRC(im,1,img_name);
     % End debug.
 end
@@ -218,16 +225,20 @@ averagesEMfname=tempname;
 log_message('Filename: %s',averagesEMfname);
 [~, averagesEMfname]=fileparts(averagesEMfname);
 averagesEMfname=fullfile(tmpdir,averagesEMfname);
-stackEM=imagestackWriter(averagesEMfname,numel(list_recon),1,100);
-printProgressBarHeader;
-for j=1:length(list_recon)
-    progressTicFor(j,length(list_recon));
-    mrcname=sprintf('average%d_em.mrcs',j);
-    mrcname=fullfile(tmpdir,mrcname);
-    averageEM = ReadMRC(mrcname);
-    stackEM.append(averageEM);
+
+if use_EM
+    stackEM=imagestackWriter(averagesEMfname,numel(list_recon),1,100);
+    printProgressBarHeader;
+    for j=1:length(list_recon)
+        progressTicFor(j,length(list_recon));
+        mrcname=sprintf('average%d_em.mrcs',j);
+        mrcname=fullfile(tmpdir,mrcname);
+        averageEM = ReadMRC(mrcname);
+        stackEM.append(averageEM);
+    end
+    stackEM.close;
 end
-stackEM.close;
+
 
 
 end

@@ -51,7 +51,8 @@ for groupid=1:numgroups
     classification_data=load(matname);
     
     log_message('Starting align_main');
-    tmpdir=fullfile(tempmrcdir,'align_main');
+    [~,tmpkey]=fileparts(tempname); % Generate a unique temporary directory name
+    tmpdir=fullfile(tempmrcdir,'align_main',tmpkey);
     log_message('Using temporary directory %s',tmpdir);
     if ~exist(tmpdir,'dir')
         mkdir(tmpdir);

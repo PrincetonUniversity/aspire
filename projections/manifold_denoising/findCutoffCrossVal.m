@@ -4,7 +4,8 @@ lambda_c = dl:dl:1-dl;
 % lambda_c = 0.7:dl:1-dl;
 empLkh = -inf(1,numel(lambda_c));
 
-clc; disp('Performing cross-validation for optimal cut-off frequency...')
+%clc; 
+disp('Performing cross-validation for optimal cut-off frequency...')
 for k=1:numel(lambda_c)
     empLkh(k) = getCVlogL_gpu( x,ang_freqs,nTheta,trainSize,nv,vCell,dCell,lambda_c(k));
     disp(['Log-likelihood for cut-off frequency ',num2str(lambda_c(k)),': ',num2str(empLkh(k))]);

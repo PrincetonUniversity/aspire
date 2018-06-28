@@ -38,7 +38,7 @@ while(1)
         alpha_all = [alpha_all;alpha];
         PSWF_for_approx = [PSWF_for_approx,PSWF];        
         N = N +1;
-        clc; 
+        % clc; 
         display(['Generating PSWFs for angular index: ',num2str(N)]);
         n = n_end;
     else
