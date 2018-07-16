@@ -34,5 +34,5 @@ function im_filtered = im_filter(im, filter_f)
 
     im_filtered_f = bsxfun(@times, im_f, filter_f);
 
-    im_filtered = icfft2(im_filtered_f);
+    im_filtered = real(icfft2(im_filtered_f));
 end
