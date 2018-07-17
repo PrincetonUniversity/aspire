@@ -26,6 +26,14 @@ log_message('Loaded XML file %s (MD5: %s)',workflow_fname,MD5(workflow_fname));
 nnavg=str2double(workflow.classmeans.nnavg);
 numgroups=str2double(workflow.preprocess.numgroups);
 
+num_averages=str2double(workflow.classmeans.num_averages);
+use_EM=str2double(workflow.classmeans.use_EM);
+gpu_list=-1;
+if use_EM
+    gpu_list=str2double(workflow.classmeans.gpu_list);
+end
+
+
 for groupid=1:numgroups
     fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrcs',groupid);
     fullfilename=fullfile(workflow.info.working_dir,fname);
@@ -43,125 +51,133 @@ for groupid=1:numgroups
     classification_data=load(matname);
     
     log_message('Starting align_main');
-    tmpdir=fullfile(tempmrcdir,'align_main');
+    [~,tmpkey]=fileparts(tempname); % Generate a unique temporary directory name
+    tmpdir=fullfile(tempmrcdir,'align_main',tmpkey);
     log_message('Using temporary directory %s',tmpdir);
     if ~exist(tmpdir,'dir')
         mkdir(tmpdir);
     end
     delete(fullfile(tmpdir,'*')); % Delete any leftovers from the temp directory
 
-    list_recon=1:prewhitened_projs.dim(3);
-    [ shifts, corr, unsortedaveragesfname, norm_variance ] = align_main( prewhitened_projs,...
+    list_recon=1:min(num_averages, prewhitened_projs.dim(3));
+    log_message('Generating %d class averages. use_EM=%d',numel(list_recon),use_EM);
+    [ shifts, corr, unsortedaveragesfname, unsortedaveragesEMfname, norm_variance, loglikelihood ] = align_main( prewhitened_projs,...
         classification_data.VDM_angles, classification_data.class_VDM,...
         classification_data.class_VDM_refl, classification_data.sPCA_data,...
-        nnavg, 15, list_recon, tmpdir);
+        nnavg, 15, list_recon, use_EM, gpu_list,tmpdir);
     log_message('Finished align_main');         
 
-    
-%     [~,classcoreidx]=sort(norm_variance); % classcoreidx are the
-%     % indices of the most consistent class averages. The
-%     % corresponding phaseflipped images will be used for
-%     % reconstruction.
+    % Write unsorted stacks
+    fnameunsorted=sprintf('averages_nn%02d_unsorted_group%d.mrcs',nnavg,groupid);
+    fnameunsorted=fullfile(workflow.info.working_dir,fnameunsorted);
+    % Save unsorted averages and apply global phaseglip if needed.
+    doflip=cryo_globalphaseflip_outofcore(unsortedaveragesfname ,fnameunsorted);
+    if doflip
+        log_message('Global contrast inversion applied to unsorted averages.');
+    end
 
     % Sort the resulting class averages by their contrast.
-    averages_contrast=cryo_image_contrast_outofcore(unsortedaveragesfname);
-    [~,classcoreidx]=sort(averages_contrast,'descend'); % Only averages with highest 
-    %  will be used for reconstruction.
-    
+    averages_contrast=cryo_image_contrast_outofcore(fnameunsorted);
+    fnamesorted=sprintf('averages_nn%02d_sorted_group%d.mrcs',nnavg,groupid);
+    fnamesorted=fullfile(workflow.info.working_dir,fnamesorted);
+    log_message('Writing sorted averages (by contrast) into %s',fnamesorted);
+    cryo_sort_stack_outofcore(fnameunsorted,averages_contrast,fnamesorted);
     
     % Print how many unique raw images are involved in the top i'th
     % percentile of class averages (sorted by averages_contrast). Also
     % print for each row the norm_variance of the i'th percentile class
     % average. 
     log_message('Number of raw projection in each the each percentile of averages (percentile,num means, num unique raw, contrast)');
-    nprojs=prewhitened_projs.dim(3);
+    [~,classcoreidx]=sort(averages_contrast,'descend'); %classcoreidx are 
+        % the indices of the most consistent class averages. 
+        % Save averages sorted by norm variance    
+    nprojs=numel(list_recon);
     for k=1:10
         nmeans=round(nprojs*k/10);
         ii=classification_data.class_VDM(classcoreidx(1:nmeans),:);
         nrawprojs=numel(unique(ii));
         log_message('\t%3d%%\t %7d \t %7d \t %4.2e',k*10,nmeans,nrawprojs,averages_contrast(classcoreidx(nmeans)));
     end
+        
     
-    % Determine if global phase flip is required
-    log_message('Checking if global phase flip is required.');
-    [doflip,signalmean,noisemean]=cryo_globalphaseflip_outofcore(unsortedaveragesfname); % Check if a global phase flip should be applied    
-    log_message('Signal mean = %5.3e, noise power = %5.3e',signalmean,noisemean);
-    if doflip
-        log_message('Applied global phase flip to averages');
+    if use_EM
+        fnameunsorted=sprintf('averages_nn%02d_EM_unsorted_group%d.mrcs',nnavg,groupid);
+        fnameunsorted=fullfile(workflow.info.working_dir,fnameunsorted);
+        doflip=cryo_globalphaseflip_outofcore(unsortedaveragesEMfname ,fnameunsorted);
+        if doflip
+            log_message('Global contrast inversion applied to unsorted EM averages.');
+        end
+        
+        fnamesorted=sprintf('averages_nn%02d_EM_sorted_group%d.mrcs',nnavg,groupid);
+        fnamesorted=fullfile(workflow.info.working_dir,fnamesorted);
+        log_message('Writing sorted averages (by likelihood) into %s',fnamesorted);
+        cryo_sort_stack_outofcore(fnameunsorted,loglikelihood,fnamesorted);
+        
+        
+        % Print how many unique raw images are involved in the top i'th
+        % percentile of class averages (sorted by averages_contrast). Also
+        % print for each row the norm_variance of the i'th percentile class
+        % average.
+        
+        log_message('Number of raw projection in each the each percentile of averages (percentile,num means, num unique raw, loglik)');
+        [~,classcoreidx]=sort(loglikelihood,'descend');
+        nprojs=numel(list_recon);
+        for k=1:10
+            nmeans=round(nprojs*k/10);
+            ii=classification_data.class_VDM(classcoreidx(1:nmeans),:);
+            nrawprojs=numel(unique(ii));
+            log_message('\t%3d%%\t %7d \t %7d \t %4.2e',k*10,nmeans,nrawprojs,averages_contrast(classcoreidx(nmeans)));
+        end
     end
-    flipflag=(-2)*doflip+1;
-    
-    % Save averages sorted by norm variance    
-    fname=sprintf('averages_nn%02d_group%d.mrcs',nnavg,groupid);
-    fname=fullfile(workflow.info.working_dir,fname);
-    log_message('Writing sorted averages (by contrast) into %s',fname);
-            
-    average=imagestackReader(unsortedaveragesfname,100);
-    sortedaverages=imagestackWriter(fname,average.dim(3),1,100);
-    for k=1:numel(classcoreidx)
-        im=average.getImage(classcoreidx(k));
-        im=im.*flipflag;
-        sortedaverages.append(im);        
-    end
-    sortedaverages.close;
-    
-    log_message('Saved averages in %s (MD5: %s)',fname,MD5(fname))
-%    average=average(:,:,classcoreidx);
-%    [average,doflip]=cryo_globalphaseflip(average); % Check if a global phase flip should be applied
-   
-%     fname=sprintf('averages_nn%02d_group%d.mrcs',nnavg,groupid);
-%     fname=fullfile(workflow.info.working_dir,fname);
-%     log_message('Saving %s',fname);
-%     WriteMRC(single(average),1,fname);
     
     reloadname=sprintf('averages_info_nn%02d_group%d.mat',nnavg,groupid);
     save(fullfile(workflow.info.working_dir,reloadname),'-v7.3',...
         'shifts','corr','averages_contrast','classcoreidx',...
-        'classification_data','doflip');
+        'classification_data','doflip', 'loglikelihood');
     
     log_message('Saving %s (MD5: %s)',fullfile(workflow.info.working_dir,reloadname)...
         ,MD5(fullfile(workflow.info.working_dir,reloadname)));
     
     delete(fullfile(tmpdir,'*')); % Clean the temp directory.
-%     
-%     % Compute effetive CTF of each average
-%     fname=sprintf('ctfs_group%d.star',groupid);
-%     fullfilename=fullfile(workflow.info.working_dir,fname);
-%     if exist(fullfilename,'file')~=2
-%         log_message('%s does not exist. Skipping computing effective CTF of each class average',fullfilename);
-%     else
-%         
-%         log_message('Load %s',fullfilename);
-%         CTFdata=readSTAR(fullfilename);
-%         n=size(average,1);
-%         effectiveCTFs=zeros(size(average));
-%         
-%         log_message('Computing effective CTFs for group %d',groupid);
-%         printProgressBarHeader;
-%         
-%         for k=1:size(average,3)
-%             progressTicFor(k,size(average,3));
-%             idx=classcoreidx(k); % Index of the average in unsorted stack of averages
-%             ectf=zeros(n);      % Effective CTF for the current average.
-%             for nnk=1:nnavg
-%                 nnidx=class_VDM(idx,nnk);
-%                 [voltage,DefocusU,DefocusV,DefocusAngle,Cs,pixA,A]=...
-%                     cryo_parse_Relion_CTF_struct(CTFdata.data{nnidx});
-%                 h=cryo_CTF_Relion(n,voltage,DefocusU,DefocusV,DefocusAngle,...
-%                     Cs,pixA,A);
-%                 if str2double(workflow.preprocess.phaseflip)
-%                     h=abs(h);
-%                 end
-%                 ectf=ectf+h;
-%             end
-%             effectiveCTFs(:,:,k)=ectf./nnavg;
-%         end
-%         
-%         log_message('Saving effective CTFs for group %d',groupid);
-%         fname=sprintf('ctfs_effective_nn%02d_group%d.mrcs',nnavg,groupid);
-%         fullfilename=fullfile(workflow.info.working_dir,fname);
-%         WriteMRC(single(effectiveCTFs),1,fullfilename);
-%     end
+    %
+    %     % Compute effetive CTF of each average
+    %     fname=sprintf('ctfs_group%d.star',groupid);
+    %     fullfilename=fullfile(workflow.info.working_dir,fname);
+    %     if exist(fullfilename,'file')~=2
+    %         log_message('%s does not exist. Skipping computing effective CTF of each class average',fullfilename);
+    %     else
+    %
+    %         log_message('Load %s',fullfilename);
+    %         CTFdata=readSTAR(fullfilename);
+    %         n=size(average,1);
+    %         effectiveCTFs=zeros(size(average));
+    %
+    %         log_message('Computing effective CTFs for group %d',groupid);
+    %         printProgressBarHeader;
+    %
+    %         for k=1:size(average,3)
+    %             progressTicFor(k,size(average,3));
+    %             idx=classcoreidx(k); % Index of the average in unsorted stack of averages
+    %             ectf=zeros(n);      % Effective CTF for the current average.
+    %             for nnk=1:nnavg
+    %                 nnidx=class_VDM(idx,nnk);
+    %                 [voltage,DefocusU,DefocusV,DefocusAngle,Cs,pixA,A]=...
+    %                     cryo_parse_Relion_CTF_struct(CTFdata.data{nnidx});
+    %                 h=cryo_CTF_Relion(n,voltage,DefocusU,DefocusV,DefocusAngle,...
+    %                     Cs,pixA,A);
+    %                 if str2double(workflow.preprocess.phaseflip)
+    %                     h=abs(h);
+    %                 end
+    %                 ectf=ectf+h;
+    %             end
+    %             effectiveCTFs(:,:,k)=ectf./nnavg;
+    %         end
+    %
+    %         log_message('Saving effective CTFs for group %d',groupid);
+    %         fname=sprintf('ctfs_effective_nn%02d_group%d.mrcs',nnavg,groupid);
+    %         fullfilename=fullfile(workflow.info.working_dir,fname);
+    %         WriteMRC(single(effectiveCTFs),1,fullfilename);
+    %     end
 end
 
 log_message('Workflow file: %s\n',workflow_fname);

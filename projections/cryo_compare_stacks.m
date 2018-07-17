@@ -42,6 +42,7 @@ if verbose==1
     printProgressBarHeader;
 end
 
+count=0;
 for k=1:mrc1reader.dim(3)
     if verbose==1
         progressTicFor(k,mrc1reader.dim(3));
@@ -52,16 +53,21 @@ for k=1:mrc1reader.dim(3)
     
     ek=norm(im1(:)-im2(:));
     
-    if verbose>=3
-        log_message('Difference between projections %d/%d: %5.3e',ek);
+    if ~isnan(ek)
+        if verbose>=3
+            log_message('Difference between projections %d/%d: %5.3e',ek);
+        end
+        
+        errtot=errtot+ek;
+        count=count+1;
+    else
+        warning('Image %d in one of the stacks has NaNs',k);
     end
-
-    errtot=errtot+ek;
 
     if verbose==2
         if mod(k,1000)==0
             log_message('Finsihed processing %d/%d projections. Relative error so far %5.3e'...
-                ,k,mrc1reader.dim(3),errtot/k);
+                ,k,mrc1reader.dim(3),errtot/count);
         end
     end    
 end
