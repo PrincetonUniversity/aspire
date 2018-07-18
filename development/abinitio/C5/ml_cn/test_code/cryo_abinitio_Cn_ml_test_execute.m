@@ -55,7 +55,13 @@ initstate;
 % open_log(fullfile(workflow.info.working_dir, workflow.info.logfile));
 proj_size = 65;
 max_shift = ceil(proj_size*max_shift_perc/100);
-[projs,refq,~,~] = generate_cn_images(n_symm,n_images,snr,proj_size,'C1_Eytan',max_shift,shift_step);
+[projs,refq,~,~,vol_orig] = generate_cn_images(n_symm,n_images,snr,proj_size,'C1_Eytan',max_shift,shift_step);
+
+% saving original volume to disk
+[folder, baseFileName, ~] = fileparts(recon_mrc_fname);
+vol_orig_file_name = fullfile(folder,sprintf('vol_orig_c%d.mrc',n_symm));
+WriteMRC(vol_orig,1,vol_orig_file_name);
+
 
 [projs,refq] = remove_eq_images(projs,refq);
 n_images = size(refq,2);

@@ -1,4 +1,4 @@
-function [images,refq,ref_shifts,clean_images] = generate_cn_images(n_symm,nImages,SNR,projSize,cn_type,max_shift,shift_step)
+function [images,refq,ref_shifts,clean_images,vol] = generate_cn_images(n_symm,nImages,SNR,projSize,cn_type,max_shift,shift_step)
 %
 % Generates a set of projection images of a C4 volume
 % 
