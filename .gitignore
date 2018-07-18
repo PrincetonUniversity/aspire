@@ -13,3 +13,6 @@ docs/*.pdf
 docs/*.aux
 
 tmpdir.cfg
+
+# Intellij/Pycharm environment files
+.idea/*
