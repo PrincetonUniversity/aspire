@@ -12,15 +12,15 @@
 % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % %% using only required input variables + cache file
-% clear;
-% n_symm = 4;
-% n_images = 100;
-% recon_folder = '/home/gabip/matlabProjects/aspire/aspire/development/abinitio/C5/ml_cn/test_code/results';
-% mrc_fname = sprintf('out_c%dnims%d.mrc',n_symm,n_images);
-% recon_mrc_fname = fullfile(recon_folder,mrc_fname);
-% 
-% cache_file_name = '/home/gabip/matlabProjects/aspire/aspire/development/abinitio/C5/ml_cn/ml_cn_cache_points1000_ntheta360_res1.mat';
-% [err_in_degrees,mse] = cryo_abinitio_Cn_ml_test_execute(n_symm,recon_mrc_fname,cache_file_name);
+clear;
+n_symm = 11;
+n_images = 100;
+recon_folder = '/home/gabip/matlabProjects/aspire/aspire/development/abinitio/C5/ml_cn/test_code/results';
+mrc_fname = sprintf('out_c%dnims%d.mrc',n_symm,n_images);
+recon_mrc_fname = fullfile(recon_folder,mrc_fname);
+
+cache_file_name = '/home/gabip/matlabProjects/aspire/aspire/development/abinitio/C5/ml_cn/ml_cn_cache_points1000_ntheta360_res1.mat';
+[err_in_degrees,mse] = cryo_abinitio_Cn_ml_test_execute(n_symm,recon_mrc_fname,cache_file_name);
 % % 
 % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
