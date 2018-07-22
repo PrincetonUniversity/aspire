@@ -45,7 +45,7 @@ if ~exist('shift_step','var')
     shift_step = 0.5;
 end
 if ~exist('mask_radius_perc','var')
-    mask_radius_perc = 70;
+    mask_radius_perc = 50;
     
 end
 if ~exist('do_handle_equators','var')
@@ -63,7 +63,7 @@ log_message('symmetry class is C%d',n_symm);
 log_message('Loading mrc image stack file:%s. Plese be patient...', mrc_stack_file);
 % log_message('Loading %d images, starting from image index %d',nImages,first_image_ind);
 projs = ReadMRC(mrc_stack_file);
-projs = projs(:,:,ceil(linspace(1,5000,1000)));
+% projs = projs(:,:,ceil(linspace(1,5000,1500)));
 nImages = size(projs,3);
 log_message('done loading mrc image stack file');
 log_message('projections loaded. Using %d projections of size %d x %d',nImages,size(projs,1),size(projs,2));
