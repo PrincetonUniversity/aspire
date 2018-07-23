@@ -6,7 +6,9 @@
 % Input
 %    sz: The size of the vectors for which to define the basis. Currently
 %       only square images and cubic volumes are supported.
-%    ell_max: The maximum order ell of the basis elements.
+%    ell_max: The maximum order ell of the basis elements. If set to Inf,
+%       the basis includes all ell such that the resulting basis vectors
+%       are concentrated below the Nyquist frequency (default Inf).
 %
 % Output
 %    basis: A Fourier-Bessel basis object corresponding to the parameters.
@@ -73,6 +75,10 @@
 %    arranged by order m, ranging from -ell to +ell.
 
 function basis = fourier_bessel_basis(sz, ell_max)
+    if nargin < 2 || isempty(ell_max)
+        ell_max = Inf;
+    end
+
     if numel(sz) ~= 3 && numel(sz) ~= 2
         error('Only two- or three-dimesional basis functions are supported.');
     end
@@ -85,12 +91,21 @@ function basis = fourier_bessel_basis(sz, ell_max)
 
     N = sz(1);
 
-    k_max = zeros(ell_max+1, 1);
+    % 2*sz(1) is an upper bound for ell_max, so use it here.
+    k_max = zeros(min(ell_max+1, 2*sz(1)+1), 1);
 
     r0 = cell(1, ell_max+1);
 
-    for ell = 0:ell_max
+    for ell = 0:numel(k_max)-1
         [k_max(ell+1), r0{ell+1}] = num_besselj_zeros(ell+(d-2)/2, N*pi/2);
+
+        if k_max(ell+1) == 0
+            ell_max = ell-1;
+
+            k_max = k_max(1:ell_max+1);
+            r0 = r0(1:ell_max+1);
+            break;
+        end
     end
 
     for ell = 0:ell_max
