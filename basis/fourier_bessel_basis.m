@@ -570,7 +570,11 @@ function x = fourier_bessel_expand_t(v, basis)
 
     x = roll_dim(x, sz_roll);
 
-    x = vec_to_vol(x);
+    if d == 2
+        x = vec_to_vol(x);
+    elseif d == 3
+        x = vec_to_im(x);
+    end
 end
 
 function indices = fourier_bessel_indices(basis)
