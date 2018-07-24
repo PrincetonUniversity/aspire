@@ -22,15 +22,15 @@ function vol_f = nufft3(vol, fourier_pts, nufft_opt)
 		nufft_opt = [];
 	end
 
-	if ndims(vol) ~= 3
-		error('Input ''vol'' must be of the form N1-by-N2-by-N3.');
+	if adims(vol) < 3
+		error('Input ''vol'' must be of the form N1-by-N2-by-N3-by-L.');
 	end
 
 	if ndims(fourier_pts) > 2 || size(fourier_pts, 1) ~= 3
 		error('Input ''fourier_pts'' must be of the form 3-by-K.');
 	end
 
-	p = nufft_initialize(size(vol), size(fourier_pts, 2), nufft_opt);
+	p = nufft_initialize(asize(vol, 1:3), size(fourier_pts, 2), nufft_opt);
 
 	p = nufft_set_points(p, fourier_pts);
 

@@ -22,15 +22,15 @@ function sig_f = nufft1(sig, fourier_pts, nufft_opt)
 		nufft_opt = [];
 	end
 
-	if ndims(sig) > 2 || size(sig, 2) ~= 1
-		error('Input ''sig'' must be of the form N-by-1.');
+	if adims(sig) < 1
+		error('Input ''sig'' must be of the form N-by-L.');
 	end
 
 	if ndims(fourier_pts) > 2 || size(fourier_pts, 1) ~= 1
 		error('Input ''fourier_pts'' must be of the form 1-by-K.');
 	end
 
-	p = nufft_initialize(size(sig, 1), size(fourier_pts, 2), nufft_opt);
+	p = nufft_initialize(asize(sig, 1), size(fourier_pts, 2), nufft_opt);
 
 	p = nufft_set_points(p, fourier_pts);
 
