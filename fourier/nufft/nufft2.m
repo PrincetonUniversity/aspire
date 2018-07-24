@@ -1,7 +1,7 @@
 % NUFFT2 Wrapper for non-uniform FFT (2D)
 %
 % Usage
-%    im_f = nufft2(im, fourier_pts, nufft_pot);
+%    im_f = nufft2(im, fourier_pts, nufft_opt);
 %
 % Input
 %    im: An N1-by-N2 array containing the pixel structure of an image.
