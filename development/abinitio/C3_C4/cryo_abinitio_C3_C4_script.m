@@ -25,10 +25,9 @@
 
 %%
 n_symm = 4;
-instack = '/home/yoel/scratch/fred/aspire/phaseflipped_cropped_downsampled_prewhitened_group1.mrc';
-% instack2 = '/home/yoel/scratch/fred/aspire/phaseflipped_cropped_downsampled_prewhitened_group2.mrc';
+instack = '/scratch/yoel/fred/aspire89/averages_nn50_group1.mrc';
 recon_folder = './results_tmp_C4';
-mask_radius_perc = 50;
+mask_radius_perc = 40;
 empiar_code_string = 'fred';
 down_siz = 89;
 pixA = 192*1.533/down_siz;
