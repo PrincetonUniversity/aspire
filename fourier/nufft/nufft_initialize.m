@@ -71,7 +71,7 @@ function plan = nufft_initialize(sz, num_pts, nufft_opt)
 			plan.nfft_plan_id = nfft_init_guru(3, sz(1), sz(2), sz(3), ...
 				num_pts, sz1(1), sz1(2), sz1(3), m, nfft_flags, fftw_flags);
 		end
-	elseif ~ismember(lib_code, [1 2 4])
+	elseif ~ismember(lib_code, [1 2 4 5])
 		error('Invalid library code.');
 	end
 end

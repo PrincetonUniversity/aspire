@@ -96,7 +96,7 @@ function sig_f = nufft_transform(plan, sig)
 			nfft_trafo(plan.nfft_plan_id);
 			sig_f(:,ell) = nfft_get_f(plan.nfft_plan_id);
 		end
-	elseif plan.lib_code == 4
+	elseif plan.lib_code == 4 || plan.lib_code == 5
 		sig = double(sig);
 
 		% FINUFFT errors if we give epsilon in single precision.

@@ -21,7 +21,7 @@ function plan = nufft_set_points(plan, fourier_pts)
 		plan.fourier_pts = fourier_pts;
 	end
 
-	if plan.lib_code == 4
+	if ismember(plan.lib_code, [4 5])
 		plan.fourier_pts = mod(fourier_pts+pi, 2*pi)-pi;
 	end
 

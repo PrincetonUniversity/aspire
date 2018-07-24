@@ -82,7 +82,7 @@ function sig = nufft_adjoint(plan, sig_f)
 		elseif dims == 3
 			sig = permute(reshape(sig, plan.sz), [3 2 1]);
 		end
-	elseif plan.lib_code == 4
+	elseif plan.lib_code == 4 || plan.lib_code == 5
 		sig_f = double(sig_f(:));
 
 		% FINUFFT errors if we give epsilon in single precision.
