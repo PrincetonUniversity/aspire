@@ -15,8 +15,8 @@
 %    im: The adjoint Fourier transform of im_f at frequencies fourier_pts.
 
 function im = anudft2(im_f, fourier_pts, sz)
-	if ndims(im_f) > 2 || size(im_f, 2) ~= 1
-		error('Input ''im_f'' must be of the form K-by-1.');
+	if adims(im_f) < 1
+		error('Input ''im_f'' must be of the form K-by-L.');
 	end
 
 	if ndims(fourier_pts) > 2 || any(size(fourier_pts) ~= [2 size(im_f, 1)])
@@ -27,7 +27,11 @@ function im = anudft2(im_f, fourier_pts, sz)
 		error('Input ''sz'' must be a positive integer vector of length two.');
 	end
 
+	[im_f, sz_roll] = unroll_dim(im_f, 2);
+
 	N = sz(1);
+
+	L = size(im_f, 2);
 
 	if sz(2) ~= N
 		error('Only square images supported.');
@@ -38,9 +42,13 @@ function im = anudft2(im_f, fourier_pts, sz)
 
 	pts = [grid_x(:) grid_y(:)]';
 
-	im = zeros(N*ones(1, 2));
+	im = zeros([N^2 L]);
 
 	for k = 1:size(pts, 2)
-		im(k) = exp(i*(pts(:,k)'*fourier_pts))*im_f(:);
+		im(k,:) = exp(i*(pts(:,k)'*fourier_pts))*im_f;
 	end
+
+	im = reshape(im, [N*ones(1, 2) L]);
+
+	im = roll_dim(im, sz_roll);
 end
