@@ -32,11 +32,8 @@ function pf = cryo_pft_nfft(p, P)
     n_theta = P.n_theta;
     n_r = P.n_r;
     n_proj = size(p, 3);
-    pf = zeros(M, n_proj);
 
-    for i = 1:n_proj
-        pf(:,i) = nufft2(p(:,:,i), -freqs'*2*pi);
-    end
+    pf = nufft2(p, -freqs'*2*pi);
 
     pf = reshape(pf, n_r, n_theta, n_proj);
 end
