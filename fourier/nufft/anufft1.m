@@ -24,8 +24,8 @@ function sig = anufft1(sig_f, fourier_pts, sz, nufft_opt)
 		nufft_opt = [];
 	end
 
-	if ndims(sig_f) > 2 || size(sig_f, 2) ~= 1
-		error('Input ''sig_f'' must be of the form K-by-1.');
+	if adims(sig_f) < 1
+		error('Input ''sig_f'' must be of the form K-by-L.');
 	end
 
 	if ndims(fourier_pts) > 2 || any(size(fourier_pts) ~= [1 size(sig_f, 1)])

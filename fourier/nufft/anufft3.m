@@ -25,8 +25,8 @@ function vol = anufft3(vol_f, fourier_pts, sz, nufft_opt)
 		nufft_opt = [];
 	end
 
-	if ndims(vol_f) > 2 || size(vol_f, 2) ~= 1
-		error('Input ''vol_f'' must be of the form K-by-1.');
+	if adims(vol_f) < 1
+		error('Input ''vol_f'' must be of the form K-by-L.');
 	end
 
 	if ndims(fourier_pts) > 2 || any(size(fourier_pts) ~= [3 size(vol_f, 1)])
