@@ -1,4 +1,4 @@
-function ciis = compute_scls_inds(Ris_tilde,n_symm,n_theta)
+function ciis_inds = compute_scls_inds(Ris_tilde,n_symm,n_theta)
 
 nRisTilde = size(Ris_tilde,3);
 
@@ -33,6 +33,13 @@ for i=1:nRisTilde
         ciis(2*s-1,i)  = cii1;
         ciis(2*s,  i)  = cii2;
     end
+end
+
+
+ciis_inds = zeros(nRisTilde,n_selfcl_pairs);
+
+for p = 1:n_selfcl_pairs
+    ciis_inds(:,p) = sub2ind([n_theta,n_theta/2],ciis(2*p-1,:),ciis(2*p,:));
 end
 
 end

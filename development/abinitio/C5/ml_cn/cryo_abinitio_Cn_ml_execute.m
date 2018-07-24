@@ -1,5 +1,5 @@
 function cryo_abinitio_Cn_ml_execute(n_symm,mrc_stack_file,recon_mrc_fname,cache_file_name,recon_mat_fname,...
-    do_downsample,downsample_size,n_r_perc,max_shift_perc,shift_step,mask_radius_perc,do_handle_equators,inplane_rot_res)
+    do_downsample,downsample_size,n_r_perc,max_shift_perc,shift_step,mask_radius_perc,inplane_rot_res)
 
 
 [folder_recon_mrc_fname, ~, ~] = fileparts(recon_mrc_fname);
@@ -48,9 +48,6 @@ if ~exist('mask_radius_perc','var')
     mask_radius_perc = 50;
     
 end
-if ~exist('do_handle_equators','var')
-    do_handle_equators = false;
-end
 
 if ~exist('inplane_rot_res','var')
     inplane_rot_res = 1;
@@ -78,7 +75,7 @@ load(cache_file_name);
 log_message('done loading indeces cache');
 
 log_message('computing self common-line indeces for all candidate viewing directions');
-ciis = compute_scls_inds(Ris_tilde,n_symm,n_theta);
+ciis_inds = compute_scls_inds(Ris_tilde,n_symm,n_theta);
 
 % figure; viewstack(projs,5,5);
 mask_radius = ceil(size(projs,1)*mask_radius_perc/100);
@@ -104,8 +101,8 @@ log_message('determining third rows outer product using maximum likelihood');
 max_shift = ceil(size(projs,1)*max_shift_perc/100);
 log_message('Maximum shift is %d pixels',max_shift);
 log_message('Shift step is %d pixels',shift_step);
-[vijs,viis] = compute_third_row_outer_prod_both_cn(npf,ciis,cijs_inds,Ris_tilde,R_theta_ijs,...
-    n_symm,max_shift,shift_step,do_handle_equators);
+[vijs,viis] = compute_third_row_outer_prod_both_cn(npf,ciis_inds,cijs_inds,Ris_tilde,R_theta_ijs,...
+    n_symm,max_shift,shift_step);
 
 if do_save_res_to_mat
     log_message('Saving third rows outer prods under: %s', recon_mat_fname);

@@ -1,57 +1,46 @@
-function [all_self_corrs,viis,mse_vii] = estimate_viis(ciis,Ris_tilde,npf,n_symm,max_shift,shift_step,shift_phases,is_handle_equators,refq)
+function all_self_corrs = estimate_viis(ciis,Ris_tilde,npf,n_symm,shift_phases,refq)
 
-if is_handle_equators && mod(n_symm,2) ~= 0
-    error('can only handle equators if symmetry class is even');
-end
+% if is_handle_equators && mod(n_symm,2) ~= 0
+%     error('can only handle equators if symmetry class is even');
+% end
+
 [~,n_theta,nImages] = size(npf);
 
-viis = zeros(3,3,nImages);
-
 % find which of the candidates rotations are equator images
-cii_equators_inds = find(abs(acosd(Ris_tilde(3,3,:)) - 90) < 10);
-cii_equators_inds = squeeze(cii_equators_inds);
-if is_handle_equators && ~isempty(cii_equators_inds)
-    
-    if ~exist('refq','var'), refq = []; end;
-    
-    [viis_equators,inds_eq_images] = ...
-        handle_equator_images(npf,Ris_tilde,ciis,cii_equators_inds,max_shift,shift_step,10,0.1,refq);
-    
-    viis(:,:,inds_eq_images) = viis_equators;
-    
-else
-    inds_eq_images = [];
-end
+cii_equators_inds = squeeze(find(abs(acosd(Ris_tilde(3,3,:)) - 90) < 10));
+% if is_handle_equators && ~isempty(cii_equators_inds)
+%     
+%     if ~exist('refq','var'), refq = []; end;
+%     
+%     [viis_equators,inds_eq_images] = ...
+%         handle_equator_images(npf,Ris_tilde,ciis,cii_equators_inds,max_shift,shift_step,10,0.1,refq);
+%     
+%     viis(:,:,inds_eq_images) = viis_equators;
+%     
+% else
+%     inds_eq_images = [];
+% end
 
 g_shift_phases = gpuArray(double(shift_phases));
 [~,nshifts] = size(shift_phases);
 
-ncands = size(ciis,2);
 % there are alltogether n_symm-1 self-cl in each image. If n_symm is even then the pairs of one of these
 % lines (the one in the middle) is itself and is therefore useless (it is the one that lies on the global X_Y plane)
-n_selfcl_pairs = floor((n_symm-1)/2); 
+[n_selfcl_pairs_times2, ncands] = size(ciis);
 
-inds_scls = zeros(ncands,n_selfcl_pairs);
+n_selfcl_pairs = n_selfcl_pairs_times2/2;
+assert(n_selfcl_pairs == floor((n_symm-1)/2)); 
+
+inds_scls = zeros(ncands,n_selfcl_pairs); 
 
 for p=1:n_selfcl_pairs
     inds_scls(:,p) = sub2ind([n_theta,n_theta/2],ciis(2*p-1,:),ciis(2*p,:)); 
 end
-% inds_scl1 = sub2ind([n_theta,n_theta/2],ciis(1,:),ciis(2,:));
-% inds_scl2 = sub2ind([n_theta,n_theta/2],ciis(3,:),ciis(4,:));
-% inds_scl3 = sub2ind([n_theta,n_theta/2],ciis(5,:),ciis(6,:));
-% inds_scl4 = sub2ind([n_theta,n_theta/2],ciis(7,:),ciis(8,:));
-% inds_scl5 = sub2ind([n_theta,n_theta/2],ciis(9,:),ciis(10,:));
 
+opt_cand_ind_statis = zeros(1,nImages); % just for statistics the optimal candidate per image
+max_corrs_stats     = zeros(1,nImages); % just for statistics
 
-opt_Ris_tilde_ind = zeros(1,nImages);
-max_corrs_stats   = zeros(1,nImages);
-g = [cosd(360/n_symm) -sind(360/n_symm) 0;
-    sind(360/n_symm)  cosd(360/n_symm) 0;
-    0 				 0  1]; % a rotation of 360/12 degrees about the z-axis
-J = diag([1,1,-1]);
-
-all_self_corrs = zeros(ncands,nImages);
-
+all_self_corrs = zeros(ncands,nImages); % for each image gives the correlation of all pairs of self common-lines induced by each candidate
 
 for i=1:nImages
     % nomalize each ray to be norm 1
@@ -65,10 +54,9 @@ msg = [];
 for i=1:nImages
     
     t1 = clock;
-    if ismember(i,inds_eq_images); 
-        continue; 
-    end
-    %     if mod(i,10) == 0; reset(g); end;
+%     if ismember(i,inds_eq_images); 
+%         continue; 
+%     end
     npf_i = npf(:,:,i);
     g_npf_i = gpuArray(double(npf_i));
     
@@ -76,63 +64,37 @@ for i=1:nImages
     g_half_npf_i = g_npf_i(:,1:n_theta/2);
     
     Corrs_scls = zeros([ncands,n_selfcl_pairs],'gpuArray');
-%     
-%     Corrs_scl1 = zeros([numel(inds_scl1),1],'gpuArray');
-%     Corrs_scl2 = zeros([numel(inds_scl2),1],'gpuArray');
-%     Corrs_scl3 = zeros([numel(inds_scl3),1],'gpuArray');
-%     Corrs_scl4 = zeros([numel(inds_scl4),1],'gpuArray');
-%     Corrs_scl5 = zeros([numel(inds_scl5),1],'gpuArray');
-    
+
     for s=1:nshifts
         g_half_npf_i_shifted = bsxfun(@times,g_half_npf_i,g_shift_phases(:,s));
         
         
-        PiPi = g_npf_i'*g_half_npf_i_shifted;
+        PiPi = g_npf_i'*g_half_npf_i_shifted; % compute the correlation of Pi with itself for a given shift
         
         for p=1:n_selfcl_pairs
             
             Corrs_scls_tmp = PiPi(inds_scls(:,p));
+            % the optimal shift in fourier space is per line and not per
+            % image. Thus let each line "choose" its optimal shift
             Corrs_scls(:,p) = max([Corrs_scls(:,p) real(Corrs_scls_tmp(:))],[],2);
         end
-%         
-%         Corrs_scl1_s = PiPi(inds_scl1);
-%         Corrs_scl2_s = PiPi(inds_scl2);
-%         Corrs_scl3_s = PiPi(inds_scl3);
-%         Corrs_scl4_s = PiPi(inds_scl4);
-%         Corrs_scl5_s = PiPi(inds_scl5);
-%         
-%         Corrs_scl1 = max([Corrs_scl1 real(Corrs_scl1_s(:))],[],2);
-%         Corrs_scl2 = max([Corrs_scl2 real(Corrs_scl2_s(:))],[],2);
-%         Corrs_scl3 = max([Corrs_scl3 real(Corrs_scl3_s(:))],[],2);
-%         Corrs_scl4 = max([Corrs_scl4 real(Corrs_scl4_s(:))],[],2);
-%         Corrs_scl5 = max([Corrs_scl5 real(Corrs_scl5_s(:))],[],2);
     end
     
     
     Corrs = mean(Corrs_scls,2);
-%     Corrs = (Corrs_scl1+Corrs_scl2+Corrs_scl3+Corrs_scl4+Corrs_scl5)/5;
     
-    Corrs(cii_equators_inds) = -inf;
+    % equaotr candidates induce collinear self common-lines which always have a perfect correlation. Hence we must exclude these
+    Corrs(cii_equators_inds) = -inf; 
     
     Corrs = real(Corrs);
+    [Y,I] = max(Corrs);
+   
+    % just for statistics
+    opt_cand_ind_statis(i) = gather(I);
+    max_corrs_stats(i)   = gather(Y);
     
+    % output variable
     all_self_corrs(:,i) = gather(Corrs);
-    
-    [Y,I] = max(real(Corrs));
-    
-    Y = gather(Y);
-    I = gather(I);
-    
-    opt_Ris_tilde_ind(i) = I;
-    max_corrs_stats(i)   = Y;
-    
-    Ri_opt = Ris_tilde(:,:,I);
-    
-    sum_Rii = zeros(3,3);
-    for s=0:n_symm-1
-        sum_Rii = sum_Rii + Ri_opt.'*g^s*Ri_opt;
-    end
-    viis(:,:,i) = sum_Rii/n_symm;
     
     if true
         t2 = clock;
@@ -145,8 +107,43 @@ for i=1:nImages
         
 end
 
+% be polite and return correlation zero instead of infinity for all equator
+% candidates
+all_self_corrs(cii_equators_inds,:) = 0;
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%!!!!!!!!!!!! DEBUG CODE !!!!!!!!!!!!!!%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+if exist('refq','var') && ~isempty(refq)
+    debug_analyze_viis(opt_cand_ind_statis, n_symm, Ris_tilde, n_theta, refq)
+end
+
+end
+
+function debug_analyze_viis(opt_cand_ind_statis, n_symm, Ris_tilde, n_theta, refq)
+
+g = [cosd(360/n_symm) -sind(360/n_symm) 0;
+    sind(360/n_symm)  cosd(360/n_symm) 0;
+    0 				 0  1]; % a rotation of 360/n_symm degrees about the z-axis
+J = diag([1,1,-1]);
+
 if exist('refq','var') && ~isempty(refq)
     
+    nImages = size(refq,2);
+    viis = zeros(3,3,nImages);
+    for i=1:nImages
+        
+        Ri_opt = Ris_tilde(:,:,opt_cand_ind_statis(i));
+        
+        sum_Rii = zeros(3,3);
+        for s=0:n_symm-1
+            sum_Rii = sum_Rii + Ri_opt.'*g^s*Ri_opt;
+        end
+        viis(:,:,i) = sum_Rii/n_symm;
+        
+    end
     %% check mse of vij
     errs_mse = zeros(1,nImages);
     for i=1:nImages
@@ -203,7 +200,7 @@ if exist('refq','var') && ~isempty(refq)
         
         
         
-        Ri_tilde   = Ris_tilde(:,:,opt_Ris_tilde_ind(i));
+        Ri_tilde   = Ris_tilde(:,:,opt_cand_ind_statis(i));
         
         diff_s = zeros(1,n_symm-1);
         hand_idx_s = zeros(1,n_symm-1);
@@ -256,7 +253,10 @@ if exist('refq','var') && ~isempty(refq)
     end
     figure; hist(bad_polar_angs,180);
 end
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%!!!!!!!!!!!! END OF DEBUG CODE !!!!!!!!!!!!!!%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
 
 

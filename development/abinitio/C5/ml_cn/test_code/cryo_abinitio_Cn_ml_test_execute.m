@@ -1,5 +1,5 @@
 function [err_in_degrees,mse] = cryo_abinitio_Cn_ml_test_execute(n_symm,recon_mrc_fname,cache_file_name,snr,n_images,...
-    n_r_perc,max_shift_perc,shift_step,mask_radius_perc,do_handle_equators,inplane_rot_res)
+    n_r_perc,max_shift_perc,shift_step,mask_radius_perc,inplane_rot_res)
 
 [folder_recon_mrc_fname, ~, ~] = fileparts(recon_mrc_fname);
 if ~isempty(folder_recon_mrc_fname)  && exist(folder_recon_mrc_fname,'file') ~= 7
@@ -42,9 +42,6 @@ if ~exist('mask_radius_perc','var')
     mask_radius_perc = 70;
     
 end
-if ~exist('do_handle_equators','var')
-    do_handle_equators = false;
-end
 
 if ~exist('inplane_rot_res','var')
     inplane_rot_res = 1;
@@ -70,6 +67,10 @@ log_message('loading line indeces cache %s.\n Please be patient...',cache_file_n
 load(cache_file_name);
 log_message('done loading indeces cache');
 
+log_message('computing self common-line indeces for all candidate viewing directions');
+ciis_inds = compute_scls_inds(Ris_tilde,n_symm,n_theta);
+log_message('done');
+
 if snr <= 1
     mask_radius = proj_size*mask_radius_perc/100;
     log_message('Masking images using mask-radius=%d',mask_radius);
@@ -91,12 +92,8 @@ else
     log_message('SNR=%.2e is greater than 1. Not performing gauss filtering', snr);
 end
 
-log_message('computing self common-line indeces for all candidate viewing directions');
-ciis = compute_scls_inds(Ris_tilde,n_symm,n_theta);
-
-is_viz_cls = false;
-[vijs,viis,~] = compute_third_row_outer_prod_both_cn(npf,ciis,cijs_inds,Ris_tilde,R_theta_ijs,n_symm,max_shift,shift_step,...
-    do_handle_equators,refq,is_viz_cls);
+[vijs,viis,~] = compute_third_row_outer_prod_both_cn(npf,ciis_inds,cijs_inds,Ris_tilde,R_theta_ijs,n_symm,...
+    max_shift,shift_step,refq);
 
 vijs = mat2flat(vijs,n_images);
 [vijs,viis,~,~] = global_sync_J(vijs,viis);
