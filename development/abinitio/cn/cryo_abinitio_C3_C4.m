@@ -190,7 +190,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 9  : in-plane rotations angles estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-rots = estimate_inplane_rotations2_c3_c4(n_symm,npf,vis,1,max_shift,shift_step);
+rots =      estimate_inplane_rotations(npf,vis,n_symm,1,max_shift,shift_step);
+% rots = estimate_inplane_rotations2_c3_c4(n_symm,npf,vis,1,max_shift,shift_step);
 if do_save_res_to_mat
     log_message('Saving rots to %s',outmat);
     save(outmat,'rots','-append');

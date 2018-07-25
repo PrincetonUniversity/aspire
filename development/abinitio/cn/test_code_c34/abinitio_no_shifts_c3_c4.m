@@ -83,7 +83,8 @@ vis  = estimate_third_rows(vijs,viis);
 % step 9  : in-plane rotations angles estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 inplane_rot_res = 1;
-[rots,in_plane_rotations] = estimate_inplane_rotations2_c3_c4(n_symm,npf,vis,inplane_rot_res,max_shift,shift_step);
+[rots,in_plane_rotations] =      estimate_inplane_rotations(npf,vis,n_symm,inplane_rot_res,max_shift,shift_step);
+% [rots,in_plane_rotations] = estimate_inplane_rotations2_c3_c4(n_symm,npf,vis,inplane_rot_res,max_shift,shift_step);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 10  : Results Analysis
