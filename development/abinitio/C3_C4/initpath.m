@@ -7,8 +7,7 @@
 
 % run('/home/gabip/matlabProjects/mycode/aspire/initpath.m');
 run('/home/gabip/matlabProjects/aspire/aspire/initpath_development.m');
-
-run('install_cims_nufft.m');
+run('../../../install_cims_nufft');
 % run('/home/yoel/data/work/aspire/initpath_development.m');
 
 

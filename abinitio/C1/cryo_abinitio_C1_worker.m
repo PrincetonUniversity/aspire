@@ -192,7 +192,7 @@ log_message('Finished estimating shifts');
 n=size(projs,1);
 
 params = struct();
-params.rot_matrices = est_inv_rots;
+params.rot_matrices = rotations;
 params.ctf = ones(n*ones(1, 2));
 params.ctf_idx = ones(size(projs, 3), 1);
 params.shifts = full(est_shifts');
