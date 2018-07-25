@@ -95,7 +95,8 @@ inplane_rot_res = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 10  : Results Analysis
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[rot_alligned,err_in_degrees,mse] = analyze_results_c3_c4(n_symm,rots,n_theta,refq);
+% [rot_alligned,err_in_degrees,mse] = analyze_results_c3_c4(n_symm,rots,n_theta,refq);
+[rot_alligned,err_in_degrees,mse] = analyze_results_ml(rots,n_symm,n_theta,refq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 11  : Reconstructing volume
