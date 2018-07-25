@@ -1,5 +1,5 @@
 function cryo_abinitio_Cn_ml_execute(n_symm,mrc_stack_file,recon_mrc_fname,cache_file_name,recon_mat_fname,...
-    do_downsample,downsample_size,n_r_perc,max_shift_perc,shift_step,mask_radius_perc,inplane_rot_res)
+    do_downsample,downsample_size,n_r_perc,max_shift_perc,shift_step,mask_radius_perc,inplane_rot_res,is_conjugate_with_vii)
 
 
 [folder_recon_mrc_fname, ~, ~] = fileparts(recon_mrc_fname);
@@ -52,6 +52,11 @@ end
 if ~exist('inplane_rot_res','var')
     inplane_rot_res = 1;
 end
+
+if ~exist('is_conjugate_with_vii','var')
+    is_conjugate_with_vii = true;
+end
+
 initstate; 
 
 log_message('symmetry class is C%d',n_symm);
@@ -117,7 +122,7 @@ if do_save_res_to_mat
     save(recon_mat_fname,'vijs','viis','-append');
 end
 % 
-vis  = estimate_third_rows_ml(vijs,viis);
+vis  = estimate_third_rows_ml(vijs,viis,is_conjugate_with_vii);
 if do_save_res_to_mat
     log_message('Saving third rows under: %s', recon_mat_fname);
     save(recon_mat_fname,'vis','-append');

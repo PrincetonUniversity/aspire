@@ -1,4 +1,4 @@
-function cryo_abinitio_C3_C4(n_symm,instack,outvol,outmat,max_shift_perc,shift_step,n_r_perc,mask_radius_perc,n_theta)
+function cryo_abinitio_C3_C4(n_symm,instack,outvol,outmat,max_shift_perc,shift_step,n_r_perc,mask_radius_perc,n_theta,is_conjugate_with_vii)
 
 % CRYO_ABINITO_C4  abinitio reconsturction of a c4 symmetric molecule
 %
@@ -28,6 +28,10 @@ function cryo_abinitio_C3_C4(n_symm,instack,outvol,outmat,max_shift_perc,shift_s
 
 if n_symm ~= 3 && n_symm ~= 4
     error('n_symm may be either 3 or 4');
+end
+
+if ~exist('is_conjugate_with_vii','var')
+    is_conjugate_with_vii = false;
 end
 
 if ~exist('n_theta','var')
@@ -182,7 +186,8 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 8  : third rows estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-vis  = estimate_third_rows(vijs,viis);
+vis = estimate_third_rows_ml(vijs,viis,is_conjugate_with_vii);
+% vis  = estimate_third_rows (vijs,viis);
 if do_save_res_to_mat
     log_message('Saving vis to %s',outmat);
     save(outmat,'vis','-append');

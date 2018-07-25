@@ -1,5 +1,5 @@
 function [err_in_degrees,mse] = cryo_abinitio_Cn_ml_test_execute(n_symm,recon_mrc_fname,cache_file_name,snr,n_images,...
-    n_r_perc,max_shift_perc,shift_step,mask_radius_perc,inplane_rot_res)
+    n_r_perc,max_shift_perc,shift_step,mask_radius_perc,inplane_rot_res,is_conjugate_with_vii)
 
 [folder_recon_mrc_fname, ~, ~] = fileparts(recon_mrc_fname);
 if ~isempty(folder_recon_mrc_fname)  && exist(folder_recon_mrc_fname,'file') ~= 7
@@ -45,6 +45,10 @@ end
 
 if ~exist('inplane_rot_res','var')
     inplane_rot_res = 1;
+end
+
+if ~exist('is_conjugate_with_vii','var')
+    is_conjugate_with_vii = true;
 end
 
 initstate;
@@ -98,7 +102,7 @@ end
 vijs = mat2flat(vijs,n_images);
 [vijs,viis,~,~] = global_sync_J(vijs,viis);
 % 
-vis  = estimate_third_rows_ml(vijs,viis);
+vis  = estimate_third_rows_ml(vijs,viis,is_conjugate_with_vii);
 rots = estimate_inplane_rotations(npf,vis,n_symm,inplane_rot_res,max_shift,shift_step);
 
 [rot_alligned,err_in_degrees,mse] = analyze_results_ml(rots,n_symm,n_theta,refq);

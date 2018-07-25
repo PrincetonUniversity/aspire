@@ -35,8 +35,9 @@ n_r_perc = 50;
 max_shift_perc = 15;
 shift_step = 0.5;
 mask_radius_perc = 50;
-do_handle_equators = false;
+% do_handle_equators = false;
 inplane_rot_res = 1;
+is_conjugate_with_vii = true;
 
 recon_folder = '/home/gabip/matlabProjects/aspire/aspire/development/abinitio/cn/test_code_cn/results';
 cache_file_name = '/home/gabip/matlabProjects/aspire/aspire/development/abinitio/cn/ml_cn_cache_points1000_ntheta360_res1.mat';
@@ -44,7 +45,7 @@ mrc_fname = sprintf('out_c%dnims%dshift%d.mrc',n_symm,n_images,max_shift_perc);
 recon_mrc_fname = fullfile(recon_folder,mrc_fname);
 
 [err_in_degrees,mse] = cryo_abinitio_Cn_ml_test_execute(n_symm,recon_mrc_fname,cache_file_name,snr,n_images,...
-    n_r_perc,max_shift_perc,shift_step,mask_radius_perc,do_handle_equators,inplane_rot_res);
+    n_r_perc,max_shift_perc,shift_step,mask_radius_perc,inplane_rot_res,is_conjugate_with_vii);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

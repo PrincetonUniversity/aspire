@@ -22,8 +22,9 @@ cryo_abinitio_Cn_ml_execute(n_symm,mrc_stack_file,recon_mrc_fname,cache_file_nam
 % shift_step = 0.5;
 % mask_radius_perc = 70;
 % inplane_rot_res = 1;
+% is_conjugate_with_vii = true;
 % 
 % cryo_abinitio_Cn_ml_execute(n_symm,mrc_stack_file,recon_mrc_fname,cache_file_name,recon_mat_fname,...
-%     do_downsample,downsample_size,n_r_perc,max_shift_perc,shift_step,mask_radius_perc,inplane_rot_res);
+%     do_downsample,downsample_size,n_r_perc,max_shift_perc,shift_step,mask_radius_perc,inplane_rot_res,is_conjugate_with_vii);
 
 close_log();

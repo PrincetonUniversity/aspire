@@ -3,6 +3,7 @@ tic;
 initstate; 
 open_log(0);
 
+is_conjugate_with_vii = false;
 n_symm = 3;
 
 if n_symm ~= 3 && n_symm ~= 4
@@ -83,7 +84,8 @@ non_rank1_remov_percent = 0.25;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 8  : third rows estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-vis  = estimate_third_rows(vijs,viis);
+vis = estimate_third_rows_ml(vijs,viis,is_conjugate_with_vii);
+% vis  = estimate_third_rows(vijs,viis);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 9  : in-plane rotations angles estimation

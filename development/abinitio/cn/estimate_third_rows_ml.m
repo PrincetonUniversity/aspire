@@ -1,4 +1,4 @@
-function vis = estimate_third_rows_ml(vijs,viis)
+function vis = estimate_third_rows_ml(vijs,viis,is_conjugate_with_vii)
 %
 % Find the third row of each rotation matrix.
 % 
@@ -11,6 +11,9 @@ function vis = estimate_third_rows_ml(vijs,viis)
 % Output parameters:
 %   vis        A 3xnImages matrix whose i-th column equals the 
 %              transpose of the third row of the rotation matrix Ri.
+if ~exist('is_conjugate_with_vii','var')
+    is_conjugate_with_vii = true;
+end
 
 [nr,nc,nImages] = size(viis);
 assert(nr == 3 && nc == 3);
@@ -28,7 +31,12 @@ for i=1:nImages
 %     V((i-1)*3+1:i*3,(i-1)*3+1:i*3) = viis(:,:,i);
     for j=i+1:nImages
         ind = uppertri_ijtoind(i,j,nImages);
-        V((i-1)*3+1:i*3,(j-1)*3+1:j*3) = viis(:,:,i)*vijs(:,:,ind)*viis(:,:,j);
+        if is_conjugate_with_vii
+            V((i-1)*3+1:i*3,(j-1)*3+1:j*3) = viis(:,:,i)*vijs(:,:,ind)*viis(:,:,j);
+        else
+            V((i-1)*3+1:i*3,(j-1)*3+1:j*3) = vijs(:,:,ind);
+        end
+        
     end
 end
 
