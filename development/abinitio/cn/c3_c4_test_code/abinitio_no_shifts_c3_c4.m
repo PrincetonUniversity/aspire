@@ -3,7 +3,7 @@ tic;
 initstate; 
 open_log(0);
 
-n_symm = 4;
+n_symm = 3;
 
 if n_symm ~= 3 && n_symm ~= 4
     error('n_symm may be either 3 or 4');
@@ -13,18 +13,19 @@ end
 % The MAT file p100_c4_shifted contains 100 projections of size 65x65. The
 % orientations (given as quaternions) used to generate these projections
 % are stored in the the variable "refq". The projection were generated using the following command:
-if n_symm == 3
-    [projs,refq] = generate_c3_images(100,1000000,65,'GAUSSIAN',0,1);
-else
-    [projs,refq] = generate_c4_images(100,1000000,65,'GAUSSIAN',0,1);
-end
+[projs,refq,~,~,vol_orig] = generate_cn_images(n_symm,100,1000000,65,'C1_Eytan',0,1);
+% if n_symm == 3
+%     [projs,refq] = generate_c3_images(100,1000000,65,'GAUSSIAN',0,1);
+% else
+%     [projs,refq] = generate_c4_images(100,1000000,65,'GAUSSIAN',0,1);
+% end
 
 % load p100_c4_gaussian_no_shifts;
 viewstack(projs,5,5);   % Display the proejctions.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 1  : Computing polar Fourier transform of projections
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-masked_projs = mask_fuzzy(projs,23);
+masked_projs = mask_fuzzy(projs,50);
 
 n_theta = 360; % number of rays in every projection
 n_r     = 89;  % number of radial points in every radial line
@@ -46,9 +47,9 @@ cl_detection_rate_c3_c4(n_symm,clmatrix,n_theta,refq);
 if n_symm == 3
     is_handle_equator_ims = false;
 else
+    is_handle_equator_ims = true;
 end
-
-sclmatrix = cryo_self_clmatrix_gpu_c3_c4(n_symm,npf,max_shift,shift_step,refq);
+sclmatrix = cryo_self_clmatrix_gpu_c3_c4(n_symm,npf,max_shift,shift_step,is_handle_equator_ims,refq);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 4  : calculate self-relative-rotations
