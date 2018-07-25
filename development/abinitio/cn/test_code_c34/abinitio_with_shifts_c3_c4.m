@@ -3,7 +3,7 @@ tic;
 initstate; 
 open_log(0);
 
-n_symm = 4;
+n_symm = 3;
 
 if n_symm ~= 3 && n_symm ~= 4
     error('n_symm may be either 3 or 4');
@@ -16,18 +16,22 @@ end
 % are stored in the the variable "refq". The projection were generated using the following command:
 max_shift_2d  = 5;
 shift_step_2d = 1;
-if n_symm == 3 
-    [projs,refq] = generate_c3_images(100,1000000,65,'GAUSSIAN',max_shift_2d,shift_step_2d);
-else
-    [projs,refq] = generate_c4_images(100,1000000,65,'GAUSSIAN',max_shift_2d,shift_step_2d);
-end
+
+
+[projs,refq,~,~,vol_orig] = generate_cn_images(n_symm,100,1000000,65,'C1_Eytan',0,1);
+% 
+% if n_symm == 3 
+%     [projs,refq] = generate_c3_images(100,1000000,65,'GAUSSIAN',max_shift_2d,shift_step_2d);
+% else
+%     [projs,refq] = generate_c4_images(100,1000000,65,'GAUSSIAN',max_shift_2d,shift_step_2d);
+% end
 
 % load p100_c4_gaussian_no_shifts;
 viewstack(projs,5,5);   % Display the proejctions.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 1  : Computing polar Fourier transform of projections
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-masked_projs = mask_fuzzy(projs,23);
+masked_projs = mask_fuzzy(projs,50);
 
 n_theta = 360; % number of rays in every projection
 n_r     = 89;  % number of radial points in every radial line
