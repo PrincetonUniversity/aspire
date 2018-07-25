@@ -198,7 +198,8 @@ if do_save_res_to_mat
 end
 
 % estimatedVol = reconstruct_vol(projs,npf,rot_alligned,max_shift,shift_step);
-estimatedVol = reconstruct_c3_c4(n_symm,projs,rots,n_r,n_theta,max_shift,shift_step);   
+% estimatedVol = reconstruct_c3_c4(n_symm,projs,rots,n_r,n_theta,max_shift,shift_step);
+estimatedVol = reconstruct_ml_cn(projs,rots,n_symm,n_r,n_theta,max_shift,shift_step); % supply max_shift_2d or max_shift_1d ?
 WriteMRC(estimatedVol,1,outvol);
 % 
 % 

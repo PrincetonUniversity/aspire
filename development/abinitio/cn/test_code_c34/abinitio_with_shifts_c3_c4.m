@@ -101,6 +101,8 @@ inplane_rot_res = 1;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 11  : Reconstructing volume
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-estimatedVol = reconstruct_c3_c4(n_symm,projs,rot_alligned,n_r,n_theta);   
+% estimatedVol = reconstruct_c3_c4(n_symm,projs,rot_alligned,n_r,n_theta);
+estimatedVol = reconstruct_ml_cn(projs,rot_alligned,n_symm,n_r,n_theta); % supply max_shift_2d or max_shift_1d ?
+
 
 WriteMRC(estimatedVol,1,'example1_with_shifts.mrc');
