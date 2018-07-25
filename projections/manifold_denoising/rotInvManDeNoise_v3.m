@@ -1,4 +1,4 @@
-function [ projections_man_den,projections_svs_den,projections_sPca,projections_man_EM_den,rndPermIdx,lScore] = rotInvManDeNoise_v3( filePath,beta,T,N,nImSMH,maxEigIdx,useSPCA,useWienerFilt,shuffle,nImCV,olN,nn_p,gpuDeviceIdx)
+function [ projections_man_den,projections_svs_den,projections_sPca,projections_man_EM_den,rndPermIdx,lScore] = rotInvManDeNoise_v3( filePath,beta,T,N,nImSMH,maxEigIdx,useSPCA,useWienerFilt,shuffle,nImCV,olN,nn_p)
 %
 % XXXFUNCTIONAMEXXX     Manifold denoising of cryo-EM images.
 %
@@ -30,8 +30,6 @@ function [ projections_man_den,projections_svs_den,projections_sPca,projections_
 %         input images.
 %   nn_p        Percentage of nearest-neighbors to retain when constructing
 %         the steerable graph Laplacian. Default nn_p=5%.
-%   gpuDeviceIdx  Index of the GPU to use. Default is the currently
-%         selected GPU.
 %
 %   You can omit any optional input argument or pass an empty array []. In
 %   such a case a default value will be used.
@@ -100,13 +98,6 @@ if ~is_gpu
     error('CUDA enabled GPU is required');
 end
 
-if exist('gpuDeviceIdx','var') || isempty(gpuDeviceIdx)
-    gpuDevice(gpuDeviceIdx);
-else
-    gpuinfo=gpuDevice;
-    gpuDeviceIdx=gpuinfo.Index;
-end
-
 
 %% Generate grids and sizes
 stack=imagestackReader(filePath); 
@@ -141,7 +132,7 @@ log_message('\t shuffle=%d',shuffle);
 log_message('\t nImCV=%d',nImCV);
 log_message('\t olN=%d',olN);
 log_message('\t nn_p=%d',nn_p);
-log_message('\t gpuDeviceIdx=%d',gpuDeviceIdx);
+log_message('\t gpuDeviceIdx=%d',gpuDevice);
 
 %% Load data
 sVarVec = zeros(1,nImages);

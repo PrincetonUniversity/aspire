@@ -51,7 +51,6 @@ for j = 1:nChunks
 end
 
 %% Construct graph laplacian and find eigenvectors
-gpuDevice(2);
 vCell = cell(1,max(ang_freqs)+1);
 dCell = cell(1,max(ang_freqs)+1);
 nnp = (nnp+nnp.')>0;
