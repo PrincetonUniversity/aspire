@@ -145,7 +145,6 @@ log_message('Checking simulation results');
 % Draw histogram of viewing-directions estimation errors
 d = d_f;
 error_rot = error_rot_f;
-figure;
 [ N, X ] = hist(acosd(d), [0:180]);
 figure; bar(N);
 xlabel('a$\cos\langle v_i, v_j \rangle$', 'interpreter', 'latex');

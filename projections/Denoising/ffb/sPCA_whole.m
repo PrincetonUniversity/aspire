@@ -21,7 +21,7 @@ sPCA_coeff = cell(max_ang_freqs+1, 1);
 mean_coeff = mean(coeff_pos_k{1}, 2);
 for k=1:max_ang_freqs+1
     tmp=coeff_pos_k{k};
-    lr = size(coeff_pos_k, 1);
+    lr = size(coeff_pos_k{k}, 1);
     if k == 1
     	tmp = bsxfun(@minus, tmp, mean_coeff);
     	C1=1/(n_p)*real(tmp*tmp');

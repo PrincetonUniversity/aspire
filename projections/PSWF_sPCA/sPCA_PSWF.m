@@ -1,11 +1,11 @@
-function [sPCA_data,projections_denoise] = sPCA_PSWF(projections,nv,denoiseFlag,beta,T,useReflections)
+function [sPCA_data,denoised_images] = sPCA_PSWF_aspire(projections,nv,nfft_path,denoiseFlag,beta,T,useReflections)
 % Compute steerable PCA on a dataset of images and perform denoising by
 % truncation and shrinkage. The steps are as follows:
 % 1) Expand images in PSWF basis
 % 2) Compute SVD of each block of coefficients (for every angular index N)
-% 3) The left and right singular vectors provide the steerable principal components and the new expansion coefficients
+% 3) The left singular vectors provide the steerable principal components
 % 4) Detect componenets beyond the noise (by the Baik-Ben Arous-Peche phase transition)
-% 4) (Optional) Shrink the singlar values (or equivalently, the expansion coefficients) for improved de-noising (according to Gavish-Donoho (2017)) 
+% 4) (Optional) Shrink the expansion coefficients (in the basis of the steerable PC's) for improved de-noising (according to Gavish-Donoho (2017) -- note that singular-value shrinkage is equivalent to shrinkage of PCA expansion coefficients) 
 
 % Input:    
 %           projections: 3D array of images (third dimension enumerates over different images)
@@ -13,13 +13,10 @@ function [sPCA_data,projections_denoise] = sPCA_PSWF(projections,nv,denoiseFlag,
 %           denoiseFlag: flag for applying shrinkage (improved denoising). Default = true.
 %           beta: Oversampling factor (1 == no oversampleing, 0.5 == oversampling of x2, etc.). Default = 1. 
 %           T: Truncation parameter (between 10^-6 and 10^6). With strong noise, use T ~ 10-10^3. Default = 10.
-%           useReflections: Use reflections of images when computing SVD
-%           (compute singular values and vectors from real part of
-%           covariance only). Default = true.
+%           useReflections: Use reflections of images when computing SVD (compute singular values and vectors from real part of covariance only). Default = true.
 %
 % Output:   
 %           sPCA_data: steerable PCA data structure
-%           projections_denoise: Images after denoising
 
 %% Default parameters
 if ~exist('denoiseFlag','var')
@@ -90,7 +87,8 @@ Psi_spca = [];
 spca_coeff = [];
 ang_freqs_spca = [];
 rad_freqs_spca = [];
-sdTot = [];
+lambdaTot = [];
+spca_coeff_denSVS = [];
 
 if remove_mean
     mu = mean(PSWF_coeff(ang_freqs==0,:),2);
@@ -102,52 +100,47 @@ end
 for m=0:max(ang_freqs)
     % clc; 
     log_message(['Performing preliminairy de-noising of angular index: ',num2str(m),', out of ',num2str(max(ang_freqs))]);
-    [PSWF_coeff_denSVS(ang_freqs==m,:), rank(m+1),w,pc,coeff,sd_c,sd] = matrixDenoise_v2(PSWF_coeff(ang_freqs==m,:),nv,useReflections);
+    if m==0
+        [PSWF_coeff_denSVS(ang_freqs==m,:), rank(m+1),w,pc,coeff,coeff_den,lambda] = matrixDenoise_sPCA(PSWF_coeff(ang_freqs==m,:),nv,false);
+    else
+        [PSWF_coeff_denSVS(ang_freqs==m,:), rank(m+1),w,pc,coeff,coeff_den,lambda] = matrixDenoise_sPCA(PSWF_coeff(ang_freqs==m,:),nv,useReflections);
+    end
     wTot = [wTot w.'];
     Psi_spca = [Psi_spca Psi(:,ang_freqs==m)*pc];
     spca_coeff = [spca_coeff; coeff];
     ang_freqs_spca = [ang_freqs_spca; m*ones(rank(m+1),1)];
     rad_freqs_spca = [rad_freqs_spca; (1:rank(m+1)).'];
-    sdTot = [sdTot sd.'];
+    lambdaTot = [lambdaTot lambda.'];
+    spca_coeff_denSVS = [spca_coeff_denSVS; coeff_den];
 end
 
 %% Replace Prolates with steerable Principal Componenets
 PSWF_N0 = Psi(:,ang_freqs==0);
 Psi = Psi_spca;
 ang_freqs = ang_freqs_spca;
-if ~denoiseFlag
-    spca_coeff_denSVS = diag(wTot)*spca_coeff;
-else
+if ~denoiseFlag    
     spca_coeff_denSVS = spca_coeff;
 end
 
 %% Form denoised images
-I_denoise_svs = (PSWF_N0*mu)*ones(1,nImages) + Psi(:,ang_freqs==0)*spca_coeff_denSVS(ang_freqs==0,:) + 2*real(Psi(:,ang_freqs~=0)*spca_coeff_denSVS(ang_freqs~=0,:));
-projections_denoise = zeros(2*L,2*L,nImages);
-for i=1:nImages
-    tmpIm = zeros(2*L,2*L);
-    tmpIm(r<=r_max) = real(I_denoise_svs(:,i));
-    projections_denoise(:,:,i) = tmpIm;
-end
-
-I_denoise_svs = (PSWF_N0*mu)*ones(1,nImages) + Psi(:,ang_freqs==0)*spca_coeff(ang_freqs==0,:) + 2*real(Psi(:,ang_freqs~=0)*spca_coeff(ang_freqs~=0,:));
-projections_spca = zeros(2*L,2*L,nImages);
-for i=1:nImages
-    tmpIm = zeros(2*L,2*L);
-    tmpIm(r<=r_max) = real(I_denoise_svs(:,i));
-    projections_spca(:,:,i) = tmpIm;
-end
+if nargout>0
+    I_denoise_svs = (PSWF_N0*mu)*ones(1,nImages) + Psi(:,ang_freqs==0)*spca_coeff_denSVS(ang_freqs==0,:) + 2*real(Psi(:,ang_freqs~=0)*spca_coeff_denSVS(ang_freqs~=0,:));
+    denoised_images = zeros(2*L,2*L,nImages);
+    for i=1:nImages
+        tmpIm = zeros(2*L,2*L);
+        tmpIm(r<=r_max) = real(I_denoise_svs(:,i));
+        denoised_images(:,:,i) = tmpIm;
+    end
 
 %% Remove zero padding
-if evenOddFlag==0
-    projections_denoise = projections_denoise(1:end-1,1:end-1,:);
-    projections_spca = projections_spca(1:end-1,1:end-1,:);
+    if evenOddFlag==0
+        denoised_images = denoised_images(1:end-1,1:end-1,:);    
+    end
 end
 
 %% Fill output structure
-[sPCA_data.eigval,idx] = sort(sdTot.^2.'/nImages,'descend');
-% sPCA_data.eigval = sPCA_data.eigval(1:150);
-% idx = idx(1:150);
+[sPCA_data.eigval,idx] = sort(lambdaTot,'descend');
+sPCA_data.eigval = sPCA_data.eigval.';
 sPCA_data.Freqs = ang_freqs(idx);
 sPCA_data.RadFreqs = rad_freqs_spca(idx);
 sPCA_data.Coeff = spca_coeff_denSVS(idx,:);
