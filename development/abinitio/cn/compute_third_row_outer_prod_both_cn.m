@@ -1,7 +1,35 @@
 function [vijs,viis,max_corrs_stats] = ...
-    compute_third_row_outer_prod_both_cn(npf,ciis_inds,cijs_inds,Ris_tilde,R_theta_ijs,n_symm,max_shift,shift_step,refq)
+    compute_third_row_outer_prod_both_cn(npf,n_symm,max_shift,shift_step,cache_file_name,refq)
 
-[n_r,n_theta,nImages] = size(npf);
+[n_r,n_theta_npf,nImages] = size(npf);
+
+if ~exist('refq','var')
+    refq = [];
+end
+
+if ~exist('cache_file_name','var')
+    log_message('Cache file not supplied.');
+    n_Points_sphere = 1000;
+    n_theta = n_theta_npf;
+    inplane_rot_res = 1;
+    [folder, ~, ~] = fileparts(recon_mrc_fname);
+    cache_dir_full_path = folder;
+    log_message('Creating cache file under folder: %s',cache_dir_full_path);
+    log_message('#points on sphere=%d, n_theta=%d, inplane_rot_res=%d',n_Points_sphere,n_theta,inplane_rot_res);
+    cache_file_name  = cryo_Cn_ml_create_cache_mat(cache_dir_full_path,n_Points_sphere,n_theta,inplane_rot_res);
+end
+
+log_message('loading line indeces cache %s.\n Please be patient...',cache_file_name);
+load(cache_file_name);
+if(n_theta ~= n_theta_npf)
+    error('n_theta = %d for cache, while n_theta=%d for npf are not equal. Either create a new cache or a new npf',n_theta,n_theta_npf);
+end
+log_message('done loading indeces cache');
+
+log_message('computing self common-line indeces for all candidate viewing directions');
+ciis_inds = compute_scls_inds(Ris_tilde,n_symm,n_theta);
+log_message('done');
+
 
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -11,10 +39,6 @@ function [vijs,viis,max_corrs_stats] = ...
 log_message('precomputing likelihood with respect to self-common-lines');
 log_message('precompiling shift phases');
 shift_phases = calc_shift_phases(n_r,max_shift,shift_step);
-
-if ~exist('refq','var')
-    refq = [];
-end
 
 % if is_handle_equators && mod(n_symm,2) ~= 0
 %     error('can only handle equators if symmetry class is even');
@@ -256,6 +280,25 @@ end
 
 if exist('refq','var') && ~isempty(refq)
     debug_analyze_viis_vijs(viis,vijs,n_symm, Ris_tilde, R_theta_ijs, opt_Rs_tilde, opt_thetaij, n_theta, refq);
+end
+
+vijs = mat2flat(vijs,nImages);
+
+end
+
+function flat_arr = mat2flat(mat_arr,n)
+
+[nr,nc] = size(mat_arr);
+assert( (n*3 == nr) && (n*3 == nc) );
+
+flat_arr = zeros(3,3,nchoosek(n,2));
+
+ind = 0;
+for i=1:n
+    for j=i+1:n
+        ind = ind + 1;
+        flat_arr(:,:,ind) = mat_arr((i-1)*3+1:i*3,(j-1)*3+1:j*3);
+    end
 end
 
 end
