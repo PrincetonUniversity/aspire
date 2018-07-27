@@ -163,7 +163,7 @@ if is_handle_equator_ims
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % step 2  : detect equator images
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+    max_shift = 15;
     inds_eq_images = detect_equator_images(npf,max_shift,equator_res_fact,...
         equator_fraction);
     

@@ -53,7 +53,6 @@ WriteMRC(vol_orig,1,vol_orig_file_name);
 
 
 [projs,refq] = remove_eq_images(projs,refq);
-n_images = size(refq,2);
 
 if snr <= 1
     mask_radius = proj_size*mask_radius_perc/100;
@@ -65,9 +64,8 @@ else
     log_message('SNR=%.2e is greater than 1. Not performing mask', snr);
 end
 
-precision = 'double';
 n_r = ceil(proj_size*n_r_perc/100);
-[npf,~] = cryo_pft(masked_projs,n_r,n_theta,precision);
+[npf,~] = cryo_pft(masked_projs,n_r,n_theta,'single');
 
 if snr <= 1
     log_message('Guass filtering the images');
@@ -79,14 +77,17 @@ end
 [vijs,viis,~] = compute_third_row_outer_prod_both_cn(npf,n_symm,max_shift,shift_step,cache_file_name,refq);
 
 [vijs,viis,~,~] = global_sync_J(vijs,viis);
-% 
+
 vis  = estimate_third_rows_ml(vijs,viis,is_conjugate_with_vii);
+
 rots = estimate_inplane_rotations(npf,vis,n_symm,inplane_rot_res,max_shift,shift_step);
 
 [rot_alligned,err_in_degrees,mse] = analyze_results_ml(rots,n_symm,n_theta,refq);
-%
+
 log_message('Reconstructing abinitio volume');
+
 estimatedVol = reconstruct_ml_cn(projs,rot_alligned,n_symm,n_r,n_theta,max_shift,shift_step);
+
 save_vols(estimatedVol,recon_mrc_fname,n_symm);
 
 close_log();

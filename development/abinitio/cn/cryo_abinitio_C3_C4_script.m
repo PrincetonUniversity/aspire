@@ -13,24 +13,24 @@
 % %     xml_file = '/home/yoel/scratch/10004/aspire/EMPIAR1004symC3.xml';
 % 
 % %%
-% n_symm = 4;
-% instack = '/home/gabip/matlabProjects/aspire/aspire/development/abinitio/C3_C4/datasets_C4/10081/averages_nn50_group1.mrc';
-% %     instack = '10081_denoised_group1_small.mrcs';
-% mask_radius_perc = 30;
-% recon_folder = './results_tmp_C4';
-% empiar_code_string = '10081';
-% emdb_code = 8511;
-% down_siz = 89;
-% pixA = 1.3*255/down_siz;
+n_symm = 4;
+instack = '/home/gabip/matlabProjects/aspire/aspire/development/abinitio/cn/datasets_c4/10081/averages_nn50_group1.mrc';
+%     instack = '10081_denoised_group1_small.mrcs';
+mask_radius_perc = 30;
+recon_folder = './results_tmp_C4';
+empiar_code_string = '10081';
+emdb_code = 8511;
+down_siz = 89;
+pixA = 1.3*255/down_siz;
 
 %%
-n_symm = 4;
-instack = '/scratch/yoel/fred/aspire89/averages_nn50_group1.mrc';
-recon_folder = './results_tmp_C4';
-mask_radius_perc = 40;
-empiar_code_string = 'fred';
-down_siz = 89;
-pixA = 192*1.533/down_siz;
+% n_symm = 4;
+% instack = '/scratch/yoel/fred/aspire89/averages_nn50_group1.mrc';
+% recon_folder = './results_tmp_C4';
+% mask_radius_perc = 40;
+% empiar_code_string = 'fred';
+% down_siz = 89;
+% pixA = 192*1.533/down_siz;
 
 %%
 outvol = fullfile(recon_folder,sprintf('%s_out.mrc',empiar_code_string));

@@ -7,7 +7,7 @@ if ~exist('refq','var')
     refq = [];
 end
 
-if ~exist('cache_file_name','var')
+if ~exist('cache_file_name','var') || isempty(cache_file_name)
     log_message('Cache file not supplied.');
     n_Points_sphere = 1000;
     n_theta = n_theta_npf;
