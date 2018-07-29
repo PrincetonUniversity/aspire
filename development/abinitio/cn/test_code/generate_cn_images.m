@@ -46,23 +46,23 @@ if strcmp(cn_type,'80S')
     vol_init = cryo_downsample(vol_init,89);
     vol_lp = GaussFilt(vol_init,0.15);
     masked_vol = cryo_mask_volume(vol_lp,25,5);
-    vol = make_vol_cn(n_symm,masked_vol);
+    vol = make_vol_cn_old(n_symm,masked_vol);
     vol = cryo_mask_volume(vol,25,5);
     assertVolumeIsCn(vol,n_symm);
-elseif strcmp(cn_type,'80S_Eytan')
+elseif strcmp(cn_type,'80S_DUPLICATED')
 %     vol_mat = cryo_fetch_emdID(2660);
     vol_mat = '/tmp/tp8641e8a4_c426_4a2d_8028_6e2d046b7cb0/pub/databases/emdb/structures/EMD-2660/map/emd_2660.map';
     vol = ReadMRC(vol_mat);
-    vol = make_vol_cn_Eytan(vol,n_symm);
+    vol = make_vol_cn(vol,n_symm);
     assertVolumeIsCn(vol,n_symm);
 elseif strcmp(cn_type,'C1')
     vol = cryo_gaussian_phantom_3d('C1_params',projSize,1);
-    vol = make_vol_cn(vol);
+    vol = make_vol_cn_old(vol);
     assertVolumeIsCn(vol,n_symm);
     WriteMRC(vol,1,sprintf('ml_c%d_init.mrc',cn_type));
-elseif strcmp(cn_type,'C1_Eytan')
+elseif strcmp(cn_type,'C1_DUPLICATED')
     vol = cryo_gaussian_phantom_3d('C1_params',projSize,1);
-    vol = make_vol_cn_Eytan(vol,n_symm);
+    vol = make_vol_cn(vol,n_symm);
     assertVolumeIsCn(vol,n_symm);
 else
     error('no such type %s',cn_type);
@@ -94,7 +94,7 @@ clean_images = projs;
 
 end
 
-function vol_out = make_vol_cn_Eytan(vol_in,n_symm)
+function vol_out = make_vol_cn(vol_in,n_symm)
 
 inn = size(vol_in,1);
 
@@ -114,7 +114,7 @@ end
 
 
 
-function vol_out = make_vol_cn(n_symm,vol_in)
+function vol_out = make_vol_cn_old(n_symm,vol_in)
 
 vol_out = vol_in;
 for i=1:n_symm-1

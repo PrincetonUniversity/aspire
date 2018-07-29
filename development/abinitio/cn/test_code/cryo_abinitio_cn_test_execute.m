@@ -45,7 +45,7 @@ initstate;
 proj_size = 65;
 max_shift = ceil(proj_size*max_shift_perc/100);
 
-[projs,refq,~,~,vol_orig] = generate_cn_images(n_symm,n_images,snr,proj_size,'C1_Eytan',max_shift,shift_step);
+[projs,refq,~,~,vol_orig] = generate_cn_images(n_symm,n_images,snr,proj_size,'C1_DUPLICATED',max_shift,shift_step);
 % saving original volume to disk
 [folder, ~, ~] = fileparts(recon_mrc_fname);
 vol_orig_file_name = fullfile(folder,sprintf('vol_orig_c%d.mrc',n_symm));
