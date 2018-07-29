@@ -39,6 +39,22 @@ close_log();
 
 
 %%
+% %     instack = '10004_averages_nn100_selected_small.mrcs';
+% n_symm = 3;
+% instack = '/home/yoel/scratch/10004/averages_nn100_selected.mrcs';
+% mask_radius_perc = 50;
+% recon_folder = './results_tmp_C3';
+% empiar_code_string = '10004';
+% emdb_code = 2484;
+% down_siz = 89;
+% pixA = 2.16*127/down_siz;
+% %     xml_file = '/home/yoel/scratch/10004/aspire/EMPIAR1004symC3.xml';
+% 
+
+
+
+
+%%
 % n_symm = 4;
 % mrc_stack_file = '/scratch/yoel/fred/aspire89/averages_nn50_group1.mrc';
 % empiar_code_string = 'fred';

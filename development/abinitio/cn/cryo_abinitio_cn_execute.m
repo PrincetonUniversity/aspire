@@ -58,6 +58,31 @@ initstate;
 
 log_message('symmetry class is C%d',n_symm);
 
+
+
+% %% Load projections
+% projs = ReadMRC(instack,1,5000);
+% 
+% if n_projs_given
+%     if n_projs == -1
+%         n_images = size(projs,3);
+%     elseif n_projs <= 0 
+%         error('n_projs must be either positive number, or -1 for using all images');
+%     else
+%         assert(n_projs <= size(projs,3));
+%         n_images = n_projs;
+%     end
+% else % not provided as a parameter so use everything
+%     n_images = size(projs,3);
+% end
+% 
+% im_indeces = randperm(size(projs,3),n_images);
+% save(outparams,'im_indeces');
+% 
+% projs = projs(:,:,im_indeces);
+% assert(size(projs,3) == n_images);
+%
+
 % Load projections
 log_message('Loading mrc image stack file:%s. Plese be patient...', mrc_stack_file);
 % log_message('Loading %d images, starting from image index %d',nImages,first_image_ind);
