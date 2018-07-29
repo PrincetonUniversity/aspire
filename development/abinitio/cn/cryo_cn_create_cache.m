@@ -1,4 +1,4 @@
-function cache_mat_full_file_name  = cryo_Cn_ml_create_cache_mat(cache_dir_full_path,n_Points_sphere,n_theta,inplane_rot_res)
+function cache_mat_full_file_name  = cryo_cn_create_cache(cache_dir_full_path,n_Points_sphere,n_theta,inplane_rot_res)
 
 if ~exist('cache_dir_full_path','var')
     error('must specify full fir path where the cashe file be saved');
@@ -23,7 +23,7 @@ end
 [Ris_tilde,R_theta_ijs] = generate_cand_rots(n_Points_sphere,inplane_rot_res,false,[]);
 cijs_inds               = compute_cls_inds(Ris_tilde,R_theta_ijs,n_theta,false,[]);
 
-cache_mat_full_file_name = sprintf('ml_cn_cache_points%d_ntheta%d_res%d.mat',n_Points_sphere,n_theta,inplane_rot_res);
+cache_mat_full_file_name = sprintf('cn_cache_points%d_ntheta%d_res%d.mat',n_Points_sphere,n_theta,inplane_rot_res);
 cache_mat_full_file_name = fullfile(cache_dir_full_path,cache_mat_full_file_name);
 log_message('\nSaving inds to cache file=%s',cache_mat_full_file_name);
 save(cache_mat_full_file_name,'cijs_inds','Ris_tilde','R_theta_ijs','n_theta','-v7.3');

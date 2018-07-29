@@ -144,7 +144,7 @@ if do_save_res_to_mat
     save(recon_mat_fname,'vijs','viis','-append');
 end
 % 
-vis  = estimate_third_rows_ml(vijs,viis,is_conjugate_with_vii);
+vis  = estimate_third_rows(vijs,viis,is_conjugate_with_vii);
 if do_save_res_to_mat
     log_message('Saving third rows under: %s', recon_mat_fname);
     save(recon_mat_fname,'vis','-append');
@@ -157,7 +157,7 @@ if do_save_res_to_mat
 end
 
 log_message('Reconstructing abinitio volume');
-estimatedVol = reconstruct_ml_cn(masked_projs,rots,n_symm,n_r,n_theta,max_shift,shift_step);
+estimatedVol = reconstruct_cn(masked_projs,rots,n_symm,n_r,n_theta,max_shift,shift_step);
 save_vols(estimatedVol,recon_mrc_fname,n_symm);
 
 % close_log();

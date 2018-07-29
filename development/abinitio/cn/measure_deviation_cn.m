@@ -1,4 +1,4 @@
-function err = measure_deviation_Cn(vol,n_symm)
+function err = measure_deviation_cn(vol,n_symm)
    
 errs = zeros(1,n_symm);
 for i=1:n_symm-1

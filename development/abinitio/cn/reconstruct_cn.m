@@ -1,4 +1,4 @@
-function vol = reconstruct_ml_cn(projs,rots,n_symm,n_r,n_theta,max_shift,shift_step)
+function vol = reconstruct_cn(projs,rots,n_symm,n_r,n_theta,max_shift,shift_step)
 
 if ~exist('shift_step','var')
     shift_step = 0.5;

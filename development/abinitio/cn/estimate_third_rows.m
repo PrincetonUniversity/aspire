@@ -1,4 +1,4 @@
-function vis = estimate_third_rows_ml(vijs,viis,is_conjugate_with_vii)
+function vis = estimate_third_rows(vijs,viis,is_conjugate_with_vii)
 %
 % Find the third row of each rotation matrix.
 % 

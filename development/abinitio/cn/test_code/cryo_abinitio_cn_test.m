@@ -12,7 +12,7 @@ mask_radius_perc = 50;
 inplane_rot_res = 1;
 
 recon_folder = '/home/gabip/matlabProjects/aspire/aspire/development/abinitio/cn/test_code/results';
-cache_file_name = '/home/gabip/matlabProjects/aspire/aspire/development/abinitio/cn/ml_cn_cache_points1000_ntheta360_res1.mat';
+cache_file_name = '/home/gabip/matlabProjects/aspire/aspire/development/abinitio/cn/cn_cache_points1000_ntheta360_res1.mat';
 mrc_fname = sprintf('out_c%dnims%dshift%d.mrc',n_symm,n_images,max_shift_perc);
 recon_mrc_fname = fullfile(recon_folder,mrc_fname);
 % log_fname = fullfile(recon_folder,'log.txt');
