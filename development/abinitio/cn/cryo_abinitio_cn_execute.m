@@ -127,10 +127,10 @@ if(n_symm==3 || n_symm==4)
 %     max_shift_1d  = ceil(2*sqrt(2)*max_shift); % TODO: is this needed? if so, where?
     is_remove_non_rank1 = true;
     non_rank1_remov_percent = 0.25;
-    [vijs,viis,npf,masked_projs] = estimate_third_rows_outer_prod_c3_c4(n_symm,npf,max_shift,shift_step,recon_mat_fname,...
+    [vijs,viis,npf,masked_projs] = compute_third_row_outer_prod_c34(n_symm,npf,max_shift,shift_step,recon_mat_fname,...
         masked_projs,is_remove_non_rank1,non_rank1_remov_percent);
 else
-    [vijs,viis] = compute_third_row_outer_prod_both_cn(npf,n_symm,max_shift,shift_step,cache_file_name);
+    [vijs,viis] = compute_third_row_outer_prod_cn(npf,n_symm,max_shift,shift_step,cache_file_name);
 end
 
 if do_save_res_to_mat

@@ -1,5 +1,5 @@
 function [vijs,viis,max_corrs_stats] = ...
-    compute_third_row_outer_prod_both_cn(npf,n_symm,max_shift,shift_step,cache_file_name,refq)
+    compute_third_row_outer_prod_cn(npf,n_symm,max_shift,shift_step,cache_file_name,refq)
 
 [n_r,n_theta_npf,nImages] = size(npf);
 
