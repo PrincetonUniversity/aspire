@@ -5,7 +5,7 @@ classdef imagestackReader < handle
     % 100).
     %
     % Example:
-    %       stack=imagestackReader('stack.mrc');
+    %       stack=imagestackReader('stack.mrcs');
     %       projs=zeros(65,65,100);
     %       for k=1:100;
     %            projs(:,:,j)=stack.getImage(k);

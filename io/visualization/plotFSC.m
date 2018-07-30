@@ -74,7 +74,7 @@ end
 
 plot(1:n,fsc,'-g','LineWidth',2); % Plot FSC
 xlim([1 n]);
-ylim([0 1.05]);
+ylim([-0.1 1.05]); % To allow presenting oscilations around zero, as suggested by Van Heel.
 grid on
 
 % Plot cutoff line

@@ -1,8 +1,8 @@
-function [proj, defocus_group, noise, noise_response, c, q]=create_image_wCTF_wshifts(data, SNR, noise_type)
+function [proj, defocus_group, noise, noise_response, c, rots]=create_image_wCTF_wshifts(data, SNR, noise_type)
 %This function generates images with CTF with noise.
 %Input: 
 %       data.projections: simulated clean projection images. size: LxLxK
-%       data.q: quaternions associated with each clean projection image.
+%       data.rots: rotation matrices associated with each clean projection image.
 %       size: 4xK
 %       data.shifts: shifts for each image. matrix size :  Kx2
 %       SNR: signal to noise ratio
@@ -15,14 +15,14 @@ function [proj, defocus_group, noise, noise_response, c, q]=create_image_wCTF_ws
 %       noise: noise images stack
 %       sigma: variance of the noise
 %       c: CTF functions
-%       q: quaternions for rotation matrices
+%       rots: rotation matrices
 %
 %Note this function needs precomputed dataset 70S_proj_10_5_s0
 %Zhizhen Zhao Aug 2012
 
 
 projections = data.projections;
-q = data.q;
+rots = data.rots;
 shifts = data.shifts;
 clear data;
 K = size(projections, 3);
@@ -46,12 +46,6 @@ end;
 proj=zeros(size(projections));
 a=floor(L/2);
 defocus_group=zeros(K, 1);
-
-%Go concurrent
-ps=matlabpool('size');
-if ps==0
-    matlabpool open
-end
 
 for i=1:K
     tmp=cfft2(projections(:, :, i));

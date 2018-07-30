@@ -44,7 +44,7 @@ gOUTPUT=gpuArray.zeros(size(INPUT),precision);
 
     
 
-for k=1:size(INPUT,3)
+parfor k=1:size(INPUT,3)
     
     % Rotate by multiples of 90 degrees.
     switch M.mult90

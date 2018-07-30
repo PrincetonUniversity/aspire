@@ -15,7 +15,7 @@ function c=cryo_image_contrast(projs,r)
 % Example: 
 %   % Show 5 images with highest contrast and 5 images with the lowest
 %   % contrast
-%   projs=ReadMRC('projs.mrc');
+%   projs=ReadMRC('projs.mrcs');
 %   c=cryo_image_contrast(projs);
 %   [~,ii]=sort(c);
 %   viewstack(projs(:,:,[ii(1:5),ii(end-4:end)]),5,2)

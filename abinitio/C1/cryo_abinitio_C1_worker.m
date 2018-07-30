@@ -190,8 +190,18 @@ log_message('Finished estimating shifts');
 
 %% Reconstruct downsampled volume with no CTF correction
 n=size(projs,1);
-[ v1, ~, ~ ,~, ~, ~] = recon3d_firm( projs,...
-    rotations,-est_shifts, 1e-6, 100, zeros(n,n,n));
+
+params = struct();
+params.rot_matrices = rotations;
+params.ctf = ones(n*ones(1, 2));
+params.ctf_idx = ones(size(projs, 3), 1);
+params.shifts = full(est_shifts');
+params.ampl = ones(size(projs, 3), 1);
+
+basis = dirac_basis(n*ones(1, 3));
+
+v1 = cryo_estimate_mean(projs, params, basis);
+
 ii1=norm(imag(v1(:)))/norm(v1(:));
 log_message('Relative norm of imaginary components = %e\n',ii1);
 v1=real(v1);

@@ -25,12 +25,6 @@ s = B(:, 2);
 R_ns = B(:, 3);
 Phi_ns=zeros(2*N+1, 2*N+1, size(B, 1));
 
-% %Go concurrent
-% ps=parpool('local', 12);
-% if ps==0
-%   parpool('local',12);
-% end
-
 ns = unique(n);
 
 [r_unique, ~, r_I] = unique(r(:));
@@ -56,6 +50,5 @@ end
 Phi_ns=reshape(Phi_ns, (2*N+1)^2, size(B, 1));
 Phi_ns=Phi_ns(r<=1, :);
 
-delete(gcp)
 end
  

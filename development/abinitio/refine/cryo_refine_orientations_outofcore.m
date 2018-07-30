@@ -74,9 +74,9 @@ else
     L=360;
     n_r=ceil(szvol(1)/2);
     
-    projs_hat_fname=tempmrcname;
+    projs_hat_fname=tempmrcsname;
     cryo_pft_outofcore(projs_fname,projs_hat_fname,n_r,L);
-    projs_hat_normalized_fname=tempmrcname;
+    projs_hat_normalized_fname=tempmrcsname;
     cryo_raynormalize_outofcore(projs_hat_fname,projs_hat_normalized_fname);
     delete(projs_hat_fname);
     projs_hat_fname=projs_hat_normalized_fname;
@@ -84,14 +84,10 @@ end
 
 
 % Generate reference projections
-initstate;
-q_ref=qrand(Nrefs);  % Generate Nprojs projections to orient.
-projs_ref=cryo_project(vol,q_ref);
+rots_ref=rand_rots(Nrefs);  % Generate Nprojs projections to orient.
+projs_ref=cryo_project(vol,rots_ref);
 projs_ref=permute(projs_ref,[2,1,3]);
-Rrefs=zeros(3,3,Nrefs);
-for k=1:Nrefs
-    Rrefs(:,:,k)=(q_to_rot(q_ref(:,k))).';
-end
+Rrefs = permute(rots_ref, [2 1 3]);
 
 % Compute polar Fourier transform of reference projections.
 projs_hat_reader=imagestackReaderComplex(projs_hat_fname);

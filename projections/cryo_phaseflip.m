@@ -1,23 +1,26 @@
-function PFprojs=cryo_phaseflip(CTFdata,projs,prefix)
+function PFprojs=cryo_phaseflip(CTFdata,prefix,pixA,verbose)
 % CRYO_PHASEFLIP Phase flip projections
 %
-% PFprojs=cryo_phaseflip(CTFdata,projs)   
-%   Apply phase flipping to all projections in the stack projs. CTFdata
-%   contains one record (with CTF parameters) for each projection. It is
-%   generated, for example, by reading a STAR file (see example below).
-%   CTF records with no corresponding projetctions are ignored.
-%
-% PFprojs=cryo_phaseflip(CTFdata,N,prefix) 
+% PFprojs=cryo_phaseflip(CTFdata,prefix) 
 %   Read the projections from disk according to the image name given in
-%   each CTF record. Only the first N records are processed. prefix is
-%   added to image names as only relative filenames are stored in CTFdata.
+%   each CTF record. prefix is added to image names as only relative
+%   filenames are stored in CTFdata.
 % 
-% PFprojs=cryo_phaseflip(CTFdata,projs,pixA) 
+% PFprojs=cryo_phaseflip(CTFdata,prefix,pixA) 
 %   Use pixA for pixel size (in Angstroms).
-
+%   If pixA==-1, then the function is trying to read pixel size from the
+%   CTFdata. Otherwise, uses the give pixA.
+%   Pass prefix as empty string of [] if prefix is not needed.
+%
+% PFprojs=cryo_phaseflip(CTFdata,prefix,pixA,verbose) 
+%   Set verbose to 1 to print progress bar 
+%   set verbose to 2 to summarized progress info.
+%   Set verbose to 3 to print messages on each processed projection.
+%
+%
 % Example:
 %   CTFdata=readSTAR(fname);
-%   FPprojs=cryo_phaseflip(CTFdata,100); % Phase flip the first 100 projections
+%   FPprojs=cryo_phaseflip(CTFdata); 
 %
 % Yoel Shkolnisky, July 2014.
 %
@@ -25,57 +28,64 @@ function PFprojs=cryo_phaseflip(CTFdata,projs,prefix)
 % Y.S. Novmber 2014     Revise function's interface.
 % Y.S. March 2015       Add option to provide pixel size.
 % Y.S. August 2015      Look for pixA in the STAR file.
+% Y.S. October 2017     Eliminate input stack. Images are always read
+%                       according to the name given in CTFdata
 
-stackgiven=1;
-if isscalar(projs) % No stack is given, just number of projections.
-    Nprojs=projs;
-    projs=-1;
-    stackgiven=0;
-else
-    Nprojs=size(projs,3);
-    if nargin==3
-        pixA=prefix;
-    end
+if ~exist('prefix','var')
+    prefix='';
+end
+
+if isempty(prefix)
+    prefix='';
+end
+
+if ~exist('verbose','var')
+    verbose=0;
 end
 
 lastStackProcessed='';
-N=numel(CTFdata.data);
-MRCstack=-1;
+Nprojs=numel(CTFdata.data);
 projsinit=0; % Has the stack PFprojs been initialized already.
-       
-Nprojs=min(N,Nprojs);
-%fprintf('Phaseflip:')
-printProgressBarHeader;
+
+if verbose==1
+    printProgressBarHeader;
+end
 for k=1:Nprojs
-    progressTic(k,Nprojs);
-    if ~stackgiven % No stack is give
-        % Get the identification string of the next image to process.
-        % This is composed from the index of the image within an image stack,
-        % followed by '@' and followed by the filename of the MRC stack.
-        imageID=CTFdata.data{k}.rlnImageName;
-        imparts=strsplit(imageID,'@');
-        imageidx=str2double(imparts{1});
-        stackname=imparts{2};
-        
-        % Read the image stack from the disk, if different from the current
-        % one.
-        if ~strcmp(stackname,lastStackProcessed)
-            MRCstack=ReadMRC(fullfile(prefix,stackname));
-            lastStackProcessed=stackname;
-        end
-        
-        if imageidx>size(MRCstack,3)
-            error('image %d in stack %s does not exist',imageidx, stackname);
-        end
-        
-        % Get CTF parameters for the given image.
-        im=MRCstack(:,:,imageidx);
-    else
-        stackname='N/A';
-        imageidx=k;
-        im=projs(:,:,k);        
+    if verbose==1
+        progressTic(k,Nprojs);
     end
-    im=double(im); % Convert to double to eliminate small numerical 
+    % Get the identification string of the next image to process.
+    % This is composed from the index of the image within an image stack,
+    % followed by '@' and followed by the filename of the MRC stack.
+    imageID=CTFdata.data{k}.rlnImageName;
+    imparts=strsplit(imageID,'@');
+    imageidx=str2double(imparts{1});
+    stackname=imparts{2};
+    
+    if verbose>=3
+        log_message('Processing prjection %d/%d: reading image %d from stack %s',...
+            k,Nprojs,imageidx,stackname);
+    end
+    
+    % Read the image stack from the disk, if different from the current
+    % one.
+    if ~strcmp(stackname,lastStackProcessed)
+        MRCname=fullfile(prefix,stackname);
+        MRCstack=imagestackReader(MRCname,100);
+        if verbose>=2
+            log_message('Processing prjection %d/%d: Initializing MRC stack %s',...
+                k,Nprojs,MRCname);
+        end
+        lastStackProcessed=stackname;
+    end
+    
+    if imageidx>MRCstack.dim(3)
+        error('image %d in stack %s does not exist',imageidx, stackname);
+    end
+    
+    % Get CTF parameters for the given image.
+    im=MRCstack.getImage(imageidx);
+    im=double(im); % Convert to double to eliminate small numerical
         % roundoff errors when comparing the current function to
         % cryo_phaseflip_outofcore. This line is only required to get
         % perfectly zero error when comparing the functions.
@@ -89,8 +99,25 @@ for k=1:Nprojs
         projsinit=1;
     end;
     
-    [voltage,DefocusU,DefocusV,DefocusAngle,Cs,pixA,A]=...
+    [voltage,DefocusU,DefocusV,DefocusAngle,Cs,tmppixA,A]=...
         cryo_parse_Relion_CTF_struct(CTFdata.data{k});
+    
+    if verbose>=3
+        log_message('Processing prjection %d/%d: CTF params read voltage=%d, DefocusU=%d, DefocusV=%d, DefocusAngle=%d, Cs=%d, pixA=%d ,A=%d',...
+            k,Nprojs,voltage,DefocusU,DefocusV,DefocusAngle,Cs,tmppixA,A);
+    end
+    if pixA==-1
+        if tmppixA~=-1
+            pixA=tmppixA; % Use pixel size from STAR file
+        else
+            errmsg=sprintf(strcat('Pixel size not provided and does not appear in STAR file.\n',...
+            'Provide it manually, or in the STAR file using the fields ',...
+            'pixA or rlnDetectorPixelSize together with rlnMagnification.\n',...
+            'You can use addfieldtoSTARdata to add pixA manually to the STAR file.'));
+        error('%s',errmsg);
+        end
+    end
+    
     h=cryo_CTF_Relion(n,voltage,DefocusU,DefocusV,DefocusAngle,Cs,pixA,A);
     
     % Phase flip
@@ -105,6 +132,12 @@ for k=1:Nprojs
     end
     pfim=real(pfim);
     PFprojs(:,:,k)=single(pfim);
+    
+    if verbose==2
+        if mod(k,1000)==0
+            log_message('Finsihed processing %d/%d projections',k,Nprojs);
+        end
+    end
     
 %     clf;
 %     subplot(1,3,1);

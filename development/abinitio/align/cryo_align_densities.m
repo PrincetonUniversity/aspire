@@ -1,4 +1,4 @@
-function [estR,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA,verbose,Rref,forcereflect,Nprojs)
+function [estR,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA,verbose,cutoff,Rref,forcereflect,Nprojs)
 % CRYO_ALIGN_DENSITIES  Align two denisity maps
 %
 % [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2)
@@ -20,7 +20,11 @@ function [estR,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA,ve
 % [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA,verbose)
 %       Set verbose to nonzero for verbose printouts (default is zero).
 %
-% [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,verbose,Rref)
+% [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,verbose,cutoff)
+%       Use given FSC cutoff value. cutoff is the FSC threshold to use
+%       for reporting resolutions. Default is 0.143.
+%
+% [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,verbose,cutoff,Rref)
 %       Use the true rotation between vol1 and vol2 specified by Rref to
 %       provide detailed debugging messages. Rref is ignored if reflection
 %       is detected.
@@ -38,6 +42,10 @@ end
 
 if ~exist('Nprojs','var')
     Nprojs=100;  % Number of projections to use for alignment.
+end
+
+if ~exist('cutoff','var')
+    cutoff=0.143;
 end
 
 %% Set verbose logging state
@@ -94,16 +102,16 @@ vol2masked=GaussFilt(vol2masked,0.3);
 
 %% Alignment 
 
-refq=qrand(Nprojs); % Quaternions used to project volume 2.
+rots_ref = rand_rots(Nprojs); % Quaternions used to project volume 2.
 
-% Convert quaternions to rotations
+% Invert rotations
 trueRs=zeros(3,3,Nprojs); 
 for k=1:Nprojs
-    trueRs(:,:,k)=(q_to_rot(refq(:,k))).';
+    trueRs(:,:,k)=rots_ref(:,:,k).';
 end
 
 % Generate projections of volume 2.
-projs2=cryo_project(vol2masked,refq);
+projs2=cryo_project(vol2masked,rots_ref);
 projs2=permute(projs2,[2,1,3]);
 
 % Estimate rotations of the projections of volume 2.
@@ -254,7 +262,7 @@ estR=Omat;
 c_masked=corr(vol1masked(:),vol2maskedaligned(:)); % Masked volumes
 c_orig=corr(vol1(:),vol2aligned(:)); % Original volumes
 fsc=FSCorr(vol1,vol2aligned);
-res=fscres(fsc,0.134);
+res=fscres(fsc,cutoff);
 resA=2*pixA*numel(fsc)/res; % Resolution in Angstrom.
 
 log_message('Completed in %7.2f seconds',timing);

@@ -1,7 +1,7 @@
 clear;
 
 vol1=ReadMRC('vol_nn50_nm5000_group1.mrc');
-projs1=ReadMRC('phaseflipped_cropped_downsampled_prewhitened_group1.mrc');
+projs1=ReadMRC('phaseflipped_cropped_downsampled_prewhitened_group1.mrcs');
 t_orient=tic;
 [R1,shift1]=cryo_orient_projections_gpu(projs1,vol1,-1,[],1,1);
 t_orient=toc(t_orient);
@@ -28,7 +28,7 @@ save tmp1
 clear;
 
 vol2=ReadMRC('vol_nn50_nm5000_group2.mrc');
-projs2=ReadMRC('phaseflipped_cropped_downsampled_prewhitened_group2.mrc');
+projs2=ReadMRC('phaseflipped_cropped_downsampled_prewhitened_group2.mrcs');
 t_orient=tic;
 [R2,shift2]=cryo_orient_projections_gpu(projs2,vol2,-1,[],1,1);
 t_orient=toc(t_orient);

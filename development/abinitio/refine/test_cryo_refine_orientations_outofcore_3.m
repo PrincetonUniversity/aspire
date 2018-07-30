@@ -1,8 +1,8 @@
 % Compute the polar Fourier transform outside cryo_refine_orientations_outofcore
 Nprojs=100;
-q=qrand(Nprojs);  % Generate Nprojs projections to orient.
+rots = rand_rots(Nprojs);  % Generate Nprojs projections to orient.
 voldata=load('cleanrib');
-projs=cryo_project(voldata.volref,q);
+projs=cryo_project(voldata.volref,rots);
 projs=permute(projs,[2,1,3]);
 [projshifted,true_shifts]=cryo_addshifts(projs,[],2,1);
 true_shifts=true_shifts.';
@@ -10,10 +10,10 @@ snr=1000;
 projshifted=cryo_addnoise(projshifted,snr,'gaussian');
 projshifted=single(projshifted);
 
-% Convert quaternions to rotations
+% Invert rotations
 trueRs=zeros(3,3,Nprojs);
 for k=1:Nprojs
-    trueRs(:,:,k)=(q_to_rot(q(:,k))).';
+    trueRs(:,:,k)=rots(:,:,k)';
 end
 
 % Estimate rotations of the projections
@@ -28,14 +28,15 @@ n_r=ceil(size(projshifted,1)/2);
 projsFT=cryo_pft(projshifted,n_r,L);
 projsFT=single(projsFT);
 projsFT=cryo_raynormalize(projsFT);
+initstate;
 t_refined=tic;
 [R_refined1,shifts_refined1,errs1]=cryo_refine_orientations(...
     projsFT,1,voldata.volref,Rs,shifts,1,-1,trueRs,true_shifts);
 t_refined=toc(t_refined);
 fprintf('Refining orientations %5.1f seconds\n',t_refined);
 
-% Refine orientations in-core 
-projs_fname=tempmrcname;
+% Refine orientations out-of-core 
+projs_fname=tempmrcsname;
 imstackwriter=imagestackWriter(projs_fname,Nprojs);
 imstackwriter.append(projshifted);
 imstackwriter.close;
@@ -44,12 +45,13 @@ imstackwriter.close;
 L=360;
 n_r=ceil(size(voldata.volref,1)/2);
 
-projs_hat_fname=tempmrcname;
+projs_hat_fname=tempmrcsname;
 cryo_pft_outofcore(projs_fname,projs_hat_fname,n_r,L);
-projs_hat_normalized_fname=tempmrcname;
+projs_hat_normalized_fname=tempmrcsname;
 cryo_raynormalize_outofcore(projs_hat_fname,projs_hat_normalized_fname); 
     % Fourier transformed projections are assumed to be normalized.
 
+initstate;
 t_refined=tic;
 [R_refined2,shifts_refined2,errs2]=cryo_refine_orientations_outofcore(...
     projs_hat_normalized_fname,1,voldata.volref,Rs,shifts,1,-1,trueRs,true_shifts);

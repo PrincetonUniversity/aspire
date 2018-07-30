@@ -1,4 +1,4 @@
-function rmin=cryo_masking_radius_3d(V,cutoff,verbose)
+function [rmin,h1,h2]=cryo_masking_radius_3d(V,cutoff,verbose)
 %
 % CRYO_MASKING_RADIUS   Estimate masking radius of a projection.
 %
@@ -7,10 +7,11 @@ function rmin=cryo_masking_radius_3d(V,cutoff,verbose)
 %   Find the smallest centered sphere that contains more than 99% of the
 %   energy of the volume.
 %
-% rmin=cryo_masking_radius(P,cutoff,verbose)
+% [rmin,h1,h2]=cryo_masking_radius(P,cutoff,verbose)
 %   Use the specified cutoff value of the energy. Should be a value between
 %   0 and 1. Default is 0.99. 
 %   Use cutoff of -1 for default value.
+%   Returns handles h1 and h2 to debugging figures.
 %
 % rmin=cryo_masking_radius(P,cutoff,verbose)
 %   Plot progress/debug figures. Default is verbose=0.
@@ -54,11 +55,11 @@ end
 
 rmin=find(cs>cutoff,1,'first');
 if verbose
-    figure(1)
+    h1=figure;
     clf;
     plot(cs)
    
-    figure(2)
+    h2=figure;
     clf;
     th = 0:pi/50:2*pi;
     p=size(V,1);

@@ -4,7 +4,7 @@ function  demean_y_batch( F, EstMean, index, nbatch, nim, fpath)
 % y - A \mu : Demeaned y
 % New y_i = y_i - A_i \mu
 % Do in place
-% Tejal, Oct 2015
+% Tejal Bhamre, Oct 2015
 
 for nb=1:nbatch
 	filename=fullfile(fpath, sprintf('set%d',nb));

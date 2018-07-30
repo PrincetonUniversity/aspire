@@ -30,8 +30,6 @@ if ~exist('refpsd','var')
     refpsd=0;
 end;
 
-initstate;
-
 % If one needs an autocorrelation that has the value delta at distance
 % max_d, then the following code should be used:
 % delta=1.0e-15;

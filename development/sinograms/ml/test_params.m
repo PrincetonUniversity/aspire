@@ -3,7 +3,7 @@ OUTPUTDIR='/tmp/clml';
 
 for N=[500,1000]
     % Read projections
-    projs=ReadMRC('~/tmp/80S_89/averages_nn50_group1.mrc');
+    projs=ReadMRC('~/tmp/80S_89/averages_nn50_group1.mrcs');
     projs=projs(:,:,1:N);
 
     % Mask projections

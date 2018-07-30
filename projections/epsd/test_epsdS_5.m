@@ -13,6 +13,8 @@
 N=129; % Each noise image is of size NxN.
 Ks=[100 1000 10000]; % Number of noise images to generate.
 
+initstate;
+
 % Generate a stack of noise images
 [noise,Sfft,Sref]=noise_fakectf2(N,max(Ks));
 I = cart2rad(N);
@@ -35,6 +37,8 @@ for j=1:numel(Ks)
         Rs=zeros(numel(R),numel(Ks));
         P2s=zeros(2*N-1,2*N-1,numel(Ks));
     end
+
+    P2 = P2/norm(P2(:));
     
     Rs(:,j)=R;
     P2s(:,:,j)=P2;

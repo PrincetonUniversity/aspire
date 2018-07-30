@@ -1,5 +1,5 @@
 vol1=ReadMRC('/home/yoel/tmp/80S_89/vol_group1.mrc');
-projs=ReadMRC('/home/yoel/tmp/80S_89/phaseflipped_downsampled_prewhitened_group1.mrc');
+projs=ReadMRC('/home/yoel/tmp/80S_89/phaseflipped_downsampled_prewhitened_group1.mrcs');
 [Rests,dxs]=cryo_orient_projections_gpu(projs,vol1,[],[],0,0);
 
 n=size(projs,1);
@@ -10,7 +10,7 @@ v1=real(v1);
 WriteMRC(v1,1,'/home/yoel/tmp/80S_89/v1.mrc');
 
 vol2=ReadMRC('/home/yoel/tmp/80S_89/vol_group2_aligned.mrc');
-projs=ReadMRC('/home/yoel/tmp/80S_89/phaseflipped_downsampled_prewhitened_group2.mrc');
+projs=ReadMRC('/home/yoel/tmp/80S_89/phaseflipped_downsampled_prewhitened_group2.mrcs');
 [Rests,dxs]=cryo_orient_projections_gpu(projs,vol2,[],[],0,0);
 
 n=size(projs,1);

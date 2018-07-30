@@ -19,12 +19,12 @@ while isempty(workflow_name)
 end
 workflow_desc=fmtinput('Enter workflow description: ','','%s');
 
-workflow_mrc='';
-while isempty(workflow_mrc)
-    workflow_mrc =fmtinput('Enter full path input MRC file: ','','%s');
-    if exist(workflow_mrc,'file')~=2
-        fprintf('MRC file does not exist.\n');
-        workflow_mrc='';
+workflow_data='';
+while isempty(workflow_data)
+    workflow_data =fmtinput('Enter full path input MRC/STAR file: ','','%s');
+    if exist(workflow_data,'file')~=2
+        fprintf('Input file does not exist.\n');
+        workflow_data='';
     end
 end
 
@@ -67,7 +67,7 @@ fprintf('Preparing data. Please wait...\n');
 workflow.info.name=workflow_name;
 workflow.info.description=workflow_desc;
 workflow.info.created=datestr(now);
-workflow.info.rawdata=workflow_mrc;
+workflow.info.rawdata=workflow_data;
 % % % workflow.info.rawdatahash=hash;
 workflow.info.working_dir=workflow_dir;
 workflow.info.logfile=workflow_log;

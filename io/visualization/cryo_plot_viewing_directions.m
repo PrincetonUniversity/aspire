@@ -33,15 +33,27 @@ folded_phis=phis;
 idx=find(folded_phis>90);
 folded_phis(idx)=180-folded_phis(idx);
 assert(all(folded_phis<=90))
+thetas(idx)=thetas(idx)+180;  % Flip the thetas whose view direction was fliiped.
+thetas=mod(thetas+360,360); % Map to [0,360).
+
+% Colors in the maps will be propotional to the density.
+den=ksden(viewingdirs,0.2);
+idx=floor((den-min(den))./(max(den)-min(den))*255)+1;
+clrmap=jet(256);
 
 if matlabversion >=9
-    polarscatter(thetas/180*pi,folded_phis,8,folded_phis,'filled');
+    %polarscatter(thetas/180*pi,folded_phis,8,folded_phis,'filled');
+    polarscatter(thetas/180*pi,folded_phis,8,clrmap(idx),'filled');
     rlim([0 90])
     rticks(0:10:90)
 else
-    polar(thetas/180*pi,folded_phis,'o');
+    %polar(thetas/180*pi,folded_phis,'o');
+    polar(thetas/180*pi,clrmap(idx),'o');
 end
+clrbar=colorbar;
+clrbar.Ticks=[0,0.5,1];
+clrbar.TickLabels={'low','med','high'};
 
 h2=figure;
-scatter3(viewingdirs(1,:),viewingdirs(2,:),viewingdirs(3,:),5,folded_phis,'filled');
+scatter3(viewingdirs(1,:),viewingdirs(2,:),viewingdirs(3,:),5,clrmap(idx),'filled');
 axis equal

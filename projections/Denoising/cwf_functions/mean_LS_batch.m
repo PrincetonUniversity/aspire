@@ -1,5 +1,6 @@
 function [ est_mean ] = mean_LS_batch( ctf, index, regu, nim , nbatch, L, fpath)
 %Estimate the mean of the dataset using least squares
+% Tejal Bhamre, Oct 2015
 
 ndef=size(ctf,3);
 ctf=reshape(ctf,L^2,ndef);

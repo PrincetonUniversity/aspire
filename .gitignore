@@ -1,5 +1,15 @@
+extern/
 *.sw*
 .nfs*
 *.mexa64
 *.mrc
+*.mrcs
 *.mat
+*.fig
+*.ofig
+
+docs/*.log
+docs/*.pdf
+docs/*.aux
+
+tmpdir.cfg

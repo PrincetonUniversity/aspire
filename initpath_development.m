@@ -1,21 +1,13 @@
-% Setup path
+% INITPATH Initialize paths for ASPIRE toolbox
+%
+% Usage
+%    initpath_development();
 
-fname = mfilename('fullpath');
-[pathstr,~,~] = fileparts(fname); % Find where the package installed.
+% Call the standard initpath of ASPIRE.
+initpath;
 
-addpath(genpath(fullfile(pathstr,'abinitio')));
-addpath(genpath(fullfile(pathstr,'common')));
-addpath(genpath(fullfile(pathstr,'examples')));
-addpath(genpath(fullfile(pathstr,'fourier')));
-addpath(genpath(fullfile(pathstr,'io')))
-addpath(genpath(fullfile(pathstr,'projections')))
-addpath(genpath(fullfile(pathstr,'sinograms')))
-addpath(genpath(fullfile(pathstr,'reconstruction')))
-addpath(genpath(fullfile(pathstr,'refinement')))
-addpath(genpath(fullfile(pathstr,'workflow')))
+% Add development folders
+% Find where the package installed.
+[pathstr, ~, ~] = fileparts(mfilename('fullpath'));
 addpath(genpath(fullfile(pathstr,'development')))
-
-addpath(fullfile(pathstr,'extern','SDPLR-1.03-beta'))
-addpath(genpath(fullfile(pathstr,'extern','aLibs')))
-run(fullfile(pathstr,'extern','irt','setup.m'))
-
+clear pathstr;

@@ -25,9 +25,10 @@ log_message('Map resampled successully');
 
 %% Project map
 Nprojs=1000;  % Number of projections to generate
-q=qrand(Nprojs);  % Generate random orientations for the images
+initstate;
+rots = rand_rots(Nprojs);  % Generate random orientations for the images
 log_message('Generating %d projections of size %dx%d',Nprojs,n_orig,n_orig);
-projs=cryo_project(map,q,n_orig);  % Generate projections of map
+projs=cryo_project(map,rots,n_orig);  % Generate projections of map
 projs=permute(projs,[2,1,3]); % For backward compatability. Will be removed 
                               % in the future.
 [projs,ref_shifts]=cryo_addshifts(projs,[],2,1);
@@ -39,14 +40,14 @@ log_message('Projections generated successully');
 %% Compute rotations of the simulated projections
 trueRs=zeros(3,3,Nprojs);
 for k=1:Nprojs
-    trueRs(:,:,k)=(q_to_rot(q(:,k))).';
+    trueRs(:,:,k)=rots(:,:,k).';
 end
 
 
 %% Prepare data files
 vol_fname=tempmrcname;
 WriteMRC(map_downsampled,1,vol_fname);
-projs_fname=tempmrcname;
+projs_fname=tempmrcsname;
 WriteMRC(projs,1,projs_fname);
 
 % Refine 

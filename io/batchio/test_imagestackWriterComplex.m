@@ -13,7 +13,7 @@ n=65;
 K=100;
 images1=rand(n,n,K,'single')+1i.*ones(n,n,K,'single');
 
-fname='tmp.mrc';
+fname='tmp.mrcs';
 % Write to disk.
 outstack=imagestackWriterComplex(fname,K,1,50);
 outstack.append(images1);

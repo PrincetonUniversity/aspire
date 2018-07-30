@@ -49,7 +49,7 @@ a = fftn(a);
 
 % Compute Toeplitz matrix-vector product by fft
 %   w = [x;zeros(n,n,n)];
-w=zeros(2*n,2*n,2*n);
+w=zeros(2*n,2*n,2*n,class(b));
 w(1:n,1:n,1:n)=x;
 Aw = ( ifftn( a .* fftn(w) ) ); Aw = Aw(1:n,1:n,1:n);
 r = b - Aw;

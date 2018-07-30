@@ -4,6 +4,7 @@
 
 fprintf('Commonline detection rates.\n');
 fprintf('===========================\n');
+n = 89;
 K=100;
 n_r=100;
 n_theta=360;
@@ -12,9 +13,10 @@ for k=1:6
     fprintf('\nSNR=1/%d, ',2^k)
     max_shift2d=0;
     step_size=1;
-    [p, np, shifts, q] = ...
-        gen_projections(K,SNR,max_shift2d,step_size);
-    [ref_clmatrix,clcorr]=clmatrix_cheat_q(q,n_theta);
+    initstate;
+    [p, np, shifts, rots] = ...
+        cryo_gen_projections(n,K,SNR,max_shift2d,step_size);
+    [ref_clmatrix,clcorr]=clmatrix_cheat(rots,n_theta);
     
 
     mask_radius=round(size(np,1)*0.45);

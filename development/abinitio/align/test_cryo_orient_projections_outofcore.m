@@ -8,19 +8,19 @@
 
 %% Generate simulated data - proejctions and reference volume
 Nprojs=1000;
-q=qrand(Nprojs);  % Generate Nprojs projections to orient.
+rots = rand_rots(Nprojs);  % Generate Nprojs projections to orient.
 voldata=load('cleanrib');
-projs=cryo_project(voldata.volref,q);
+projs=cryo_project(voldata.volref,rots);
 projs=permute(projs,[2,1,3]);
 [projshifted,ref_shifts]=cryo_addshifts(projs,[],2,1);
 snr=1000;
 projshifted=cryo_addnoise(projshifted,snr,'gaussian');
 projshifted=single(projshifted);
 
-% Convert quaternions to rotations
+% Invert rotations
 trueRs=zeros(3,3,Nprojs);
 for k=1:Nprojs
-    trueRs(:,:,k)=(q_to_rot(q(:,k))).';
+    trueRs(:,:,k)=rots(:,:,k).';
 end
 
 Nrefs=10;
@@ -28,19 +28,21 @@ Nrefs=10;
 %% Run cryo_orient_projections_gpu
 
 t_gpu=tic;
+initstate;
 [Rest_gpu,dx_gpu]=cryo_orient_projections_gpu(projshifted,voldata.volref,Nrefs,trueRs,1);
 t_gpu=toc(t_gpu);
 
 %% Run cryo_orient_projections_gpu_outofcore
 
 % Write projections to MRC file
-projs_fname='temp.mrc';
+projs_fname='temp.mrcs';
 projswriter=imagestackWriter(projs_fname,Nprojs);
 projswriter.append(projshifted);
 projswriter.close;
 
 % Orient projections
 t_gpu_outofcore=tic;
+initstate;
 [Rest_gpu_outofcore,dx_gpu_outofcore]=...
     cryo_orient_projections_gpu_outofcore(projs_fname,voldata.volref,Nrefs,trueRs,1);
 t_gpu_outofcore=toc(t_gpu_outofcore);

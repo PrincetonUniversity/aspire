@@ -4,7 +4,7 @@ function [mse, mse_all] = calc_MSE_v6(im, im_true, r_max)
 % im: Estimated image stack
 % im_true: True image stack
 % mse is the average MSE across all images
-% Tejal April 2015
+% Tejal Bhamre: April 2015
 
 L=size(im,1);
 nim=size(im,3);

@@ -95,16 +95,16 @@ vol2masked=GaussFilt(vol2masked,0.3);
 
 %% Alignment 
 
-refq=qrand(Nprojs); % Quaternions used to project volume 2.
+rots_ref = rand_rots(Nprojs); % Quaternions used to project volume 2.
 
-% Convert quaternions to rotations
+% Invert rotations
 trueRs=zeros(3,3,Nprojs); 
 for k=1:Nprojs
-    trueRs(:,:,k)=(q_to_rot(refq(:,k))).';
+    trueRs(:,:,k)=rots_ref(:,:,k).';
 end
 
 % Generate projections of volume 2.
-projs2=cryo_project(vol2masked,refq);
+projs2=cryo_project(vol2masked,rots_ref);
 projs2=permute(projs2,[2,1,3]);
 
 % Estimate rotations of the projections of volume 2.
@@ -312,7 +312,7 @@ timing=toc(timing);
 c_masked=corr(vol1masked(:),vol2maskedaligned(:)); % Masked volumes
 c_orig=corr(vol1(:),vol2aligned(:)); % Original volumes
 fsc=FSCorr(vol1,vol2aligned);
-res=fscres(fsc,0.134);
+res=fscres(fsc,0.143);
 resA=2*pixA*numel(fsc)/res; % Resolution in Angstrom.
 
 log_message('Completed in %7.2f seconds',timing);

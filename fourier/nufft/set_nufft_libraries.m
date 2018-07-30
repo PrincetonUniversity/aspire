@@ -9,6 +9,8 @@
 %          'dft': The naive DFT implementation,
 %          'cims': The CIMS NUFFT implementation by Greengard & Lee, or
 %          'chemnitz': The TU Chemnitz NFFT implementation by Potts.
+%          'finufft': The Flatiron Institure NUFFT library by Barnett and
+%             Magland.
 %
 % Description
 %    The library order determines which libraries will be used when calling
@@ -19,7 +21,7 @@
 %    get_nufft_libraries
 
 function set_nufft_libraries(new_libs)
-	lib_names = {'dft', 'cims', 'chemnitz'};
+	lib_names = {'dft', 'cims', 'chemnitz', 'finufft'};
 
 	if ~iscell(new_libs)
 		new_libs = {new_libs};

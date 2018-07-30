@@ -12,6 +12,7 @@ shift_step_2d=1;    % and max_shift_2d with steps of  shift_step_2d pixels.
 snr=1;  % Not used. Only clean proejctions are used.
 
 % Generate proejctions. Use only the generated clean projections "projs".
+initstate;
 projs=cryo_gen_projections(n,K,snr,max_shift_2d,shift_step_2d);
 
 % Write and read the stack to make sure we are using precisely the same

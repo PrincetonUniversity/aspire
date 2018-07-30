@@ -49,7 +49,6 @@ imreader=imagestackReader(instack);
 % used below for computing the polar Fourier transform of all slices
 n=imreader.dim(1);
 n_projs=imreader.dim(3);
-precomp=nufft_t_2d_prepare(freqs,n,precision);
 
 % Get the current parallel pool to query for the number of available
 % workers. If no pool exists, create one.
@@ -60,7 +59,7 @@ nWorkers=cp.NumWorkers;
 % workers.
 fnames=cell(nWorkers,1);
 for worker=1:nWorkers
-    fnames{worker}=tempmrcname;
+    fnames{worker}=tempmrcsname;
 end
 
 % Each worker processes chuncksize images.
@@ -74,7 +73,7 @@ parfor worker=1:nWorkers
     pf=imagestackWriterComplex(fnames{worker},numel(idx),100);
     for k=1:numel(idx)
         tmp=imreader.getImage(idx(k));
-        tmp=nufft_t_2d_execute(tmp,precomp);    
+        tmp = nufft2(tmp, -freqs');  
         pf.append(reshape(tmp,n_r,n_theta));   
     end
     pf.close;

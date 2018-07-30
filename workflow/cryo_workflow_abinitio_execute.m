@@ -39,8 +39,19 @@ for groupid=1:numgroups
     reloadname=fullfile(workflow.info.working_dir,reloadname);
     log_message('Loading %s (MD5: %s)',reloadname,MD5(reloadname));
     load(reloadname);
-    fname=sprintf('averages_nn%02d_group%d.mrc',nnavg,groupid);
+    
+        
+    fname=sprintf('averages_nn%02d_EM_sorted_group%d.mrcs',nnavg,groupid);
     fname=fullfile(workflow.info.working_dir,fname);
+    if ~exist(fname,'file')
+        log_message('File %s not found',fname);
+        fname=sprintf('averages_nn%02d_sorted_group%d.mrcs',nnavg,groupid);
+        fname=fullfile(workflow.info.working_dir,fname);
+        log_message('Trying to read %s',fname);
+        if ~exist(fname,'file')
+            error('Cannot find file with class averages');
+        end
+    end        
     log_message('Reading averages from %s (MD5: %s)',fname, MD5(fname));
     
     average=ReadMRC(fname);
@@ -154,8 +165,18 @@ for groupid=1:numgroups
 
     % Reconstruct downsampled volume with no CTF correction
     n=size(average,1);
-    [ v1, ~, ~ ,~, ~, ~] = recon3d_firm( average,...
-        rotations,-est_shifts, 1e-6, 100, zeros(n,n,n));
+
+    params = struct();
+    params.rot_matrices = rotations;
+    params.ctf = ones(n*ones(1, 2));
+    params.ctf_idx = ones(size(average, 3), 1);
+    params.shifts = full(est_shifts');
+    params.ampl = ones(size(average, 3), 1);
+
+    basis = dirac_basis(n*ones(1, 3));
+
+    v1 = cryo_estimate_mean(average, params, basis);
+
     ii1=norm(imag(v1(:)))/norm(v1(:));
     log_message('Relative norm of imaginary components = %e\n',ii1);
     v1=real(v1);
@@ -168,7 +189,7 @@ for groupid=1:numgroups
     % The following code uses one raw projection for each class averages.
     % So if the number of averages is 1000, then only 1000 raw
     % images will be used.
-    % % % % %     fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrc',groupid);
+    % % % % %     fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrcs',groupid);
     % % % % %     fullfilename=fullfile(workflow.info.working_dir,fname);
     % % % % %     log_message('Loading prewhitened projection from %s',fname);
     % % % % %     prewhitened_projs=ReadMRC(fullfilename);
@@ -226,7 +247,7 @@ for groupid=1:numgroups
 %     [estR_raw,est_shifts_raw,rawimageindices]=cryo_assign_orientations_to_raw_projections(...
 %         alignment_data,averaging_data);
 %     
-%     fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrc',groupid);
+%     fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrcs',groupid);
 %     fullfilename=fullfile(workflow.info.working_dir,fname);
 %     log_message('Loading prewhitened projection from %s',fname);
 %     prewhitened_projs=ReadMRC(fullfilename);
@@ -246,7 +267,7 @@ for groupid=1:numgroups
 %         'estR_raw','est_shifts_raw','rawimageindices','-append');
     
     %     % Reconstruct downsampled volume with CTF correction
-    %     fname=sprintf('ctfs_effective_nn%02d_group%d.mrc',nnavg,groupid);
+    %     fname=sprintf('ctfs_effective_nn%02d_group%d.mrcs',nnavg,groupid);
     %     fullfilename=fullfile(workflow.info.working_dir,fname);
     %
     %     if exist(fullfilename,'file')~=2

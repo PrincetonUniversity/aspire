@@ -33,8 +33,7 @@ rot=zeros(P, 1);
 shifts_b=zeros(P, 2);
 iter=0;
 norm_diff_ratio = 1.0;
-%initstate;
-q = qrand(ref_k);
+rots = rand_rots(ref_k);
 
 if ~exist('./results','dir')
     if ~mkdir('./results')
@@ -42,28 +41,28 @@ if ~exist('./results','dir')
     end
 end
 
-while (iter<iter_max && norm_diff_ratio>tol );
+while (iter<iter_max && norm_diff_ratio>tol )
     filename=sprintf('%s_iter%d', filename, iter+1); %save the results for each iteration
     
-    [ref]=cryo_project(real(v), q); %generate references
+    [ref]=cryo_project(real(v), rots); %generate references
     ref = permute(ref, [2, 1, 3]);
-%     
+    %
     for i=1:N
         id=find(d==i);
         if (iter==0 && CTF_flag==0)
-		[corr(id), class(id), rot(id), shifts_b(id, :)] = refinement_Bessel(data(:, :, id), ref, ones(L), max_shifts, r_max );
-	else
-        	[corr(id), class(id), rot(id), shifts_b(id, :)] = refinement_Bessel(data(:, :, id), ref, c(:, :, i), max_shifts, r_max );
-	end;        
-	fprintf('\nFinished defocus group %d.', i);
+            [corr(id), class(id), rot(id), shifts_b(id, :)] = refinement_Bessel(data(:, :, id), ref, ones(L), max_shifts, r_max );
+        else
+            [corr(id), class(id), rot(id), shifts_b(id, :)] = refinement_Bessel(data(:, :, id), ref, c(:, :, i), max_shifts, r_max );
+        end;
+        fprintf('\nFinished defocus group %d.', i);
     end
-
+    
     %%%%Align images
     [data2]=refinement_align(rot, shifts_b, data);
- 
+    
     R=zeros(3, 3, ref_k);
     for i=1:ref_k
-        R(:, :, i)=q_to_rot(q(:, i));
+        R(:, :, i) = rots(:,:,i);
     end;
     inv_rot=zeros(3, 3, length(d));
     for i=1:length(d)

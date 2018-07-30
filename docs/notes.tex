@@ -1,0 +1,245 @@
+\documentclass{article}
+
+\usepackage{amsfonts}
+\usepackage{mathtools}
+
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{algorithmicx}
+
+\newcommand{\euler}{\mathrm{e}}
+\newcommand{\imunit}{\mathrm{i}}
+
+\newcommand{\Natural}{\mathbb N}
+\newcommand{\Integer}{\mathbb Z}
+\newcommand{\Real}{\mathbb R}
+\newcommand{\Complex}{\mathbb C}
+\newcommand{\SO}{\mathrm{SO}}
+
+\newcommand{\meshu}{M}
+\newcommand{\meshc}{\overline{M}}
+
+\newcommand{\sz}{L}
+
+\newcommand{\vol}{x}
+\newcommand{\im}{y}
+
+\newcommand{\proj}{P}
+
+\newcommand{\volfun}{\mathcal{X}}
+\newcommand{\imfun}{\mathcal{Y}}
+
+\newcommand{\projfun}{\mathcal{P}}
+
+\newcommand{\vu}{\boldsymbol{u}}
+\newcommand{\vomega}{\boldsymbol{\omega}}
+\newcommand{\vn}{\boldsymbol{n}}
+\newcommand{\vk}{\boldsymbol{k}}
+
+\newcommand{\vc}{\boldsymbol{c}}
+
+\newcommand{\vones}{\boldsymbol{1}}
+
+\newcommand{\rot}{R}
+
+\newcommand{\transp}{\mathrm{T}}
+
+\newcommand{\fourier}[1]{\mathcal{F}#1}
+\newcommand{\ifourier}[1]{\mathcal{F}^{-1}#1}
+
+\begin{document}
+
+\section{Projection}
+
+Given a function $\volfun \in L^1(\Real^3)$, we define its projection $\projfun \volfun \in L^1(\Real^2)$ along $\rot \in \SO(3)$ as
+\begin{equation}
+	\projfun \volfun(\vu) \coloneqq \int_\Real \volfun(\rot^{-1} [\vu; z]) dz\mbox{,}
+\end{equation}
+where $[\vu; z] \in \Real^3$ is the concatenation of $\vu$ with $z$.
+Let us define the $d$-dimensional Fourier transform $\fourier{\mathcal{H}} \in L^\infty(\Real^d)$ of $\mathcal{H} \in L^1(\Real^d)$ by
+\begin{equation}
+    \fourier{\mathcal{H}}(\vomega) \coloneqq \int_{\Real^d} \mathcal{H}(\vu) \euler^{-2\pi\imunit \langle \vomega, \vu \rangle} d\vu\mbox{.}
+\end{equation}
+The projection mapping $\projfun$ then satisfies the following identity,
+\begin{equation}
+	\label{eq:fourier-slice}
+    \fourier{\projfun \volfun}(\vomega) = \fourier{\volfun}\left(\rot^{-1}[\vomega; 0]\right) \quad \forall \vomega \in \Real^2 \mbox{,}
+\end{equation}
+known as the Fourier slice theorem.
+That is, projection in the spatial domain corresponds to restriction in the frequency domain.
+This identity allows us to exploit fast Fourier transforms and non-uniform fast Fourier transforms in order to define fast discrete approximations of $\projfun$.
+
+In the following, we shall use the following notation to describe the non-symmetric one-dimensional mesh of length $L$
+\begin{equation}
+    \meshu_L \coloneqq \{-\lfloor L/2 \rfloor, \ldots, \lceil L/2-1 \rceil\}\mbox{.}
+\end{equation}
+Note that we have
+\begin{equation}
+	\meshu_L =
+	\left\{
+	\begin{array}{ll}
+		\{-(L-1)/2, \ldots, (L-1)/2\} & $L$ \mbox{~odd} \\
+		\{-L/2, \ldots, L/2-1\} & $L$ \mbox{~even}
+	\end{array}
+	\right.
+	\mbox{.}
+\end{equation}
+To obtain higher-dimensional meshes, we form the tensor product of $\meshu_L$ with itself, obtaining $\meshu_L^d \subset \Integer^d$.
+
+The above mesh is quite natural for defining the discrete Fourier transform, as we shall see below.
+However, in the case of even $L$, it is not symmetric about zero, which leads to difficulties when discretizing the projection mapping $\projfun$.
+To remedy this, we define the symmetric one-dimensional mesh
+\begin{equation}
+	\meshc_L =
+	\left\{
+	\begin{array}{ll}
+		\meshu_L & $L$ \mbox{~odd} \\
+		\meshu_L + \frac{1}{2} & $L$ \mbox{~even}
+	\end{array}
+	\right.
+	\mbox{.}
+\end{equation}
+Again, we define higher-dimensional meshes by forming the tensor product $\meshc_L^d$.
+These meshes now have the property that $-\meshc_L^d = \meshc_L^d$ for all $L \ge 1$.
+
+Discrete volumes and images will be defined as functions on these grids.
+In general, such a function is given by $h: \meshu_L^d \rightarrow \Real$ or $h: \meshc_L^d \rightarrow \Real$ depending on whether it is defined on the non-symmetric or symmetric mesh, respectively.
+We denote the values of these functions by $h[\vn]$ to distinguish them from continuous functions.
+In some situations, it will be useful to consider the functions as column vectors of dimension $L^d$, that is, elements of $\Real^{L^d}$.
+
+The discrete Fourier transform (DFT) on the $d$-dimensional mesh $\meshu_L^d$ of size $L$ is given by
+\begin{equation}
+	\label{eq:dft-def}
+	\fourier{h}[\vk] = \sum_{\vn \in \meshu_L^d} h[\vn] \euler^{-2\pi\imunit \langle \vn, \vk \rangle / L} \quad \forall \vk \in \meshu_L^d \mbox{,}
+\end{equation}
+for some discrete function $h: \meshu_L^d \rightarrow \Real$.
+The inverse DFT is then given by
+\begin{equation}
+	\label{eq:idft-def}
+	\ifourier{g}[\vn] = \frac{1}{L^d} \sum_{\vk \in \meshu_L^d} g[\vk] \euler^{2\pi\imunit \langle \vn, \vk \rangle / L} \quad \forall \vn \in \meshu_L^d \mbox{.}
+\end{equation}
+As its name implies, the inverse DFT inverts the DFT and we have $\ifourier{\fourier{h}} = h$ for all $h: \meshu_L^d \rightarrow \Real$.
+The DFT and the inverse DFT are calculated efficiently using the fast Fourier transform (FFT) algorithm.
+Specifically, \eqref{eq:dft-def} and \eqref{eq:idft-def} are both computed in $O(L^d \log L)$ time.
+
+The final tool we shall make use of is the non-uniform discrete Fourier transform (NUDFT).
+Given a function $h: \Omega \rightarrow \Real$ defined on some discrete set $\Omega \subset \Real^d$ and a set of $N$ frequency nodes $\{\vomega_j\}_{j=1}^N \subset [-1/2, 1/2]^d$, it is defined as
+\begin{equation}
+	\fourier{h}(\vomega_j) = \sum_{\vu \in \Omega} h[\vu] \euler^{-2\pi\imunit \langle \vu, \vomega_j \rangle} \quad 1 \le j \le N\mbox{.}
+\end{equation}
+Note that we have overloaded the notation $\fourier$ to signify both the standard (grid-based) DFT as well as the NUDFT.
+While the DFT is indexed by square brackets $[]$, we index the NUDFT with parentheses $()$.
+We also define the adjoint NUDFT.
+Applied to a set of coefficients $\vc = \{c_j\}_{j=1}^N$ for the same set of frequency nodes and domain $\Omega$, it is given by
+\begin{equation}
+	\fourier^*{\vc}[\vu] = \sum_{j=1}^N c_j \euler^{2\pi\imunit \langle \vu, \vomega_j \rangle} \quad \forall \vu \in \Omega\mbox{.}
+\end{equation}
+Note that, in general, the adjoint NUDFT does not invert the NUDFT.
+
+Calculating the NUDFT or its adjoint directly has complexity $O(|\Omega| J)$.
+However, when $\Omega = \meshu_L^d$, it can be accurately approximated using the non-uniform fast Fourier transform (NUFFT) algorithm.
+The NUFFT has complexity $O(L^d \log L + J \log (1/\epsilon))$ for a desired accuracy $\epsilon$.
+
+\subsection{Odd size $L$}
+
+As it is simpler than the even case, we start with the case of odd-sized volumes and images.
+For $L$ odd, we thus have a volume of size $L$-by-$L$-by-$L$ which we would like to project along some rotation $\rot \in \SO(3)$ onto an image of size $L$-by-$L$.
+Although there is no difference between the non-symmetric and symmetric meshes in the case of odd $L$, we shall define the volume over $\meshc_L^3$ for consistency with the even case.
+From this, we would like images defined on $\meshc_L^2$.
+
+In order to exploit the efficiency of the FFT and the NUFFT, we will define our discrete projection mapping to satisfy a discrete version of the Fourier slice theorem \eqref{eq:fourier-slice}.
+Specifically, we require that the projection mapping $\proj$ along $\rot$ satisfy
+\begin{equation}
+	\fourier{\proj \vol}(\vk/L) = \fourier{\vol}(\rot^{-1} [\vk; 0]/L) \quad \forall \vk \in \meshc_L^d\mbox{.}
+\end{equation}
+That is the NUDFT at grid point in $\vk \in \meshc_L^d$ of the projection $\proj \vol$ should equal the NUDFT of the volume $\vol$ on the grid given by $\rot^{-1} [\vk; 0]/L$.
+
+Since $\meshc_L = \meshu_L$ for the odd case, we have that the left-hand side is actually a regular DFT $\fourier{\proj \vol}[\vk]$ which can be inverted by the IDFT to yield
+\begin{equation}
+    \proj \vol[\vn] = \ifourier{(\fourier{\vol}(\rot^{-1} [\cdot; 0]/L))}[\vn]\mbox{.}
+\end{equation}
+A fast algorithm for calculating $\proj \vol$ is then to first compute the NUFFT of $\vol$ on the grid $\rot^{-1} [\vk; 0]/L$, then perform the IFFT.
+This is algorithm is detailed in Algorithm \ref{algo:odd-proj}.
+
+\begin{algorithm}[t]
+\begin{algorithmic}
+\Function{ProjectOdd}{$\rot$, $\vol: \meshc_L^3 \rightarrow \Real$}
+\State $s[\vk] \gets \fourier{\vol}(\rot^{-1} [\vk; 0]/L)$ for all $\vk \in \meshu_L^2$ using the NUFFT.
+\State $\proj\vol[\vn] = \ifourier{s}[\vn]$ for all $\vn \in \meshu_L^2$ using the IFFT.
+\EndFunction
+\end{algorithmic}
+\caption{
+\label{algo:odd-proj}
+Projection for odd $L$.
+}
+\end{algorithm}
+
+The complexity of the NUFFT is $O(L^3 \log L + L^2) = O^(L^3 \log L)$ while the IFFT takes $O(L^2 \log L)$.
+As a result, the overall complexity is $O(L^3 \log L)$.
+If we wish to compute the projection of $\vol$ along $N$ different rotations, the complexity is $O(L^3 \log L + N L^2 \log L)$.
+
+\subsection{Even size $L$}
+
+The even-sized images require a more careful approach to avoid problems with the non-symmetric grid $\meshu_L$.
+As in the odd-sized case, we wish to have our projection mapping $\proj$ along $\rot$ satisfy
+\begin{equation}
+	\fourier{\proj \vol}(\vk/L) = \fourier{\vol}(\rot^{-1} [\vk; 0]/L) \quad \forall \vk \in \meshc_L^d\mbox{.}
+\end{equation}
+However, since $\meshc_L \neq \meshu_L$, the left-hand side no longer corresponds to a standard DFT.
+In addition, the right-hand side NUDFT is defined over $\meshc_L^3$, while the NUFFT is defined for the non-symmetric grid $\meshu_L^3$.
+To obtain an efficient algorithm for computing $\proj\vol$, we need to manage these problems.
+
+Let us first consider the right-hand side.
+Since $\vol$ is defined on $\Omega = \meshc_L^3$, we have
+\begin{align}
+    &\fourier{\vol}(\rot^{-1} [\vk; 0]/L) \\
+    &\quad = \sum_{\vn \in \meshc_L^3} \vol[\vn] \euler^{-2\pi\imunit \langle \vn, \rot^{-1} [\vk; 0]\rangle/L} \\
+    &\quad = \sum_{\vn \in \meshu_L^3} \vol[\vn+1/2] \euler^{-2\pi\imunit \langle \vn+1/2, \rot^{-1} [\vk; 0]\rangle/L} \\
+    &\quad = \euler^{-2\pi\imunit \langle \vones, \rot^{-1} [\vk; 0] \rangle/2L} \sum_{\vn \in \meshu_L^3} \vol[\vn+1/2] \euler^{-2\pi\imunit \langle \vn, \rot^{-1} [\vk; 0] \rangle/L} \mbox{,}
+\end{align}
+where $\vones = [1; 1; 1]$, since $\meshc_L^3 = \meshu_L^3 + 1/2$.
+The right-hand side is therefore computed using an NUFFT followed by a phase shift.
+
+\begin{algorithm}[t]
+\begin{algorithmic}
+\Function{ProjectEven}{$\rot$, $\vol: \meshc_L^3 \rightarrow \Real$}
+\State $\widetilde{\vol}[\vn] \gets \vol[\vn+1/2]$ for all $\vn \in \meshu_L^3$.
+\State $s[\vk] \gets \fourier{\widetilde{\vol}}(\rot^{-1} [\vk; 0]/L)$ for all $\vk \in \meshc_L^2$ using the NUFFT.
+\State $s[\vk] \gets \euler^{-2\pi\imunit \langle \vones, \rot^{-1} [\vk; 0] \rangle/2L} s[\vk]$ for all $\vk \in \meshc_L^2$.
+\State $s[\vk] \gets \euler^{2\pi\imunit \langle \vones, \vk \rangle/2L} s[\vk]$ for all $\vk \in \meshc_L^2$.
+\State $\widetilde{s}[\vk] \gets s[\vk+1/2]$ for all $\vk \in \meshu_L^2$.
+\State $\widetilde{\proj\vol}[\vn] \gets \ifourier \widetilde{s}[\vn]$ for all $\vn \in \meshu_L^2$ using the IFFT.
+\State $\widetilde{\proj\vol}[\vn] \gets \euler^{2\pi\imunit \langle \vn, \vones \rangle/2L} \widetilde{\proj\vol}[\vn]$ for all $\vn \in \meshu_L^2$.
+\State $\proj\vol[\vn] \gets \widetilde{\proj\vol}[\vn-1/2]$ for all $\vn \in \meshc_L^2$.
+\EndFunction
+\end{algorithmic}
+\caption{
+\label{algo:even-proj}
+Projection for even $L$.
+}
+\end{algorithm}
+
+The left hand side at $\vk \in \meshc_L^3$ is given by
+\begin{align}
+    &\fourier{\proj \vol}(\vk/L) \\
+    &\quad = \sum_{\vn \in \meshc_L^2} \proj\vol[\vn] \euler^{-2\pi\imunit \langle \vn, \vk \rangle/L} \\
+    &\quad = \sum_{\vn \in \meshu_L^2} \proj\vol[\vn+1/2] \euler^{-2\pi\imunit \langle \vn+1/2, \vk \rangle/L} \\
+    &\quad = \euler^{-2\pi\imunit \langle \vones, \vk \rangle/2L} \sum_{\vn \in \meshu_L^2} \proj\vol[\vn+1/2] \euler^{-2\pi\imunit \langle \vn, \vk \rangle/L}\mbox{,}
+\end{align}
+since $\meshc_L^2 = \meshu_L^2 + 1/2$.
+The sum is still not a DFT since $\vk \in \meshc_L^2$.
+However, $\vk-1/2$ is in $\meshu_L^2$, so we can rewrite it as
+\begin{align}
+    &\sum_{\vn \in \meshu_L^2} \proj\vol[\vn+1/2] \euler^{-2\pi\imunit \langle \vn, \vk \rangle/L} \\
+    &\quad = \sum_{\vn \in \meshu_L^2} \proj\vol[\vn+1/2] \euler^{-2\pi\imunit \langle \vn, (\vk-1/2)+1/2 \rangle/L} \\
+    &\quad = \sum_{\vn \in \meshu_L^2} \left(\proj\vol[\vn+1/2] \euler^{-2\pi\imunit \langle \vn, \vones \rangle/2L}\right) \euler^{-2\pi\imunit \langle \vn, (\vk-1/2)\rangle/2} \mbox{.}
+\end{align}
+This sum is a DFT and can therefore be efficiently inverted using the IFFT.
+
+Putting all of this together, we first compute an NUFFT, apply a phase shift, then apply the IFFT, followed by another phase shift.
+The complete algorithm is outlined in Algorithm \ref{algo:even-proj}.
+
+The only additional steps compared to Algorithm \ref{algo:odd-proj} are the phase shifts, each of which has computational complexity $O(L^2)$.
+Consequently, the overall complexity remains $O(L^3 \log L)$ to project along a single rotation while the complexity for projecting along $N$ distinct rotations is $O(L^3 \log L + N L^2 \log L)$.
+
+\end{document}

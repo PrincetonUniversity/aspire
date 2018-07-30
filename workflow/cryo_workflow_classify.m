@@ -26,7 +26,7 @@ workflow.classification.n_nbor=100; %number of nearest neighbors for initial cla
 workflow.classification.isrann = 0;
 workflow.classification.k_VDM_in = 20; % number of nearest neighbors for building graph for VDM.
 workflow.classification.VDM_flag = 0;
-workflow.classification.k_VDM_out = 100; % output number of nearest neighbors
+workflow.classification.k_VDM_out = 500; % output number of nearest neighbors
 
 tree=struct2xml(workflow);
 save(tree,workflow_fname); 

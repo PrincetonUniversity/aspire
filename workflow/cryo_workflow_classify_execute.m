@@ -25,8 +25,11 @@ log_message('Loaded XML file %s (MD5: %s)',workflow_fname,MD5(workflow_fname));
 numgroups=str2double(workflow.preprocess.numgroups); 
 
 for groupid=1:numgroups
+    % Clear variables from previous groups   
+    clear sPCA_data class class_refl rot class_VDM class_VDM_refl VDM_angles
+    
     % Read prewhitened projections
-    fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrc',groupid);
+    fname=sprintf('phaseflipped_cropped_downsampled_prewhitened_group%d.mrcs',groupid);
         
     fullfilename=fullfile(workflow.info.working_dir,fname);
     log_message('Loading %s (MD5: %s)',fullfilename,MD5(fullfilename));
@@ -34,23 +37,38 @@ for groupid=1:numgroups
     n=size(prewhitened_projs,1);
     prewhitened_projs=double(prewhitened_projs); % Convert to double for VDM below.
     
+    % Estimate variance of the noise. Should be 1 (if images have been normalized).
+    log_message('Estimating SNR of images');
+    [snr,var_s,var_n]=cryo_estimate_snr(prewhitened_projs);
+    log_message('Estimated SNR=%d',snr);    
+    log_message('Estimated signal variance=%d',var_s);    
+    log_message('Estimated noise variance=%d',var_n);    
+    
+    
+    log_message('Starting computing steerable PCA');
+    sPCA_data=data_sPCA(prewhitened_projs,  var_n);
+    log_message('Finished computing steerable PCA');
+
+    matname=fullfile(workflow.info.working_dir,sprintf('VDM_data_%d.mat',groupid));
+    save(matname,'-v7.3','sPCA_data');
+    
+    
     log_message('Starting class averaging initial classificaiton');
-    r_max=round(n/2)-10;
-    [ class, class_refl, rot, ~, FBsPCA_data, ~ ] = Initial_classification(prewhitened_projs , r_max,...
+    [ class, class_refl, rot, ~,  ~] = Initial_classification_FD_update(sPCA_data,...
         str2double(workflow.classification.n_nbor),...
-        str2double(workflow.classification.isrann));
+        str2double(workflow.classification.isrann));    
     log_message('Finished class averaging initial classificaiton');
+
+    save(matname,'class','class_refl','rot','-append');    
     
     log_message('Starting VDM');
     [ class_VDM, class_VDM_refl, VDM_angles ] = VDM(class, ones(size(class)), rot,...
         class_refl, str2double(workflow.classification.k_VDM_in),...
         str2double(workflow.classification.VDM_flag),...
         str2double(workflow.classification.k_VDM_out));
-    disp('Finished VDM classification...');
+    log_message('Finished VDM classification...');
     
-    matname=fullfile(workflow.info.working_dir,sprintf('VDM_data_%d.mat',groupid));
-    save(matname,'class','class_refl','rot','FBsPCA_data','class_VDM',...
-        'class_VDM_refl','class_VDM_refl','VDM_angles');
+    save(matname,'class_VDM','class_VDM_refl','VDM_angles','-append');
     
     log_message('Saved %s (MD5: %s)',matname,MD5(matname));
 end

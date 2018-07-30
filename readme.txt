@@ -1,7 +1,7 @@
 ASPIRE – Algorithms for Single Particle Reconstruction
 
-Current version: 0.12
-Date: 04/02/2014
+Current version: 0.3
+Date: 10/2017
 
 Installation
 ------------
@@ -34,4 +34,13 @@ Revisions
 3.	Update documentation of projections/simulation/cryo_project.m
 4. 	Remove obsolete benchmark results from comment at the end of  ./sinograms/test_commonlines_gaussian.m
 
+
+*Changes from version 0.12
+1. Added improved denoising for images
+2. Added volume covariance estimation
+3. Added improved noise estimation
+4. Added Fast steerable PCA
+5. New example scripts
+6. Improved ab-initio reconstruction for non-symmetric molecules
+7. Added routines for reconstruction workflow
 
