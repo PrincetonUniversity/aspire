@@ -1,4 +1,4 @@
-function [Rijs_out,Rijgs_out,sign_ij_J] = global_sync_J(Rijs,Rijgs,nImages)
+function [Rijs_out,Rijgs_out,sign_ij_J] = global_sync_J_c2(Rijs,Rijgs,nImages)
 %
 % Global J-synchronization of all third-row outer products. Specifically, the input 3n-by-3n matrix V whose
 % (i,j)-th block (1<=i<j<=n) of size 3-by-3 is the estimate Rij for

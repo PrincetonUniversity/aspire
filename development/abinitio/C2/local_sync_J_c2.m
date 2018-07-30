@@ -1,4 +1,4 @@
-function [Rijs_out,Rijgs_out,rank1_rate,isRank1_ijs] = local_sync_J(Rijs,Rijgs,nImages)
+function [Rijs_out,Rijgs_out,rank1_rate,isRank1_ijs] = local_sync_J_c2(Rijs,Rijgs,nImages)
 
 % Local J-synchronization of all relative orientations.
 %

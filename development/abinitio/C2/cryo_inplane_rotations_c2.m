@@ -1,4 +1,4 @@
-function rots = cryo_inplane_rotations(vis,Rijs,Rijgs,is_use_weight,conf)
+function rots = cryo_inplane_rotations_c2(vis,Rijs,Rijgs,is_use_weight,conf)
 
 nImages = size(vis,2);
 

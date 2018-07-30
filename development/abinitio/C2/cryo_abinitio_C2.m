@@ -163,13 +163,13 @@ save(outparams,'Rijs','Rijgs','confijs','-append');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 4  : local J-synchronization
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[Rijs,Rijgs,~,isRank1_ijs] = local_sync_J(Rijs,Rijgs,nImages);
+[Rijs,Rijgs,~,isRank1_ijs] = local_sync_J_c2(Rijs,Rijgs,nImages);
 save(outparams,'Rijs','Rijgs','isRank1_ijs','-append');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 5  : global J-synchronization
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-[Rijs,Rijgs] = global_sync_J(Rijs,Rijgs,nImages);
+[Rijs,Rijgs] = global_sync_J_c2(Rijs,Rijgs,nImages);
 save(outparams,'Rijs','Rijgs','-append');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -177,20 +177,20 @@ save(outparams,'Rijs','Rijgs','-append');
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 conf = confijs.*isRank1_ijs; 
 is_use_weights_third_row = false;
-vis  = estimate_third_rows(Rijs,Rijgs,conf,nImages,is_use_weights_third_row);
+vis  = estimate_third_rows_c2(Rijs,Rijgs,conf,nImages,is_use_weights_third_row);
 save(outparams,'vis','conf','is_use_weights_third_row','-append');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 7  : in-plane rotations angles estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 is_use_weights_inplane = false;
-rots = cryo_inplane_rotations(vis,Rijs,Rijgs,is_use_weights_inplane,conf);
+rots = cryo_inplane_rotations_c2(vis,Rijs,Rijgs,is_use_weights_inplane,conf);
 save(outparams,'rots','is_use_weights_inplane','-append');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 8  : Reconstruction
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-estimatedVol = reconstruct(projs,rots,n_r,n_theta,max_shift,shift_step);   
+estimatedVol = reconstruct_cn(projs,rots,2,n_r,n_theta,max_shift,shift_step);
 WriteMRC(estimatedVol,1,outvol);
 % 
 % 

@@ -1,4 +1,4 @@
-function vis = estimate_third_rows(Rijs,Rijgs,conf,nImages,is_use_weights)
+function vis = estimate_third_rows_c2(Rijs,Rijgs,conf,nImages,is_use_weights)
 %
 % Find the third row of each rotation matrix.
 % 
