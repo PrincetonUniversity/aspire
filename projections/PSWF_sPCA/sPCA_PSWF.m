@@ -1,4 +1,4 @@
-function [sPCA_data,denoised_images] = sPCA_PSWF_aspire(projections,nv,nfft_path,denoiseFlag,beta,T,useReflections)
+function [sPCA_data,denoised_images] = sPCA_PSWF(projections,nv,denoiseFlag,beta,T,useReflections)
 % Compute steerable PCA on a dataset of images and perform denoising by
 % truncation and shrinkage. The steps are as follows:
 % 1) Expand images in PSWF basis
@@ -9,7 +9,6 @@ function [sPCA_data,denoised_images] = sPCA_PSWF_aspire(projections,nv,nfft_path
 
 % Input:    
 %           projections: 3D array of images (third dimension enumerates over different images)
-%           nfft_path: Path to NFFT by Potts
 %           denoiseFlag: flag for applying shrinkage (improved denoising). Default = true.
 %           beta: Oversampling factor (1 == no oversampleing, 0.5 == oversampling of x2, etc.). Default = 1. 
 %           T: Truncation parameter (between 10^-6 and 10^6). With strong noise, use T ~ 10-10^3. Default = 10.
@@ -31,9 +30,6 @@ end
 if ~exist('useReflections','var')
     useReflections = true;
 end
-%% Add path
-%addpath(genpath('./FPswfCoeffEval'));
-%addpath(genpath(nfft_path));
 
 %% Set params
 remove_mean = 1;
@@ -99,7 +95,7 @@ end
 
 for m=0:max(ang_freqs)
     % clc; 
-    log_message(['Performing preliminairy de-noising of angular index: ',num2str(m),', out of ',num2str(max(ang_freqs))]);
+    %log_message(['Performing preliminairy de-noising of angular index: ',num2str(m),', out of ',num2str(max(ang_freqs))]);
     if m==0
         [PSWF_coeff_denSVS(ang_freqs==m,:), rank(m+1),w,pc,coeff,coeff_den,lambda] = matrixDenoise_sPCA(PSWF_coeff(ang_freqs==m,:),nv,false);
     else
@@ -123,7 +119,8 @@ if ~denoiseFlag
 end
 
 %% Form denoised images
-if nargout>0
+if nargout>1
+    % Compute denoised images only if that output argument is given.
     I_denoise_svs = (PSWF_N0*mu)*ones(1,nImages) + Psi(:,ang_freqs==0)*spca_coeff_denSVS(ang_freqs==0,:) + 2*real(Psi(:,ang_freqs~=0)*spca_coeff_denSVS(ang_freqs~=0,:));
     denoised_images = zeros(2*L,2*L,nImages);
     for i=1:nImages

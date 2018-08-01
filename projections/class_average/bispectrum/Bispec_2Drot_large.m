@@ -19,7 +19,6 @@ function [ Coeff_b, Coeff_b_r, toc_bispec ] = Bispec_2Drot_large( Coeff, Freqs, 
 
 tic_bispec=tic;
 alpha=1/3; %modify the amplitude for each component.
-N = size(Coeff, 2);
 Coeff_norm=(abs(Coeff(Freqs~=0, :))).^(alpha);
 Coeff_norm=log(Coeff_norm);
 check=isinf(Coeff_norm);
@@ -29,10 +28,26 @@ Phase=Coeff(Freqs~=0, :)./abs(Coeff(Freqs~=0, :));
 Phase=atan2(imag(Phase), real(Phase));
 eigval = eigval(Freqs~=0);
 [O1, O2] = bispec_Operator_1(Freqs(Freqs~=0));
+%[O1, O2] = bispec_Operator(Freqs(Freqs~=0));
+% bispec_Operator_1 and is supposedly non-optimized version bispec_Operator
+% do not return the same results! Both functions result in comparable class
+% averages and so I kept the faster one. Yoel Shkolnisky, July 2018.
+
 clear Coeff;
 %disp('cleared coefficients');
 %generate the variance of the bispectral coefficients
-N = 4000;
+
+
+% The hard coded value N=4000 turned out to produce poor class averages. In
+% general the old class averaging code, for example in commit 5cf6dc65a,
+% produces (slightly) superior results compared to the current class
+% averaging code. I tested some values of N and it seems that N=50,000
+% gives good results. Yet, this is sort a temporary workaround, and the
+% class averaging code should be rewriten at some point. 
+% Yoel Shkolnisky, July 2018.
+%N = 4000;
+N = 50000;
+
 M = exp(O1*log(eigval.^(alpha)));
 pM = M/sum(M);
 x = rand(length(M), 1);
@@ -53,7 +68,7 @@ Coeff_b_r = U'*conj(M);
 for i=1:size(Coeff_b, 2)
     Coeff_b(:, i) = Coeff_b(:, i) / norm(Coeff_b(:, i));
     Coeff_b_r(:, i) = Coeff_b_r(:, i) / norm(Coeff_b_r(:, i));
-end;
+end
 toc_bispec=toc(tic_bispec);
 
 end

@@ -132,7 +132,8 @@ log_message('\t shuffle=%d',shuffle);
 log_message('\t nImCV=%d',nImCV);
 log_message('\t olN=%d',olN);
 log_message('\t nn_p=%d',nn_p);
-log_message('\t gpuDeviceIdx=%d',gpuDevice);
+gpudev=gpuDevice;
+log_message('\t gpuDeviceIdx=%d',gpudev.Index);
 
 %% Load data
 sVarVec = zeros(1,nImages);
@@ -238,7 +239,8 @@ end
 
 %% Do mini-cross-validation on a subset of the data (over parameters lambda_c and epsilon)
 log_message('Starting cross-validation procedure for optimal parameters...')
-nTheta = 256;
+% nTheta = 256;
+nTheta = 512;
 nImCV = min(nImCV,nImages);
 trainSize = round(nImCV/2);
 nn_cv=ceil(nn_p*trainSize/100);
@@ -396,7 +398,7 @@ log_message('Denoising by sMH regression...')
 
 %% EM coeff estimation
 log_message('Refining denoising by Expectation-Maximization...');
-[ PSWF_coeff_denMan_EM,Likelihood,lScore] = denoiseCoeffBySMH_EM( PSWF_coeff,PSWF_coeff_denMan(:,1:nImSMH),ang_freqs,evIdxMat(kOpt,:),vCell,nv,2,128 );
+[ PSWF_coeff_denMan_EM,Likelihood,lScore] = denoiseCoeffBySMH_EM( PSWF_coeff,PSWF_coeff_denMan(:,1:nImSMH),ang_freqs,evIdxMat(kOpt,:),vCell,nv,2,256 );
 
 %% View preliminary de-noising results for debugging
 % testIdx = 5;

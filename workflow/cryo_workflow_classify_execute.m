@@ -34,24 +34,48 @@ for groupid=1:numgroups
     fullfilename=fullfile(workflow.info.working_dir,fname);
     log_message('Loading %s (MD5: %s)',fullfilename,MD5(fullfilename));
     prewhitened_projs=ReadMRC(fullfilename);
-    n=size(prewhitened_projs,1);
     prewhitened_projs=double(prewhitened_projs); % Convert to double for VDM below.
     
     % Estimate variance of the noise. Should be 1 (if images have been normalized).
     log_message('Estimating SNR of images');
     [snr,var_s,var_n]=cryo_estimate_snr(prewhitened_projs);
-    log_message('Estimated SNR=%d',snr);    
+    log_message('Estimated SNR=1/%d (more precisely %d)',round(1/snr),snr);    
     log_message('Estimated signal variance=%d',var_s);    
     log_message('Estimated noise variance=%d',var_n);    
-    
-    
+        
     log_message('Starting computing steerable PCA');
-    sPCA_data=data_sPCA(prewhitened_projs,  var_n);
+    % sPCA_data_fb=data_sPCA(prewhitened_projs,  var_n);
+    % log_message('PSWF sPCA');
+    % sPCA_data_pswf=sPCA_PSWF(prewhitened_projs,  var_n);
+    sPCA_data=sPCA_PSWF(prewhitened_projs,  var_n);
     log_message('Finished computing steerable PCA');
-
+    
+    % sPCA_data=sPCA_data_fb;
+    % sPCA_data=sPCA_data_pswf;
+    
+    % Janes original code did not use all sPCA components for initial
+    % classification. To save memory, it used up to 400 components. I
+    % experimented with 100, 200, 400, and 800 components, and it seems
+    % that using fewer components results in better class averages, in the
+    % sense that there are more class averages of good quality. However,
+    % from my limited tests, it seems that the effect on the final
+    % reconstruction (if one uses say 200 highest-contrast averages) is
+    % negligible. I therefore use some default value for ncomp in
+    % cryo_workflow_classify, and let the user change it. 
+    % Yoel Shkolnisky, July 2018.
+    ncomp=str2double(workflow.classification.ncomp); 
+    ncomp=min(ncomp,numel(sPCA_data.eigval));
+    log_message('sPCA resulted in %d components',numel(sPCA_data.eigval));
+    log_message('Using %d sPCA components for classification',ncomp);
+    
+    sPCA_data.eigval=sPCA_data.eigval(1:ncomp);
+    sPCA_data.Freqs=sPCA_data.Freqs(1:ncomp);
+    sPCA_data.RadFreqs=sPCA_data.RadFreqs(1:ncomp);
+    sPCA_data.Coeff=sPCA_data.Coeff(1:ncomp,:);
+    sPCA_data.eig_im=sPCA_data.eig_im(:,1:ncomp);
     matname=fullfile(workflow.info.working_dir,sprintf('VDM_data_%d.mat',groupid));
     save(matname,'-v7.3','sPCA_data');
-    
+
     
     log_message('Starting class averaging initial classificaiton');
     [ class, class_refl, rot, ~,  ~] = Initial_classification_FD_update(sPCA_data,...

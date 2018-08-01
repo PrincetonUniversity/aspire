@@ -17,3 +17,4 @@ assertfield(workflow,'classification','isrann');
 assertfield(workflow,'classification','k_VDM_in');
 assertfield(workflow,'classification','VDM_flag');
 assertfield(workflow,'classification','k_VDM_out');
+assertfield(workflow,'classification','ncomp');
