@@ -101,7 +101,7 @@ else
 end
 
 if is_downsample
-    if verbose >= 1; log_message('downsampling the input image to be of size 65 for the em algorithm to run fast'); end;
+    if verbose >= 1; log_message('downsampling the input image to be of size 65 for the em algorithm to run fast'); end
     images_orig         = images;
     init_avg_image_orig = init_avg_image;
     images         = cryo_downsample(images_orig,65,1);
@@ -151,7 +151,7 @@ numel_Nn   = size(PSWF_Nn_p.samples,2);
 %%%%%%%    EM Code
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% precompute the rotation phases
-if verbose >= 2; log_message('precomputing phases'); end;
+if verbose >= 2; log_message('precomputing phases'); end
 phases = zeros(numel(PSWF_Nn_p.unq_ang_freqs),nRots);
 for t=1:nRots 
     theta = em_params.thetas(t);
@@ -172,7 +172,7 @@ c_ims_rot = c_ims_rot(PSWF_Nn_p.non_neg_freqs,:,:);
 c_ims_rot = gpuArray(c_ims_rot);
 
 %% precompute the non-cross term in the e-step that does not change.
-if verbose >= 2; log_message('precomputing constant terms'); end;
+if verbose >= 2; log_message('precomputing constant terms'); end
 const_terms = precompute_const_terms(c_ims,mean_bg_ims,sd_bg_ims,im_size,L,beta,T,PSWF_Nn_p);
 const_terms = structfun(@gpuArray,const_terms,'UniformOutput',false);
 %%
@@ -190,15 +190,15 @@ for round = 1:2
     log_lik{round} = zeros(nImages,nIters); % holds the likilhood of the data given the current parameters 
     for iter=1:nIters
         
-        if verbose >=1; log_message('iter %d',iter); end;
+        if verbose >=1; log_message('iter %d',iter); end
         %% E-step
-        if verbose >=1; log_message('E-step'); end;
+        if verbose >=1; log_message('E-step'); end
         [Posteriors,log_lik_per_image] = e_step(c_avg,c_ims_rot,PSWF_Nn_p,const_terms,em_params,mean_bg_ims,sd_bg_ims,verbose);
         log_lik{round}(:,iter) = log_lik_per_image;
-        if verbose >=1; log_message('iter %d: log likelihhod=%.2f',iter,sum(log_lik_per_image)); end;
+        if verbose >=1; log_message('iter %d: log likelihhod=%.2f',iter,sum(log_lik_per_image)); end
         
         %% M-step
-        if verbose >=1; log_message('M-step'); end;
+        if verbose >=1; log_message('M-step'); end
         c_avg = m_step(Posteriors,c_ims,PSWF_Nn_p,const_terms,em_params,sd_bg_ims,phases,verbose);
         
         %% debug code
@@ -259,7 +259,7 @@ end
 
 function im_avg_est_orig = do_one_pass_orig_images(Posteriors,images_orig,images,em_params,beta,T,verbose)
 
-if verbose >= 1; log_message('applying a single m-step on original images using latest posteriors'); end;
+if verbose >= 1; log_message('applying a single m-step on original images using latest posteriors'); end
 im_size_small = size(images,1);
 im_size_orig = size(images_orig,1);
 L_orig = floor(im_size_orig/2); % Image resolution: (2L+1)x(2L+1) samples on a Cartesian grid
@@ -269,7 +269,7 @@ L_orig = floor(im_size_orig/2); % Image resolution: (2L+1)x(2L+1) samples on a C
 
 %step 1: marginilize over latent variables which are not shifts, and
 % find the optimal shift per image
-if verbose >= 1; log_message('finding optimal shift per image using latest posteriors'); end;
+if verbose >= 1; log_message('finding optimal shift per image using latest posteriors'); end
 nShifts_1d = numel(em_params.shifts);
 [nScales,nRots,nShifts_2d,nImages] = size(Posteriors);
 [~,opt_shift_ind_per_image] = max(sum(reshape(Posteriors,[nScales*nRots,nShifts_2d,nImages])));
@@ -283,7 +283,7 @@ for i=1:nImages
 end
 
 
-if verbose >= 1; log_message('shifting each image by the optimal shift found'); end;
+if verbose >= 1; log_message('shifting each image by the optimal shift found'); end
 [yys,xxs] = ind2sub([nShifts_1d,nShifts_1d],opt_shift_ind_per_image);
 
 opt_shifts_x = em_params.shifts(xxs);
@@ -297,14 +297,14 @@ for i=1:nImages
 end
 
 % step 2: Obtain coefficients while evaluating PSWFs
-if verbose >= 1; log_message('obtaining coefficients of shifted images'); end;
+if verbose >= 1; log_message('obtaining coefficients of shifted images'); end
 [c_ims_orig, PSWF_Nn_p_orig] = my_pswf_t_f(images_orig, L_orig, beta, T, []);
 
 %     PSWF_Nn_p_orig.Psis = gather(PSWF_Nn_p_orig.Psis); % We might not have enough gpu memeory for the psis
-if verbose >= 1; log_message('precomputing constant terms'); end;
+if verbose >= 1; log_message('precomputing constant terms'); end
 const_terms_orig = precompute_const_terms(c_ims_orig,mean_bg_ims_orig,sd_bg_ims_orig,im_size_orig,L_orig,beta,T,PSWF_Nn_p_orig);
 
-if verbose >= 2; log_message('precomputing phases'); end;
+if verbose >= 2; log_message('precomputing phases'); end
 phases_orig = zeros(numel(PSWF_Nn_p_orig.unq_ang_freqs),nRots);
 for t=1:nRots
     theta = em_params.thetas(t);
@@ -487,7 +487,7 @@ ann_const_cross_cnn_anns = ann_const + cross_cnn_ann;
 const_elms = bsxfun(@plus,ann_const_cross_cnn_anns,anni + cnn);
 
 c_ims_i_rot_full = zeros(numel_Nn,nRots,'gpuArray'); % will hold the exapnasion coeffs for each possible rotation of a given image
-if verbose >= 2; printProgressBarHeader; end;
+if verbose >= 2; printProgressBarHeader; end
 counter = 0;
 % The heaviest operation is to calculate the the 'A' matrix of a given
 % shift. But since A(shift) = A(-shift)' we need only iterate over half
@@ -496,7 +496,7 @@ counter = 0;
 for shift_x=em_params.shifts
     for shift_y=em_params.shifts
         
-        if shift_y < shift_x; continue; end;
+        if shift_y < shift_x; continue; end
         
         counter  = counter + 1; % just for debugging
         
@@ -520,7 +520,7 @@ for shift_x=em_params.shifts
         
         for i=1:nImages
             
-            if verbose >= 2; progressTic((counter-1)*nImages+i,nImages*(nShifts_1d + 0.5*(nShifts_1d)^2)); end;
+            if verbose >= 2; progressTic((counter-1)*nImages+i,nImages*(nShifts_1d + 0.5*(nShifts_1d)^2)); end
             
             % in the gpu we only kept the coeffs of the non-negative
             % frequencies. Now we need to take all freqs
@@ -584,12 +584,12 @@ Phases = gpuArray(phases.'); % note the transpose. Maybe fix later on
 C_ims         = gpuArray(c_ims);
 c_avg         = zeros(numel_Nn,1,'gpuArray');
 W_shifts_marg = zeros(n_unq_ang_freqs,nImages,'gpuArray');
-if verbose >= 2; printProgressBarHeader; end;
+if verbose >= 2; printProgressBarHeader; end
 counter = 0;
 for shift_x=em_params.shifts
     for shift_y=em_params.shifts
         
-        if shift_y < shift_x; continue; end;
+        if shift_y < shift_x; continue; end
         
         %% move from 2-d shift index to 1d shift index
         counter  = counter + 1;
@@ -598,7 +598,7 @@ for shift_x=em_params.shifts
         
         inds = sub2ind([nShifts_1d,nShifts_1d],subinds_I,subinds_J);
         
-        if verbose >= 2; progressTic(counter,nShifts_1d + 0.5*(nShifts_1d)^2); end;
+        if verbose >= 2; progressTic(counter,nShifts_1d + 0.5*(nShifts_1d)^2); end
         
         if shift_x == 0 && shift_y == 0
             A_shift = eye(numel_Nn,numel_Nn);
