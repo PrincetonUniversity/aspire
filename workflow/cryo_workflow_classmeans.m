@@ -29,10 +29,6 @@ if nnavg>maxavg
     return;
 end
 
-defnumavg=1000;
-message=sprintf('Number of class averages to generate?');
-numavg=fmtinput(message,defnumavg,'%d');
-
 if gpuDeviceCount>0
     message=sprintf('Refine class avearages using EM?');
     use_EM = two_options_question(message, 'y', 'n', 'y', '%c');
@@ -46,6 +42,12 @@ if gpuDeviceCount>0
         message=sprintf('Which GPUs to use (comma seperated list). Use -1 for all. Available GPUs 1-%d',gpuDeviceCount);
         [gpu_list,~]=fmtlistinput(message,-1,'%d');
     end
+    
+    defnumEMavg=1000;
+    message=sprintf('Number of class averages to refine using EM?');
+    numEMavg=fmtinput(message,defnumEMavg,'%d');
+
+    
 else
     fprintf('No GPUs found. Cannot use EM to refine class averages.\n');
 end
@@ -53,9 +55,9 @@ end
 %% Update workflow struct
 
 workflow.classmeans.nnavg = nnavg; % output number of nearest neighbors
-workflow.classmeans.num_averages = numavg; % Number of class averages to generate
 workflow.classmeans.use_EM = use_EM; % Whether to use EM to refine class averages
 workflow.classmeans.gpu_list = gpu_list; % Which GPUs to use 
+workflow.classmeans.num_EM_averages = numEMavg; % Number of class averages to generate
 
 tree=struct2xml(workflow);
 save(tree,workflow_fname); 

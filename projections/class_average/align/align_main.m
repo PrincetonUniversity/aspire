@@ -220,15 +220,16 @@ for j=1:length(list_recon)
 end
 stack.close;
 
-log_message('Merging all EM refined averages into a single MRCS');
-averagesEMfname=tempname;
-log_message('Filename: %s',averagesEMfname);
-[~, averagesEMfname]=fileparts(averagesEMfname);
-averagesEMfname=fullfile(tmpdir,averagesEMfname);
-
 if use_EM
+    log_message('Merging all EM refined averages into a single MRCS');
+    averagesEMfname=tempname;
+    log_message('Filename: %s',averagesEMfname);
+    [~, averagesEMfname]=fileparts(averagesEMfname);
+    averagesEMfname=fullfile(tmpdir,averagesEMfname);
+    
     stackEM=imagestackWriter(averagesEMfname,numel(list_recon),1,100);
     printProgressBarHeader;
+    
     for j=1:length(list_recon)
         progressTicFor(j,length(list_recon));
         mrcname=sprintf('average%d_em.mrcs',j);

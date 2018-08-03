@@ -26,11 +26,11 @@ log_message('Loaded XML file %s (MD5: %s)',workflow_fname,MD5(workflow_fname));
 nnavg=str2double(workflow.classmeans.nnavg);
 numgroups=str2double(workflow.preprocess.numgroups);
 
-num_averages=str2double(workflow.classmeans.num_averages);
 use_EM=str2double(workflow.classmeans.use_EM);
 gpu_list=-1;
 if use_EM
     gpu_list=str2double(workflow.classmeans.gpu_list);
+    num_EM_averages=str2double(workflow.classmeans.num_EM_averages);
 end
 
 
@@ -40,8 +40,6 @@ for groupid=1:numgroups
     
     log_message('Loading prewhitened projections from %s (MD5: %s)',fname,MD5(fullfilename));
 
-    %prewhitened_projs=ReadMRC(fullfilename);
-    
     % Since we are loading all nearest neighbors of an image, there will be
     % many cache misses. So no point in have a large chache.
     prewhitened_projs=imagestackReader(fullfilename,1);
@@ -59,17 +57,18 @@ for groupid=1:numgroups
     end
     delete(fullfile(tmpdir,'*')); % Delete any leftovers from the temp directory
 
-    list_recon=1:min(num_averages, prewhitened_projs.dim(3));
+    list_recon=1:prewhitened_projs.dim(3); % Compute class averages for all input images
     log_message('Generating %d class averages. use_EM=%d',numel(list_recon),use_EM);
     [ shifts, corr, unsortedaveragesfname, unsortedaveragesEMfname, norm_variance, loglikelihood ] = align_main( prewhitened_projs,...
         classification_data.VDM_angles, classification_data.class_VDM,...
         classification_data.class_VDM_refl, classification_data.sPCA_data,...
-        nnavg, 15, list_recon, use_EM, gpu_list,tmpdir);
+        nnavg, 15, list_recon, 0, [],tmpdir);
     log_message('Finished align_main');         
 
     % Write unsorted stacks
     fnameunsorted=sprintf('averages_nn%02d_unsorted_group%d.mrcs',nnavg,groupid);
     fnameunsorted=fullfile(workflow.info.working_dir,fnameunsorted);
+    
     % Save unsorted averages and apply global phaseglip if needed.
     doflip=cryo_globalphaseflip_outofcore(unsortedaveragesfname ,fnameunsorted);
     if doflip
@@ -78,19 +77,19 @@ for groupid=1:numgroups
 
     % Sort the resulting class averages by their contrast.
     averages_contrast=cryo_image_contrast_outofcore(fnameunsorted);
+    [~,classcoreidx]=sort(averages_contrast,'descend'); %classcoreidx are 
+        % the indices of the class averages sorted from the most consistent
+        % average to the least consistent one.
     fnamesorted=sprintf('averages_nn%02d_sorted_group%d.mrcs',nnavg,groupid);
     fnamesorted=fullfile(workflow.info.working_dir,fnamesorted);
     log_message('Writing sorted averages (by contrast) into %s',fnamesorted);
-    cryo_sort_stack_outofcore(fnameunsorted,averages_contrast,fnamesorted);
+    cryo_sort_stack_outofcore(fnameunsorted,classcoreidx,fnamesorted);
     
     % Print how many unique raw images are involved in the top i'th
     % percentile of class averages (sorted by averages_contrast). Also
     % print for each row the norm_variance of the i'th percentile class
     % average. 
     log_message('Number of raw projection in each the each percentile of averages (percentile,num means, num unique raw, contrast)');
-    [~,classcoreidx]=sort(averages_contrast,'descend'); %classcoreidx are 
-        % the indices of the most consistent class averages. 
-        % Save averages sorted by norm variance    
     nprojs=numel(list_recon);
     for k=1:10
         nmeans=round(nprojs*k/10);
@@ -101,33 +100,59 @@ for groupid=1:numgroups
         
     
     if use_EM
-        fnameunsorted=sprintf('averages_nn%02d_EM_unsorted_group%d.mrcs',nnavg,groupid);
+    % To avoid major rewrites at this time, I am just calling align_main
+    % twice. Once for all images without EM and once for a selected subset
+    % using EM. It is cleaner to separate align_main from the EM step, but
+    % I wanted to make the change incrementaly to make the change more
+    % quickly. Yoel Shkolnisky August 2018
+    
+    % Select a subset of the class averages to refine using EM.
+    % We are working with the sorted class averages since they are sorted by
+    % quality. Since the classification data is given for the unsorted class
+    % averages, we need to changes the indices in the nearest neighbors table
+    % to the sorted order. The mapping from the old order to the new order is
+    % enocded by classcoreidx. The image corresponding to image k in the sorted
+    % order is classcoreidx(k).
+    
+    NNtbl=classification_data.class_VDM(classcoreidx,:);
+    NNtblreordered=NNtbl;
+    % Fix the indices in NNtbl to correspond to the sorted order of the images.
+    imap=zeros(1,max(classcoreidx));
+    imap(classcoreidx)=1:numel(classcoreidx);
+    for k=1:numel(NNtbl)
+        NNtblreordered(k)=imap(NNtbl(k));
+    end
+    
+    % Select a subset of the averages to refine
+    list_EM_recon=cryo_select_subset(NNtblreordered,num_EM_averages,min(size(NNtblreordered,1),20000));
+    % Select a subset only from the first 2000 images. This is a temporary
+    % hack. The user should choose that according to the quality of the
+    % class averages.
+    list_EM_recon=classcoreidx(list_EM_recon); % Map back to indices in the unsorted file of averages.
+    
+    % Save an MRCS file with the averages to refine
+    em_seeds_fname=sprintf('em_seeds_nn%02d_group%d.mrcs',nnavg,groupid);
+    unsortedstackreader=imagestackReader(fnameunsorted);
+    outstack=imagestackWriter(em_seeds_fname,num_EM_averages);
+    for k=1:num_EM_averages
+        proj=unsortedstackreader.getImage(list_EM_recon(k));
+        outstack.append(proj);
+    end
+    outstack.close;
+    
+    delete(fullfile(tmpdir,'*')); % Delete leftovers from previous alignment
+    [ ~, ~, ~, unsortedaveragesEMfname] = align_main( prewhitened_projs,...
+        classification_data.VDM_angles, classification_data.class_VDM,...
+        classification_data.class_VDM_refl, classification_data.sPCA_data,...
+        nnavg, 15, list_EM_recon, use_EM, gpu_list,tmpdir);
+ 
+        fnameunsorted=sprintf('averages_nn%02d_EM_group%d.mrcs',nnavg,groupid);
         fnameunsorted=fullfile(workflow.info.working_dir,fnameunsorted);
         doflip=cryo_globalphaseflip_outofcore(unsortedaveragesEMfname ,fnameunsorted);
         if doflip
             log_message('Global contrast inversion applied to unsorted EM averages.');
         end
         
-        fnamesorted=sprintf('averages_nn%02d_EM_sorted_group%d.mrcs',nnavg,groupid);
-        fnamesorted=fullfile(workflow.info.working_dir,fnamesorted);
-        log_message('Writing sorted averages (by likelihood) into %s',fnamesorted);
-        cryo_sort_stack_outofcore(fnameunsorted,loglikelihood,fnamesorted);
-        
-        
-        % Print how many unique raw images are involved in the top i'th
-        % percentile of class averages (sorted by averages_contrast). Also
-        % print for each row the norm_variance of the i'th percentile class
-        % average.
-        
-        log_message('Number of raw projection in each the each percentile of averages (percentile,num means, num unique raw, loglik)');
-        [~,classcoreidx]=sort(loglikelihood,'descend');
-        nprojs=numel(list_recon);
-        for k=1:10
-            nmeans=round(nprojs*k/10);
-            ii=classification_data.class_VDM(classcoreidx(1:nmeans),:);
-            nrawprojs=numel(unique(ii));
-            log_message('\t%3d%%\t %7d \t %7d \t %4.2e',k*10,nmeans,nrawprojs,averages_contrast(classcoreidx(nmeans)));
-        end
     end
     
     reloadname=sprintf('averages_info_nn%02d_group%d.mat',nnavg,groupid);

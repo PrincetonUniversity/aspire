@@ -1,4 +1,4 @@
-function cryo_sort_stack_outofcore(instackname,vals,outstackname)
+function cryo_sort_stack_outofcore(instackname,idx,outstackname)
 %
 % CRYO_SORT_STACK_OUTOFCORE Sort images in a stack
 %
@@ -9,17 +9,15 @@ function cryo_sort_stack_outofcore(instackname,vals,outstackname)
 %
 %   Input parameters:
 %       instackname   Name of MRCS file containing input images.
-%       vals          Array of scalars.
+%       idx           New ordering of the images.
 %       outstackname  Name of MRCS file into which sorted image are
 %                     written. 
 %
 %   Examples:     
-%       cryo_globalphaseflip_outofcore('instack.mrcs',constast,'outstack.mrcs');
+%       cryo_sort_stack_outofcore('instack.mrcs',1000:-1:1,'outstack.mrcs');
 %
 % Yoel Shkolnisky, March 2018.
 
-
-[~,idx]=sort(vals,'descend'); % Indices of sorted stack
 instack=imagestackReader(instackname,100);
 outstack=imagestackWriter(outstackname,instack.dim(3),1,100);
 for k=1:numel(idx)
