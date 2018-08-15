@@ -571,7 +571,7 @@ function v = fourier_bessel_expand(x, basis)
     cg_opt.verbose = false;
 
     v = conj_grad(A, b, cg_opt);
- 
+
     v = roll_dim(v, sz_roll);
 end
 
