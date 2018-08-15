@@ -94,7 +94,7 @@ function basis = fourier_bessel_basis(sz, ell_max)
     % 2*sz(1) is an upper bound for ell_max, so use it here.
     k_max = zeros(min(ell_max+1, 2*sz(1)+1), 1);
 
-    r0 = cell(1, ell_max+1);
+    r0 = cell(1, numel(k_max));
 
     for ell = 0:numel(k_max)-1
         [k_max(ell+1), r0{ell+1}] = num_besselj_zeros(ell+(d-2)/2, N*pi/2);
