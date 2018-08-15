@@ -435,21 +435,30 @@ function v = fourier_bessel_evaluate_t_2d(x, basis)
     [r_unique, ang_unique, r_idx, ang_idx, mask] = ...
         unique_coordinates_2d(basis.sz(1));
 
+    is_precomp = isfield(basis, 'precomp');
+
     ind = 1;
+
+    ind_radial = 1;
+    ind_ang = 1;
 
     v = zeros([basis.count size(x, 2)], class(x));
 
     for ell = 0:basis.ell_max
-        k_max = basis.k_max(ell+1);
+        idx_radial = ind_radial + [0:basis.k_max(ell+1)-1];
 
-        nrms = zeros(k_max, 1);
-        for k = 1:k_max
+        nrms = zeros(numel(idx_radial), 1);
+        for k = 1:numel(idx_radial)
             nrms(k) = basis_norm_2d(basis, ell, k);
         end
 
-        radial = zeros(size(r_unique, 1), k_max);
-        for k = 1:k_max
-            radial(:,k) = besselj(ell, basis.r0(k,ell+1)*r_unique);
+        if ~is_precomp
+            radial = zeros(size(r_unique, 1), numel(idx_radial));
+            for k = 1:numel(idx_radial)
+                radial(:,k) = besselj(ell, basis.r0(k,ell+1)*r_unique);
+            end
+        else
+            radial = basis.precomp.radial(:,idx_radial);
         end
 
         radial = bsxfun(@times, radial, 1./nrms');
@@ -461,20 +470,28 @@ function v = fourier_bessel_evaluate_t_2d(x, basis)
         end
 
         for sgn = sgns
-            if sgn == 1
-                ang = cos(ell*ang_unique);
+            if ~is_precomp
+                if sgn == 1
+                    ang = cos(ell*ang_unique);
+                else
+                    ang = sin(ell*ang_unique);
+                end
             else
-                ang = sin(ell*ang_unique);
+                ang = basis.precomp.ang(:,ind_ang);
             end
 
             ang_radial = bsxfun(@times, ang(ang_idx), radial(r_idx,:));
 
-            idx = ind + [0:k_max-1];
+            idx = ind + [0:numel(idx_radial)-1];
 
             v(idx,:) = ang_radial'*x(mask,:);
 
             ind = ind + numel(idx);
+
+            ind_ang = ind_ang+1;
         end
+
+        ind_radial = ind_radial + numel(idx_radial);
     end
 
     v = roll_dim(v, sz_roll);
