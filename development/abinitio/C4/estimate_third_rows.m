@@ -12,6 +12,7 @@ function vis = estimate_third_rows(vijs,viis)
 %   vis        A 3xnImages matrix whose i-th column equals the 
 %              transpose of the third row of the rotation matrix Ri.
 
+log_message('Estimating third rows of each rotation matrix');
 [nr,nc,nImages] = size(viis);
 assert(nr == 3 && nc == 3);
 

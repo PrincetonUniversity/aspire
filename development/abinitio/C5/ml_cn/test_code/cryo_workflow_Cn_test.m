@@ -24,7 +24,7 @@ proj_size = str2double(workflow.algo.image_size);
 max_shift = ceil(proj_size*str2double(workflow.algo.max_shift_perc)/100);
 shift_step = str2double(workflow.algo.shift_step);
 
-[projs,refq,~,~] = generate_cn_images(n_symm,n_images,snr,65,'C1_Eytan',max_shift,shift_step);
+[projs,refq,~,~] = generate_cn_images(n_symm,n_images,snr,proj_size,'C1_Eytan',max_shift,shift_step);
 
 [projs,refq] = remove_eq_images(projs,refq);
 n_images = size(refq,2);
@@ -40,7 +40,7 @@ if snr <= 1
     
 else
     masked_projs = projs;
-    log_message('SNR=%.2f is smaller than 1. Not performing mask', snr);
+    log_message('SNR=%.2e is greater than 1. Not performing mask', snr);
 end
 
 precision = 'double';
@@ -51,7 +51,7 @@ if snr <= 1
     log_message('Guass filtering the images');
     npf = gaussian_filter_imgs(npf);
 else
-    log_message('SNR=%.2f is smaller than 1. Not performing gauss filtering', snr);
+    log_message('SNR=%.2e is greater than 1. Not performing gauss filtering', snr);
 end
 
 log_message('computing self common-line indeces for all candidate viewing directions');
@@ -99,6 +99,9 @@ if ~exist(workflow_dir,'dir') % Do we need to create directory?
     do_create = multichoice_question(message,{'Y','N'},[ 1, 0],'Y');
     if do_create == 1
         mkdir(workflow_dir);
+    else
+        fprintf('Aborting...\n');
+        return;
     end
 else % Check if directory empty
     listing = dir(workflow_dir);

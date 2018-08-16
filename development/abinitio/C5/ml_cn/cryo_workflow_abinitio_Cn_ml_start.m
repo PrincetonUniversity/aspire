@@ -67,8 +67,8 @@ end
 % mrc_header.ny
 fprintf('%s :%dx%d (%d projections)\n',...
     workflow_mrc_stack_file, mrc_header.nx, mrc_header.ny, mrc_header.nz);
-message = 'Number of projections to read? ';
-n_images = fmtinput(message,mrc_header.nz,'%d');
+% message = 'Number of projections to read? ';
+% n_images = fmtinput(message,mrc_header.nz,'%d');
 
 
 workflow_do_downsample = multichoice_question('Downsample images? ',{'Y','N'},[ 1, 0],'N');
@@ -78,18 +78,18 @@ else
     workflow_downsample_size = mrc_header.nx;
 end
 
-do_first_im_ind = multichoice_question('First image ind to select is the first image in stack? ',{'Y','N'},[ 1, 0],'Y');
-if ~do_first_im_ind
-    do_viewstack = multichoice_question('Scroll images before selecting first image ind? ',{'Y','N'},[ 1, 0],'Y');
-    if do_viewstack
-        figure; viewstack(ReadMRC(workflow_mrc_stack_file),5,5);
-    end
-    workflow_first_image_ind = fmtinput('Select first image index',1,'%d');    
-else
-    workflow_first_image_ind = 1;
-end
+% do_first_im_ind = multichoice_question('First image ind to select is the first image in stack? ',{'Y','N'},[ 1, 0],'Y');
+% if ~do_first_im_ind
+%     do_viewstack = multichoice_question('Scroll images before selecting first image ind? ',{'Y','N'},[ 1, 0],'Y');
+%     if do_viewstack
+%         figure; viewstack(ReadMRC(workflow_mrc_stack_file),5,5);
+%     end
+%     workflow_first_image_ind = fmtinput('Select first image index',1,'%d');    
+% else
+%     workflow_first_image_ind = 1;
+% end
 
-workflow_last_image_ind = workflow_first_image_ind + n_images -1;
+% workflow_last_image_ind = workflow_first_image_ind + n_images -1;
 log_message('images indexes range chosen is [%d,%d]',workflow_first_image_ind,workflow_last_image_ind);
 
 workflow_n_r_perc = -1;
@@ -149,7 +149,6 @@ worflow_do_handle_equators = multichoice_question('handle equator images',{'Y','
 workflow_inplane_rot_res = 1; % need not be equal to the one used to build the cache
 log_message('using inplane rotation resolution of %d degrees', workflow_inplane_rot_res);
 
-
 recon_fname = sprintf('%s_c%d_ims%dto%d',workflow_name,workflow_n_symm,workflow_first_image_ind,workflow_last_image_ind);
 recon_mrc_fname = strcat(recon_fname,'.mrc');
 workflow_recon_mrc_fname = fullfile(workflow.info.working_dir,recon_mrc_fname);
@@ -163,8 +162,8 @@ workflow.algo.n_symm             = workflow_n_symm;
 workflow.algo.do_downsample      = workflow_do_downsample;
 workflow.algo.downsample_size    = workflow_downsample_size;
 
-workflow.algo.first_image_ind    = workflow_first_image_ind;
-workflow.algo.last_image_ind     = workflow_last_image_ind;
+% workflow.algo.first_image_ind    = workflow_first_image_ind;
+% workflow.algo.last_image_ind     = workflow_last_image_ind;
 % workflow.algo.n_images         = workflow_n_images;
 workflow.algo.n_r_perc           = workflow_n_r_perc;
 workflow.algo.max_shift_perc     = workflow_max_shift_perc;

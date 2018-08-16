@@ -23,9 +23,9 @@ if ~all(sz==sz(1))
     error('All dimensions of input array must be equal');
 end
 
-if mod(sz(1),2)==0
-    error('Dimensions must be odd');
-end
+% if mod(sz(1),2)==0
+%     error('Dimensions must be odd');
+% end
 
 if ~exist('r','var')
     r=floor(0.45*sz(1));

@@ -37,6 +37,7 @@ end
 log_message('generating images of class C%d',n_symm);
 
 refq   = qrand(nImages);
+rots = q_to_rot(refq);
 
 if strcmp(cn_type,'80S')
 %     vol_init_mat = cryo_fetch_emdID(2660);
@@ -70,7 +71,7 @@ end
 log_message('#images = %d', nImages);
 
 % projs = cryo_project_gaussian('C5_params',projSize,1,refq);
-projs = cryo_project(vol,refq);
+projs = cryo_project(vol,rots);
 projs = permute(projs,[2,1,3]);
 
 log_message('max shifts=%d, shift step=%7.5f',max_shift,shift_step);

@@ -12,7 +12,7 @@ assertfield(workflow,'info','working_dir');
 assertfield(workflow,'info','logfile');
 
 assertfield(workflow,'algo','n_symm');
-assertfield(workflow,'algo','n_images');
+% assertfield(workflow,'algo','n_images');
 assertfield(workflow,'algo','image_size');
 assertfield(workflow,'algo','snr');
 assertfield(workflow,'algo','n_r_perc');

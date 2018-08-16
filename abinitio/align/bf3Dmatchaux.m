@@ -1,4 +1,4 @@
-function [bestR,bestdx,bestCorr,bestResA,vol2aligned]=bf3Dmatchaux(vol1,vol2,rotations,pixA,verbose)
+function [bestR,bestdx,bestCorr,bestResA,vol2aligned]=bf3Dmatchaux(vol1,vol2,rotations,pixA,verbose,cutoff)
 %
 % BF3DMATCHAUX Auxiliary function for matching 2 density maps.
 %
@@ -54,7 +54,7 @@ parfor jj=1:size(rotations,3)
     if ~isscalar(estdx)
         vol2RS=reshift_vol(vol2R,estdx);
 %         fsc=FSCorr(vol1,vol2RS);
-%         res=fscres(fsc,0.143);
+%         res=fscres(fsc,cutoff);
 %         ResVec(jj)=res;
 %         Nvec(jj)=numel(fsc); % To compute resolution in angstrom.
         Cvec(jj)=corr(vol1(:),vol2RS(:));
@@ -74,7 +74,7 @@ bestdx=register_translations_3d(vol1,vol2aligned);
 vol2aligned=reshift_vol(vol2aligned,bestdx);    
 %bestCorr=corr(vol1(:),vol2aligned(:));
 fsc=FSCorr(vol1,vol2aligned);
-res=fscres(fsc,0.143);
+res=fscres(fsc,cutoff);
 bestResA=2*pixA*numel(fsc)/res; % Resolution in Angstrom.
 if fakepixA
     bestResA=-bestResA; % Minus is an indication of fake pixel size
