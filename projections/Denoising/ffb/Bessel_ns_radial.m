@@ -51,7 +51,7 @@ function basis = Bessel_ns_radial(c, R, r)
     ang_freqs = B(:, 1);
     max_ang_freqs = max(ang_freqs);
     n_theta = ceil(16*c*R);
-    if mod(n_theta, 2)==0
+    if mod(n_theta, 2)==1
        n_theta = n_theta +1;
     end
     ang_freqs = B(:, 1);

@@ -40,13 +40,17 @@ n_proj=1;
 if ndims(p)==3
     n_proj=size(p,3);
 end
+
+if mod(n_theta, 2) ~= 0
+	error('`n_theta` must be even.');
+end
     
 %n_uv=size(p,1);
 omega0=2*pi/(2*n_r-1);
 dtheta=2*pi/n_theta;
 
-freqs=zeros(n_r*n_theta,2); % sampling points in the Fourier domain
-for j=1:n_theta
+freqs=zeros(n_r*n_theta/2,2); % sampling points in the Fourier domain
+for j=1:n_theta/2
     for k=1:n_r
         freqs((j-1)*n_r+k,:)=[(k-1)*omega0*sin((j-1)*dtheta),...
             (k-1)*omega0*cos((j-1)*dtheta)];
@@ -67,4 +71,5 @@ if ~isa(p,'double') && ~isa(p,'single')
 end
 
 pf = nufft2(p, -freqs');
-pf = reshape(pf, [n_r n_theta n_proj]);
+pf = reshape(pf, [n_r n_theta/2 n_proj]);
+pf = cat(2, pf, conj(pf));
