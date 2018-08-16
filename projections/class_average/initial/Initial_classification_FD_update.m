@@ -33,7 +33,7 @@ Coeff(Freqs==0, :) = Coeff(Freqs==0, :)/sqrt(2);
 log_message('Normalizing sPCA coefficients');
 for i=1:n_im  %% Tejal April 21, 2017 %% No need to double the coefficients
     Coeff(:, i) = Coeff(:, i) / norm(Coeff(:, i));
-end;
+end
 Coeff(Freqs==0, :)=Coeff(Freqs==0, :)*sqrt(2);
 %Compute bispectrum
 %[ Coeff_b, toc_bispec ] = Bispec_2Drot_large( Coeff, Freqs ); %If the number of images and number of Coefficients are large use Bispec_2Drot_large
@@ -66,12 +66,12 @@ else
             [~, tmp]=sort(corr, 2, 'descend');
             class((i-1)*P_max+1:min(i*P_max, n_im), :) = tmp(:, 2:n_nbor+1);
             log_message('Processed %d/%d images', i*P_max,n_im);
-        end;
+        end
     else
         %Randomized approximate nearest neighbor search
         log_message('Using randomized nearest neighbors.');        
         [class, ~]=test_points_from_file64(Coeff_b, n_nbor, 10, 0, 0);
-    end;
+    end
     toc_nn=toc(tic_nn);
 end
 clear Coeff_b Coeff_b_r
@@ -81,8 +81,8 @@ Cell_Coeff=cell(k_max+1, 1);
 for i=1:k_max+1
 %    Cell_Coeff{i}= Coeff(Freqs==i-1, :);
     Cell_Coeff{i}=[Coeff(Freqs==i-1, :), conj(Coeff(Freqs==i-1, :))]; %Generate the reflected images
-end;
-list=[class(:), repmat([1:n_im]', n_nbor, 1)];
+end
+list=[class(:), repmat((1:n_im)', n_nbor, 1)];
 
 %Initial in-plane rotational alignment within nearest neighbors
 log_message('Computing initial in-plane rotational alignment within nearest neighbors.');
@@ -97,7 +97,7 @@ class=reshape(class, n_im, n_nbor);
 for i=1:n_im
     class(i, :)=class(i, id_corr(i, :));
     rot(i, :)=rot(i, id_corr(i, :));
-end;
+end
 
 class_refl=ceil(class/n_im);
 class(class>n_im)=class(class>n_im)-n_im;

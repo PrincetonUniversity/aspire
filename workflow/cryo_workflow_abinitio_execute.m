@@ -39,8 +39,19 @@ for groupid=1:numgroups
     reloadname=fullfile(workflow.info.working_dir,reloadname);
     log_message('Loading %s (MD5: %s)',reloadname,MD5(reloadname));
     load(reloadname);
-    fname=sprintf('averages_nn%02d_group%d.mrcs',nnavg,groupid);
+    
+        
+    fname=sprintf('averages_nn%02d_EM_sorted_group%d.mrcs',nnavg,groupid);
     fname=fullfile(workflow.info.working_dir,fname);
+    if ~exist(fname,'file')
+        log_message('File %s not found',fname);
+        fname=sprintf('averages_nn%02d_sorted_group%d.mrcs',nnavg,groupid);
+        fname=fullfile(workflow.info.working_dir,fname);
+        log_message('Trying to read %s',fname);
+        if ~exist(fname,'file')
+            error('Cannot find file with class averages');
+        end
+    end        
     log_message('Reading averages from %s (MD5: %s)',fname, MD5(fname));
     
     average=ReadMRC(fname);

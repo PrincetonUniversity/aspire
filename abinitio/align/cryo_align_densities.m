@@ -1,4 +1,4 @@
-function [estR,estdx,vol2aligned,reflect]=cryo_align_densities_old(vol1,vol2,pixA,verbose,cutoff,Rref,forcereflect)
+function [estR,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA,verbose,cutoff,Rref,forcereflect)
 % 
 % Deprecated function.
 % Ths function is based on brute-force search of the aligment parameters.
@@ -21,10 +21,14 @@ function [estR,estdx,vol2aligned,reflect]=cryo_align_densities_old(vol1,vol2,pix
 %       Use pixel size in Angstrom pixA to compute the resolution.
 %       Set to non-positive number to ignore.
 
-% [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA)
+% [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA,verbose)
 %       Set verbose to nonzero for verbose printouts. 
-
-% [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,verbose,Rref)
+%
+% [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,verbose,cutoff)
+%       Use given FSC cutoff value. cutoff is the FSC threshold to use
+%       for reporting resolutions. Default is 0.143.
+%
+% [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,verbose,cutoff,Rref)
 %       If the true rotation between vol1 and vol2 in known (during
 %       development/debugging), the function uses Rref to provide detailed
 %       debugging messages. Rref is ignored if reflection is detected.

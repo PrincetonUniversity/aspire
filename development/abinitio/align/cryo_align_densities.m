@@ -20,6 +20,10 @@ function [estR,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA,ve
 % [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA,verbose)
 %       Set verbose to nonzero for verbose printouts (default is zero).
 %
+% [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,verbose,cutoff)
+%       Use given FSC cutoff value. cutoff is the FSC threshold to use
+%       for reporting resolutions. Default is 0.143.
+%
 % [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,verbose,cutoff,Rref)
 %       Use the true rotation between vol1 and vol2 specified by Rref to
 %       provide detailed debugging messages. Rref is ignored if reflection

@@ -18,6 +18,9 @@ tree=xmltree(workflow_fname);
 workflow=convert(tree);
 
 %% Read Classification parameters
+defNcomp=400;
+message=sprintf('Number of sPCA component? ');
+ncomp=fmtinput(message,defNcomp,'%d');
 
 
 %% Update workflow struct
@@ -26,7 +29,8 @@ workflow.classification.n_nbor=100; %number of nearest neighbors for initial cla
 workflow.classification.isrann = 0;
 workflow.classification.k_VDM_in = 20; % number of nearest neighbors for building graph for VDM.
 workflow.classification.VDM_flag = 0;
-workflow.classification.k_VDM_out = 200; % output number of nearest neighbors
+workflow.classification.k_VDM_out = 500; % output number of nearest neighbors
+workflow.classification.ncomp=ncomp;
 
 tree=struct2xml(workflow);
 save(tree,workflow_fname); 
