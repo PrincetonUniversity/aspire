@@ -25,8 +25,8 @@ function im = anufft2(im_f, fourier_pts, sz, nufft_opt)
 		nufft_opt = [];
 	end
 
-	if ndims(im_f) > 2 || size(im_f, 2) ~= 1
-		error('Input ''im_f'' must be of the form K-by-1.');
+	if adims(im_f) < 1
+		error('Input ''im_f'' must be of the form K-by-L.');
 	end
 
 	if ndims(fourier_pts) > 2 || any(size(fourier_pts) ~= [2 size(im_f, 1)])

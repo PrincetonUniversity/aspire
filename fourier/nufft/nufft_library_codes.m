@@ -21,6 +21,8 @@
 %       3: The TU Chemnitz NFFT library by Potts, 'chemnitz'.
 %       4: The Flatiron Institure NUFFT library by Barnett and Magland,
 %          'finufft'.
+%       5: The Flatiron Institute NUFFT library with the 'many' interface
+%          implemented by Melody Shih, 'finufft-many'.
 %    For example, the default library code order, [3 2 1] specifies to first
 %    try the 'chemnitz' library, then 'cims', and if none of these work,
 %    'nudft'.

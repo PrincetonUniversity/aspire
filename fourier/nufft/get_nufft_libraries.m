@@ -12,7 +12,7 @@
 %    set_nufft_libraries
 
 function libs = get_nufft_libraries()
-	lib_names = {'dft', 'cims', 'chemnitz', 'finufft'};
+	lib_names = {'dft', 'cims', 'chemnitz', 'finufft', 'finufft-many'};
 
 	libs = lib_names(nufft_library_codes());
 end

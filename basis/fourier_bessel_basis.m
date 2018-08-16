@@ -6,7 +6,9 @@
 % Input
 %    sz: The size of the vectors for which to define the basis. Currently
 %       only square images and cubic volumes are supported.
-%    ell_max: The maximum order ell of the basis elements.
+%    ell_max: The maximum order ell of the basis elements. If set to Inf,
+%       the basis includes all ell such that the resulting basis vectors
+%       are concentrated below the Nyquist frequency (default Inf).
 %
 % Output
 %    basis: A Fourier-Bessel basis object corresponding to the parameters.
@@ -46,8 +48,8 @@
 %
 %       f_{ell,k}(r) = Z_ell(R_{ell,k} r),
 %
-%    where Z_ell is the ellth-order (spherical) Bessel function and R_{l,k} is
-%    its kth zero.
+%    where Z_ell is the ellth-order (spherical) Bessel function and R_{ell,k}
+%    is its kth zero.
 %
 %    The angular part is given by a sinusoid in 2D or a real spherical harmonic
 %    function in 3D. Specifically, for ell = 0, the angular part is constant,
@@ -73,6 +75,10 @@
 %    arranged by order m, ranging from -ell to +ell.
 
 function basis = fourier_bessel_basis(sz, ell_max)
+    if nargin < 2 || isempty(ell_max)
+        ell_max = Inf;
+    end
+
     if numel(sz) ~= 3 && numel(sz) ~= 2
         error('Only two- or three-dimesional basis functions are supported.');
     end
@@ -85,12 +91,21 @@ function basis = fourier_bessel_basis(sz, ell_max)
 
     N = sz(1);
 
-    k_max = zeros(ell_max+1, 1);
+    % 2*sz(1) is an upper bound for ell_max, so use it here.
+    k_max = zeros(min(ell_max+1, 2*sz(1)+1), 1);
 
-    r0 = cell(1, ell_max+1);
+    r0 = cell(1, numel(k_max));
 
-    for ell = 0:ell_max
+    for ell = 0:numel(k_max)-1
         [k_max(ell+1), r0{ell+1}] = num_besselj_zeros(ell+(d-2)/2, N*pi/2);
+
+        if k_max(ell+1) == 0
+            ell_max = ell-1;
+
+            k_max = k_max(1:ell_max+1);
+            r0 = r0(1:ell_max+1);
+            break;
+        end
     end
 
     for ell = 0:ell_max
@@ -420,21 +435,30 @@ function v = fourier_bessel_evaluate_t_2d(x, basis)
     [r_unique, ang_unique, r_idx, ang_idx, mask] = ...
         unique_coordinates_2d(basis.sz(1));
 
+    is_precomp = isfield(basis, 'precomp');
+
     ind = 1;
+
+    ind_radial = 1;
+    ind_ang = 1;
 
     v = zeros([basis.count size(x, 2)], class(x));
 
     for ell = 0:basis.ell_max
-        k_max = basis.k_max(ell+1);
+        idx_radial = ind_radial + [0:basis.k_max(ell+1)-1];
 
-        nrms = zeros(k_max, 1);
-        for k = 1:k_max
+        nrms = zeros(numel(idx_radial), 1);
+        for k = 1:numel(idx_radial)
             nrms(k) = basis_norm_2d(basis, ell, k);
         end
 
-        radial = zeros(size(r_unique, 1), k_max);
-        for k = 1:k_max
-            radial(:,k) = besselj(ell, basis.r0(k,ell+1)*r_unique);
+        if ~is_precomp
+            radial = zeros(size(r_unique, 1), numel(idx_radial));
+            for k = 1:numel(idx_radial)
+                radial(:,k) = besselj(ell, basis.r0(k,ell+1)*r_unique);
+            end
+        else
+            radial = basis.precomp.radial(:,idx_radial);
         end
 
         radial = bsxfun(@times, radial, 1./nrms');
@@ -446,20 +470,28 @@ function v = fourier_bessel_evaluate_t_2d(x, basis)
         end
 
         for sgn = sgns
-            if sgn == 1
-                ang = cos(ell*ang_unique);
+            if ~is_precomp
+                if sgn == 1
+                    ang = cos(ell*ang_unique);
+                else
+                    ang = sin(ell*ang_unique);
+                end
             else
-                ang = sin(ell*ang_unique);
+                ang = basis.precomp.ang(:,ind_ang);
             end
 
             ang_radial = bsxfun(@times, ang(ang_idx), radial(r_idx,:));
 
-            idx = ind + [0:k_max-1];
+            idx = ind + [0:numel(idx_radial)-1];
 
             v(idx,:) = ang_radial'*x(mask,:);
 
             ind = ind + numel(idx);
+
+            ind_ang = ind_ang+1;
         end
+
+        ind_radial = ind_radial + numel(idx_radial);
     end
 
     v = roll_dim(v, sz_roll);
@@ -535,11 +567,11 @@ function v = fourier_bessel_expand(x, basis)
     % TODO: Check that this tolerance make sense for multiple columns in x
 
     cg_opt.max_iter = Inf;
-    cg_opt.rel_tolerance = 1e-15;
+    cg_opt.rel_tolerance = 10*eps(class(x));
     cg_opt.verbose = false;
 
     v = conj_grad(A, b, cg_opt);
- 
+
     v = roll_dim(v, sz_roll);
 end
 
@@ -563,14 +595,18 @@ function x = fourier_bessel_expand_t(v, basis)
     % TODO: Check that this tolerance make sense for multiple columns in x
 
     cg_opt.max_iter = Inf;
-    cg_opt.rel_tolerance = 1e-15;
+    cg_opt.rel_tolerance = 10*eps(class(v));
     cg_opt.verbose = false;
 
     x = conj_grad(A, b, cg_opt);
 
     x = roll_dim(x, sz_roll);
 
-    x = vec_to_vol(x);
+    if d == 2
+        x = vec_to_im(x);
+    else
+        x = vec_to_vol(x);
+    end
 end
 
 function indices = fourier_bessel_indices(basis)

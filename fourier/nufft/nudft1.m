@@ -17,21 +17,27 @@
 %    nufft1
 
 function sig_f = nudft1(sig, fourier_pts)
-	if ndims(sig) > 2 || size(sig, 2) ~= 1
-		error('Input ''sig'' must be of the form N-by-1.');
+	if adims(sig) < 1
+		error('Input ''sig'' must be of the form N-by-L.');
 	end
 
 	if ndims(fourier_pts) > 2 || size(fourier_pts, 1) ~= 1
 		error('Input ''fourier_pts'' must be of the form 1-by-K.');
 	end
 
+	[sig, sz_roll] = unroll_dim(sig, 2);
+
 	N = size(sig, 1);
 
-	sig_f = zeros(size(fourier_pts, 2), 1);
+	L = size(sig, 2);
+
+	sig_f = zeros(size(fourier_pts, 2), L);
 
 	grid = ceil([-N/2:N/2-1]);
 
 	for k = 1:size(fourier_pts, 2)
-		sig_f(k) = exp(-i*(fourier_pts(k)*grid))*sig(:);
+		sig_f(k,:) = exp(-i*(fourier_pts(k)*grid))*sig;
 	end
+
+	sig_f = roll_dim(sig_f, sz_roll);
 end

@@ -42,6 +42,13 @@ function have_library = have_nufft_library(lib_code)
 		catch
 			have_library = false;
 		end
+	elseif lib_code == 5
+		have_library = true;
+		try
+			finufft2d1many(0, 0, 0, 1, 1, 1, 1);
+		catch
+			have_library = false;
+		end
 	else
 		error('invalid library code');
 	end

@@ -11,6 +11,8 @@
 %          'chemnitz': The TU Chemnitz NFFT implementation by Potts.
 %          'finufft': The Flatiron Institure NUFFT library by Barnett and
 %             Magland.
+%          'finufft-many': The Flatiron Institure NUFFT library with the 'many'
+%             interface implemented by Melody Shih.
 %
 % Description
 %    The library order determines which libraries will be used when calling
@@ -21,7 +23,7 @@
 %    get_nufft_libraries
 
 function set_nufft_libraries(new_libs)
-	lib_names = {'dft', 'cims', 'chemnitz', 'finufft'};
+	lib_names = {'dft', 'cims', 'chemnitz', 'finufft', 'finufft-many'};
 
 	if ~iscell(new_libs)
 		new_libs = {new_libs};

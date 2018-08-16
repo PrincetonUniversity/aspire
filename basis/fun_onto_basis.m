@@ -1,7 +1,7 @@
-% PROJ_FUN_BASIS Project linear mapping onto basis
+% FUN_ONTO_BASIS Project linear mapping onto basis
 %
 % Usage
-%    A = proj_fun_basis(fun, basis_from, basis_to);
+%    A = fun_onto_basis(fun, basis_from, basis_to);
 %
 % Input
 %    fun: A function handle mapping multidimensional vectors from one space
@@ -18,7 +18,7 @@
 %
 %          A*x = basis_to.expand(fun(basis_from.evaluate(x)));
 
-function A = proj_fun_basis(fun, basis_from, basis_to)
+function A = fun_onto_basis(fun, basis_from, basis_to)
     if nargin < 3 || isempty(basis_to)
         basis_to = basis_from;
     end

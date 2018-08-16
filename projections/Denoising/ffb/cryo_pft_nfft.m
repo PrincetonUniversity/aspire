@@ -6,7 +6,8 @@
 % Input
 %    proj: An array of images of size L-by-L-by-n.
 %    P: The polar Fourier transform specification struct with the fields:
-%           - freqs: The list of frequencies (see pft_freqs),
+%           - freqs: The list of frequencies (see pft_freqs) for angles
+%              between 0 and pi,
 %           - n_theta: The number of samples in each concentric circle, and
 %           - n_r: The number of samples in the radial direction.
 %
@@ -24,6 +25,7 @@
 % Written by Zhizhen Zhao - 3/2015.
 % Modified by Tejal Bhamre (use NFFT wrapper) - 3/2017
 % Reformatted and documented by Joakim Anden - 2018-Apr-13
+% Optimized by Joakim Anden - 2018-Jul-24
 
 function pf = cryo_pft_nfft(p, P)
     freqs = P.freqs;
@@ -32,11 +34,9 @@ function pf = cryo_pft_nfft(p, P)
     n_theta = P.n_theta;
     n_r = P.n_r;
     n_proj = size(p, 3);
-    pf = zeros(M, n_proj);
 
-    for i = 1:n_proj
-        pf(:,i) = nufft2(p(:,:,i), -freqs'*2*pi);
-    end
+    pf = nufft2(p, -freqs'*2*pi);
 
-    pf = reshape(pf, n_r, n_theta, n_proj);
+    pf = reshape(pf, n_r, n_theta/2, n_proj);
+    pf = cat(2, pf, conj(pf));
 end
