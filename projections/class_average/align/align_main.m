@@ -58,6 +58,7 @@ end
 shifts=zeros(length(list_recon), k+1);
 corr=zeros(length(list_recon), k+1);
 norm_variance=zeros(length(list_recon), 1);
+averagesEMfname=[];
 
 %generate grid. Precompute phase for shifts
 range=-fix(L/2):fix(L/2);
@@ -135,7 +136,10 @@ parfor j=1:length(list_recon)
     origin = floor(L/2) + 1;
     R = sPCA_data.R;
     mean_im = sPCA_data.fn0*sPCA_data.Mean;    
-    tmp = sPCA_data.eig_im(:, sPCA_data.Freqs == 0)*sPCA_data.Coeff(sPCA_data.Freqs == 0, j) + 2*real(sPCA_data.eig_im(:, sPCA_data.Freqs~=0)*sPCA_data.Coeff(sPCA_data.Freqs~=0, j));
+    tmp = sPCA_data.eig_im(:, sPCA_data.Freqs == 0)...
+        *sPCA_data.Coeff(sPCA_data.Freqs == 0, list_recon(j))...
+        + 2*real(sPCA_data.eig_im(:, sPCA_data.Freqs~=0)...
+        *sPCA_data.Coeff(sPCA_data.Freqs~=0, list_recon(j)));
     tmp = tmp + mean_im;
     I = zeros(L);
     I(origin-R:origin+R-1, origin-R:origin+R-1, :) = reshape(tmp, 2*R, 2*R); 
@@ -180,7 +184,7 @@ parfor j=1:length(list_recon)
         %    nIters,ang_jump,max_shift,shift_jump,nScalesTicks,is_debug,[]);
         [avg_em,im_avg_est_orig,log_like,opt_latent,outlier_ims_inds] = ...
             em_class_avg_updated(images,average,nIters,ang_jump,...
-            max_shift,shift_jump,nScalesTicks,remove_outliers,1,[]);
+            max_shift,shift_jump,nScalesTicks,remove_outliers,0,[]);
 %        loglikelihood(j)=mean(log_like(:,EMiters));
         mrcname=sprintf('average%d_em.mrcs',j);
         mrcname=fullfile(tmpdir,mrcname);
@@ -189,18 +193,17 @@ parfor j=1:length(list_recon)
         log_message('Written %s',mrcname);
     end
 
-
-%     % Debug. Remove once done.
-%     img_name=sprintf('img_%05d.mrcs',list_recon(j));
-%     im=zeros(size(image1,1),size(image1,2),4);
-%     im(:,:,1)=image1;
-%     im(:,:,2)=average;
-%     if use_EM
-%         im(1:size(avg_em,1),1:size(avg_em,1),3)=avg_em; % Save the downsampled average
-%         im(:,:,4)=im_avg_est_orig;
-%     end
-%     WriteMRC(im,1,img_name);
-%     % End debug.
+    % Debug. Remove once done.
+    img_name=sprintf('img_%05d.mrcs',j);
+    im=zeros(size(image1,1),size(image1,2),4);
+    im(:,:,1)=image1;
+    im(:,:,2)=average;
+    if use_EM
+        im(1:size(avg_em,1),1:size(avg_em,1),3)=avg_em; % Save the downsampled average
+        im(:,:,4)=im_avg_est_orig;
+    end
+    WriteMRC(im,1,img_name);
+    % End debug.
 end
 
 % Merge all averages into a single file.
