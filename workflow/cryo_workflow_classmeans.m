@@ -29,6 +29,10 @@ if nnavg>maxavg
     return;
 end
 
+use_EM=0;
+gpu_list=-1;
+numEMavg=0;
+
 if gpuDeviceCount>0
     message=sprintf('Refine class avearages using EM?');
     use_EM = two_options_question(message, 'y', 'n', 'y', '%c');
