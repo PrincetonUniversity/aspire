@@ -43,9 +43,12 @@ if gpuDeviceCount>0
         [gpu_list,~]=fmtlistinput(message,-1,'%d');
     end
     
-    defnumEMavg=1000;
-    message=sprintf('Number of class averages to refine using EM?');
-    numEMavg=fmtinput(message,defnumEMavg,'%d');
+    numEMavg=1000;
+    if use_EM
+        defnumEMavg=1000;
+        message=sprintf('Number of class averages to refine using EM?');
+        numEMavg=fmtinput(message,defnumEMavg,'%d');
+    end
 
     
 else
