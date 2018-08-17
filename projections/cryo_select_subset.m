@@ -76,19 +76,22 @@ n_selected=1;   % Number of selected images in the subset so far.
 
 while n_selected<=K && next2include<=toimage
     % Select no more than K images, and don't get beyond toimage.
-    while ~mask(next2include) && next2include<=toimage
+    while next2include<=toimage && ~mask(next2include)
         % Search for the next image that can be selected, but don't get
         % beyond toimage.
         next2include=next2include+1;
     end
-    selected(n_selected)=next2include; % The next image to include in the subset.
     
-    % Eliminate all neighbors for the currently selected image
-    mask(NNtbl(next2include,1:nn_skip))=0;
-    next2include=next2include+1;    % The nexy candidate for selection.
-    n_selected=n_selected+1;
+    if next2include<=toimage
+        selected(n_selected)=next2include; % The next image to include in the subset.
+        
+        % Eliminate all neighbors for the currently selected image
+        mask(NNtbl(next2include,1:nn_skip))=0;
+        next2include=next2include+1;    % The nexy candidate for selection.
+        n_selected=n_selected+1;
+    end
 end
 
 selected=selected(1:n_selected-1);
 
-assert(numel(selected)==K);
+%assert(numel(selected)==K);
