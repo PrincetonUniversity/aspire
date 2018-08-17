@@ -5,6 +5,9 @@ function cryo_workflow_classmeans_execute(workflow_fname)
 %   Generate class means using precomputed classification according to the
 %   parameters stored in the file workflow_fname.
 %
+
+
+
 % See also cryo_workflow_classmeans
 %
 % Yoel Shkolnisky, August 2015.
@@ -98,7 +101,7 @@ for groupid=1:numgroups
         log_message('\t%3d%%\t %7d \t %7d \t %4.2e',k*10,nmeans,nrawprojs,averages_contrast(classcoreidx(nmeans)));
     end
         
-    
+    loglikelihood=[];
     if use_EM
     % To avoid major rewrites at this time, I am just calling align_main
     % twice. Once for all images without EM and once for a selected subset
