@@ -22,7 +22,7 @@ else
     log_fname=logfile;
     logfile_fid=fopen(log_fname,'a');    
     if logfile_fid==-1
-        warning('GCAR:debug','Cannot open log file');
+        warning('GCAR:debug','Cannot open log file %s',log_fname);
     end
     fclose(logfile_fid);
 end
