@@ -166,10 +166,16 @@ function [k, r0] = num_besselj_zeros(ell, r)
     k = numel(r0);
 end
 
-function [r_unique, ang_unique, r_idx, ang_idx, mask] = unique_coordinates_2d(N)
+function [r_unique, ang_unique, r_idx, ang_idx, mask, stat_mask] = ...
+    unique_coordinates_2d(N)
+
     mesh2d = mesh_2d(N);
 
-    mask = mesh2d.r<=1;
+    [mask, stat_mask] = positive_fourier_mask(N*ones(1, 2));
+    mask = mdim_ifftshift(mask, 1:2);
+    stat_mask = mdim_ifftshift(stat_mask, 1:2);
+
+    mask = mask & mesh2d.r<=1;
 
     r = mesh2d.r(mask);
     phi = mesh2d.phi(mask);
@@ -289,7 +295,7 @@ end
 function x = fourier_bessel_evaluate_2d(v, basis)
     [v, sz_roll] = unroll_dim(v, 2);
 
-    [r_unique, ang_unique, r_idx, ang_idx, mask] = ...
+    [r_unique, ang_unique, r_idx, ang_idx, mask, real_mask] = ...
         unique_coordinates_2d(basis.sz(1));
 
     is_precomp = isfield(basis, 'precomp');
@@ -299,7 +305,8 @@ function x = fourier_bessel_evaluate_2d(v, basis)
     ind_radial = 1;
     ind_ang = 1;
 
-    x = zeros([prod(basis.sz) size(v, 2)], class(v));
+    x_even = zeros([prod(basis.sz) size(v, 2)], class(v));
+    x_odd = zeros([prod(basis.sz) size(v, 2)], class(v));
     for ell = 0:basis.ell_max
         k_max = basis.k_max(ell+1);
 
@@ -342,7 +349,11 @@ function x = fourier_bessel_evaluate_2d(v, basis)
 
             idx = ind + [0:k_max-1];
 
-            x(mask,:) = x(mask,:) + ang_radial*v(idx,:);
+            if mod(ell, 2) == 0
+                x_even(mask,:) = x_even(mask,:) + ang_radial*v(idx,:);
+            else
+                x_odd(mask,:) = x_odd(mask,:) + ang_radial*v(idx,:);
+            end
 
             ind = ind + numel(idx);
 
@@ -352,7 +363,15 @@ function x = fourier_bessel_evaluate_2d(v, basis)
         ind_radial = ind_radial + numel(idx_radial);
     end
 
-    x = reshape(x, [basis.sz size(x, 2)]);
+    x_even(stat_mask,:) = 1/2*x_even(stat_mask,:);
+
+    x_even = reshape(x_even, [basis.sz size(x_even, 2)]);
+    x_odd = reshape(x_odd, [basis.sz size(x_odd, 2)]);
+
+    x_even = x_even + fourier_flip(x_even, [1 2]);
+    x_odd = x_odd - fourier_flip(x_odd, [1 2]);
+
+    x = x_even + x_odd;
 
     x = roll_dim(x, sz_roll);
 end
@@ -430,10 +449,16 @@ end
 function v = fourier_bessel_evaluate_t_2d(x, basis)
     [x, sz_roll] = unroll_dim(x, numel(basis.sz)+1);
 
-    x = reshape(x, [prod(basis.sz) size(x, numel(basis.sz)+1)]);
-
-    [r_unique, ang_unique, r_idx, ang_idx, mask] = ...
+    [r_unique, ang_unique, r_idx, ang_idx, mask, stat_mask] = ...
         unique_coordinates_2d(basis.sz(1));
+
+    x_even = (x + fourier_flip(x, [1 2]));
+    x_odd = (x - fourier_flip(x, [1 2]));
+
+    x_even = reshape(x_even, [prod(basis.sz) size(x_even, numel(basis.sz)+1)]);
+    x_odd = reshape(x_odd, [prod(basis.sz) size(x_odd, numel(basis.sz)+1)]);
+
+    x_even(stat_mask,:) = 1/2*x_even(stat_mask,:);
 
     is_precomp = isfield(basis, 'precomp');
 
@@ -442,7 +467,7 @@ function v = fourier_bessel_evaluate_t_2d(x, basis)
     ind_radial = 1;
     ind_ang = 1;
 
-    v = zeros([basis.count size(x, 2)], class(x));
+    v = zeros([basis.count size(x_even, 2)], class(x));
 
     for ell = 0:basis.ell_max
         idx_radial = ind_radial + [0:basis.k_max(ell+1)-1];
@@ -484,7 +509,11 @@ function v = fourier_bessel_evaluate_t_2d(x, basis)
 
             idx = ind + [0:numel(idx_radial)-1];
 
-            v(idx,:) = ang_radial'*x(mask,:);
+            if mod(ell, 2) == 0
+                v(idx,:) = ang_radial'*x_even(mask,:);
+            else
+                v(idx,:) = ang_radial'*x_odd(mask,:);
+            end
 
             ind = ind + numel(idx);
 
