@@ -1,7 +1,7 @@
 % FOURIER_BESSEL_BASIS Construct a Fourier-Bessel basis object
 %
 % Usage
-%    basis = fourier_bessel_basis(sz, ell_max);
+%    basis = fourier_bessel_basis(sz, ell_max, domain);
 %
 % Input
 %    sz: The size of the vectors for which to define the basis. Currently
@@ -9,6 +9,8 @@
 %    ell_max: The maximum order ell of the basis elements. If set to Inf,
 %       the basis includes all ell such that the resulting basis vectors
 %       are concentrated below the Nyquist frequency (default Inf).
+%    domain: Specifies whether the decomposition should be in the spatial (0)
+%       or frequency (1) domain (default 0).
 %
 % Output
 %    basis: A Fourier-Bessel basis object corresponding to the parameters.
@@ -74,9 +76,13 @@
 %    only have the cosine part). In 3D, we instead have the coefficients
 %    arranged by order m, ranging from -ell to +ell.
 
-function basis = fourier_bessel_basis(sz, ell_max)
+function basis = fourier_bessel_basis(sz, ell_max, domain)
     if nargin < 2 || isempty(ell_max)
         ell_max = Inf;
+    end
+
+    if nargin < 3 || isempty(domain)
+        domain = 0;
     end
 
     if numel(sz) ~= 3 && numel(sz) ~= 2
@@ -85,6 +91,10 @@ function basis = fourier_bessel_basis(sz, ell_max)
 
     if ~all(sz == sz(1))
         error('Only cubic domains are supported.');
+    end
+
+    if numel(sz) == 3 && domain ~= 0
+        error('Only spatial domain supported for three-dimensional basis.');
     end
 
     d = numel(sz);
@@ -119,6 +129,8 @@ function basis = fourier_bessel_basis(sz, ell_max)
     basis.type = fourier_bessel_basis_type();
 
     basis.sz = sz;
+
+    basis.domain = domain;
 
     if d == 2
         basis.count = k_max(1) + sum(2*k_max(2:end));
@@ -295,10 +307,12 @@ end
 function x = fourier_bessel_evaluate_2d(v, basis)
     [v, sz_roll] = unroll_dim(v, 2);
 
-    [r_unique, ang_unique, r_idx, ang_idx, mask, real_mask] = ...
+    [r_unique, ang_unique, r_idx, ang_idx, mask, stat_mask] = ...
         unique_coordinates_2d(basis.sz(1));
 
     is_precomp = isfield(basis, 'precomp');
+
+    is_fourier = (isfield(basis, 'domain') && basis.domain == 1);
 
     ind = 1;
 
@@ -371,7 +385,12 @@ function x = fourier_bessel_evaluate_2d(v, basis)
     x_even = x_even + fourier_flip(x_even, [1 2]);
     x_odd = x_odd - fourier_flip(x_odd, [1 2]);
 
-    x = x_even + x_odd;
+    if is_fourier
+        x_f = x_even + 1i*x_odd;
+        x = sqrt(prod(basis.sz))*real(icfft2(x_f));
+    else
+        x = x_even + x_odd;
+    end
 
     x = roll_dim(x, sz_roll);
 end
@@ -452,8 +471,17 @@ function v = fourier_bessel_evaluate_t_2d(x, basis)
     [r_unique, ang_unique, r_idx, ang_idx, mask, stat_mask] = ...
         unique_coordinates_2d(basis.sz(1));
 
-    x_even = (x + fourier_flip(x, [1 2]));
-    x_odd = (x - fourier_flip(x, [1 2]));
+    is_fourier = (isfield(basis, 'domain') && basis.domain == 1);
+
+    if is_fourier
+        x_f = 1/sqrt(prod(basis.sz))*cfft2(x);
+
+        x_even = real(x_f)*2;
+        x_odd = imag(x_f)*2;
+    else
+        x_even = (x + fourier_flip(x, [1 2]));
+        x_odd = (x - fourier_flip(x, [1 2]));
+    end
 
     x_even = reshape(x_even, [prod(basis.sz) size(x_even, numel(basis.sz)+1)]);
     x_odd = reshape(x_odd, [prod(basis.sz) size(x_odd, numel(basis.sz)+1)]);
