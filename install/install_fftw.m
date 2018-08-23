@@ -2,7 +2,7 @@
 %
 % Usage
 %    install_fftw();
-%    install_fftw(url, location);
+%    install_fftw(url, location, use_openmp);
 %
 % Input
 %    url: The url from which the package should be downloaded. By default,
@@ -12,18 +12,37 @@
 %
 %    location: The location in which the package should be installed. By
 %       default, this is the subfolder 'extern' of the ASPIRE root folder.
+%    use_openmp: If true, enables OpenMP during compilation, if false,
+%       disables it, and if empty, autodetects OpenMP and enables it if
+%       present.
 %
 % Description
 %    This function downloads and compiles the FFTW library, which implements
 %    fast Fourier transforms.
 
-function install_fftw(url, location)
+function install_fftw(url, location, use_openmp)
 	if nargin < 1 || isempty(url)
 		url = 'ftp://ftp.fftw.org/pub/fftw/fftw-3.3.4.tar.gz';
 	end
 
 	if nargin < 2 || isempty(location)
 		location = fullfile(aspire_root(), 'extern');
+	end
+
+	if nargin < 3
+		use_openmp = [];
+	end
+
+	if isempty(use_openmp)
+		fprintf('Checking for OpenMP...');
+		have_library = have_openmp();
+		if have_library
+			fprintf('yes');
+		else
+			fprintf('no');
+		end
+		fprintf('\n');
+		use_openmp = have_library;
 	end
 
 	fprintf('Installing the FFTW package.\n');
@@ -84,10 +103,17 @@ function install_fftw(url, location)
 
 	cd(fftw_root);
 
-	status = system(['./configure ' ...
-	                 '--prefix=' fullfile(location, 'fftw3') ' ' ...
-	                 '--enable-openmp --enable-shared --enable-threads ' ...
-	                 '--disable-fortran']);
+	cmd = ['./configure ' ...
+			'--prefix=' fullfile(location, 'fftw3') ' ' ...
+	        '--enable-shared --enable-threads ' ...
+	        '--disable-fortran '];
+
+	if use_openmp
+		cmd = [cmd '--enable-openmp '];
+	end
+
+	status = system(cmd);
+
 	if status ~= 0
 		error('''configure'' failed');
 	end

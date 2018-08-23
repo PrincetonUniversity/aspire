@@ -2,7 +2,7 @@
 %
 % Usage
 %    install_finufft();
-%    install_finufft(url, location, fftw_location);
+%    install_finufft(url, location, fftw_location, use_openmp);
 %
 % Input
 %    url: The url from which the package should be downloaded. By default,
@@ -14,12 +14,15 @@
 %       default, this is the subfolder 'extern' of the ASPIRE root folder.
 %    fftw_location: The location of the FFTW3 package needed to compile FINUFFT.
 %       By default, the location is 'extern/fftw3'.
+%    use_openmp: If true, enables OpenMP during compilation, if false,
+%       disables it, and if empty, autodetects OpenMP and enables it if
+%       present.
 %
 % Description
 %    This function downloads and installs the FINUFFT library from the Flatiron
 %    Institute, which implements a non-uniform fast Fourier transform.
 
-function install_finufft(url, location, fftw_location)
+function install_finufft(url, location, fftw_location, use_openmp)
 	if nargin < 1 || isempty(url)
 		url = 'https://github.com/ahbarnett/finufft/archive/master.zip';
 	end
@@ -32,9 +35,25 @@ function install_finufft(url, location, fftw_location)
 		fftw_location = fullfile(aspire_root(), 'extern', 'fftw3');
 	end
 
+	if nargin < 4
+		use_openmp = [];
+	end
+
 	if ~exist(fftw_location, 'dir')
 		fprintf('FFTW3 not installed. Installing...\n');
 		install_fftw();
+	end
+
+	if isempty(use_openmp)
+		fprintf('Checking for OpenMP...');
+		have_library = have_openmp();
+		if have_library
+			fprintf('yes');
+		else
+			fprintf('no');
+		end
+		fprintf('\n');
+		use_openmp = have_library;
 	end
 
 	fprintf('Installing the Flatiron Institute NUFFT package.\n');
@@ -125,6 +144,10 @@ function install_finufft(url, location, fftw_location)
 	new_library_path = [fullfile(fftw_location, 'lib') pathsep ...
 		old_library_path];
 	setenv('LIBRARY_PATH', new_library_path);
+
+	if ~use_openmp
+		setenv('OMP', 'OFF');
+	end
 
 	status = system(cmd);
 
