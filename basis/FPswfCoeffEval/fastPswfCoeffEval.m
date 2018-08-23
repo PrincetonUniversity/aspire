@@ -1,7 +1,7 @@
 function [ coeffVecQuadFast, normalizedPSWF_mat, Alpha_Nn, ang_freqs, rad_freqs, FPSWF_coeff_time ] = fastPswfCoeffEval( images, x, y, L, beta, T, numChunks, realFlag )
 % 
 % addpath(genpath('/opt/nfft-3.2.3'));
-addpath(genpath('/home/yoel/Downloads/nfft-3.3.2'));
+% addpath(genpath('/home/yoel/Downloads/nfft-3.3.2'));
 
 nImages = size(images,3);
 images = reshape(images,size(images,1)*size(images,2),nImages); % Reshape from 3d array to a matrix
