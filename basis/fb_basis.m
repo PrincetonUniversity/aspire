@@ -685,7 +685,7 @@ function indices = fb_indices(basis)
                 sgns = [1 -1];
             end
 
-            ks = 0:basis.k_max(ell+1)-1;
+            ks = 1:basis.k_max(ell+1);
 
             for sgn = sgns
                 rng = ind:ind+numel(ks)-1;
@@ -705,7 +705,7 @@ function indices = fb_indices(basis)
         ind = 1;
 
         for ell = 0:basis.ell_max
-            ks = 0:basis.k_max(ell+1)-1;
+            ks = 1:basis.k_max(ell+1);
             ms = -ell:ell;
 
             for m = -ell:ell
