@@ -37,9 +37,9 @@ function install_chemnitz_nfft(url, location, fftw_location, use_openmp)
 		fftw_location = fullfile(aspire_root(), 'extern', 'fftw3');
 	end
 
-    if nargin < 4
-        use_openmp = [];
-    end
+	if nargin < 4
+		use_openmp = [];
+	end
 
 	if ~exist(fftw_location, 'dir')
 		fprintf('FFTW3 not installed. Installing...\n');
