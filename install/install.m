@@ -8,6 +8,25 @@
 %    function should only be called once when ASPIRE is first installed.
 
 function install()
+
+    % Set location for temporary files
+    tempdir=fmtinput('Enter folder to temporary files ','/tmp','%s');
+
+    try       
+        fid=fopen(fullfile(aspire_root(),'tmpdir.cfg'),'w');
+        fprintf(fid,tempdir);
+        fclose(fid);
+    catch E
+        error('Failed to create tmpdir.cfg Error: %s', E.message);
+    end
+       
+    try
+        tempmrcdir
+    catch E
+        error('Failed to create temproray folder. Error: %s',E.message);
+    end
+
+    % Install NUFFT
     current_path = pwd;
 
     nufft_choice = multichoice_question( ...
@@ -20,6 +39,7 @@ function install()
         install_chemnitz_nfft;
     end
 
+    % Install SDPLR
     sdplr_choice = two_options_question( ...
         'Install SDPLR? ', 'y', 'n', 'y', '%c');
 
