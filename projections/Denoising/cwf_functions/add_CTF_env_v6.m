@@ -39,7 +39,7 @@ end
 %% Add CTF 
 
 % Generate projections with CTF
-proj_CTF=zeros(size(proj));
+proj_CTF=zeros(size(proj),class(proj));
 index=round((1:size(proj,3))/size(proj,3)*ndef+0.499999);
 for i=1:size(proj,3)
 proj_CTF(:,:,i)=(proj(:,:,i)).*h(:, :, index(i));% generating data set with CTF (in Fourier space)
