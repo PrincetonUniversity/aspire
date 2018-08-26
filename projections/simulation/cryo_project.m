@@ -59,7 +59,7 @@ end
 % The function zeros gets as an argument 'single' or 'double'. We want to
 % use 'single' when possible to save space. presicion_str is the
 % appropriate string to pass to the functions 'zeros' later on.
-if precision<eps('single')
+if precision>=eps('single')
     precision_str='single';
 else
     precision_str='double';
@@ -179,4 +179,6 @@ for batch=1:ceil(K/batch_size)
     projections(:,:,startidx+1:startidx+actual_batch_size)=...
         projection_batches(:,:,1:actual_batch_size,batch);
 end
+
+projections=cast(projections,precision_str);
 end
