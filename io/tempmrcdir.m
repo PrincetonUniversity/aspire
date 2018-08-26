@@ -1,4 +1,4 @@
-function dname=tempmrcdir(key)
+function dname=tempmrcdir(key,tmpdir)
 %
 % TEMPMRCDIR Get teroprary directory
 %
@@ -12,6 +12,9 @@ function dname=tempmrcdir(key)
 %       Append key (string) to the directory name. This enables to generate
 %       two temporary directories for the same MATLAB process.
 %
+%   dname=tempmrcdir(key,tmpdir)
+%       Use tmpdir as root for temporary ASPIRE files.
+
 % Yoel Shkolnisky, January 2016
 
 
@@ -26,6 +29,10 @@ else
     end
 end
 
+if ~exist('tmpdir','var')
+    tmpdir='/scratch';
+end
+
 pid=feature('getpid');
 
 fname = mfilename('fullpath');
@@ -35,7 +42,6 @@ fname = mfilename('fullpath');
 ASIPRE_ROOT=fileparts(pathstr);
 confname=fullfile(ASIPRE_ROOT,'tmpdir.cfg');
 
-tmpdir='scratch'; % Default root of temporary files
 if exist(confname,'file')
     %log_message('Loading name for root of temporary folders from %s',confname);
     fid=fopen(confname,'r');
