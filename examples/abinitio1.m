@@ -16,6 +16,7 @@ clear;
 % shifted by random integer shifts of up to +/- 5 pixels, with steps of 1
 % pixel.
 
+log_message('Loading and displaying images')
 load p100_shifted;
 viewstack(projections,10,10);   % Display the proejctions.
 
@@ -23,12 +24,14 @@ viewstack(projections,10,10);   % Display the proejctions.
 % Compute the true common lines matrix for the projections, by using their
 % true orientations.
 
+log_message('Computing ground-truth common lines');
 n_theta=72; % Angular resolution - number of sinograms computed for each 
             % projection. This corresponds to a resolution of 5 degrees.
 [ref_clmatrix,~]=clmatrix_cheat(rots,n_theta);
 
 %% Compute common lines from projections
 
+log_message('Estimating common lines from projections');
 % Mask projections
 mask_radius = 55;
 [np,~]=mask_fuzzy(projections,mask_radius);
@@ -58,12 +61,14 @@ fprintf('Percentage of correct common lines: %f%%\n\n',prop*100);
 %% Assign orientation using common lines, using least squares method.
 % The resulting MSE should be small (of the order of 1e-4).
 
+log_message('Estimating orientations of projections');
 [est_inv_rots] = est_orientations_LS(clstack, n_theta);
 fprintf('MSE of the estimated rotations: %f\n\n', ...
     check_MSE(est_inv_rots,rots));
 
 
 %% 3D inversion
+log_message('Reconstructing 3D density from projections');
 params = struct();
 params.rot_matrices = est_inv_rots;
 params.ctf = ones(size(projections, 1)*ones(1, 2));
@@ -75,4 +80,7 @@ basis = dirac_basis(size(projections, 1)*ones(1, 3));
 
 v = cryo_estimate_mean(projections, params, basis);
 
-WriteMRC(v,1,'example1.mrc'); % Output density map reconstructed from projections.
+fname='example1.mrc';
+WriteMRC(v,1,fname); % Output density map reconstructed from projections.
+log_message('Reconstructed density saved to %s',fname);
+log_message('Done!');
