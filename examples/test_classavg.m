@@ -63,8 +63,8 @@ log_message('Adding noise to images at SNR=%d',SNR)
 
 clean_images=icfft2(g_proj_CTF);
 imerr=norm(imag(clean_images(:)))/norm(clean_images(:));
-if imerr>1.0e-8
-    error('Clean images have imaginary componenets. Should not happen...');
+if imerr>2.0e-7
+    error('Clean images have imaginary componenets (%e). Should not happen...',imerr);
 end
 clean_images=real(clean_images);
 [images, noise_v_r]=addnoise_v6(clean_images, SNR);
