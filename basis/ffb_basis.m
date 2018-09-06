@@ -274,10 +274,11 @@ function precomp = ffb_precomp(basis)
     end
 
     n_theta = ceil(16*basis.c*basis.R);
-    n_theta = n_theta + mod(n_theta, 2);
+    n_theta = (n_theta + mod(n_theta, 2))/2;
 
-    freqs_x = precomp.r*cos([0:n_theta-1]*2*pi/n_theta);
-    freqs_y = precomp.r*sin([0:n_theta-1]*2*pi/n_theta);
+    % Only calculate "positive" frequencies in one half-plane.
+    freqs_x = precomp.r*cos([0:n_theta-1]*2*pi/(2*n_theta));
+    freqs_y = precomp.r*sin([0:n_theta-1]*2*pi/(2*n_theta));
 
     precomp.freqs = cat(1, permute(freqs_x, [3 1 2]), permute(freqs_y, [3 1 2]));
 end
@@ -290,7 +291,7 @@ function x = ffb_evaluate(v, basis)
     n_data = size(v, 2);
 
     % TODO: Rename. This is not actually the polar FT.
-    pf = zeros([n_r n_theta n_data], class(v));
+    pf = zeros([n_r 2*n_theta n_data], class(v));
 
     mask = (basis.indices.ells == 0);
 
@@ -320,12 +321,15 @@ function x = ffb_evaluate(v, basis)
 
     pf = 2*pi*ifft(pf, [], 2);
 
+    % Only need "positive" frequencies.
+    pf = pf(:,1:end/2,:);
+
     pf = bsxfun(@times, pf, basis.precomp.w.*basis.precomp.r);
 
     pf = reshape(pf, [n_r*n_theta n_data]);
     freqs = reshape(basis.precomp.freqs, [2 n_r*n_theta]);
 
-    x = real(anufft2(pf, 2*pi*freqs, basis.sz));
+    x = 2*real(anufft2(pf, 2*pi*freqs, basis.sz));
 end
 
 function v = ffb_evaluate_t(x, basis)
@@ -339,10 +343,13 @@ function v = ffb_evaluate_t(x, basis)
     pf = nufft2(x, 2*pi*freqs);
     pf = reshape(pf, [n_r n_theta n_data]);
 
+    % Recover "negative" frequencies from "positive" half plane.
+    pf = cat(2, pf, conj(pf));
+
     pf = bsxfun(@times, pf, basis.precomp.w.*basis.precomp.r);
 
     % TODO: Rename. This isn't actually the polar FT.
-    pf = 2*pi/n_theta*fft(pf, [], 2);
+    pf = 2*pi/(2*n_theta)*fft(pf, [], 2);
 
     % This only makes it easier to slice the array later.
     pf = permute(pf, [1 3 2]);
