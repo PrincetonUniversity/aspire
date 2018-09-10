@@ -250,9 +250,15 @@ function precomp = ffb_precomp(basis)
 
     [precomp.r, precomp.w] = lgwt(n_r, 0, basis.c);
 
-    precomp.radial = zeros(n_r, basis.count);
+    % Second dimension below is not basis.count because we're not counting
+    % signs, since radial part is the same for both cos and sin.
+    precomp.radial = zeros(n_r, sum(basis.k_max));
+
+    ind = 1;
 
     for ell = 0:basis.ell_max
+        idx = ind + [0:basis.k_max(ell+1)-1];
+
         besselj_zeros = basis.r0(1:basis.k_max(ell+1), ell+1)';
         radial_ell = besselj(ell, 2*precomp.r*besselj_zeros);
 
@@ -262,15 +268,9 @@ function precomp = ffb_precomp(basis)
 
         radial_ell = bsxfun(@times, radial_ell, 1./nrms);
 
-        mask = (basis.indices.ells == ell);
+        precomp.radial(:,idx) = radial_ell;
 
-        precomp.radial(:,mask & basis.indices.sgns == +1) = radial_ell;
-
-        % TODO: Don't store this twice, but have a scheme for accounting for
-        % this symmetry instead.
-        if ell > 0
-            precomp.radial(:,mask & basis.indices.sgns == -1) = radial_ell;
-        end
+        ind = ind + numel(idx);
     end
 
     n_theta = ceil(16*basis.c*basis.R);
@@ -295,28 +295,40 @@ function x = ffb_evaluate(v, basis)
 
     mask = (basis.indices.ells == 0);
 
-    pf(:,1,:) = basis.precomp.radial(:,mask)*v(mask,:);
+    ind = 1;
+
+    idx = ind + [0:basis.k_max(1)-1];
+
+    pf(:,1,:) = basis.precomp.radial(:,idx)*v(mask,:);
+
+    ind = ind + numel(idx);
+
+    ind_pos = ind;
 
     for ell = 1:basis.ell_max
-        mask = (basis.indices.ells == ell);
+        idx = ind + [0:basis.k_max(ell+1)-1];
 
-        mask_pos = mask & (basis.indices.sgns == +1);
-        mask_neg = mask & (basis.indices.sgns == -1);
+        idx_pos = ind_pos + [0:basis.k_max(ell+1)-1];
+        idx_neg = idx_pos + basis.k_max(ell+1);
 
-        pf_pos = basis.precomp.radial(:,mask_pos)*v(mask_pos,:);
-        pf_neg = basis.precomp.radial(:,mask_pos)*v(mask_neg,:);
+        v_ell = (v(idx_pos,:) - 1i*v(idx_neg,:))/2;
+
+        if mod(ell, 2) == 1
+            v_ell = 1i*v_ell;
+        end
+
+        pf_ell = basis.precomp.radial(:,idx)*v_ell;
+        pf(:,ell+1,:) = pf_ell;
 
         if mod(ell, 2) == 0
-            pf_ell = (pf_pos - 1i*pf_neg)/2;
-
-            pf(:,ell+1,:) = pf_ell;
             pf(:,end-ell+1,:) = conj(pf_ell);
         else
-            pf_ell = (pf_neg + 1i*pf_pos)/2;
-
-            pf(:,ell+1,:) = pf_ell;
             pf(:,end-ell+1,:) = -conj(pf_ell);
         end
+
+        ind = ind + numel(idx);
+
+        ind_pos = ind_pos + 2*basis.k_max(ell+1);
     end
 
     pf = 2*pi*ifft(pf, [], 2);
@@ -356,26 +368,40 @@ function v = ffb_evaluate_t(x, basis)
 
     v = zeros([basis.count n_data], class(x));
 
+    ind = 1;
+
+    idx = ind + [0:basis.k_max(1)-1];
+
     mask = (basis.indices.ells == 0);
 
-    v(mask,:) = basis.precomp.radial(:,mask)'*real(pf(:,:,1));
+    v(mask,:) = basis.precomp.radial(:,idx)'*real(pf(:,:,1));
+
+    ind = ind + numel(idx);
+
+    ind_pos = ind;
 
     for ell = 1:basis.ell_max
-        mask = (basis.indices.ells == ell);
+        idx = ind + [0:basis.k_max(ell+1)-1];
 
-        mask_pos = mask & (basis.indices.sgns == +1);
-        mask_neg = mask & (basis.indices.sgns == -1);
+        idx_pos = ind_pos + [0:basis.k_max(ell+1)-1];
+        idx_neg = idx_pos + basis.k_max(ell+1);
+
+        v_ell = basis.precomp.radial(:,idx)'*pf(:,:,ell+1);
 
         if mod(ell, 2) == 0
-            v_pos = basis.precomp.radial(:,mask_pos)'*real(pf(:,:,ell+1));
-            v_neg = -basis.precomp.radial(:,mask_neg)'*imag(pf(:,:,ell+1));
+            v_pos = real(v_ell);
+            v_neg = -imag(v_ell);
         else
-            v_pos = basis.precomp.radial(:,mask_pos)'*imag(pf(:,:,ell+1));
-            v_neg = basis.precomp.radial(:,mask_neg)'*real(pf(:,:,ell+1));
+            v_pos = imag(v_ell);
+            v_neg = real(v_ell);
         end
 
-        v(mask_pos,:) = v_pos;
-        v(mask_neg,:) = v_neg;
+        v(idx_pos,:) = v_pos;
+        v(idx_neg,:) = v_neg;
+
+        ind = ind + numel(idx);
+
+        ind_pos = ind_pos + 2*basis.k_max(ell+1);
     end
 end
 
