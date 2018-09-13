@@ -5,7 +5,7 @@ N=2*L;
 currImage = zeros(N);
 M=size(usFftPts,1);
 x = usFftPts.'/pi/2;
-plan = nfft_init_guru(2,N,N,M,2*N,2*N,6,bitor(PRE_PHI_HUT,PRE_PSI),[]);
+plan = nfft_init_guru(2,N,N,M,2*N,2*N,6,bitor(PRE_PHI_HUT,PRE_PSI),FFTW_ESTIMATE);
 nfft_set_x(plan,x);
 nfft_precompute_psi(plan);
 
