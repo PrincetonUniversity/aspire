@@ -50,7 +50,7 @@ for i = 1:numChunks
 end
 % - Compute NFFT and expansion coefficients
 parfor i = 1:numChunks
-    nfftRes = computeNfftPotts( imagesCell{i}, usFftPts, L, points_inside_the_circle); 
+    nfftRes = computeNfft( imagesCell{i}, usFftPts, L, points_inside_the_circle);
     coeffVecQuadFast_cell{i} = fastPswfIntegration(nfftRes ,c ,L, numAngularPts, ang_freq, radialQuadPts, quadRuleRadialWts, PSWF_radial_quad, realFlag);
     imagesCell{i} = [];
 end
