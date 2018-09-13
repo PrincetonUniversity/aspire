@@ -1,23 +1,13 @@
 function [ images_nufft ] = computeNfftPotts( images, usFftPts, L, points_inside_the_circle)
 % This function computes the NFFT of the images at the designated nodes
-nImages = size(images,2);
-N=2*L;
-currImage = zeros(N);
-M=size(usFftPts,1);
-x = usFftPts.'/pi/2;
-plan = nfft_init_guru(2,N,N,M,2*N,2*N,6,bitor(PRE_PHI_HUT,PRE_PSI),FFTW_ESTIMATE);
-nfft_set_x(plan,x);
-nfft_precompute_psi(plan);
 
-images_nufft = zeros(M, nImages);
-for i = 1:nImages    
-    currImage(points_inside_the_circle) = images(:,i);
-    nfft_set_f_hat(plan,double(currImage(:)));     
-    nfft_trafo(plan);
-    res = nfft_get_f(plan);
-    images_nufft(:,i) = res;  
-end    
-nfft_finalize(plan);
+images_full = zeros((2*L)^2, size(images, 2));
+images_full(points_inside_the_circle,:) = images;
+images_full = vec_to_im(images_full);
+
+% NOTE: For backwards compatibility, we have to transpose the x and y axes
+% here, but this is probably not the right thing to do.
+images_nufft = nufft2(permute(images_full, [2 1 3]), usFftPts.');
 
 end
 
