@@ -20,14 +20,18 @@
 function kernel_circ_f = circularize_kernel_f(kernel_f)
     dims = ndims(kernel_f);
 
-    kernel = mdim_fftshift(ifftn(kernel_f), 1:dims);
+    kernel_f = mdim_ifftshift(kernel_f, 1:dims);
+    kernel = ifftn(kernel_f);
+    kernel = mdim_fftshift(kernel, 1:dims);
 
     kernel_circ = kernel;
     for dim = 1:dims
         kernel_circ = circularize_kernel_1d(kernel_circ, dim);
     end
 
-    kernel_circ_f = fftn(mdim_ifftshift(kernel_circ, 1:dims));
+    kernel_circ = mdim_ifftshift(kernel_circ, 1:dims);
+    kernel_circ_f = fftn(kernel_circ);
+    kernel_circ_f = mdim_fftshift(kernel_circ_f, 1:dims);
 end
 
 function kernel_circ = circularize_kernel_1d(kernel, dim)
