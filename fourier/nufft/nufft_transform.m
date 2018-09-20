@@ -91,16 +91,30 @@ function sig_f = nufft_transform(plan, sig)
 
 		sig_f = zeros(plan.num_pts, L, class(sig));
 
+		if plan.num_threads ~= 0
+			orig_num_threads = omp_get_num_threads();
+			omp_set_num_threads(plan.num_threads);
+		end
+
 		for ell = 1:L
 			nfft_set_f_hat(plan.nfft_plan_id, sig(:,ell));
 			nfft_trafo(plan.nfft_plan_id);
 			sig_f(:,ell) = nfft_get_f(plan.nfft_plan_id);
+		end
+
+		if plan.num_threads ~= 0
+			omp_set_num_threads(orig_num_threads);
 		end
 	elseif plan.lib_code == 4 || plan.lib_code == 5
 		sig = double(sig);
 
 		% FINUFFT errors if we give epsilon in single precision.
 		epsilon = double(epsilon);
+
+		if plan.num_threads ~= 0
+			orig_num_threads = omp_get_num_threads();
+			omp_set_num_threads(plan.num_threads);
+		end
 
 		L = size(sig, numel(plan.sz)+1);
 
@@ -133,6 +147,10 @@ function sig_f = nufft_transform(plan, sig)
 					-1, epsilon, ...
 					sig(:,:,:,ell));
 			end
+		end
+
+		if plan.num_threads ~= 0
+			omp_set_num_threads(orig_num_threads);
 		end
 	end
 
