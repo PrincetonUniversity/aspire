@@ -4,6 +4,7 @@ x_c = x; clear x;
 x_c(ang_freqs~=0) = sqrt(2)*x_c(ang_freqs~=0);
 
 %% Extend eigenvectors to all points by Nystrom's method
+mIdx = (unique(ang_freqs)).';
 fftLen = max(ang_freqs)+1;
 chunkSize = 128;
 vCell_ext = vCell;
@@ -36,7 +37,7 @@ for i = 1:nChunks
     end
         
     D = diag(1./sum(Zcurr(:,:,1),2));
-    for j=0:max(ang_freqs)
+    for j=mIdx
         vCell_ext{j+1}(extendIdx(currIdx),:) = D*(Zcurr(:,:,j+1)*vCell{j+1}*diag(1./(1-dCell{j+1})));
     end
 end

@@ -16,7 +16,7 @@ for i=2:numel(freqMat)
 end
 
 %% Compute log-likelihood
-chunkSize = 64;
+chunkSize = 8;
 
 nImages = size(x,2);
 trainIdx = 1:trainSize;
