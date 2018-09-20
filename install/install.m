@@ -12,14 +12,14 @@ function install()
     % Set location for temporary files
     tempdir=fmtinput('Enter folder to temporary files ','/tmp','%s');
 
-    try       
+    try
         fid=fopen(fullfile(aspire_root(),'tmpdir.cfg'),'w');
         fprintf(fid,tempdir);
         fclose(fid);
     catch E
         error('Failed to create tmpdir.cfg Error: %s', E.message);
     end
-       
+
     try
         tempmrcdir;
     catch E
