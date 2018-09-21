@@ -1,5 +1,5 @@
 if ~isoctave()
-    mex CFLAGS="\$CFLAGS -fopenmp" -lgomp omp_get_num_threads_mx.c
+    mex CFLAGS="\$CFLAGS -fopenmp" -lgomp omp_get_max_threads_mx.c
     mex -lgomp omp_set_num_threads_mx.c
 else
     env_cflags = getenv('CFLAGS');
@@ -9,7 +9,7 @@ else
 
     setenv('CFLAGS', oct_cflags);
 
-    mex -lgomp omp_get_num_threads_mx.c
+    mex -lgomp omp_get_max_threads_mx.c
     mex -lgomp omp_set_num_threads_mx.c
 
     setenv('CFLAGS', env_cflags);

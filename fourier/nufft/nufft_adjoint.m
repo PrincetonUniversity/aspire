@@ -94,7 +94,7 @@ function sig = nufft_adjoint(plan, sig_f)
 		sig = zeros(prod(plan.sz), L, class(sig_f));
 
 		if plan.num_threads ~= 0
-			orig_num_threads = omp_get_num_threads();
+			orig_num_threads = omp_get_max_threads();
 			omp_set_num_threads(plan.num_threads);
 		end
 
@@ -120,7 +120,7 @@ function sig = nufft_adjoint(plan, sig_f)
 		epsilon = double(epsilon);
 
 		if plan.num_threads ~= 0
-			orig_num_threads = omp_get_num_threads();
+			orig_num_threads = omp_get_max_threads();
 			omp_set_num_threads(plan.num_threads);
 		end
 
