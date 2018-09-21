@@ -1,7 +1,8 @@
 extern/
 *.sw*
 .nfs*
-*.mexa64
+*.mex*
+*.o
 *.mrc
 *.mrcs
 *.mat
