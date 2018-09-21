@@ -27,7 +27,7 @@ function plan = nufft_set_points(plan, fourier_pts)
 
 	if plan.lib_code == 3
 		if plan.num_threads ~= 0
-			orig_num_threads = omp_get_num_threads();
+			orig_num_threads = omp_get_max_threads();
 			omp_set_num_threads(plan.num_threads);
 		end
 

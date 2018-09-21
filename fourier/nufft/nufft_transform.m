@@ -92,7 +92,7 @@ function sig_f = nufft_transform(plan, sig)
 		sig_f = zeros(plan.num_pts, L, class(sig));
 
 		if plan.num_threads ~= 0
-			orig_num_threads = omp_get_num_threads();
+			orig_num_threads = omp_get_max_threads();
 			omp_set_num_threads(plan.num_threads);
 		end
 
@@ -112,7 +112,7 @@ function sig_f = nufft_transform(plan, sig)
 		epsilon = double(epsilon);
 
 		if plan.num_threads ~= 0
-			orig_num_threads = omp_get_num_threads();
+			orig_num_threads = omp_get_max_threads();
 			omp_set_num_threads(plan.num_threads);
 		end
 
