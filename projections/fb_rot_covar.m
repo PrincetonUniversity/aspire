@@ -14,10 +14,12 @@
 %
 % Output
 %    covar_coeff: The Fourier-Bessel coefficients of the covariance matrix in
-%       the form of a basis.count-by-basis.count array. The covariance is
-%       calculated from the images represented by the coeff array, along with
-%       all possible rotations and reflections. As a result, the computed
-%       covariance matrix is invariant to both reflection and rotation.
+%       the form of cell array representing a block diagonal matrix. These
+%       block diagonal matrices may be manipulated using the `blk_diag_*`
+%       functions. The covariance is calculated from the images represented
+%       by the coeff array, along with all possible rotations and reflections.
+%       As a result, the computed covariance matrix is invariant to both
+%       reflection and rotation.
 
 function covar_coeff = fb_rot_covar(coeff, mean_coeff, basis, do_refl)
     if nargin < 4 || isempty(do_refl)
@@ -30,14 +32,17 @@ function covar_coeff = fb_rot_covar(coeff, mean_coeff, basis, do_refl)
         error('Basis must be 2D Fourier-Bessel basis.');
     end
 
-    covar_coeff = zeros(basis.count*ones(1, 2));
+    covar_coeff = {};
+
+    ind = 1;
 
     ell = 0;
     mask = (basis.indices.ells == ell);
 
     coeff_ell = bsxfun(@minus, coeff(mask,:), mean_coeff(mask));
 
-    covar_coeff(mask,mask) = coeff_ell*coeff_ell'/size(coeff, 2);
+    covar_coeff{ind} = coeff_ell*coeff_ell'/size(coeff, 2);
+    ind = ind+1;
 
     for ell = 1:basis.ell_max
         mask = (basis.indices.ells == ell);
@@ -47,15 +52,23 @@ function covar_coeff = fb_rot_covar(coeff, mean_coeff, basis, do_refl)
         covar_ell_diag = (coeff(mask_pos,:)*coeff(mask_pos,:)' + ...
             coeff(mask_neg,:)*coeff(mask_neg,:)')/(2*size(coeff, 2));
 
-        covar_coeff(mask_pos,mask_pos) = covar_ell_diag;
-        covar_coeff(mask_neg,mask_neg) = covar_ell_diag;
-
-        if ~do_refl
+        if do_refl
+            covar_coeff{ind} = covar_ell_diag;
+            covar_coeff{ind+1} = covar_ell_diag;
+            ind = ind+2;
+        else
             covar_ell_off = (coeff(mask_pos,:)*coeff(mask_neg,:)'/size(coeff, 2) - ...
                coeff(mask_neg,:)*coeff(mask_pos,:)')/(2*size(coeff, 2));
 
-            covar_coeff(mask_pos,mask_neg) = covar_ell_off;
-            covar_coeff(mask_neg,mask_pos) = covar_ell_off';
+            covar_coeff_blk = zeros(2*size(covar_ell_diag));
+
+            covar_coeff_blk(1:end/2,1:end/2) = covar_ell_diag;
+            covar_coeff_blk(end/2+1:end,end/2+1:end) = covar_ell_diag;
+            covar_coeff_blk(1:end/2,end/2+1:end) = covar_ell_off;
+            covar_coeff_blk(end/2+1:end,1:end/2) = covar_ell_off';
+
+            covar_coeff{ind} = covar_coeff_blk;
+            ind = ind+1;
         end
     end
 end
