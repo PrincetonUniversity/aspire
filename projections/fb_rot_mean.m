@@ -15,7 +15,7 @@
 %       invariant to both reflection and rotation.
 
 function mean_coeff = fb_rot_mean(coeff, basis)
-    if basis.type ~= fb_basis_type() || ...
+    if ~ismember(basis.type, [fb_basis_type() ffb_basis_type()]) || ...
         numel(basis.sz) ~= 2
 
         error('Basis must be 2D Fourier-Bessel basis.');

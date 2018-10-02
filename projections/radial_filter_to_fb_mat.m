@@ -18,7 +18,7 @@
 %    blk_diag_apply
 
 function h_fb = radial_filter_to_fb_mat(h_fun, basis)
-    if basis.type ~= fb_basis_type()
+    if ~ismember(basis.type, [fb_basis_type() ffb_basis_type()])
         error('Basis `basis` must be of Fourier-Bessel type.');
     end
 
