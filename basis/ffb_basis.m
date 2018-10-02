@@ -418,7 +418,7 @@ function v = ffb_expand(x, basis)
 
     cg_opt.max_iter = Inf;
     cg_opt.rel_tolerance = 10*eps(class(x));
-    cg_opt.verbose = true;
+    cg_opt.verbose = 0;
 
     v = conj_grad(A, b, cg_opt);
 
