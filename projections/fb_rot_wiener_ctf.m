@@ -35,7 +35,9 @@
 function coeff_est = fb_rot_wiener_ctf(coeff, filter_fb, filter_idx, ...
     mean_coeff, covar_coeff, noise_var, basis)
 
-    if basis.type ~= fb_basis_type() || numel(basis.sz) ~= 2
+    if ~ismember(basis.type, [fb_basis_type() ffb_basis_type()]) || ...
+        numel(basis.sz) ~= 2
+
         error('Basis must be 2D Fourier-Bessel basis.');
     end
 

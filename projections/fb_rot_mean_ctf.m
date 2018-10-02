@@ -27,7 +27,9 @@
 %    fb_rot_covar_ctf, fb_rot_mean, fb_rot_covar
 
 function mean_coeff = fb_rot_mean_ctf(coeff, ctf_fb, ctf_idx, basis)
-    if basis.type ~= fb_basis_type() || numel(basis.sz) ~= 2
+    if ~ismember(basis.type, [fb_basis_type() ffb_basis_type()]) || ...
+        numel(basis.sz) ~= 2
+
         error('Basis must be 2D Fourier-Bessel basis.');
     end
 
