@@ -36,7 +36,7 @@
 % See also
 %    fb_rot_mean_ctf, fb_rot_covar, fb_rot_mean
 
-function covar_coeff = fb_rot_covar_ctf(coeff, ctf_fb, ctf_idx, ...
+function [covar_coeff, b] = fb_rot_covar_ctf(coeff, ctf_fb, ctf_idx, ...
     mean_coeff, noise_var, basis, covar_est_opt)
 
     if ~ismember(basis.type, [fb_basis_type() ffb_basis_type()]) || ...
@@ -50,6 +50,7 @@ function covar_coeff = fb_rot_covar_ctf(coeff, ctf_fb, ctf_idx, ...
     end
 
     covar_est_opt = fill_struct(covar_est_opt, ...
+        'shrinker', 'none', ...
         'verbose', 0, ...
         'max_iter', 250, ...
         'rel_tolerance', 1e-12);
@@ -88,7 +89,12 @@ function covar_coeff = fb_rot_covar_ctf(coeff, ctf_fb, ctf_idx, ...
         M = blk_diag_add(M, A{k});
     end
 
-    b = blk_diag_add(b_coeff, blk_diag_mult(-noise_var, b_noise));
+    if strcmp(covar_est_opt.shrinker, 'none')
+        b = blk_diag_add(b_coeff, blk_diag_mult(-noise_var, b_noise));
+    else
+        b = shrink_covar_backward(b_coeff, b_noise, size(coeff, 2), ...
+            noise_var, covar_est_opt.shrinker);
+    end
 
     cg_opt = covar_est_opt;
 
@@ -105,6 +111,21 @@ function covar_coeff = fb_rot_covar_ctf(coeff, ctf_fb, ctf_idx, ...
         covar_coeff{k} = conj_grad(@(x)(apply(A_k, x)), b_k(:), cg_opt);
 
         covar_coeff{k} = reshape(covar_coeff{k}, size(A_k{1}, 1)*ones(1, 2));
+    end
+end
+
+function b = shrink_covar_backward(b, b_noise, n, noise_var, shrinker)
+    for ell = 1:numel(b)
+        b_ell = b{ell};
+        p = size(b_ell, 1);
+
+        S = sqrtm(b_noise{ell});
+
+        b_ell = S\b_ell/S;
+        b_ell = shrink_covar(b_ell, noise_var, p/n, shrinker);
+        b_ell = S*b_ell*S;
+
+        b{ell} = b_ell;
     end
 end
 
