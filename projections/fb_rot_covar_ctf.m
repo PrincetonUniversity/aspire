@@ -56,7 +56,8 @@ function covar_coeff = fb_rot_covar_ctf(coeff, ctf_fb, ctf_idx, ...
 
     block_partition = blk_diag_partition(ctf_fb{1});
 
-    b = blk_diag_zeros(block_partition, class(coeff));
+    b_coeff = blk_diag_zeros(block_partition, class(coeff));
+    b_noise = blk_diag_zeros(block_partition, class(coeff));
     A = cell(numel(ctf_fb), 1);
     M = blk_diag_zeros(block_partition, class(ctf_fb{1}{1}));
 
@@ -71,20 +72,23 @@ function covar_coeff = fb_rot_covar_ctf(coeff, ctf_fb, ctf_idx, ...
         mean_coeff_k = blk_diag_apply(ctf_fb_k, mean_coeff);
 
         covar_coeff_k = fb_rot_covar(coeff_k, mean_coeff_k, basis);
-        covar_coeff_k = blk_diag_add(covar_coeff_k, ...
-            blk_diag_mult(-noise_var, ...
-            blk_diag_eye(block_partition, class(covar_coeff_k{1}))));
 
-        b = blk_diag_add(b, ...
+        b_coeff = blk_diag_add(b_coeff, ...
             blk_diag_mult(ctf_fb_k_t, ...
             blk_diag_mult(covar_coeff_k, ...
             blk_diag_mult(ctf_fb_k, weight))));
+
+        b_noise = blk_diag_add(b_noise, ...
+            blk_diag_mult(weight, ...
+            blk_diag_mult(ctf_fb_k_t, ctf_fb_k)));
 
         A{k} = blk_diag_mult(ctf_fb_k_t, ...
             blk_diag_mult(ctf_fb_k, sqrt(weight)));
 
         M = blk_diag_add(M, A{k});
     end
+
+    b = blk_diag_add(b_coeff, blk_diag_mult(-noise_var, b_noise));
 
     cg_opt = covar_est_opt;
 
