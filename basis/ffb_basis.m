@@ -246,6 +246,10 @@ function indices = fb_indices(basis)
 end
 
 function precomp = ffb_precomp(basis)
+    precomp = ffb_precomp_2d(basis);
+end
+
+function precomp = ffb_precomp_2d(basis)
     n_r = ceil(4*basis.c*basis.R);
 
     [precomp.r, precomp.w] = lgwt(n_r, 0, basis.c);
@@ -286,6 +290,10 @@ end
 function x = ffb_evaluate(v, basis)
     basis_check_evaluate(v, basis);
 
+    x = ffb_evaluate_2d(v, basis);
+end
+
+function x = ffb_evaluate_2d(v, basis)
     n_theta = size(basis.precomp.freqs, 3);
     n_r = size(basis.precomp.freqs, 2);
     n_data = size(v, 2);
@@ -347,6 +355,10 @@ end
 function v = ffb_evaluate_t(x, basis)
     basis_check_expand(x, basis);
 
+    v = ffb_evaluate_t_2d(x, basis);
+end
+
+function v = ffb_evaluate_t_2d(x, basis)
     n_theta = size(basis.precomp.freqs, 3);
     n_r = size(basis.precomp.freqs, 2);
     n_data = size(x, 3);
