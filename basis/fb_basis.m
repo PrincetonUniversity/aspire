@@ -93,10 +93,6 @@ function basis = fb_basis(sz, ell_max, domain)
         error('Only cubic domains are supported.');
     end
 
-    if numel(sz) == 3 && domain ~= 0
-        error('Only spatial domain supported for three-dimensional basis.');
-    end
-
     d = numel(sz);
 
     N = sz(1);
@@ -409,6 +405,8 @@ function x = fb_evaluate_3d(v, basis)
 
     is_precomp = isfield(basis, 'precomp');
 
+    is_fourier = (isfield(basis, 'domain') && basis.domain == 1);
+
     ind = 1;
 
     ind_radial = 1;
@@ -467,7 +465,12 @@ function x = fb_evaluate_3d(v, basis)
     x_even = x_even + fourier_flip(x_even, 1:3);
     x_odd = x_odd - fourier_flip(x_odd, 1:3);
 
-    x = x_even + x_odd;
+    if is_fourier
+        x_f = x_even + 1i*x_odd;
+        x = sqrt(prod(basis.sz))*real(icfft3(x_f));
+    else
+        x = x_even + x_odd;
+    end
 
     x = roll_dim(x, sz_roll);
 end
@@ -579,8 +582,17 @@ function v = fb_evaluate_t_3d(x, basis)
     [r_unique, ang_unique, r_idx, ang_idx, mask, stat_mask] = ...
         unique_coordinates_3d(basis.sz(1));
 
-    x_even = x + fourier_flip(x, 1:3);
-    x_odd = x - fourier_flip(x, 1:3);
+    is_fourier = (isfield(basis, 'domain') && basis.domain == 1);
+
+    if is_fourier
+        x_f = 1/sqrt(prod(basis.sz))*cfft3(x);
+
+        x_even = 2*real(x_f);
+        x_odd = 2*imag(x_f);
+    else
+        x_even = x + fourier_flip(x, 1:3);
+        x_odd = x - fourier_flip(x, 1:3);
+    end
 
     x_even = reshape(x_even, [prod(basis.sz) size(x_even, numel(basis.sz)+1)]);
     x_odd = reshape(x_odd, [prod(basis.sz) size(x_odd, numel(basis.sz)+1)]);
