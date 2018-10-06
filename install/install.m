@@ -21,7 +21,7 @@ function install()
     end
        
     try
-        tempmrcdir
+        tempmrcdir;
     catch E
         error('Failed to create temproray folder. Error: %s',E.message);
     end
