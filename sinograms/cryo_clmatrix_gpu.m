@@ -141,6 +141,7 @@ n_theta=size(pf,2);
 n_proj=size(pf,3);
 
 %% Check input parameters and set debug flags.
+NK=n_proj;
 if (nargin<2) || (NK==-1)
     NK=n_proj; % Number of common-line pairs to compute for each projection
 end
