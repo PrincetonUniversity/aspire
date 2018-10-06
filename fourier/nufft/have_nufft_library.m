@@ -24,6 +24,8 @@ function have_library = have_nufft_library(lib_code)
 		have_library = true;
 		try
 			nufft1d1(1, 0, 0, 1, 1, 1);
+			nufft2d1(1, 0, 0, 0, 1, 1, 1, 1);
+			nufft3d1(1, 0, 0, 0, 0, 1, 1, 1, 1, 1);
 		catch
 			have_library = false;
 		end

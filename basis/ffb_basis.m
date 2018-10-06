@@ -1,0 +1,426 @@
+% FFB_BASIS Construct a fast Fourier-Bessel basis object
+%
+% Usage
+%    basis = ffb_basis(sz, ell_max, domain);
+%
+% Input
+%    sz: The size of the vectors for which to define the basis. Currently
+%       only square images are supported.
+%    ell_max: The maximum order ell of the basis elements. If set to Inf,
+%       the basis includes all ell such that the resulting basis vectors
+%       are concentrated below the Nyquist frequency (default Inf).
+%    domain: Specifies whether the decomposition should be in the spatial (0)
+%       or frequency (1) domain. Currently, only frequency-domain basis
+%       vectors are supported (default 1).
+%
+% Output
+%    basis: A fast Fourier-Bessel basis object corresponding to the parameters.
+%
+% Description
+%    The returned basis object can be used to project a vector x in the
+%    standard basis onto the basis or to map a coefficient vector v into
+%    the standard basis. This is achieved using the basis.expand and
+%    basis.evaluate functions, respectively. The fields basis.sz denotes
+%    the size of the vectors in the standard basis while basis.count denotes
+%    the number of vectors in the basis.
+%
+%    For example, we can generate a random vector in the standard basis and
+%    project it onto the Fourier-Bessel basis through
+%
+%       sz = 16*ones(1, 2);
+%       basis = fb_basis(sz, floor(sz(1)/2));
+%       x = randn(sz);
+%       v = basis.expand(x);
+%
+%    Likewise, we can map a random coefficient vector into the standard basis
+%    using
+%
+%       v = randn(basis.count, 1);
+%       x = basis.evaluate(v);
+%
+%    The adjoint of the evaluate function is obtained through
+%    basis.evaluate_t.
+%
+%    This particular basis is a Fourier-Bessel basis in two or three
+%    dimensions. It is a separable basis consisting of a radial part multiplied
+%    by an angular part.
+%
+%    The radial part is a Bessel function in 2D or a spherical Bessel function
+%    in 3D. These are dilated to obtain a given number of zeros on the
+%    interval [0, 1]. Specifically, they are of the form
+%
+%       f_{ell,k}(r) = Z_ell(R_{ell,k} r),
+%
+%    where Z_ell is the ellth-order (spherical) Bessel function and R_{ell,k}
+%    is its kth zero.
+%
+%    The angular part is given by a sinusoid in 2D or a real spherical harmonic
+%    function in 3D. Specifically, for ell = 0, the angular part is constant,
+%    while for ell > 0, it is either a sine or a cosine.
+%
+%    All of the basis vectors are normalized so that their 2-norm, as continuous
+%    functions, is equal to 1. Additionally, the basis functions are orthogonal,
+%    again in the continuous case. Due to the discrete sampling, these
+%    properties only hold asymptotically as max(sz) goes to infinity.
+%
+%    The parameter ell_max determines the highest frequency of the angular
+%    sinusoids in 2D and the highest degree of the real spherical harmonics in
+%    3D. For each ell, the maximum number of zeros in the radial part f_{ell,k}
+%    is determined by ensuring that the Fourier transform of the entire basis
+%    function is mostly concentrated within the Nyquist disk or ball. This
+%    maximum number is denoted by k_max(ell) and is stored in the basis object.
+%
+%    The coefficients of the basis are ordered by increasing ell, from 0 to
+%    ell_max. For each ell, the basis functions are ordered by the radial index
+%    k from 1 to k_max(ell). In 2D, for each radial index, we then have the
+%    cosine part followed by the sine part (except for ell = 0, in which case we
+%    only have the cosine part). In 3D, we instead have the coefficients
+%    arranged by order m, ranging from -ell to +ell.
+%
+% Note
+%    The underlying continuous basis functions for ffb_basis is the same as
+%    for fb_basis, but they differ in their discretizations. In particular,
+%    the discretization of ffb_basis allows for the use of NUFFTs, which
+%    significantly speeds up the evaluation and adjoint mappings.
+
+function basis = ffb_basis(sz, ell_max, domain)
+    if nargin < 2 || isempty(ell_max)
+        ell_max = Inf;
+    end
+
+    if nargin < 3 || isempty(domain)
+        domain = 1;
+    end
+
+    if numel(sz) ~= 2
+        error('Only two-dimensional basis function is supported.');
+    end
+
+    if ~all(sz == sz(1))
+        error('Only square/cubic domains are supported.');
+    end
+
+    if domain == 0
+        error('Only frequency domain is supported.');
+    end
+
+    d = numel(sz);
+
+    N = sz(1);
+
+    k_max = zeros(min(ell_max+1, 2*sz(1)+1), 1);
+
+    r0 = cell(1, numel(k_max));
+
+    for ell = 0:numel(k_max)-1
+        [k_max(ell+1), r0{ell+1}] = num_besselj_zeros(ell+(d-2)/2, N*pi/2);
+
+        if k_max(ell+1) == 0
+            ell_max = ell-1;
+
+            k_max = k_max(1:ell_max+1);
+            r0 = r0(1:ell_max+1);
+            break;
+        end
+    end
+
+    for ell = 0:ell_max
+        r0{ell+1} = cat(1, r0{ell+1}', NaN(max(k_max)-k_max(ell+1), 1));
+    end
+
+    r0 = cell2mat(r0);
+
+    basis = struct();
+
+    basis.type = ffb_basis_type();
+
+    basis.sz = sz;
+
+    basis.domain = domain;
+
+    basis.R = N/2;
+    basis.c = 0.5;
+
+    if d == 2
+        basis.count = k_max(1) + sum(2*k_max(2:end));
+    end
+
+    basis.ell_max = ell_max;
+    basis.k_max = k_max;
+    basis.r0 = r0;
+
+    basis.indices = fb_indices(basis);
+
+    basis.precomp = ffb_precomp(basis);
+
+    basis.evaluate = @(v)(ffb_evaluate(v, basis));
+    basis.evaluate_t = @(x)(ffb_evaluate_t(x, basis));
+
+    basis.expand = @(x)(ffb_expand(x, basis));
+
+    d = numel(basis.sz);
+
+    basis.mat_evaluate = @(V)(mdim_mat_fun_conj(V, 1, d, basis.evaluate));
+    basis.mat_evaluate_t = @(X)(mdim_mat_fun_conj(X, d, 1, basis.evaluate_t));
+
+    basis.mat_expand = @(X)(mdim_mat_fun_conj(X, d, 1, basis.expand));
+end
+
+function [k, r0] = num_besselj_zeros(ell, r)
+    k = 4;
+
+    r0 = besselj_zeros(ell, k);
+    while all(r0 < r)
+        k = 2*k;
+
+        r0 = besselj_zeros(ell, k);
+    end
+
+    r0 = r0(r0 < r);
+
+    k = numel(r0);
+end
+
+function nrm = basis_norm_2d(basis, ell, k)
+    nrm = abs(besselj(ell+1, basis.r0(k,ell+1)))*sqrt(pi/2)* ...
+        sqrt(prod(basis.sz/2));
+
+    if ell == 0
+        nrm = nrm*sqrt(2);
+    end
+end
+
+function indices = fb_indices(basis)
+    indices = struct();
+
+    d = numel(basis.sz);
+
+    if d == 2
+        indices.ells = zeros(basis.count, 1);
+        indices.ks = zeros(basis.count, 1);
+        indices.sgns = zeros(basis.count, 1);
+
+        ind = 1;
+
+        for ell = 0:basis.ell_max
+            if ell == 0
+                sgns = 1;
+            else
+                sgns = [1 -1];
+            end
+
+            ks = 1:basis.k_max(ell+1);
+
+            for sgn = sgns
+                rng = ind:ind+numel(ks)-1;
+
+                indices.ells(rng) = ell;
+                indices.ks(rng) = ks;
+                indices.sgns(rng) = sgn;
+
+                ind = ind + numel(rng);
+            end
+        end
+    elseif d == 3
+        indices.ells = zeros(basis.count, 1);
+        indices.ms = zeros(basis.count, 1);
+        indices.ks = zeros(basis.count, 1);
+
+        ind = 1;
+
+        for ell = 0:basis.ell_max
+            ks = 1:basis.k_max(ell+1);
+            ms = -ell:ell;
+
+            for m = -ell:ell
+                rng = ind:ind+numel(ks)-1;
+
+                indices.ells(rng) = ell;
+                indices.ms(rng) = m;
+                indices.ks(rng) = ks;
+
+                ind = ind+numel(ks);
+            end
+        end
+    end
+end
+
+function precomp = ffb_precomp(basis)
+    n_r = ceil(4*basis.c*basis.R);
+
+    [precomp.r, precomp.w] = lgwt(n_r, 0, basis.c);
+
+    % Second dimension below is not basis.count because we're not counting
+    % signs, since radial part is the same for both cos and sin.
+    precomp.radial = zeros(n_r, sum(basis.k_max));
+
+    ind = 1;
+
+    for ell = 0:basis.ell_max
+        idx = ind + [0:basis.k_max(ell+1)-1];
+
+        besselj_zeros = basis.r0(1:basis.k_max(ell+1), ell+1)';
+        radial_ell = besselj(ell, 2*precomp.r*besselj_zeros);
+
+        % NOTE: We need to remove the factor due to the discretization here
+        % since it is already included in our quadrature weights.
+        nrms = 1/(sqrt(prod(basis.sz)))*basis_norm_2d(basis, ell, [1:basis.k_max(ell+1)])';
+
+        radial_ell = bsxfun(@times, radial_ell, 1./nrms);
+
+        precomp.radial(:,idx) = radial_ell;
+
+        ind = ind + numel(idx);
+    end
+
+    n_theta = ceil(16*basis.c*basis.R);
+    n_theta = (n_theta + mod(n_theta, 2))/2;
+
+    % Only calculate "positive" frequencies in one half-plane.
+    freqs_x = precomp.r*cos([0:n_theta-1]*2*pi/(2*n_theta));
+    freqs_y = precomp.r*sin([0:n_theta-1]*2*pi/(2*n_theta));
+
+    precomp.freqs = cat(1, permute(freqs_x, [3 1 2]), permute(freqs_y, [3 1 2]));
+end
+
+function x = ffb_evaluate(v, basis)
+    basis_check_evaluate(v, basis);
+
+    n_theta = size(basis.precomp.freqs, 3);
+    n_r = size(basis.precomp.freqs, 2);
+    n_data = size(v, 2);
+
+    % TODO: Rename. This is not actually the polar FT.
+    pf = zeros([n_r 2*n_theta n_data], class(v));
+
+    mask = (basis.indices.ells == 0);
+
+    ind = 1;
+
+    idx = ind + [0:basis.k_max(1)-1];
+
+    pf(:,1,:) = basis.precomp.radial(:,idx)*v(mask,:);
+
+    ind = ind + numel(idx);
+
+    ind_pos = ind;
+
+    for ell = 1:basis.ell_max
+        idx = ind + [0:basis.k_max(ell+1)-1];
+
+        idx_pos = ind_pos + [0:basis.k_max(ell+1)-1];
+        idx_neg = idx_pos + basis.k_max(ell+1);
+
+        v_ell = (v(idx_pos,:) - 1i*v(idx_neg,:))/2;
+
+        if mod(ell, 2) == 1
+            v_ell = 1i*v_ell;
+        end
+
+        pf_ell = basis.precomp.radial(:,idx)*v_ell;
+        pf(:,ell+1,:) = pf_ell;
+
+        if mod(ell, 2) == 0
+            pf(:,end-ell+1,:) = conj(pf_ell);
+        else
+            pf(:,end-ell+1,:) = -conj(pf_ell);
+        end
+
+        ind = ind + numel(idx);
+
+        ind_pos = ind_pos + 2*basis.k_max(ell+1);
+    end
+
+    pf = 2*pi*ifft(pf, [], 2);
+
+    % Only need "positive" frequencies.
+    pf = pf(:,1:end/2,:);
+
+    pf = bsxfun(@times, pf, basis.precomp.w.*basis.precomp.r);
+
+    pf = reshape(pf, [n_r*n_theta n_data]);
+    freqs = reshape(basis.precomp.freqs, [2 n_r*n_theta]);
+
+    x = 2*real(anufft2(pf, 2*pi*freqs, basis.sz));
+end
+
+function v = ffb_evaluate_t(x, basis)
+    basis_check_expand(x, basis);
+
+    n_theta = size(basis.precomp.freqs, 3);
+    n_r = size(basis.precomp.freqs, 2);
+    n_data = size(x, 3);
+
+    freqs = reshape(basis.precomp.freqs, [2 n_r*n_theta]);
+    pf = nufft2(x, 2*pi*freqs);
+    pf = reshape(pf, [n_r n_theta n_data]);
+
+    % Recover "negative" frequencies from "positive" half plane.
+    pf = cat(2, pf, conj(pf));
+
+    pf = bsxfun(@times, pf, basis.precomp.w.*basis.precomp.r);
+
+    % TODO: Rename. This isn't actually the polar FT.
+    pf = 2*pi/(2*n_theta)*fft(pf, [], 2);
+
+    % This only makes it easier to slice the array later.
+    pf = permute(pf, [1 3 2]);
+
+    v = zeros([basis.count n_data], class(x));
+
+    ind = 1;
+
+    idx = ind + [0:basis.k_max(1)-1];
+
+    mask = (basis.indices.ells == 0);
+
+    v(mask,:) = basis.precomp.radial(:,idx)'*real(pf(:,:,1));
+
+    ind = ind + numel(idx);
+
+    ind_pos = ind;
+
+    for ell = 1:basis.ell_max
+        idx = ind + [0:basis.k_max(ell+1)-1];
+
+        idx_pos = ind_pos + [0:basis.k_max(ell+1)-1];
+        idx_neg = idx_pos + basis.k_max(ell+1);
+
+        v_ell = basis.precomp.radial(:,idx)'*pf(:,:,ell+1);
+
+        if mod(ell, 2) == 0
+            v_pos = real(v_ell);
+            v_neg = -imag(v_ell);
+        else
+            v_pos = imag(v_ell);
+            v_neg = real(v_ell);
+        end
+
+        v(idx_pos,:) = v_pos;
+        v(idx_neg,:) = v_neg;
+
+        ind = ind + numel(idx);
+
+        ind_pos = ind_pos + 2*basis.k_max(ell+1);
+    end
+end
+
+function v = ffb_expand(x, basis)
+    basis_check_expand(x, basis);
+
+    [x, sz_roll] = unroll_dim(x, numel(basis.sz)+1);
+
+    b = basis.evaluate_t(x);
+
+    A = @(v)(basis.evaluate_t(basis.evaluate(v)));
+
+    % TODO: Check that this tolerance make sense for multiple columns in x
+
+    cg_opt.max_iter = Inf;
+    cg_opt.rel_tolerance = 10*eps(class(x));
+    cg_opt.verbose = 0;
+
+    v = conj_grad(A, b, cg_opt);
+
+    v = roll_dim(v, sz_roll);
+end
