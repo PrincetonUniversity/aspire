@@ -28,7 +28,8 @@ for i = 1:nChunks
     end
     Nnorm = (bsxfun(@plus,sum(abs(x_c_extend(:,currIdx).').^2,2),sum(abs(x_c_origin.').^2,2).'));
     Zcurr = exp(-( bsxfun(@minus,Nnorm,2*real(fft(Zcurr,nTheta,3))) )/W_eps);
-
+    Zcurr = Zcurr + eps; % Prevents zero rows due to outliers.
+    
     Zcurr = fft(Zcurr,nTheta,3);
     Zcurr = Zcurr(:,:,1:fftLen);
     

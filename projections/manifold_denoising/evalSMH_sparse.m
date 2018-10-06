@@ -38,6 +38,7 @@ for j = 1:nChunks
     diagInd = logical(eye(N));
     diagInd = repmat(diagInd(currIdx,:),1,1,size(W,3));
     W(diagInd) = 0;
+    W = W + eps; % Prevents zero rows due to outliers.
     %% Construct nearest-neighbour weight matrix
     W0_curr = sum(W,3);
     [~,sortIdx] = sort(W0_curr.','descend'); sortIdx=sortIdx.';
