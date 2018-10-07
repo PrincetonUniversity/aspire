@@ -37,7 +37,7 @@ n_r=65;
 % Find common lines from projections
 max_shift=0;
 shift_step=1;
-clstack = commonlines_gaussian(npf,max_shift,shift_step);
+clstack = cryo_clmatrix(npf,-1,1,max_shift,shift_step);
 prop=comparecl( clstack, ref_clstack, n_theta, 10 );
 fprintf('Percentage of correct common lines: %f%%\n\n',prop*100);
 

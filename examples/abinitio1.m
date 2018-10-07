@@ -48,8 +48,7 @@ n_r=33;
 % equal ceil(2*sqrt(2)*d).  
 max_shift = 15;
 shift_step = 1;
-[ clstack,~, shift_equations,~] = ...
-    commonlines_gaussian(npf,max_shift,shift_step );
+[clstack,~,shift_equations]= cryo_clmatrix(npf,-1,1,max_shift,shift_step);
 
 % Compare common lines computed from projections to the reference common
 % lines. A common line is considered correctly-identified if it deviates
@@ -62,8 +61,9 @@ fprintf('Percentage of correct common lines: %f%%\n\n',prop*100);
 % The resulting MSE should be small (of the order of 1e-4).
 
 log_message('Estimating orientations of projections');
-[est_inv_rots] = est_orientations_LS(clstack, n_theta);
-fprintf('MSE of the estimated rotations: %f\n\n', ...
+S=cryo_syncmatrix_vote(clstack,n_theta);
+[est_inv_rots,diff,mse]=cryo_syncrotations(S,rots);
+fprintf('MSE of the estimated rotations: %5.2e\n\n', ...
     check_MSE(est_inv_rots,rots));
 
 
@@ -84,3 +84,8 @@ fname='example1.mrc';
 WriteMRC(v,1,fname); % Output density map reconstructed from projections.
 log_message('Reconstructed density saved to %s',fname);
 log_message('Done!');
+ 
+% load('cleanrib.mat','volref');
+% WriteMRC(volref,1,'volref.mrc');
+% cryo_compare_volumes('example1.mrc','volref.mrc',0.5,1,1);
+% delete('volref.mrc');
