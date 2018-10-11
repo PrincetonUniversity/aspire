@@ -92,10 +92,6 @@ function basis = ffb_basis(sz, ell_max, domain)
         domain = 1;
     end
 
-    if numel(sz) ~= 2
-        error('Only two-dimensional basis function is supported.');
-    end
-
     if ~all(sz == sz(1))
         error('Only square/cubic domains are supported.');
     end
@@ -143,6 +139,8 @@ function basis = ffb_basis(sz, ell_max, domain)
 
     if d == 2
         basis.count = k_max(1) + sum(2*k_max(2:end));
+    elseif d == 3
+        basis.count = sum(k_max.*(2*[0:ell_max]'+1));
     end
 
     basis.ell_max = ell_max;
@@ -246,7 +244,13 @@ function indices = fb_indices(basis)
 end
 
 function precomp = ffb_precomp(basis)
-    precomp = ffb_precomp_2d(basis);
+    d = numel(basis.sz);
+
+    if d == 2
+        precomp = ffb_precomp_2d(basis);
+    elseif d == 3
+        precomp = ffb_precomp_3d(basis);
+    end
 end
 
 function precomp = ffb_precomp_2d(basis)
@@ -287,10 +291,100 @@ function precomp = ffb_precomp_2d(basis)
     precomp.freqs = cat(1, permute(freqs_x, [3 1 2]), permute(freqs_y, [3 1 2]));
 end
 
+function precomp = ffb_precomp_3d(basis)
+    precomp = struct();
+
+    n_r = basis.sz(1);
+    n_theta = 2*basis.sz(1);
+    n_phi = basis.sz(1);
+
+    [r, wt_r] = lgwt(n_r, 0, 1/2);
+    [z, wt_z] = lgwt(n_phi, -1, 1);
+    phi = acos(z);
+    wt_phi = wt_z;
+    theta = 2*pi*[0:n_theta-1]'/(2*n_theta);
+
+    precomp.radial_wtd = zeros([n_r max(basis.k_max) basis.ell_max+1]);
+    for ell = 0:basis.ell_max
+        k_max_ell = basis.k_max(ell+1);
+
+        radial_ell = sph_bessel(ell, 2*r*basis.r0(1:k_max_ell,ell+1)');
+        nrm = abs(sph_bessel(ell+1, basis.r0(1:k_max_ell,ell+1)')/4);
+        radial_ell = bsxfun(@times, radial_ell, 1./nrm);
+
+        radial_ell_wtd = bsxfun(@times, r.^2.*wt_r, radial_ell);
+
+        precomp.radial_wtd(:,1:k_max_ell,ell+1) = radial_ell_wtd;
+    end
+
+    precomp.angular_phi_wtd_even = {};
+    precomp.angular_phi_wtd_odd = {};
+
+    for m = 0:basis.ell_max
+        n_even_ell = floor((basis.ell_max-m)/2)+1 ...
+            -mod(basis.ell_max, 2)*mod(m, 2);
+        n_odd_ell = basis.ell_max-m+1-n_even_ell;
+
+        angular_phi_wtd_m_even = zeros(n_phi, n_even_ell);
+        angular_phi_wtd_m_odd = zeros(n_phi, n_odd_ell);
+
+        ind_even = 1;
+        ind_odd = 1;
+
+        for ell = m:basis.ell_max
+            angular_phi_m_ell = norm_assoc_legendre(ell, m, cos(phi));
+
+            nrm_inv = sqrt(1/(2*pi));
+            angular_phi_m_ell = angular_phi_m_ell*nrm_inv;
+
+            angular_phi_wtd_m_ell = wt_phi.*angular_phi_m_ell;
+
+            if mod(ell, 2) == 0
+                angular_phi_wtd_m_even(:,ind_even) = ...
+                    angular_phi_wtd_m_ell;
+                ind_even = ind_even+1;
+            else
+                angular_phi_wtd_m_odd(:,ind_odd) = ...
+                    angular_phi_wtd_m_ell;
+                ind_odd = ind_odd+1;
+            end
+        end
+
+        precomp.angular_phi_wtd_even{m+1} = angular_phi_wtd_m_even;
+        precomp.angular_phi_wtd_odd{m+1} = angular_phi_wtd_m_odd;
+    end
+
+    angular_theta = zeros(n_theta, 2*basis.ell_max+1);
+
+    angular_theta(:,1:basis.ell_max) = ...
+        sqrt(2)*sin(theta*[basis.ell_max:-1:1]);
+    angular_theta(:,basis.ell_max+1) = ones(n_theta, 1);
+    angular_theta(:,basis.ell_max+2:2*basis.ell_max+1) = ...
+        sqrt(2)*cos(theta*[1:basis.ell_max]);
+
+    angular_theta_wtd = 2*pi/n_theta*angular_theta;
+
+    precomp.angular_theta_wtd = angular_theta_wtd;
+
+    [theta_grid, phi_grid, r_grid] = ndgrid(theta, phi, r);
+
+    fourier_x = r_grid .* cos(theta_grid) .* sin(phi_grid);
+    fourier_y = r_grid .* sin(theta_grid) .* sin(phi_grid);
+    fourier_z = r_grid .* cos(phi_grid);
+
+    precomp.fourier_pts = 2*pi*[fourier_x(:) fourier_y(:) fourier_z(:)]';
+end
+
 function x = ffb_evaluate(v, basis)
     basis_check_evaluate(v, basis);
 
-    x = ffb_evaluate_2d(v, basis);
+    d = numel(basis.sz);
+
+    if d == 2
+        x = ffb_evaluate_2d(v, basis);
+    elseif d == 3
+        x = ffb_evaluate_3d(v, basis);
+    end
 end
 
 function x = ffb_evaluate_2d(v, basis)
@@ -352,10 +446,106 @@ function x = ffb_evaluate_2d(v, basis)
     x = 2*real(anufft2(pf, 2*pi*freqs, basis.sz));
 end
 
+function x = ffb_evaluate_3d(v, basis)
+    n_data = size(v, 2);
+
+    n_r = size(basis.precomp.radial_wtd, 1);
+    n_phi = size(basis.precomp.angular_phi_wtd_even{1}, 1);
+    n_theta = size(basis.precomp.angular_theta_wtd, 1);
+
+    u_even = zeros( ...
+        [n_r 2*basis.ell_max+1 n_data floor(basis.ell_max/2)+1], class(v));
+    u_odd = zeros( ...
+        [n_r 2*basis.ell_max+1 n_data ceil(basis.ell_max/2)], class(v));
+
+    for ell = 0:basis.ell_max
+        k_max_ell = basis.k_max(ell+1);
+
+        radial_wtd = basis.precomp.radial_wtd(:,1:k_max_ell,ell+1);
+
+        % TODO: Fix this to avoid lookup each time.
+        ind = (basis.indices.ells == ell);
+
+        v_ell = reshape(v(ind,:), [k_max_ell (2*ell+1)*n_data]);
+
+        v_ell = radial_wtd*v_ell;
+
+        v_ell = reshape(v_ell, [n_r 2*ell+1 n_data]);
+
+        if mod(ell, 2) == 0
+            u_even(:,[-ell:ell]+basis.ell_max+1,:,ell/2+1) = v_ell;
+        else
+            u_odd(:,[-ell:ell]+basis.ell_max+1,:,(ell-1)/2+1) = v_ell;
+        end
+    end
+
+    u_even = permute(u_even, [4 1 2 3]);
+    u_odd = permute(u_odd, [4 1 2 3]);
+
+    w_even = zeros([n_phi n_r n_data 2*basis.ell_max+1], class(v));
+    w_odd = zeros([n_phi n_r n_data 2*basis.ell_max+1], class(v));
+
+    for m = 0:basis.ell_max
+        angular_phi_wtd_m_even = basis.precomp.angular_phi_wtd_even{m+1};
+        angular_phi_wtd_m_odd = basis.precomp.angular_phi_wtd_odd{m+1};
+
+        n_even_ell = size(angular_phi_wtd_m_even, 2);
+        n_odd_ell = size(angular_phi_wtd_m_odd, 2);
+
+        if m == 0
+            sgns = 1;
+        else
+            sgns = [1 -1];
+        end
+
+        for sgn = sgns
+            u_m_even = u_even(end-n_even_ell+1:end,:,basis.ell_max+1+sgn*m,:);
+            u_m_odd = u_odd(end-n_odd_ell+1:end,:,basis.ell_max+1+sgn*m,:);
+
+            u_m_even = reshape(u_m_even, [n_even_ell n_r*n_data]);
+            u_m_odd = reshape(u_m_odd, [n_odd_ell n_r*n_data]);
+
+            w_m_even = angular_phi_wtd_m_even*u_m_even;
+            w_m_odd = angular_phi_wtd_m_odd*u_m_odd;
+
+            w_m_even = reshape(w_m_even, [n_phi n_r n_data]);
+            w_m_odd = reshape(w_m_odd, [n_phi n_r n_data]);
+
+            w_even(:,:,:,basis.ell_max+1+sgn*m) = w_m_even;
+            w_odd(:,:,:,basis.ell_max+1+sgn*m) = w_m_odd;
+        end
+    end
+
+    w_even = permute(w_even, [4 1 2 3]);
+    w_odd = permute(w_odd, [4 1 2 3]);
+
+    u_even = w_even;
+    u_odd = w_odd;
+
+    u_even = reshape(u_even, [2*basis.ell_max+1 n_phi*n_r*n_data]);
+    u_odd = reshape(u_odd, [2*basis.ell_max+1 n_phi*n_r*n_data]);
+
+    w_even = basis.precomp.angular_theta_wtd*u_even;
+    w_odd = basis.precomp.angular_theta_wtd*u_odd;
+
+    pf = w_even + 1i*w_odd;
+    pf = reshape(pf, [n_theta*n_phi*n_r n_data]);
+
+    x = real(anufft3(pf, basis.precomp.fourier_pts, basis.sz));
+
+    x = cast(x, class(v));
+end
+
 function v = ffb_evaluate_t(x, basis)
     basis_check_expand(x, basis);
 
-    v = ffb_evaluate_t_2d(x, basis);
+    d = numel(basis.sz);
+
+    if d == 2
+        v = ffb_evaluate_t_2d(x, basis);
+    elseif d == 3
+        v = ffb_evaluate_t_3d(x, basis);
+    end
 end
 
 function v = ffb_evaluate_t_2d(x, basis)
@@ -414,6 +604,93 @@ function v = ffb_evaluate_t_2d(x, basis)
         ind = ind + numel(idx);
 
         ind_pos = ind_pos + 2*basis.k_max(ell+1);
+    end
+end
+
+function v = ffb_evaluate_t_3d(x, basis)
+    n_data = size(x, 4);
+
+    n_r = size(basis.precomp.radial_wtd, 1);
+    n_phi = size(basis.precomp.angular_phi_wtd_even{1}, 1);
+    n_theta = size(basis.precomp.angular_theta_wtd, 1);
+
+    pf = nufft3(x, basis.precomp.fourier_pts);
+
+    pf = cast(pf, class(x));
+
+    pf = reshape(pf, [n_theta n_phi*n_r*n_data]);
+
+    u_even = basis.precomp.angular_theta_wtd'*real(pf);
+    u_odd = basis.precomp.angular_theta_wtd'*imag(pf);
+
+    u_even = reshape(u_even, [2*basis.ell_max+1 n_phi n_r n_data]);
+    u_odd = reshape(u_odd, [2*basis.ell_max+1 n_phi n_r n_data]);
+
+    u_even = permute(u_even, [2 3 4 1]);
+    u_odd = permute(u_odd, [2 3 4 1]);
+
+    w_even = zeros( ...
+        [floor(basis.ell_max/2)+1 n_r 2*basis.ell_max+1 n_data], class(x));
+    w_odd = zeros( ...
+        [ceil(basis.ell_max/2) n_r 2*basis.ell_max+1 n_data], class(x));
+
+    for m = 0:basis.ell_max
+        angular_phi_wtd_m_even = basis.precomp.angular_phi_wtd_even{m+1};
+        angular_phi_wtd_m_odd = basis.precomp.angular_phi_wtd_odd{m+1};
+
+        n_even_ell = size(angular_phi_wtd_m_even, 2);
+        n_odd_ell = size(angular_phi_wtd_m_odd, 2);
+
+        if m == 0
+            sgns = 1;
+        else
+            sgns = [1 -1];
+        end
+
+        for sgn = sgns
+            u_m_even = u_even(:,:,:,basis.ell_max+1+sgn*m);
+            u_m_odd = u_odd(:,:,:,basis.ell_max+1+sgn*m);
+
+            u_m_even = reshape(u_m_even, [n_phi n_r*n_data]);
+            u_m_odd = reshape(u_m_odd, [n_phi n_r*n_data]);
+
+            w_m_even = angular_phi_wtd_m_even'*u_m_even;
+            w_m_odd = angular_phi_wtd_m_odd'*u_m_odd;
+
+            w_m_even = reshape(w_m_even, [n_even_ell n_r n_data]);
+            w_m_odd = reshape(w_m_odd, [n_odd_ell n_r n_data]);
+
+            w_even(end-n_even_ell+1:end,:,basis.ell_max+1+sgn*m,:) = w_m_even;
+            w_odd(end-n_odd_ell+1:end,:,basis.ell_max+1+sgn*m,:) = w_m_odd;
+        end
+    end
+
+    w_even = permute(w_even, [2 3 4 1]);
+    w_odd = permute(w_odd, [2 3 4 1]);
+
+    v = zeros([basis.count n_data], class(x));
+
+    for ell = 0:basis.ell_max
+        k_max_ell = basis.k_max(ell+1);
+
+        radial_wtd = basis.precomp.radial_wtd(:,1:k_max_ell,ell+1);
+
+        if mod(ell, 2) == 0
+            v_ell = w_even(:,[-ell:ell]+basis.ell_max+1,:,ell/2+1);
+        else
+            v_ell = w_odd(:,[-ell:ell]+basis.ell_max+1,:,(ell-1)/2+1);
+        end
+
+        v_ell = reshape(v_ell, [n_r (2*ell+1)*n_data]);
+
+        v_ell = radial_wtd'*v_ell;
+
+        v_ell = reshape(v_ell, [k_max_ell*(2*ell+1) n_data]);
+
+        % TODO: Fix this to avoid lookup each time.
+        ind = (basis.indices.ells == ell);
+
+        v(ind,:) = v_ell;
     end
 end
 
