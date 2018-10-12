@@ -28,7 +28,7 @@
 %    project it onto the Fourier-Bessel basis through
 %
 %       sz = 16*ones(1, 2);
-%       basis = fb_basis(sz, floor(sz(1)/2));
+%       basis = ffb_basis(sz, floor(sz(1)/2));
 %       x = randn(sz);
 %       v = basis.expand(x);
 %
