@@ -294,9 +294,9 @@ end
 function precomp = ffb_precomp_3d(basis)
     precomp = struct();
 
-    n_r = basis.sz(1);
+    n_r = basis.ell_max+1;
     n_theta = 2*basis.sz(1);
-    n_phi = basis.sz(1);
+    n_phi = basis.ell_max+1;
 
     [r, wt_r] = lgwt(n_r, 0, 1/2);
     [z, wt_z] = lgwt(n_phi, -1, 1);
