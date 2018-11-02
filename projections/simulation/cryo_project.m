@@ -36,7 +36,7 @@ function projections=cryo_project(volume,rot,n,precision,batch_size)
 %     rot = rand_rots(1);
 %     n=129;
 %     rmax=1;
-%     vol=cryo_gaussian_phantom_3d(n,rmax,voldef);
+%     vol=cryo_gaussian_phantom_3d(voldef,n,rmax);
 %     p=cryo_project(vol,rot);
 %     imagesc(p);
 %
