@@ -22,8 +22,8 @@ for j = 1:nChunks
 %     j/nChunks
     if dispFlag
         %clc; 
-	disp('Computing steerable graph Laplacian pair-wise affinities...');
-        disp(['Computing chunk ',num2str(j),' out of ',num2str(nChunks)]);
+	%disp('Computing steerable graph Laplacian pair-wise affinities...');
+        log_message(['Computing chunk ',num2str(j),' out of ',num2str(nChunks)]);
     end
     currIdx = ((j-1)*chunkSize+1):min(j*chunkSize,N); 
 %     W = zeros(numel(currIdx),N,max(ang_freqs)+1);
@@ -38,6 +38,7 @@ for j = 1:nChunks
     diagInd = logical(eye(N));
     diagInd = repmat(diagInd(currIdx,:),1,1,size(W,3));
     W(diagInd) = 0;
+    W = W + eps; % Prevents zero rows due to outliers.
     %% Construct nearest-neighbour weight matrix
     W0_curr = sum(W,3);
     [~,sortIdx] = sort(W0_curr.','descend'); sortIdx=sortIdx.';
@@ -74,8 +75,8 @@ D = gpuArray(1./sum(W0_sym,2));
 for i=mIdx
     if dispFlag
         %clc; 
-	disp('Evaluating the steerable manifold harmonics...');
-        disp(['Evaluating angular index ',num2str(i),' out of ',num2str(max(mIdx))]);
+	%disp('Evaluating the steerable manifold harmonics...');
+        log_message(['Evaluating angular index ',num2str(i),' out of ',num2str(max(mIdx))]);
     end
 %     i
 %     P = outOfMemFile{i+1};

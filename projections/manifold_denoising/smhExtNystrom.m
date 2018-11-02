@@ -4,6 +4,7 @@ x_c = x; clear x;
 x_c(ang_freqs~=0) = sqrt(2)*x_c(ang_freqs~=0);
 
 %% Extend eigenvectors to all points by Nystrom's method
+mIdx = (unique(ang_freqs)).';
 fftLen = max(ang_freqs)+1;
 chunkSize = 128;
 vCell_ext = vCell;
@@ -27,7 +28,8 @@ for i = 1:nChunks
     end
     Nnorm = (bsxfun(@plus,sum(abs(x_c_extend(:,currIdx).').^2,2),sum(abs(x_c_origin.').^2,2).'));
     Zcurr = exp(-( bsxfun(@minus,Nnorm,2*real(fft(Zcurr,nTheta,3))) )/W_eps);
-
+    Zcurr = Zcurr + eps; % Prevents zero rows due to outliers.
+    
     Zcurr = fft(Zcurr,nTheta,3);
     Zcurr = Zcurr(:,:,1:fftLen);
     
@@ -36,7 +38,7 @@ for i = 1:nChunks
     end
         
     D = diag(1./sum(Zcurr(:,:,1),2));
-    for j=0:max(ang_freqs)
+    for j=mIdx
         vCell_ext{j+1}(extendIdx(currIdx),:) = D*(Zcurr(:,:,j+1)*vCell{j+1}*diag(1./(1-dCell{j+1})));
     end
 end

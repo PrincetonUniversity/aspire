@@ -119,6 +119,7 @@ n_theta=size(pf,2);
 n_proj=size(pf,3);
 
 %% Check input parameters and set debug flags.
+NK=n_proj;
 if (nargin<2) || (NK==-1)
     NK=n_proj; % Number of common-line pairs to compute for each projection
 end
@@ -158,7 +159,7 @@ verbose_plot_shifts=0;
 
 if bitand(verbose,1)
     verbose_progress=1;
-end;
+end
 
 found_ref_clmatrix=0;
 if ~isscalar(ref_clmatrix) 
@@ -181,21 +182,21 @@ end
 if bitand(verbose,2)
         verbose_detailed_debugging=1;
         verbose_progress=0;
-end;
+end
 
 if bitand(verbose,4) 
     if isscalar(ref_clmatrix) 
         log_message('Common-lines plots not available. Reference clmatrix is missing\n');
     end
     verbose_plot_cl=1;
-end;
+end
 
 if bitand(verbose,8) 
     if isscalar(ref_clmatrix) || isscalar(ref_shifts_2d)
         log_message('Only partial information will be plotted. Reference clmatrix or shifts are missing\n');
     end
     verbose_plot_shifts=1;
-end;
+end
 
 if verbose~=0
     log_message('Verbose mode=%d',verbose);
@@ -292,11 +293,6 @@ end
 
 rk2=rk(1:rmax);
 for k1=1:n_proj
-    
-    n2=min(n_proj-k1,NK);
-    subsetK2=sort(randperm(n_proj-k1)+k1);
-    subsetK2=subsetK2(1:n2); % Select a subset of at most NK projections 
-        % with which to search for common-lines with projection k1. 
    
     proj1=pf3(:,:,k1);
     P1=proj1(1:rmax,:);  % Take half ray plus the DC
@@ -308,7 +304,7 @@ for k1=1:n_proj
         error('DC component of projection is not zero');
     end
     
-    for k2=subsetK2
+    for k2=k1+1:n_proj 
         
         t1=clock;                       
         proj2=pf3(:,:,k2); % proj1 and proj2 are both normalized to unit norm.
@@ -514,7 +510,7 @@ for k1=1:n_proj
 
                 text(px(2)*0.4,py(2)*0.7,str,'EdgeColor','k')
                 hold off;                                
-            end;
+            end
             %%%%%%%%%%%% End of debug code %%%%%%%%%%%%
         end
 
@@ -750,8 +746,8 @@ for k1=1:n_proj
             msg=sprintf('k1=%3d/%3d  k2=%3d/%3d  t=%7.5f',k1,n_proj,k2,n_proj,t);
             fprintf('%s',msg);
         end
-    end;
-end;
+    end
+end
 
 
 if verbose_progress
@@ -806,7 +802,7 @@ if verbose_detailed_debugging
         end
     else
         log_message('Not computing SVD of shifts matrix -- matrix is too big');
-    end;
+    end
 end
 
 function y=enforce_real(x)

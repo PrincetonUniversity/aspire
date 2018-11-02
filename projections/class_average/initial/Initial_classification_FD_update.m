@@ -43,6 +43,11 @@ log_message('Start computing bispectrum');
 [ Coeff_b, Coeff_b_r, toc_bispec ] = Bispec_2Drot_large( Coeff, Freqs, eigval );
 log_message('Finished computing bispectrum');
 
+% Until sparse operations are supported in single, we need to make sure
+% they are double.
+Coeff_b=double(Coeff_b);
+Coeff_b_r=double(Coeff_b_r);
+
 if n_im<=10000
     %%For small dataset, search for nearest neighbors
     log_message('Number of images less than 10000. Computing nearest neighbors directly.');

@@ -6,12 +6,13 @@
 % Input
 %    kernel_f: The original kernel in Fourier of size 2N-by-2N-by-... that is
 %       to be approximated by a circular convolution kernel of size
-%       N-by-N-by-... .
+%       N-by-N-by-... . The Fourier transform is expected to be centered.
 %
 % Output
 %    kernel_circ_f: A convolution kernel in Fourier of size N-by-N-by-...
 %       corresponding to the circular approximation of kernel_f that is
-%       optimal in the Frobenius norm of the convolution operator.
+%       optimal in the Frobenius norm of the convolution operator. The Fourier
+%       transform is centered.
 %
 % Note
 %    This approximation corresponds to the "optimal preconditioner" described
@@ -20,14 +21,18 @@
 function kernel_circ_f = circularize_kernel_f(kernel_f)
     dims = ndims(kernel_f);
 
-    kernel = mdim_fftshift(ifftn(kernel_f), 1:dims);
+    kernel_f = mdim_ifftshift(kernel_f, 1:dims);
+    kernel = ifftn(kernel_f);
+    kernel = mdim_fftshift(kernel, 1:dims);
 
     kernel_circ = kernel;
     for dim = 1:dims
         kernel_circ = circularize_kernel_1d(kernel_circ, dim);
     end
 
-    kernel_circ_f = fftn(mdim_ifftshift(kernel_circ, 1:dims));
+    kernel_circ = mdim_ifftshift(kernel_circ, 1:dims);
+    kernel_circ_f = fftn(kernel_circ);
+    kernel_circ_f = mdim_fftshift(kernel_circ_f, 1:dims);
 end
 
 function kernel_circ = circularize_kernel_1d(kernel, dim)

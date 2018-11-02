@@ -17,6 +17,11 @@ function [ Coeff_b, Coeff_b_r, toc_bispec ] = Bispec_2Drot_large( Coeff, Freqs, 
 %
 %   Zhizhen Zhao Aug 2013
 
+% Cast to double since sparse operations are not allowed in single
+% precision.
+precision=class(Coeff);
+Coeff=double(Coeff);
+
 tic_bispec=tic;
 alpha=1/3; %modify the amplitude for each component.
 Coeff_norm=(abs(Coeff(Freqs~=0, :))).^(alpha);
@@ -60,6 +65,7 @@ O2 = O2(M_id, :);
 M=exp(O1*Coeff_norm+sqrt(-1)*O2*Phase);
 
 %% svd of the reduced bispectrum
+M=cast(M,precision);
 [ U, S, V ] = pca_Y( M, 300 );
 %disp('PCA done');
 Coeff_b = S*V';

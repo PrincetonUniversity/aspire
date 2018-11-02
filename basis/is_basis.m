@@ -8,7 +8,7 @@
 %
 % Output
 %    b: True is `basis` is a basis object, such as those returned by
-%       `dirac_basis` or `fourier_bessel_basis`.
+%       `dirac_basis` or `fb_basis`.
 
 function b = is_basis(basis)
     b = true;

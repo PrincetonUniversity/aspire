@@ -193,17 +193,17 @@ parfor j=1:length(list_recon)
         log_message('Written %s',mrcname);
     end
 
-    % Debug. Remove once done.
-    img_name=sprintf('img_%05d.mrcs',j);
-    im=zeros(size(image1,1),size(image1,2),4);
-    im(:,:,1)=image1;
-    im(:,:,2)=average;
-    if use_EM
-        im(1:size(avg_em,1),1:size(avg_em,1),3)=avg_em; % Save the downsampled average
-        im(:,:,4)=im_avg_est_orig;
-    end
-    WriteMRC(im,1,img_name);
-    % End debug.
+%     % Debug. Remove once done.
+%     img_name=sprintf('img_%05d.mrcs',j);
+%     im=zeros(size(image1,1),size(image1,2),4);
+%     im(:,:,1)=image1;
+%     im(:,:,2)=average;
+%     if use_EM
+%         im(1:size(avg_em,1),1:size(avg_em,1),3)=avg_em; % Save the downsampled average
+%         im(:,:,4)=im_avg_est_orig;
+%     end
+%     WriteMRC(im,1,img_name);
+%     % End debug.
 end
 
 % Merge all averages into a single file.
