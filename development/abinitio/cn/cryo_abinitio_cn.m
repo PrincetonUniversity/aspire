@@ -17,14 +17,32 @@ cache_file_name = '/home/gabip/matlabProjects/aspire/aspire/development/abinitio
 % % down_siz = 89; 
 % % pixA = 1.3*256/down_siz;
 
-%
-n_symm = 11;
-empiar_code_string = '10063';
-emdb_code = 6458;
-mrc_stack_file = '/home/yoel/scratch/10063/aspire/ring11/averages_nn15_group1.mrc';
-down_siz = 89;
-pixA = 0.86*448/down_siz;
+% % %
+% n_symm = 11;
+% empiar_code_string = '10063';
+% emdb_code = 6458;
+% mrc_stack_file = '/home/yoel/scratch/10063/aspire/ring11/averages_nn50_group1.mrc';
+% down_siz = 89;
+% pixA = 0.86*448/down_siz;
 
+
+
+
+% %
+% %     instack = '10004_averages_nn100_selected_small.mrcs';
+% n_symm = 3;
+% empiar_code_string = '10004';
+% emdb_code = 2484;
+% mrc_stack_file = '/home/yoel/scratch/10004/averages_nn100_selected.mrcs';
+% mask_radius_perc = 50;
+% down_siz = 89;
+% pixA = 2.16*127/down_siz;
+% %     xml_file = '/home/yoel/scratch/10004/aspire/EMPIAR1004symC3.xml';
+
+
+n_symm = 7;
+empiar_code_string = 'GroEL';
+mrc_stack_file = '/scratch/yoel/ranz/aspire89/averages_nn100_group2.mrc';
 
 recon_folder = '/home/gabip/matlabProjects/aspire/aspire/development/abinitio/cn/results';
 recon_mrc_fname = fullfile(recon_folder,sprintf('%s_out.mrc',empiar_code_string));
@@ -37,19 +55,6 @@ cryo_abinitio_cn_execute(cache_file_name,n_symm,mrc_stack_file,recon_mrc_fname,r
 
 close_log();
 
-
-%%
-% %     instack = '10004_averages_nn100_selected_small.mrcs';
-% n_symm = 3;
-% instack = '/home/yoel/scratch/10004/averages_nn100_selected.mrcs';
-% mask_radius_perc = 50;
-% recon_folder = './results_tmp_C3';
-% empiar_code_string = '10004';
-% emdb_code = 2484;
-% down_siz = 89;
-% pixA = 2.16*127/down_siz;
-% %     xml_file = '/home/yoel/scratch/10004/aspire/EMPIAR1004symC3.xml';
-% 
 
 % cryo_abinitio_C4('/home/yoel/scratch/fred/aspire89/averages_nn100_group1.mrc','fred_c4_89_nn100_grp1_2000_linspace.mrc','fred_c4_89_nn100_grp1_2000_linspace.mat',2000);
 % clear; close all;

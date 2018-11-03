@@ -1,5 +1,6 @@
-function [err_in_degrees,mse] = cryo_abinitio_cn_test_execute(cache_file_name,n_symm,n_theta,recon_mrc_fname,snr,n_images,n_r_perc,...
-    max_shift_perc,shift_step,mask_radius_perc,inplane_rot_res)
+function [err_in_degrees,mse,vol_filename,vol_filt_file_name,vol_no_filt_file_name] = ...
+    cryo_abinitio_cn_test_execute(cache_file_name,n_symm,n_theta,recon_mrc_fname,snr,...
+    n_images,n_r_perc,max_shift_perc,shift_step,mask_radius_perc,inplane_rot_res)
 
 [folder_recon_mrc_fname, ~, ~] = fileparts(recon_mrc_fname);
 if ~isempty(folder_recon_mrc_fname)  && exist(folder_recon_mrc_fname,'file') ~= 7
@@ -84,14 +85,15 @@ if(n_symm==3 || n_symm==4)
     [vijs,viis,npf,projs,refq] = compute_third_row_outer_prod_c34(n_symm,npf,max_shift_1d,shift_step,'',...
         projs,is_remove_non_rank1,non_rank1_remov_percent,refq);
 else
+    log_message('Computing all relative viewing directions for n>4');
     [vijs,viis,~] = compute_third_row_outer_prod_cn(npf,n_symm,max_shift,shift_step,cache_file_name,refq);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 7  : outer J-synchronization
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+log_message('Handedness synchronization');
 [vijs,viis] = global_sync_J(vijs,viis);
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 8  : third rows estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -100,8 +102,8 @@ vis = estimate_third_rows(vijs,viis,is_conjugate_with_vii);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 9  : in-plane rotations angles estimation
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+log_message('In plane angles estimation');
 rots =      estimate_inplane_rotations(npf,vis,n_symm,inplane_rot_res,max_shift,shift_step);
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 10  : Results Analysis
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -110,8 +112,9 @@ rots =      estimate_inplane_rotations(npf,vis,n_symm,inplane_rot_res,max_shift,
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 11  : Reconstructing volume
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+log_message('Reconstructing volume');
 estimatedVol = reconstruct_cn(projs,rot_alligned,n_symm,n_r,n_theta); % supply max_shift_2d or max_shift_1d ?
 
-save_vols(estimatedVol,recon_mrc_fname,n_symm);
+[vol_filename,vol_filt_file_name,vol_no_filt_file_name] = save_vols(estimatedVol,recon_mrc_fname,n_symm);
 
 end

@@ -1,4 +1,4 @@
-function save_vols(vol,vol_filename,n_symm)
+function [vol_filename,vol_filt_file_name,vol_no_filt_file_name] = save_vols(vol,vol_filename,n_symm)
 
 vol_filt    = make_vol_cn(vol,n_symm,true);
 vol_no_filt = make_vol_cn(vol,n_symm,false);

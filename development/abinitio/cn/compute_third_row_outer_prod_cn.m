@@ -692,7 +692,7 @@ function inds_eq_images = detect_equator_images(npf,max_shift,res_factor,fractio
 %   npf             A 3d table containing the 2-d fourier transform of each
 %                   projection image (nImages is the size of the third dimension)
 %   max_shift       (Optional) The maximum spatial shift that each image is
-%                   assumed to have. Default:15
+%                   assumed to have. Default:16
 %   res_factor      (Optional) Angular resolution factor that each image
 %                   should undergo. For example if res_factor=10 then all
 %                   values along angles 0-9 are concatenated (and same for 10-19,20-29, etc)

@@ -24,7 +24,6 @@ if do_save_res_to_mat
     log_message('Saving clmatrix to %s',recon_mat_fname);
     save(recon_mat_fname,'clmatrix','-append');
 end
-
 if is_simulation
     cl_detection_rate_c3_c4(n_symm,clmatrix,n_theta,refq);
 end
@@ -33,11 +32,11 @@ end
 % step 2  : detect self-common-lines in each image
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 if n_symm == 3
-    is_handle_equator_ims = false;
+    is_handle_equator_ims = false;	
 else
     is_handle_equator_ims = true;
 end
-sclmatrix = cryo_self_clmatrix_gpu_c3_c4(n_symm,npf,max_shift,shift_step,is_handle_equator_ims);
+sclmatrix = cryo_self_clmatrix_gpu_c3_c4(n_symm,npf,max_shift,shift_step,is_handle_equator_ims,refq);
 if do_save_res_to_mat
     log_message('Saving sclmatrix to %s',recon_mat_fname);
     save(recon_mat_fname,'sclmatrix','-append');
@@ -62,6 +61,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 5  : inner J-synchronization
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+log_message('Local J-synchronization');
 [vijs,viis,im_inds_to_remove,pairwise_inds_to_remove,...
     npf,projs,refq] = local_sync_J_c3_c4(n_symm,Rijs,Riis,npf,projs,is_remove_non_rank1,non_rank1_remov_percent,refq);
 if do_save_res_to_mat
@@ -107,7 +107,6 @@ function [sclmatrix,correlations,shifts] = cryo_self_clmatrix_gpu_c3_c4(n_symm,n
 %                           holds the shift found for image i
 
 log_message('detecting self-common-lines');
-
 if n_symm ~= 3 && n_symm ~= 4
     error('n_symm may be either 3 or 4');
 end
@@ -242,9 +241,15 @@ if is_handle_equator_ims
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % step 2  : detect equator images
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    max_shift = 15;
-    inds_eq_images = detect_equator_images(npf,max_shift,equator_res_fact,...
-        equator_fraction);
+%     max_shift = 15;
+    inds_eq_images = detect_equator_images_orig(npf,5,shift_step,equator_res_fact,...
+        equator_fraction,refq);
+    
+  
+    %inds_eq_images = detect_equator_images(npf,max_shift,shift_step,equator_res_fact,...
+     %   equator_fraction,refq);
+    
+    
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % % Step 3: detect self-common-lines for all equator images
@@ -281,7 +286,7 @@ end
 end
 
 
-function inds_eq_images = detect_equator_images(npf,max_shift,res_factor,fraction,refq)
+function inds_eq_images = detect_equator_images_orig(npf,max_shift,shift_step,res_factor,fraction,refq)
 %
 % Finds the images who's corresponding beaming direction is close to
 % (*,#,eps)^T where eps is a small number and *,# are any two numbers. It
@@ -430,6 +435,167 @@ end
 
 end
 
+
+
+
+function inds_eq_images = detect_equator_images(npf,max_shift,shift_step,res_factor,fraction,refq)
+%
+% Finds the images who's corresponding beaming direction is close to
+% (*,#,eps)^T where eps is a small number and *,# are any two numbers. It
+% is based on the fact that equator images of a C4 symmetric molecule
+% have a reflection symmetry about the horizontal axis. That is, im(:,theta) = im(:,-theta)
+%
+%
+% Input parameters:
+%   npf             A 3d table containing the 2-d fourier transform of each
+%                   projection image (nImages is the size of the third dimension)
+%   max_shift       (Optional) The maximum spatial shift that each image is
+%                   assumed to have. Default:15
+%   res_factor      (Optional) Angular resolution factor that each image
+%                   should undergo. For example if res_factor=10 then all
+%                   values along angles 0-9 are concatenated (and same for 10-19,20-29, etc)
+%   fraction        (Optional) the fraction of input images 
+%                   to decalare as equator images. Defualt=0.1
+%   refq            (Optional) A 2d table where the i-th column is the
+%                   quaternion that corresponds to the beaming direction of
+%                   the i-th image.
+%
+%
+% Output parameters:
+%   inds_eq_images  The indexes of equator images found. The number of
+%                   indexes is fraction*nImages
+%
+
+log_message('Detecting equator images');
+
+if ~exist('removal_frac','var')
+    fraction = 0.1;
+end
+
+if ~exist('res_factor','var')
+    res_factor = 10;
+end
+
+[n_r,n_theta,nImages] = size(npf);
+
+% nshifts = (2*max_shift+1)^2;
+
+shift_phases = calc_shift_phases(n_r,max_shift,shift_step);
+g_shift_phases = gpuArray(single(shift_phases));
+[~,nshifts] = size(shift_phases);
+
+% shifted_deltas = zeros(n_r,n_r,nshifts);
+% i_shift = 1;
+% for s_x = -max_shift:max_shift
+%     for s_y  = -max_shift:max_shift
+%         shifted_deltas(ceil(n_r/2)+s_x,...
+%             ceil(n_r/2)+s_y,...
+%             i_shift) = 1;
+%         i_shift = i_shift + 1;
+%     end
+% end
+% [phases,~] = cryo_pft(shifted_deltas, n_r, n_theta, 'single');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Step 3: detect the equotor images
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+images_score = zeros(1,nImages);
+% Phases = gpuArray(single(phases));
+msg = [];
+
+for i_img = 1:nImages
+    
+    t1 = clock;
+    
+    pim = npf(:,:,i_img);
+    g_pim = gpuArray(single(pim));
+    
+    g_pim_shifted = zeros([n_r,n_theta,nshifts],'gpuArray');
+    for s=1:nshifts
+        g_pim_shifted(:,:,s) = bsxfun(@times,g_shift_phases(:,s),g_pim);
+    end
+%     g_pim_shifted = bsxfun(@times,g_pim,Phases);
+    
+    g_norms = sqrt(sum((abs(g_pim_shifted)).^2,2));
+    g_pim_shifted = bsxfun(@rdivide,g_pim_shifted,g_norms);
+%     pim_shifted = gather(g_pim_shifted);
+    
+    g_pim_shifted(1,:,:) = 0; %ignore the dc term;
+    
+    % Equator images of a C4 symmetric molecule have the proprty that each
+    % of its images has a reflection symmetry about the horizontal axis. That is,
+    % im(:,theta) = im(:,-theta)
+    
+    %flip all images with respect to theta
+    g_pim_shifted_flipped = flipdim(g_pim_shifted,2);
+    
+%     % to find the translation we compute the cross power spectrum
+%     g_pim_shifted            = gpuArray(single(pim_shifted));
+%     Pim_shifted_flipped      = gpuArray(single(pim_shifted_flipped));
+    
+    Cross_pwr_spec = fft(g_pim_shifted ,[],2).*conj(fft(g_pim_shifted_flipped,[],2));
+    Inv_cross_pwr_spec = ifft(Cross_pwr_spec,[],2);
+    inv_cross_pwr_spec = gather(Inv_cross_pwr_spec);
+    
+    [nr,nc,~] = size(inv_cross_pwr_spec);
+    inv_cross_pwr_spec = reshape(inv_cross_pwr_spec,nr*res_factor,nc/res_factor,[]);
+    [shifts_score,~] = max(real(sum(inv_cross_pwr_spec,1)));
+    images_score(i_img) = max(shifts_score);
+    
+    %%%%%%%%%%%%%%%%%%% debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+    t2 = clock;
+    t = etime(t2,t1);
+    bs = char(repmat(8,1,numel(msg)));
+    fprintf('%s',bs);
+    msg = sprintf('k=%3d/%3d t=%7.5f',i_img,nImages,t);
+    fprintf('%s',msg);
+    
+    %%%%%%%%%%%%%%%%%%% end of debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    
+end
+
+[~, sorted_inds] = sort(images_score,'descend');
+
+inds_eq_images = sorted_inds(1:floor(fraction*numel(sorted_inds)));
+
+
+%%%%%%%%%%%%%%%%%%% debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% check how well we did in detecting equator images
+if exist('refq','var') && ~isempty(refq)
+    assert(nImages == size(refq,2));
+    is_eq_gt = false(1,nImages);
+    for k = 1:nImages
+        Rk_gt  = q_to_rot(refq(:,k))';
+        if( abs(Rk_gt(3,3)) < cosd(85))
+            is_eq_gt(k) = true;
+        end
+    end
+    TPR = 100*sum(is_eq_gt(inds_eq_images))/sum(is_eq_gt);
+    log_message('True-positive-rate of equator images=%.2f%% (#detected_equators/#total_equators)',TPR)
+    %     figure; plot(vv(is_eq),'g*'); hold on; plot(vv(~is_eq),'r*');
+end
+
+%%%%%%%%%%%%%%%%%%% end of debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% if ismember(nImages,inds_eq_images)
+%     printf('\nTop-view image was accidently detected as equator image.');
+%     inds_eq_images = inds_eq_images(inds_eq_images~=params.K);
+% end
+
+% printf('\nRemoving %d images (%.2f%%) in order eliminate equator images',numel(inds_eq_images),numel(inds_eq_images)/params.K*100);
+% masked_projs(:,:,inds_eq_images) = [];
+% noisy_projs(:,:,inds_eq_images) = [];
+% npf(:,:,inds_eq_images) = [];
+% params.K = params.K - numel(find(inds_eq_images));
+% if ~params.real_data
+%     params.refq(:,inds_eq_images) = [];
+% end
+
+end
 
 
 
