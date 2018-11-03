@@ -1,4 +1,4 @@
-function [rots,in_plane_rots] = estimate_inplane_rotations(npf,vis,n_symm,inplane_rot_res,max_shift,shift_step)
+function [rots,in_plane_rots] = estimate_inplane_rotations(npf,vis,n_symm,inplane_rot_res,max_shift,shift_step,verbose)
 %
 % General description
 % 
@@ -27,6 +27,12 @@ end
 if ~exist('inplane_rot_res','var')
     inplane_rot_res = 1;
 end
+
+
+if ~exist('verbose','var')
+    verbose = 0;
+end
+
 
 log_message('estimating in-plane rotation angles')
 
@@ -87,11 +93,13 @@ msg = [];
 for i = 1:nImages
     
     %%%%%%%%%%%%%%%%%%% debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    if mod(i,5) == 0
-        bs = char(repmat(8,1,numel(msg)));
-        fprintf('%s',bs);
-        msg = sprintf('k=%3d/%3d',i,nImages);
-        fprintf('%s',msg);
+    if verbose
+        if mod(i,5) == 0
+            bs = char(repmat(8,1,numel(msg)));
+            fprintf('%s',bs);
+            msg = sprintf('k=%3d/%3d',i,nImages);
+            fprintf('%s',msg);
+        end
     end
     %%%%%%%%%%%%%%%%%%% end of debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     

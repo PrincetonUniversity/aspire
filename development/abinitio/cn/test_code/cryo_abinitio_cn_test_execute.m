@@ -1,11 +1,17 @@
 function [err_in_degrees,mse,vol_filename,vol_filt_file_name,vol_no_filt_file_name] = ...
     cryo_abinitio_cn_test_execute(cache_file_name,n_symm,n_theta,recon_mrc_fname,snr,...
-    n_images,n_r_perc,max_shift_perc,shift_step,mask_radius_perc,inplane_rot_res)
+    n_images,n_r_perc,max_shift_perc,shift_step,mask_radius_perc,inplane_rot_res,verbose)
 
 [folder_recon_mrc_fname, ~, ~] = fileparts(recon_mrc_fname);
 if ~isempty(folder_recon_mrc_fname)  && exist(folder_recon_mrc_fname,'file') ~= 7
     error('Folder %s does not exist. Please create it first.\n', folder_recon_mrc_fname);
 end
+
+if ~exist('verbose','var')
+    verbose = 0;
+    log_message('verbose was not provided. Setting verbose=0\n');
+end
+
 
 if ~exist('snr','var')
     snr = 10000000;
@@ -83,10 +89,10 @@ if(n_symm==3 || n_symm==4)
     is_remove_non_rank1 = true;
     non_rank1_remov_percent = 0.25;
     [vijs,viis,npf,projs,refq] = compute_third_row_outer_prod_c34(n_symm,npf,max_shift_1d,shift_step,'',...
-        projs,is_remove_non_rank1,non_rank1_remov_percent,refq);
+        projs,verbose,is_remove_non_rank1,non_rank1_remov_percent,refq);
 else
     log_message('Computing all relative viewing directions for n>4');
-    [vijs,viis,~] = compute_third_row_outer_prod_cn(npf,n_symm,max_shift,shift_step,cache_file_name,refq);
+    [vijs,viis,~] = compute_third_row_outer_prod_cn(npf,n_symm,max_shift,shift_step,cache_file_name,verbose,refq);
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

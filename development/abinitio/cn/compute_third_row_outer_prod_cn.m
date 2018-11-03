@@ -1,10 +1,14 @@
 function [vijs,viis,max_corrs_stats] = ...
-    compute_third_row_outer_prod_cn(npf,n_symm,max_shift,shift_step,cache_file_name,refq)
+    compute_third_row_outer_prod_cn(npf,n_symm,max_shift,shift_step,cache_file_name,verbose,refq)
 
 [n_r,n_theta_npf,nImages] = size(npf);
 
 if ~exist('refq','var')
     refq = [];
+end
+
+if ~exist('verbose','var')
+    verbose = 0;
 end
 
 if ~exist('cache_file_name','var') || isempty(cache_file_name)
@@ -122,7 +126,7 @@ for i=1:nImages
     % output variable
     scores_self_corrs(:,i) = gather(Corrs);
     
-    if true
+    if verbose
         t2 = clock;
         t = etime(t2,t1);
         bs = char(repmat(8,1,numel(msg)));
@@ -257,7 +261,7 @@ for i=1:nImages
         viis_tmp((i-1)*3+1:i*3,(j-1)*3+1:j*3) = vii/n_symm;
         viis_tmp((j-1)*3+1:j*3,(i-1)*3+1:i*3) = vjj/n_symm;
         
-        if true            
+        if verbose
             t2 = clock;
             t = etime(t2,t1);
             bs = char(repmat(8,1,numel(msg)));

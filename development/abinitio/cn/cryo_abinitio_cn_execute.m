@@ -1,10 +1,17 @@
 function cryo_abinitio_cn_execute(cache_file_name,n_symm,mrc_stack_file,recon_mrc_fname,recon_mat_fname,...
-    n_theta,n_r_perc,max_shift_perc,shift_step,mask_radius_perc,inplane_rot_res)
+    verbose,n_theta,n_r_perc,max_shift_perc,shift_step,mask_radius_perc,inplane_rot_res)
 
 [folder_recon_mrc_fname, ~, ~] = fileparts(recon_mrc_fname);
 if ~isempty(folder_recon_mrc_fname)  && exist(folder_recon_mrc_fname,'file') ~= 7
     error('folder %s does not exist. Please create it first.\n', folder_recon_mrc_fname);
 end
+
+
+if ~exist('verbose','var')
+    verbose = 0;
+    log_message('verbose was not provided. Setting verbose=0\n');
+end
+
 
 if exist('recon_mat_fname','var')
     do_save_res_to_mat = true;
@@ -128,9 +135,9 @@ if(n_symm==3 || n_symm==4)
     is_remove_non_rank1 = true;
     non_rank1_remov_percent = 0.25;
     [vijs,viis,npf,masked_projs] = compute_third_row_outer_prod_c34(n_symm,npf,max_shift,shift_step,recon_mat_fname,...
-        masked_projs,is_remove_non_rank1,non_rank1_remov_percent);
+        masked_projs,verbose,is_remove_non_rank1,non_rank1_remov_percent);
 else
-    [vijs,viis] = compute_third_row_outer_prod_cn(npf,n_symm,max_shift,shift_step,cache_file_name);
+    [vijs,viis] = compute_third_row_outer_prod_cn(npf,n_symm,max_shift,shift_step,cache_file_name,verbose);
 end
 
 if do_save_res_to_mat
@@ -150,7 +157,7 @@ if do_save_res_to_mat
     save(recon_mat_fname,'vis','-append');
 end
 
-rots = estimate_inplane_rotations(npf,vis,n_symm,inplane_rot_res,max_shift,shift_step);
+rots = estimate_inplane_rotations(npf,vis,n_symm,inplane_rot_res,max_shift,shift_step,verbose);
 if do_save_res_to_mat
     log_message('Saving estimated rotation matrices under: %s', recon_mat_fname);
     save(recon_mat_fname,'rots','-append');

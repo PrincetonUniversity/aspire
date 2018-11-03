@@ -1,11 +1,16 @@
 function [vijs,viis,npf,projs,refq] = compute_third_row_outer_prod_c34(n_symm,npf,max_shift,shift_step,recon_mat_fname,...
-    projs,is_remove_non_rank1,non_rank1_remov_percent,refq)
+    projs,verbose,is_remove_non_rank1,non_rank1_remov_percent,refq)
 
 if exist('refq','var') && ~isempty(refq)
     is_simulation = true;
 else
     refq = [];
     is_simulation = false;
+end
+
+
+if ~exist('verbose','var')
+    verbose = 0;
 end
 
 if exist('recon_mat_fname','var') && ~isempty(recon_mat_fname)
@@ -19,7 +24,7 @@ end
 % step 1  : detect a single pair of common-lines between each pair of images
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 log_message('Detecting common-lines');
-clmatrix = cryo_clmatrix(npf,n_images,1,max_shift,shift_step); 
+clmatrix = cryo_clmatrix(npf,n_images,verbose,max_shift,shift_step); 
 if do_save_res_to_mat
     log_message('Saving clmatrix to %s',recon_mat_fname);
     save(recon_mat_fname,'clmatrix','-append');
@@ -36,7 +41,7 @@ if n_symm == 3
 else
     is_handle_equator_ims = true;
 end
-sclmatrix = cryo_self_clmatrix_gpu_c3_c4(n_symm,npf,max_shift,shift_step,is_handle_equator_ims,refq);
+sclmatrix = cryo_self_clmatrix_gpu_c3_c4(n_symm,npf,max_shift,shift_step,verbose,is_handle_equator_ims,refq);
 if do_save_res_to_mat
     log_message('Saving sclmatrix to %s',recon_mat_fname);
     save(recon_mat_fname,'sclmatrix','-append');
@@ -63,7 +68,7 @@ end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 log_message('Local J-synchronization');
 [vijs,viis,im_inds_to_remove,pairwise_inds_to_remove,...
-    npf,projs,refq] = local_sync_J_c3_c4(n_symm,Rijs,Riis,npf,projs,is_remove_non_rank1,non_rank1_remov_percent,refq);
+    npf,projs,refq] = local_sync_J_c3_c4(n_symm,Rijs,Riis,npf,projs,is_remove_non_rank1,non_rank1_remov_percent,verbose,refq);
 if do_save_res_to_mat
     log_message('Saving npf to %s',recon_mat_fname);
     log_message('Saving vijs to %s',recon_mat_fname);
@@ -77,7 +82,7 @@ end
 
 
 
-function [sclmatrix,correlations,shifts] = cryo_self_clmatrix_gpu_c3_c4(n_symm,npf,max_shift,shift_step,is_handle_equator_ims,refq)
+function [sclmatrix,correlations,shifts] = cryo_self_clmatrix_gpu_c3_c4(n_symm,npf,max_shift,shift_step,verbose,is_handle_equator_ims,refq)
 % Input parameters:
 
 %   n_symm                  Either 3 (for c_3) or 4 (for c_4)
@@ -225,12 +230,14 @@ for i=1:nImages
     shifts(i) = shift; %TODO: need to "translate" shift 2*max_shift+1 = ...
     
     %%%%%%%%%%%%%%%%%%% debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    t2 = clock;
-    t = etime(t2,t1);
-    bs = char(repmat(8,1,numel(msg)));
-    fprintf('%s',bs);
-    msg = sprintf('k=%3d/%3d t=%7.5f',i,nImages,t);
-    fprintf('%s',msg);
+    if verbose 
+        t2 = clock;
+        t = etime(t2,t1);
+        bs = char(repmat(8,1,numel(msg)));
+        fprintf('%s',bs);
+        msg = sprintf('k=%3d/%3d t=%7.5f',i,nImages,t);
+        fprintf('%s',msg);
+    end
     %%%%%%%%%%%%%%%%%%% end of debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 end
 
@@ -932,7 +939,7 @@ end
 
 
 function [vijs,viis,im_inds_to_remove,pairwise_inds_to_remove,npf,projs,refq,ref_shifts] = local_sync_J_c3_c4(n_symm,Rijs,Riis,npf,...
-                                projs,is_remove_non_rank1,remov_percent,refq,ref_shifts)
+                                projs,is_remove_non_rank1,remov_percent,verbose,refq,ref_shifts)
 
 % Local J-synchronization of all relative orientations.
 %
@@ -1103,12 +1110,14 @@ for i=1:nImages
         stats(ind) = ii;
         
         %%%%%%%%%%%%%%%%%%% debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        t2 = clock;
-        t = etime(t2,t1);
-        bs = char(repmat(8,1,numel(msg)));
-        fprintf('%s',bs);
-        msg = sprintf('k1=%3d/%3d k2=%3d/%3d t=%7.5f',i,nImages,j,nImages,t);
-        fprintf('%s',msg);
+        if verbose
+            t2 = clock;
+            t = etime(t2,t1);
+            bs = char(repmat(8,1,numel(msg)));
+            fprintf('%s',bs);
+            msg = sprintf('k1=%3d/%3d k2=%3d/%3d t=%7.5f',i,nImages,j,nImages,t);
+            fprintf('%s',msg);
+        end
         %%%%%%%%%%%%%%%%%%% end of debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     end
 end

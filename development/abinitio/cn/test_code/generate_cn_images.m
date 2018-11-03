@@ -34,8 +34,7 @@ if ~exist('max_shift','var')
     max_shift = 15;
 end
 
-log_message('generating images of class C%d',n_symm);
-
+log_message('loading volume');
 refq   = qrand(nImages);
 rots = q_to_rot(refq);
 
@@ -71,6 +70,7 @@ end
 log_message('#images = %d', nImages);
 
 % projs = cryo_project_gaussian('C5_params',projSize,1,refq);
+log_message('generating images of class C%d',n_symm);
 projs = cryo_project(vol,rots);
 projs = permute(projs,[2,1,3]);
 
