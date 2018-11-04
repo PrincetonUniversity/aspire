@@ -6,7 +6,7 @@
 L = 33;                 % Size of images.
 n = 128;                % Number of images.
 
-SNR = 8;                % Signal-to-noise ratio of images.
+SNR = 32;               % Signal-to-noise ratio of images.
 
 %%% Simulate data %%%
 
