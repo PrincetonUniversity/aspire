@@ -7,7 +7,7 @@ if ~isempty(folder_recon_mrc_fname)  && exist(folder_recon_mrc_fname,'file') ~= 
     error('Folder %s does not exist. Please create it first.\n', folder_recon_mrc_fname);
 end
 
-if ~exist('cache_file_name','var') || isempty(cache_file_name)
+if ~exist('cache_file_name','var') || isempty(cache_file_name) || ~exist(cache_file_name, 'file')
     log_message('Cache file not supplied.');
     n_Points_sphere = 1000;
     n_theta = 360;
