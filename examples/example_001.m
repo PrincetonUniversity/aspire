@@ -45,7 +45,7 @@ params.shifts = zeros(2, n);                % Shifts (none here).
 
 % Set up basis in which to estimate volume. Here, it is just the standard Dirac
 % basis, where each voxel is a basis vector.
-basis = dirac_basis(L*ones(1, 3));
+basis = ffb_basis(L*ones(1, 3));
 
 % Set up options for the volume estimation algorithm.
 mean_est_opt = struct();
@@ -53,6 +53,7 @@ mean_est_opt.verbose = false;               % Don't output progress info.
 mean_est_opt.max_iter = 10;                 % Maximum number of iterations.
 mean_est_opt.rel_tolerance = 1e-3;          % Stopping tolerance.
 mean_est_opt.half_pixel = true;             % Center volumes around half pixel.
+mean_est_opt.verbose = 1;                   % Print progress information.
 
 % Estimate volume using least squares.
 vol_est = cryo_estimate_mean(ims, params, basis, mean_est_opt);
