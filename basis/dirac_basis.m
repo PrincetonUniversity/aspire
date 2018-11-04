@@ -50,7 +50,6 @@ function basis = dirac_basis(sz, mask)
     basis.expand = @(x)(dirac_expand(x, basis));
 
     basis.evaluate_t = basis.expand;
-    basis.expand_t = basis.evaluate;
 
     d = numel(basis.sz);
 
@@ -58,7 +57,6 @@ function basis = dirac_basis(sz, mask)
     basis.mat_expand = @(X)(mdim_mat_fun_conj(X, d, 1, basis.expand));
 
     basis.mat_evaluate_t = @(X)(mdim_mat_fun_conj(X, d, 1, basis.evaluate_t));
-    basis.mat_expand_t = @(V)(mdim_mat_fun_conj(V, 1, d, basis.expand_t));
 end
 
 function x = dirac_evaluate(v, basis)
