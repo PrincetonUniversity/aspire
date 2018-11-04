@@ -70,4 +70,4 @@ ims_est = permute(ims_est, [2 1 3]);
 nrmse_ims = tnorm(ims_est-ims_clean)/tnorm(ims_clean);
 
 fprintf('%-40s%20g\n', 'Estimated volume normalized RMSE:', nrmse_vol);
-fprintf('%-40s%20g\n', 'Reprojected images normalized MSE:', nrmse_ims);
+fprintf('%-40s%20g\n', 'Reprojected images normalized RMSE:', nrmse_ims);
