@@ -7,6 +7,19 @@ if ~isempty(folder_recon_mrc_fname)  && exist(folder_recon_mrc_fname,'file') ~= 
     error('Folder %s does not exist. Please create it first.\n', folder_recon_mrc_fname);
 end
 
+if ~exist('cache_file_name','var') || isempty(cache_file_name) || ~exist(cache_file_name, 'file')
+    log_message('Cache file not supplied.');
+    n_Points_sphere = 1000;
+    n_theta = 360;
+    inplane_rot_res = 1;
+    [folder, ~, ~] = fileparts(recon_mrc_fname);
+    cache_dir_full_path = folder;
+    log_message('Creating cache file under folder: %s',cache_dir_full_path);
+    log_message('#points on sphere=%d, n_theta=%d, inplane_rot_res=%d',n_Points_sphere,n_theta,inplane_rot_res);
+    cache_file_name  = cryo_cn_create_cache(cache_dir_full_path,n_Points_sphere,n_theta,inplane_rot_res);
+end
+
+
 if ~exist('verbose','var')
     verbose = 0;
     log_message('verbose was not provided. Setting verbose=0\n');
