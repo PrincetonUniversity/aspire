@@ -23,16 +23,20 @@ Getting started
 
 Revisions
 ---------
-*Changes from version 0.1
-1.	Updated class averaging code.
-2.	Revised the function cryo_project to generate projections whose size is different from the size of the projected volume.
 
-
-*Changes from version 0.11
-1. 	Added memory efficient FIRM reconstruction routine reconstruction/FIRM/recon3d_firm_ctf_large.m 
-2.	Added example file for using cryo_project examples/simulated_projections.m
-3.	Update documentation of projections/simulation/cryo_project.m
-4. 	Remove obsolete benchmark results from comment at the end of  ./sinograms/test_commonlines_gaussian.m
+*Changes from version 0.13
+1. Improve speed
+2. Improve reconstruction workflows
+3. Integrate PSWF-based sPCA
+4. Revise class averaging to use PSWF 
+5. Add support for EM iterations in class averaging
+6. Add support for the FINUFFT library.
+7. New implementation of Covariance Wiener Filtering (CWF) denosing
+8. Implementation of a 3D fast Fourier-Bessel basis (and a new implementation of the 2D version)
+9. Replace FIRM reconstruction algorithm
+10.Add abinitio common-lines algorithms for molecules with Cn symmetry
+11.Revise examples
+12.Add various utilities
 
 
 *Changes from version 0.12
@@ -45,18 +49,18 @@ Revisions
 7. Added routines for reconstruction workflow
 
 
-*Changes from version 0.13
-1. Improve speed
-2. Improve reconstruction workflows
-3. Integrate PSWF-based sPCA
-4. Revise class averaging to use PSWF 
-5. Add support for EM iterations in class averaging
-6. Add support for the FINUFFT library.
-7. New implementation of Covariance Wiener Filtering (CWF) denosing
-8. Implementation of a 3D fast Fourier-Bessel basis (and a new implementation of the 2D version).
-9. Replace FIRM reconstruction algorithm
-10.Revise examples
-11.Add various utilities
+*Changes from version 0.11
+1. 	Added memory efficient FIRM reconstruction routine reconstruction/FIRM/recon3d_firm_ctf_large.m 
+2.	Added example file for using cryo_project examples/simulated_projections.m
+3.	Update documentation of projections/simulation/cryo_project.m
+4. 	Remove obsolete benchmark results from comment at the end of  ./sinograms/test_commonlines_gaussian.m
+
+
+*Changes from version 0.1
+1.	Updated class averaging code.
+2.	Revised the function cryo_project to generate projections whose size is different from the size of the projected volume.
+
+
 
  
 
