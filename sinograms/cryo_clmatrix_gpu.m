@@ -91,15 +91,6 @@ function [clstack,corrstack,shift_equations,shift_equations_map,clstack_mask]=..
 %          calulations. Speedup of this function vs cryo_clmatrix is ~4.5
 %          for double precision and ~14 for single precision.
 
-PRECISION='single';
-
-if verbose>0
-    log_message('GPU PRECISION=%s',PRECISION);
-    if strcmpi(PRECISION,'single')
-        log_message('Using single precision GPU calculations!!!');
-    end
-end
-
 msg=[];
 
 T=size(pf,2);
@@ -184,6 +175,16 @@ end
 
 if ~exist('ref_shifts_2d','var') || isempty(ref_shifts_2d)
     ref_shifts_2d=0;
+end
+
+
+PRECISION='single';
+
+if verbose>0
+    log_message('GPU PRECISION=%s',PRECISION);
+    if strcmpi(PRECISION,'single')
+        log_message('Using single precision GPU calculations!!!');
+    end
 end
 
 

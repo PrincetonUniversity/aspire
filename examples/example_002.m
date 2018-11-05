@@ -16,7 +16,7 @@ n_theta = 36;           % Number of angular nodes in polar Fourier transform.
 %%% Simulate data %%%
 
 % Load the 'cleanrib' volume, corresponding to the experimentally obtained EM
-% map of a 70S ribosome.
+% map of a 50S ribosome.
 root = aspire_root();
 file_name = fullfile(root, 'projections', 'simulation', 'maps', 'cleanrib.mat');
 f = load(file_name);
