@@ -67,13 +67,6 @@ if ~exist('inplane_rot_res','var')
     inplane_rot_res = 1;
 end
 
-
-if(n_symm==3 || n_symm==4) % an empirical observation. But better check the alternative if reconstruction is not good enough
-    is_conjugate_with_vii = false;
-else
-    is_conjugate_with_vii = true;
-end
-
 initstate; 
 
 log_message('symmetry class is C%d',n_symm);
@@ -164,7 +157,7 @@ if do_save_res_to_mat
     save(recon_mat_fname,'vijs','viis','-append');
 end
 % 
-vis  = estimate_third_rows(vijs,viis,is_conjugate_with_vii);
+vis  = estimate_third_rows(vijs,viis,n_symm);
 if do_save_res_to_mat
     log_message('Saving third rows under: %s', recon_mat_fname);
     save(recon_mat_fname,'vis','-append');

@@ -1,4 +1,4 @@
-function vis = estimate_third_rows(vijs,viis,is_conjugate_with_vii)
+function vis = estimate_third_rows(vijs,viis,n_symm)
 %
 % Find the third row of each rotation matrix.
 % 
@@ -11,8 +11,16 @@ function vis = estimate_third_rows(vijs,viis,is_conjugate_with_vii)
 % Output parameters:
 %   vis        A 3xnImages matrix whose i-th column equals the 
 %              transpose of the third row of the rotation matrix Ri.
+
 if ~exist('is_conjugate_with_vii','var')
-    is_conjugate_with_vii = true;
+    % an empirical observation. But better check the alternative if reconstruction is not good enough
+    if(n_symm==3 || n_symm==4)
+        log_message('Not conjugating each vij with vii and vjj. Consider testing alternative if reconstruction is not satisfactory');
+        is_conjugate_with_vii = false;
+    else
+        log_message('Conjugating each vij with vii and vjj. Consider testing alternative if reconstruction is not satisfactory');
+        is_conjugate_with_vii = true;
+    end
 end
 
 [nr,nc,nImages] = size(viis);
