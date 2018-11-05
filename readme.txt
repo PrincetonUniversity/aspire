@@ -1,7 +1,7 @@
 ASPIRE – Algorithms for Single Particle Reconstruction
 
-Current version: 0.3
-Date: 10/2017
+Current version: 0.14
+Date: 11/2018
 
 Installation
 ------------
@@ -43,4 +43,21 @@ Revisions
 5. New example scripts
 6. Improved ab-initio reconstruction for non-symmetric molecules
 7. Added routines for reconstruction workflow
+
+
+*Changes from version 0.13
+1. Improve speed
+2. Improve reconstruction workflows
+3. Integrate PSWF-based sPCA
+4. Revise class averaging to use PSWF 
+5. Add support for EM iterations in class averaging
+6. Add support for the FINUFFT library.
+7. New implementation of Covariance Wiener Filtering (CWF) denosing
+8. Implementation of a 3D fast Fourier-Bessel basis (and a new implementation of the 2D version).
+9. Replace FIRM reconstruction algorithm
+10.Revise examples
+11.Add various utilities
+
+ 
+
 
