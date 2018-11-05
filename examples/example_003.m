@@ -25,8 +25,8 @@ initstate();
 
 % Set up the arrays to hold the CTFs, both as 2D filters and as block diagonal
 % matrices in the Fourier-Bessel basis.
-h = zeros([L*ones(1, 2) numel(defocus)]);
-h_fb = cell(1, numel(defocus));
+h = zeros([L*ones(1, 2) defocus_ct]);
+h_fb = cell(1, defocus_ct);
 
 % Set up the default CTF parameters. The only one we vary is the defocus.
 ctf_params = struct();
