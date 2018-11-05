@@ -51,7 +51,7 @@ recon_mat_fname = fullfile(recon_folder,sprintf('%s_out.mat',empiar_code_string)
 log_fname = fullfile(recon_folder,'log.txt');
 open_log(log_fname);
 
-cryo_abinitio_cn_execute(cache_file_name,n_symm,mrc_stack_file,recon_mrc_fname,recon_mat_fname,verbose);
+cryo_abinitio_Cn(cache_file_name,n_symm,mrc_stack_file,recon_mrc_fname,recon_mat_fname,verbose);
 
 close_log();
 
