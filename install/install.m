@@ -29,12 +29,14 @@ function install()
     % Install NUFFT
     nufft_choice = multichoice_question( ...
         'Choose a NUFFT package to install ', ...
-        {'cims', 'chemnitz', 'none'}, [2 3 1], 'cims');
+        {'cims', 'chemnitz', 'finufft', 'none'}, [2 3 4 1], 'cims');
 
     if nufft_choice == 2
         install_cims_nufft;
     elseif nufft_choice == 3
         install_chemnitz_nfft;
+    elseif nufft_choice == 4
+        install_finufft;
     end
 
     % Install SDPLR
