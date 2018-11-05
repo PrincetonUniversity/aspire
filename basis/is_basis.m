@@ -16,8 +16,8 @@ function b = is_basis(basis)
     b = b && isstruct(basis);
 
     required_fields = {'type', 'sz', 'count'};
-    required_handles = {'evaluate', 'evaluate_t', 'expand', 'expand_t', ...
-        'mat_evaluate', 'mat_evaluate_t', 'mat_expand', 'mat_expand_t'};
+    required_handles = {'evaluate', 'evaluate_t', 'expand', ...
+        'mat_evaluate', 'mat_evaluate_t', 'mat_expand'};
 
     b = b && all(isfield(basis, required_fields));
     b = b && all(isfield(basis, required_handles));

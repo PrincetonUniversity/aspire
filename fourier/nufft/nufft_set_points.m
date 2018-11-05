@@ -26,7 +26,16 @@ function plan = nufft_set_points(plan, fourier_pts)
 	end
 
 	if plan.lib_code == 3
+		if plan.num_threads ~= 0
+			orig_num_threads = omp_get_max_threads();
+			omp_set_num_threads(plan.num_threads);
+		end
+
 		nfft_set_x(plan.nfft_plan_id, 1/(2*pi)*fourier_pts);
 		nfft_precompute_psi(plan.nfft_plan_id);
+
+		if plan.num_threads ~= 0
+			omp_set_num_threads(orig_num_threads);
+		end
 	end
 end

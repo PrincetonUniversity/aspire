@@ -37,8 +37,7 @@
 %       v = randn(basis.count, 1);
 %       x = basis.evaluate(v);
 %
-%    The adjoints of the expand and evaluate functions are obtained through
-%    basis.expand_t and basis.evaluate_t functions, respectively.
+%    The adjoint of the evaluate function is obtained through basis.evaluate_t.
 %
 %    This particular basis is a Fourier-Bessel basis in two or three
 %    dimensions. It is a separable basis consisting of a radial part multiplied
@@ -149,14 +148,12 @@ function basis = fb_basis(sz, ell_max, domain)
     basis.evaluate = @(v)(fb_evaluate(v, basis));
     basis.evaluate_t = @(x)(fb_evaluate_t(x, basis));
     basis.expand = @(x)(fb_expand(x, basis));
-    basis.expand_t = @(v)(fb_expand_t(v, basis));
 
     d = numel(basis.sz);
 
     basis.mat_evaluate = @(V)(mdim_mat_fun_conj(V, 1, d, basis.evaluate));
     basis.mat_expand = @(X)(mdim_mat_fun_conj(X, d, 1, basis.expand));
     basis.mat_evaluate_t = @(X)(mdim_mat_fun_conj(X, d, 1, basis.evaluate_t));
-    basis.mat_expand_t = @(V)(mdim_mat_fun_conj(V, 1, d, basis.expand_t));
 end
 
 function [k, r0] = num_besselj_zeros(ell, r)
@@ -671,40 +668,6 @@ function v = fb_expand(x, basis)
     v = conj_grad(A, b, cg_opt);
 
     v = roll_dim(v, sz_roll);
-end
-
-function x = fb_expand_t(v, basis)
-    basis_check_evaluate(v, basis);
-
-    d = numel(basis.sz);
-
-    [v, sz_roll] = unroll_dim(v, 2);
-
-    if d == 2
-        b = im_to_vec(basis.evaluate(v));
-
-        A = @(x)(im_to_vec(basis.evaluate(basis.evaluate_t(vec_to_im(x)))));
-    elseif d == 3
-        b = vol_to_vec(basis.evaluate(v));
-
-        A = @(x)(vol_to_vec(basis.evaluate(basis.evaluate_t(vec_to_vol(x)))));
-    end
-
-    % TODO: Check that this tolerance make sense for multiple columns in x
-
-    cg_opt.max_iter = Inf;
-    cg_opt.rel_tolerance = 10*eps(class(v));
-    cg_opt.verbose = false;
-
-    x = conj_grad(A, b, cg_opt);
-
-    x = roll_dim(x, sz_roll);
-
-    if d == 2
-        x = vec_to_im(x);
-    else
-        x = vec_to_vol(x);
-    end
 end
 
 function indices = fb_indices(basis)

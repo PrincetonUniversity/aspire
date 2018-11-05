@@ -34,7 +34,7 @@ function old_lib_codes = nufft_library_codes(new_lib_codes)
 	persistent lib_codes;
 
 	if isempty(lib_codes)
-		lib_codes = [3 2 1];
+		lib_codes = [4 3 2 1];
 	end
 
 	old_lib_codes = lib_codes;
