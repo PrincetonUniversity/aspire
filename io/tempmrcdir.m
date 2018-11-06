@@ -33,7 +33,11 @@ if ~exist('tmpdir','var')
     tmpdir='/scratch';
 end
 
-pid=feature('getpid');
+if isoctave()
+    pid = getpid();
+else
+    pid=feature('getpid');
+end
 
 fname = mfilename('fullpath');
 [pathstr,~,~] = fileparts(fname); % Find where the package installed.

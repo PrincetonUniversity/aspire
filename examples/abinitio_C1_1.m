@@ -1,4 +1,4 @@
-%% Basic abinitio reconstruction - example 1.
+%% Basic abinitio reconstruction.
 %
 % The script demonstrates calling various functions of the aspire package.
 %
