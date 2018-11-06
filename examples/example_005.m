@@ -14,7 +14,7 @@ shift_step = 0.5; % the shift step
 mask_radius_perc = 50; % the mask applied to each image as a percentage of image's size
 inplane_rot_res = 1;  % the resolution in angles for estimating the in-plane rotation angles
 verbose = 1; % currently either 1 (detailed debug output), or 0 (minimal output debug messages)
-output_folder = './results'; % folder where original and reconstructed volumes will reside
+output_folder = fullfile(pwd,'results'); % folder where original and reconstructed volumes will reside
 
 %% Step 0: Making sure that output folder exists
 if exist(output_folder,'file') ~= 7
@@ -28,74 +28,56 @@ if n_symm > 4
     log_message('Creating cache file under folder: %s',output_folder);
     log_message('#points on sphere=%d, n_theta=%d, inplane_rot_res=%d',n_Points_sphere,n_theta,inplane_rot_res);
     cache_file_name  = cryo_cn_create_cache(output_folder,n_Points_sphere,n_theta,inplane_rot_res);
+else
+    cache_file_name = ''; % cache is only needed in case n>4
 end
 
 %% Step 2: Simulate data %%
 % A duplicated version (so that it is Cn-symmetric) of a non-symetric gaussian volume
 max_shift = ceil(proj_size*max_shift_perc/100);
 [projs,refq,~,~,vol_orig] = generate_cn_images(n_symm,n_images,snr,proj_size,'C1_DUPLICATED',max_shift,shift_step);
-% saving original volume to disk
-vol_orig_file_name = fullfile(output_folder,sprintf('vol_orig_c%d.mrc',n_symm));
-log_message('saving original volume under %s',vol_orig_file_name);
-WriteMRC(vol_orig,1,vol_orig_file_name);
 
 if n_symm > 4
     % currently we don't know how to handle equators for n_symm > 4
     [projs,refq] = remove_eq_images(projs,refq);
 end
 
-if snr <= 1 % otherwise, masking makes thing worse
-    mask_radius = proj_size*mask_radius_perc/100;
-    log_message('Masking images using mask-radius=%d',mask_radius);
-    masked_projs = mask_fuzzy(projs,mask_radius);
-else
-    masked_projs = projs;
-    log_message('SNR=%.2e is greater than 1. Not performing mask', snr);
-end
+instack = fullfile(output_folder,sprintf('simulated_instack_c%d.mrc',n_symm));
+log_message('Saving simulated projection images under %s',instack);
+WriteMRC(projs,1,instack);
 
-n_r = ceil(proj_size*n_r_perc/100);
-log_message('Computing the polar Fourier transform of projections with resolution n_r=%d',n_r);
-[npf,~] = cryo_pft(masked_projs,n_r,n_theta,'single');
+% saving original volume to disk so that we can later compare the results
+vol_orig_mrc_name = fullfile(output_folder,sprintf('vol_orig_c%d.mrc',n_symm));
+log_message('Saving original volume under %s',vol_orig_mrc_name);
+WriteMRC(vol_orig,1,vol_orig_mrc_name);
 
-if snr <= 1 % otherwise, filtering makes thing worse
-    log_message('Guass filtering the images');
-    npf = gaussian_filter_imgs(npf);
-else
-    log_message('SNR=%.2e is greater than 1. Not performing gauss filtering', snr);
-end
+outvol = sprintf('out_c%dnims%dshift%d.mrc',n_symm,n_images,max_shift_perc); 
+outvol = fullfile(output_folder,outvol); % name of reconstructed mrc volume
 
-%% Step 3: Computing the relative viewing directions
-if(n_symm==3 || n_symm==4)
-    max_shift_1d  = ceil(2*sqrt(2)*max_shift); % TODO: is this needed? if so, where?
-    is_remove_non_rank1 = true; % whether or not to remove images with the least number of induced rank-1 matrices of relative viewing directions 
-    non_rank1_remov_percent = 0.25; % the percent of images to remove
-    log_message('Computing all relative viewing directions for n=3,4');
-    [vijs,viis,npf,projs,refq] = compute_third_row_outer_prod_c34(n_symm,npf,max_shift_1d,shift_step,'',...
-        projs,verbose,is_remove_non_rank1,non_rank1_remov_percent,refq);
-else
-    log_message('Computing all relative viewing directions for n>4');
-    [vijs,viis,~] = compute_third_row_outer_prod_cn(npf,n_symm,max_shift,shift_step,cache_file_name,verbose,refq);
-end
+matfname = ''; % supply mat file name if you wish to save intermediate results 
 
-%% Step 4: Handedness synchronization
-log_message('Handedness synchronization');
-[vijs,viis] = global_sync_J(vijs,viis);
 
-%% Step 5: Viewing direction estimation (i.e., estimating third row of each rotation matrix)
-vis = estimate_third_rows(vijs,viis,n_symm);
+%% Step 3: Call main impl function %%
+cryo_abinitio_Cn(n_symm,instack,outvol,cache_file_name,matfname,...
+    verbose,n_theta,n_r_perc,max_shift_perc,shift_step,mask_radius_perc,inplane_rot_res,refq);
 
-%% step 6: In-plane rotations angles estimation
-log_message('In plane angles estimation');
-rots =      estimate_inplane_rotations(npf,vis,n_symm,inplane_rot_res,max_shift,shift_step);
-
-%% Step 7: Results Analysis
-[rot_alligned,err_in_degrees,mse] = analyze_results_cn(rots,n_symm,n_theta,refq);
-
-%% Step 8: Reconstructing volume
-log_message('Reconstructing volume');
-estimatedVol = reconstruct_cn(projs,rot_alligned,n_symm,n_r,n_theta); % supply max_shift_2d or max_shift_1d ?
-
-%% Step 9: Saving volumes
-mrc_fname = sprintf('out_c%dnims%dshift%d.mrc',n_symm,n_images,max_shift_perc); 
-recon_mrc_fname = fullfile(output_folder,mrc_fname); % name of reconstructed mrc volume
-[vol_filename,vol_filt_file_name,vol_no_filt_file_name] = save_vols(estimatedVol,recon_mrc_fname,n_symm);
+% if snr <= 1 % otherwise, masking makes thing worse
+%     mask_radius = proj_size*mask_radius_perc/100;
+%     log_message('Masking images using mask-radius=%d',mask_radius);
+%     masked_projs = mask_fuzzy(projs,mask_radius);
+% else
+%     masked_projs = projs;
+%     log_message('SNR=%.2e is greater than 1. Not performing mask', snr);
+% end
+% 
+% n_r = ceil(proj_size*n_r_perc/100);
+% log_message('Computing the polar Fourier transform of projections with resolution n_r=%d',n_r);
+% [npf,~] = cryo_pft(masked_projs,n_r,n_theta,'single');
+% 
+% if snr <= 1 % otherwise, filtering makes thing worse
+%     log_message('Guass filtering the images');
+%     npf = gaussian_filter_imgs(npf);
+% else
+%     log_message('SNR=%.2e is greater than 1. Not performing gauss filtering', snr);
+% end
+% 

@@ -1,6 +1,6 @@
 % A call to impl with only mandatory variables
-cache_file_name = '/home/gabip/matlabProjects/aspire/aspire/development/abinitio/cn/cn_cache_points1000_ntheta360_res1.mat';
-verbose = 0;
+cache_file_name = '/home/gabip/matlabProjects/aspire/aspire/abinitio/Cn/cn_cache_points1000_ntheta360_res1.mat';
+verbose = 1;
 %%
 % n_symm = 5;
 % empiar_code_string = 10089;
@@ -44,17 +44,17 @@ n_symm = 7;
 empiar_code_string = 'GroEL';
 mrc_stack_file = '/scratch/yoel/ranz/aspire89/averages_nn100_group2.mrc';
 
-recon_folder = '/home/gabip/matlabProjects/aspire/aspire/development/abinitio/cn/results';
+recon_folder = fullfile(pwd,'results');
 recon_mrc_fname = fullfile(recon_folder,sprintf('%s_out.mrc',empiar_code_string));
 recon_mat_fname = fullfile(recon_folder,sprintf('%s_out.mat',empiar_code_string));
 
 log_fname = fullfile(recon_folder,'log.txt');
 open_log(log_fname);
 
-cryo_abinitio_Cn(cache_file_name,n_symm,mrc_stack_file,recon_mrc_fname,recon_mat_fname,verbose);
+
+cryo_abinitio_Cn(n_symm,mrc_stack_file,recon_mrc_fname,cache_file_name,recon_mat_fname,verbose);
 
 close_log();
-
 
 % cryo_abinitio_C4('/home/yoel/scratch/fred/aspire89/averages_nn100_group1.mrc','fred_c4_89_nn100_grp1_2000_linspace.mrc','fred_c4_89_nn100_grp1_2000_linspace.mat',2000);
 % clear; close all;

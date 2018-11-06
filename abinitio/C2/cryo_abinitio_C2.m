@@ -1,6 +1,6 @@
 function cryo_abinitio_C2(instack,outvol,outparams,...
-    n_projs,n_theta,n_r,max_shift,shift_step)
-% CRYO_ABINITO_C4  abinitio reconsturction of a c4 symmetric molecule
+    n_theta,n_r,max_shift,shift_step)
+% CRYO_ABINITO_C2  abinitio reconsturction of a c4 symmetric molecule
 %
 % Parameters
 %   instack     Name of MRC file containing the projections (or class
@@ -13,8 +13,6 @@ function cryo_abinitio_C2(instack,outvol,outparams,...
 %               analysis of the results.
 %   ntheta      (Optional) Angular resolution for common lines detection.
 %               Default 360. 
-%   n_projs     (Optional) Number of projections to use from 'instack'. -1
-%               means to use all projections. Default: -1 (all projections)
 %   n_r         (Optional) Radial resolution for common line detection.
 %               Default is half the width of the images.
 %   max_shift   (Optional) Maximal 1d shift (in pixels) to search between
@@ -29,12 +27,6 @@ function cryo_abinitio_C2(instack,outvol,outparams,...
 % Check input and set default parameters
 if ~exist('n_theta','var')
     n_theta = 360;
-end
-
-if ~exist('n_projs','var')
-    n_projs_given = false;
-else
-    n_projs_given = true;
 end
 
 if ~exist('n_r','var')
@@ -79,44 +71,53 @@ end
 % assert(size(projs,3) == nImages);
 % 
 
-log_message('***************************************');
-log_message('***************************************');
-log_message('***************************************');
-nImages = 6000;
-log_message('SAMPLING %d IMAGES',nImages);
-sz = 65;
-projs = zeros(sz,sz,nImages);
-chnk_sz = 500;
-projs_chunk = zeros(129,129,chnk_sz);
-inds  = randperm(90000,nImages);
-inds  = sort(inds);
-save(outparams,'inds');
+% log_message('***************************************');
+% log_message('***************************************');
+% log_message('***************************************');
+% nImages = 6000;
+% log_message('SAMPLING %d IMAGES',nImages);
+% sz = 65;
+% projs = zeros(sz,sz,nImages);
+% chnk_sz = 500;
+% projs_chunk = zeros(129,129,chnk_sz);
+% inds  = randperm(90000,nImages);
+% inds  = sort(inds);
+% save(outparams,'inds');
+% 
+% stack = imagestackReader(instack);
+% msg = [];
+% j=1;
+% for k=1:nImages
+%     t1 = clock;
+%     
+%     ind = inds(k);
+%     projs_chunk(:,:,j) = stack.getImage(ind);
+%     if j == chnk_sz
+%         projs(:,:,k-chnk_sz+1:k) = cryo_downsample(projs_chunk,sz,true);
+%         projs_chunk = zeros(129,129,chnk_sz);
+%         j=1;
+%     else
+%         j = j+1;
+%     end
+%    
+%     %%%%%%%%%%%%%%%%%%% debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%     t2 = clock;
+%     t = etime(t2,t1);
+%     bs = char(repmat(8,1,numel(msg)));
+%     fprintf('%s',bs);
+%     msg = sprintf('k=%3d/%3d  t=%7.5f',k,nImages,t);
+%     fprintf('%s',msg);
+%     %%%%%%%%%%%%%%%%%%% end of debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% end
 
-stack = imagestackReader(instack);
-msg = [];
-j=1;
-for k=1:nImages
-    t1 = clock;
-    
-    ind = inds(k);
-    projs_chunk(:,:,j) = stack.getImage(ind);
-    if j == chnk_sz
-        projs(:,:,k-chnk_sz+1:k) = cryo_downsample(projs_chunk,sz,true);
-        projs_chunk = zeros(129,129,chnk_sz);
-        j=1;
-    else
-        j = j+1;
-    end
-   
-    %%%%%%%%%%%%%%%%%%% debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    t2 = clock;
-    t = etime(t2,t1);
-    bs = char(repmat(8,1,numel(msg)));
-    fprintf('%s',bs);
-    msg = sprintf('k=%3d/%3d  t=%7.5f',k,nImages,t);
-    fprintf('%s',msg);
-    %%%%%%%%%%%%%%%%%%% end of debug code %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-end
+% Load projections
+log_message('Loading mrc image stack file:%s. Plese be patient...', instack);
+% log_message('Loading %d images, starting from image index %d',nImages,first_image_ind);
+projs = ReadMRC(instack);
+% projs = projs(:,:,ceil(linspace(1,5000,1500)));
+nImages = size(projs,3);
+log_message('done loading mrc image stack file');
+
 
 log_message('projections loaded. Using %d projections of size %d x %d',nImages,size(projs,1),size(projs,2));
 if size(projs,1)~=size(projs,2)
