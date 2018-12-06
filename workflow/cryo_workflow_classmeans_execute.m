@@ -30,6 +30,8 @@ nnavg=str2double(workflow.classmeans.nnavg);
 numgroups=str2double(workflow.preprocess.numgroups);
 
 use_EM=str2double(workflow.classmeans.use_EM);
+nnavg_EM=str2double(workflow.classmeans.nnavg_EM);
+
 gpu_list=-1;
 if use_EM
     gpu_list=str2double(workflow.classmeans.gpu_list);
@@ -46,6 +48,10 @@ for groupid=1:numgroups
     % Since we are loading all nearest neighbors of an image, there will be
     % many cache misses. So no point in have a large chache.
     prewhitened_projs=imagestackReader(fullfilename,1);
+
+    % Get dimensions of images
+    im_sz=prewhitened_projs.dim(1);
+    log_message('Projections are of size %dx%d',im_sz,im_sz);
     
     matname=fullfile(workflow.info.working_dir,sprintf('VDM_data_%d.mat',groupid));
     log_message('Loading %s (MD5: %s)',matname,MD5(matname));
@@ -60,12 +66,16 @@ for groupid=1:numgroups
     end
     delete(fullfile(tmpdir,'*')); % Delete any leftovers from the temp directory
 
+    max_shift=ceil(im_sz*0.3);
+    log_message('Using nnavg=%d',nnavg);
+    log_message('Using max_shift=%d',max_shift);
+    
     list_recon=1:prewhitened_projs.dim(3); % Compute class averages for all input images
     log_message('Generating %d class averages. use_EM=%d',numel(list_recon),use_EM);
     [ shifts, corr, unsortedaveragesfname, ~, norm_variance] = align_main( prewhitened_projs,...
         classification_data.VDM_angles, classification_data.class_VDM,...
         classification_data.class_VDM_refl, classification_data.sPCA_data,...
-        nnavg, 15, list_recon, 0, [],tmpdir);
+        nnavg, max_shift, list_recon, 0, [],tmpdir);
     log_message('Finished align_main');         
 
     % Write unsorted stacks
@@ -143,13 +153,15 @@ for groupid=1:numgroups
     end
     outstack.close;
     
+    log_message('Using nnavg_EM=%d',nnavg_EM);
+    log_message('Using max_shift=%d',max_shift);
     delete(fullfile(tmpdir,'*')); % Delete leftovers from previous alignment
     [ ~, ~, ~, unsortedaveragesEMfname,~,loglikelihood] = align_main( prewhitened_projs,...
         classification_data.VDM_angles, classification_data.class_VDM,...
         classification_data.class_VDM_refl, classification_data.sPCA_data,...
-        nnavg, 15, list_EM_recon, use_EM, gpu_list,tmpdir);
+        nnavg_EM, max_shift, list_EM_recon, use_EM, gpu_list,tmpdir);
  
-        fnameunsorted=sprintf('averages_nn%02d_EM_group%d.mrcs',nnavg,groupid);
+        fnameunsorted=sprintf('averages_nn%02d_EM_group%d.mrcs',nnavg_EM,groupid);
         fnameunsorted=fullfile(workflow.info.working_dir,fnameunsorted);
         doflip=cryo_globalphaseflip_outofcore(unsortedaveragesEMfname ,fnameunsorted);
         if doflip

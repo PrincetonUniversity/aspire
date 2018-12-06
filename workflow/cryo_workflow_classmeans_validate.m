@@ -15,5 +15,6 @@ assertfield(workflow,'info','logfile');
 assertfield(workflow,'preprocess','numgroups');
 assertfield(workflow,'classmeans','nnavg');
 assertfield(workflow,'classmeans','use_EM')
-assertfield(workflow,'classmeans','num_EM_averages');;
+assertfield(workflow,'classmeans','num_EM_averages');
+assertfield(workflow,'classmeans','nnavg_EM');
 
