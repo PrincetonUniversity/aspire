@@ -20,7 +20,7 @@ end
 
 currentsilentmode=log_silent(verbose==0);
 
-emdIDstr=int2str(emdID);
+emdIDstr=sprintf('%04d',emdID);
 
 ftpServer = 'ftp.ebi.ac.uk';
 ftpAddress = ['/pub/databases/emdb/structures/EMD-' emdIDstr '/map/emd_' emdIDstr '.map.gz'];
