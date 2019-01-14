@@ -1,5 +1,5 @@
 function [J_sync,J_significance,eigenvalues,itr,dd] =...
-    signs_power_method ( N , J_list , n_eigs , scores_as_entries , pairs_scores , verbose , measure_time )
+    signs_power_method ( N , J_list , n_eigs , scores_as_entries , pairs_scores , verbose , measure_time,s )
     %SIGNS_POWER_METHOD Calculate first eigenvalues & eigenvectors of the
     % Signs matrix using power method.
     % 
@@ -52,8 +52,9 @@ function [J_sync,J_significance,eigenvalues,itr,dd] =...
     end
     
     % initialization
-    load('seed.mat');
-    rng(seed);
+    if exist('s','var')
+        rng(s);
+    end
     N_pairs = nchoosek(N,2);
 %     vec = sign(2*rand(N_pairs,n_eigs)-1);
 %     [vec,~] = qr(vec,0);

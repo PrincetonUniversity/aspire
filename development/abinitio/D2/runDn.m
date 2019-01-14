@@ -145,7 +145,7 @@ if stages.st3
         end
     end 
     %[colors,Rijs_rows,~,D_colors,~,unmix_colors_all]=sync_colors_unmix2(Rijs_synced,nrot,3);
-    [colors,Rijs_rows,~,D_colors,V,ev_unmix]=sync_colors_unmix7(Rijs_synced,nrot,3);
+    [colors,Rijs_rows,~,D_colors]=sync_colors_unmix2(Rijs_synced,nrot,3);
     results.D_colors=D_colors;
     results.Rijs_rows=Rijs_rows;
     %results.unmix_colors_all=unmix_colors_all;
