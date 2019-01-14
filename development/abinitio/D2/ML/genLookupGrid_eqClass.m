@@ -56,8 +56,8 @@ end
 ntheta=360/dtheta;
 dtheta=dtheta*pi/180;
 %% Generate random roatations for testing by chooosing Ri(:,2) randomly
-[inplane_rotated_grid,rots_grid,n_inplane]=genInPlaneRot(sphere_grid,dtheta);
-[inplane_rotated_grid2,rots_grid2,n_inplane2]=genInPlaneRot(sphere_grid2,dtheta);
+[inplane_rotated_grid,rots_grid,n_inplane]=genInPlaneRot(sphere_grid,dtheta,s);
+[inplane_rotated_grid2,rots_grid2,n_inplane2]=genInPlaneRot(sphere_grid2,dtheta,s);
 
 %% Generate all relative rotations in octant 1
 inplane_rotated_grid=single(inplane_rotated_grid);

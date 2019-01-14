@@ -1,5 +1,5 @@
 
-function [inplane_rotated_grid,rots_grid,n_inplane]=genInPlaneRot(sphere_grid,dtheta)
+function [inplane_rotated_grid,rots_grid,n_inplane]=genInPlaneRot(sphere_grid,dtheta,s)
 %% Generate random roatations for testing by chooosing Ri(:,2) randomly
 nrot=size(sphere_grid,2);
 Ri2=cat(1,-(sphere_grid(2,:)),sphere_grid(1,:),zeros(1,nrot));
@@ -11,8 +11,9 @@ Ri1=Ri1./Ri1_norms;
 rots_grid=cat(3,Ri1,Ri2,sphere_grid);
 rots_grid=permute(rots_grid,[1,3,2]);
 
-load('seed.mat');
-rng(seed);
+if exist('s','var')
+    rng(s);
+end
 rand_ang=rand(nrot,1)*2*pi;
 inplane_rots=zeros(3,3,nrot);
 cosines=cos(2*pi-rand_ang);
