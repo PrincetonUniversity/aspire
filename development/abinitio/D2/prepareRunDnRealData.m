@@ -8,6 +8,8 @@ nr=size(projs,1);
 max_shift_ratio=0.15;
 max_shift=round(nr*max_shift_ratio);
 shift_step=1;
+vol=ReadMRC(mapname); %Input vol from mrc for comparison
+s=rng();
 
 % Generate lookup Data
 grid_res=1200;
@@ -37,7 +39,7 @@ params=struct('max_shift_ratio',max_shift_ratio,'max_shift',max_shift,...
     'maxNumWorkers',maxNumWorkers,'manyProjs',manyProjs,'ntheta',ntheta,...
     's',s,'q',[],'saveDir',saveDir,'sampleName',sampleName,'vol',vol,...
     'ref_shifts',[],'pixA',pixA,'cutoff',cutoff,'saveIntermediate',saveIntermediate,...
-    'scl_scores',results.scl_scores,'J_list_in',[]);
+    'scl_scores',[],'J_list_in',[]);
 
 %Which stages to run
 stages.st1=1;
