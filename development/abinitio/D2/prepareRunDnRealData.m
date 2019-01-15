@@ -1,8 +1,8 @@
 
 %% Initialize images and ML data
-mapname='/a/home/cc/math/eitanros/cryo/data/averages_nn400_EM_group1.mrcs';
+mapname='/scratch/yoelsh/tmp/stack.mrcs';
 projstack=ReadMRC(mapname);
-sidx=1:2000;%9002:2:10000;
+sidx=1:size(projstack,3);%9002:2:10000;
 projs=projstack(:,:,sidx);
 nr=size(projs,1);
 max_shift_ratio=0.15;
@@ -27,7 +27,7 @@ doFilter=1;
 maxNumWorkers=12;
 manyProjs=100;
 ntheta=360;
-saveDir='/a/home/cc/math/eitanros/cryo/Pipeline/Results'; %Directory to save results
+saveDir='/a/home/cc/math/eitanros/cryo2/Results'; %Directory to save results
 sampleName='beta_gal_real_2000_group1'; %Name of molecule for results file
 saveIntermediate=0; %Save intermediate stages results
 pixA=1.896;

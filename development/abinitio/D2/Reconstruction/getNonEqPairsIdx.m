@@ -15,6 +15,7 @@ function [pairs,eq_idx,eq_class]=...
 nrot=size(rots,3);
 projDirs=squeeze(rots(:,3,:));
 [eq_idx,eq_class,~]=markEquators(projDirs,eq_filter_angle);
+eq_idx=single(eq_idx);
 eq_table_idx=eq_idx*eq_idx';%places of eq pairs in the table
 
 if filterAllEqPairs
