@@ -3,7 +3,7 @@ function [corrs_out]=clmatrix_ML_Dn_scls_par(pf,cls,doFilter,max_shift,shift_ste
 
 n_proj=size(pf,3);
 npairs=nchoosek(n_proj,2);
-ngpu=4;
+ngpu=16;
 corrs_out_par=cell(ngpu,1);
 %whichScore=3;
 
@@ -16,7 +16,7 @@ if ~exist('shift_step','var')
     shift_step=1.0; % Resolution of shift estimation in pixels.
 end
 tic
-M=length(cls)/(n+2);
+M=length(cls)/(2*n);
 n_per_gpu_iter=floor(M/ngpu);
 g_part=zeros(ngpu,2);
 g_part(1,:)=[1,n_per_gpu_iter];
@@ -31,7 +31,7 @@ g_offset=g_part(:,1)-1;
 l=g_part(:,2)-g_part(:,1)+1;
 
 %Handle self common line scores
-nlookup1=length(scls_data.scls_lookup1)/(n+1);
+nlookup1=length(scls_data.scls_lookup1)/(2*n);
 scores=single(scls_data.scls_scores);
 oct1_ij_map=scls_data.oct1_ij_map;
 oct1_ij_map=[oct1_ij_map;oct1_ij_map(:,[2,1])];
@@ -48,10 +48,10 @@ scls_idx_last=single(ij_map(g_part(ngpu,1):g_part(ngpu,2),:));
 
 %g_part(:,2)=g_part(:,2)*4;
 %g_part(:,1)=g_part(:,1)*4-3;
-g_part(:,2)=g_part(:,2)*(n+2);
-g_part(:,1)=g_part(:,1)*(n+2)-(n+1);
+g_part(:,2)=g_part(:,2)*(2*n);
+g_part(:,1)=g_part(:,1)*(2*n)-(2*n-1);
 %g_part=[0,0;g_part];
-cl_idx=zeros(l(1)*(n+2),ngpu-1,'single');
+cl_idx=zeros(l(1)*(2*n),ngpu-1,'single');
 for i=1:ngpu-1
     cl_idx(:,i)=single(cls(g_part(i,1):g_part(i,2)));
 end
@@ -62,12 +62,12 @@ parfor i=1:ngpu
     scls_idx_loc=scls_idx;
     if i==ngpu
         [~,~,corrs_out_par{i}]=...
-            cryo_clmatrix_ML_gpu_scls_100718(pf,cl_idx_last,max_shift,shift_step,...
-            doFilter,scls_idx_last,scores);
+            cryo_clmatrix_ML_gpu_scls_Dn(pf,cl_idx_last,max_shift,shift_step,...
+            doFilter,scls_idx_last,scores,n);
     else
         [~,~,corrs_out_par{i}]=...
-            cryo_clmatrix_ML_gpu_scls_100718(pf,cl_idx_loc(:,i),max_shift,shift_step,...
-            doFilter,scls_idx_loc(:,:,i),scores);
+            cryo_clmatrix_ML_gpu_scls_Dn(pf,cl_idx_loc(:,i),max_shift,shift_step,...
+            doFilter,scls_idx_loc(:,:,i),scores,n);
     end
 end
 toc
