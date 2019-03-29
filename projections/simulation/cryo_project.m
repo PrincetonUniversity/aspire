@@ -1,4 +1,4 @@
-function projections=cryo_project_sym(volume,rot,n,precision,batch_size)
+function projections=cryo_project(volume,rot,n,precision,batch_size)
 %
 % Project the given volume in a direction given by the rotations rot.
 %
@@ -115,9 +115,9 @@ imagtol=precision*50;%5;
 
 % Accuracy parameter for NUFFT below.
 nufft_opt.epsilon=precision;
-%nufft_opt.num_threads = 1;
+nufft_opt.num_threads = 1;
 
-parfor batch=1:ceil(K/batch_size)
+for batch=1:ceil(K/batch_size)
     % It may be that the number of remained images is less than batch_size.
     % So compute the actual_batch_size.
     actual_batch_size=min(batch_size,K-(batch-1)*batch_size);
