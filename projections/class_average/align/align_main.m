@@ -1,6 +1,6 @@
-function [ shifts, corr, clean_images, averagesEMfname, norm_variance, loglikelihood ] = ...
+function [ shifts, corr, averagesfname, averagesEMfname, norm_variance, loglikelihood ] = ...
     align_main( data, angle, class_VDM, refl, sPCA_data, k, max_shifts,...
-    list_recon, use_EM, gpu_list, tmpdir)
+    list_recon, use_EM, gpu_list,tmpdir)
 % Function for aligning images with its k nearest neighbors to generate
 % class averages.
 %   Input: 
@@ -47,7 +47,7 @@ if isscalar(gpu_list)
     end
 end
 
-L=size(data, 1);
+L=data.dim(1);
 l=size(class_VDM, 2);
 
 %Check if the number of nearest neighbors is too large
@@ -98,17 +98,27 @@ end
 printProgressBarHeader;
 delete(gcp('nocreate'))
 
+if use_EM
+    ngpus=numel(gpu_list);
+    parpool(ngpus);
+    spmd
+        gpuid=gpu_list(mod(labindex-1,ngpus)+1);
+        gpuDevice(gpuid);
+        fprintf('Assigning worker %d to GPU %d\n',labindex,gpuid);
+    end
+end
+
+EMiters=3;
 loglikelihood=zeros(numel(list_recon),1);
 
-clean_images = data * 0;
-for j=1:length(list_recon)
+parfor j=1:length(list_recon)
     progressTic(j,length(list_recon));
     
     angle_j=angle(list_recon(j), 1:k); %rotation alignment
     refl_j=refl(list_recon(j), 1:k);    %reflections   
     index = class_VDM(list_recon(j), 1:k);   
-    images=data(:, :, index); % nearest neighbor images   
-    image1=data(:, :, list_recon(j));
+    images=data.getImage(index); % nearest neighbor images   
+    image1=data.getImage(list_recon(j));
     
     for i=1:k
         if (refl_j(i)==2)
@@ -155,11 +165,84 @@ for j=1:length(list_recon)
     norm_variance(j)=norm(variance, 'fro');
     tmp = mean(pf_images_shift, 2);
     tmp = reshape(tmp, L, L);
+    
+    mrcname=sprintf('average%d.mrcs',j);
+    mrcname=fullfile(tmpdir,mrcname);
     average = real(icfft2(tmp));
-    clean_images(:, :, list_recon(j)) = average;
+    WriteMRC(average,1, mrcname);    
     shifts(j, :)=-shifts_list(id, 1) - sqrt(-1)*shifts_list(id, 2);
+
+    if use_EM
+        nIters=EMiters;
+        ang_jump=5;
+        max_shift=6;
+        shift_jump=2;
+        nScalesTicks=10;
+        is_debug=0;
+        remove_outliers=1;
+        %[avg_em,log_like,opt_latent]=em_class_avg(images,average,...
+        %    nIters,ang_jump,max_shift,shift_jump,nScalesTicks,is_debug,[]);
+        [avg_em,im_avg_est_orig,log_like,opt_latent,outlier_ims_inds] = ...
+            em_class_avg_updated(images,average,nIters,ang_jump,...
+            max_shift,shift_jump,nScalesTicks,remove_outliers,0,[]);
+%        loglikelihood(j)=mean(log_like(:,EMiters));
+        mrcname=sprintf('average%d_em.mrcs',j);
+        mrcname=fullfile(tmpdir,mrcname);
+        %WriteMRC(avg_em,1, mrcname);    
+        WriteMRC(im_avg_est_orig,1,mrcname);
+        log_message('Written %s',mrcname);
+    end
+
+%     % Debug. Remove once done.
+%     img_name=sprintf('img_%05d.mrcs',j);
+%     im=zeros(size(image1,1),size(image1,2),4);
+%     im(:,:,1)=image1;
+%     im(:,:,2)=average;
+%     if use_EM
+%         im(1:size(avg_em,1),1:size(avg_em,1),3)=avg_em; % Save the downsampled average
+%         im(:,:,4)=im_avg_est_orig;
+%     end
+%     WriteMRC(im,1,img_name);
+%     % End debug.
 end
+
 % Merge all averages into a single file.
+log_message('Merging all averages into a single MRCS');
+averagesfname=tempname;
+log_message('Filename: %s',averagesfname);
+[~, averagesfname]=fileparts(averagesfname);
+averagesfname=fullfile(tmpdir,averagesfname);
+stack=imagestackWriter(averagesfname,numel(list_recon),1,100);
+printProgressBarHeader;
+for j=1:length(list_recon)
+    progressTicFor(j,length(list_recon));
+    mrcname=sprintf('average%d.mrcs',j);
+    mrcname=fullfile(tmpdir,mrcname);
+    average = ReadMRC(mrcname);
+    stack.append(average);
+end
+stack.close;
+
+if use_EM
+    log_message('Merging all EM refined averages into a single MRCS');
+    averagesEMfname=tempname;
+    log_message('Filename: %s',averagesEMfname);
+    [~, averagesEMfname]=fileparts(averagesEMfname);
+    averagesEMfname=fullfile(tmpdir,averagesEMfname);
+    
+    stackEM=imagestackWriter(averagesEMfname,numel(list_recon),1,100);
+    printProgressBarHeader;
+    
+    for j=1:length(list_recon)
+        progressTicFor(j,length(list_recon));
+        mrcname=sprintf('average%d_em.mrcs',j);
+        mrcname=fullfile(tmpdir,mrcname);
+        averageEM = ReadMRC(mrcname);
+        stackEM.append(averageEM);
+    end
+    stackEM.close;
+end
+
 
 
 end
