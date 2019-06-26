@@ -16,5 +16,7 @@ g_z3=axisang2rot([0,0,1],6*pi/5);
 g_z4=axisang2rot([0,0,1],8*pi/5);
 
 
-
+[pf,~]=cryo_pft(projs,size(projs,1),360);
+[C]=cryo_calc_proj_corrs(pf(:,:,[19,41]),0,0,1);
+[cls,corrs]=cryo_plot_cls_Dn(q_to_rot(q(:,61)),q_to_rot(q(:,62)),3,C);
 
