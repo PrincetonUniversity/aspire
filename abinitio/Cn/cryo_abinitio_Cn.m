@@ -42,6 +42,9 @@ if n_symm > 4 % check that cache file exists, and create it otherwise
         n_theta = 360;
         inplane_rot_res = 1;
         [folder, ~, ~] = fileparts(outvol);
+        if isempty(folder)
+            folder='./';
+        end
         cache_dir_full_path = folder;
         log_message('Creating cache file under folder: %s',cache_dir_full_path);
         log_message('#points on sphere=%d, n_theta=%d, inplane_rot_res=%d',n_Points_sphere,n_theta,inplane_rot_res);
