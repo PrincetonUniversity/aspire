@@ -54,17 +54,29 @@ if gpuDeviceCount>0
         numEMavg=fmtinput(message,defnumEMavg,'%d');
     end
 
+
+    defnnavg=maxavg;
+    message=sprintf('Number of projections to average into each EM class means (up to %d)? ',maxavg);
+    nnavg_EM=fmtinput(message,defnnavg,'%d');
     
+    if nnavg_EM>maxavg
+        log_message('Cannot average %s projections. Max averaging allowed is %d.',nnavg_EM,maxavg);
+        log_message('Run cryo_workflow_classify again and increase k_VDM_out to at least %d',nnavg_EM);
+        log_message('Aborting...');
+        return;
+    end
+
 else
     fprintf('No GPUs found. Cannot use EM to refine class averages.\n');
 end
 
 %% Update workflow struct
 
-workflow.classmeans.nnavg = nnavg; % output number of nearest neighbors
+workflow.classmeans.nnavg = nnavg; % Number of nearest neighbors to average into each class mean
 workflow.classmeans.use_EM = use_EM; % Whether to use EM to refine class averages
 workflow.classmeans.gpu_list = gpu_list; % Which GPUs to use 
 workflow.classmeans.num_EM_averages = numEMavg; % Number of class averages to generate
+workflow.classmeans.nnavg_EM = nnavg_EM; % Number of nearest neighbors to use for EM class mean estimation
 
 tree=struct2xml(workflow);
 save(tree,workflow_fname); 

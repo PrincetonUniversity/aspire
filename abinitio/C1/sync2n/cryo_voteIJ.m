@@ -209,7 +209,7 @@ if idx>1
     h=bsxfun(@minus,h,angles.^2);
     h=bsxfun(@minus,h,x.^2);
     h=exp(h./(2*sigma.^2));    
-    h=sum(h);
+    h=sum(h, 1);
 %     Tnew=toc;
 %     if norm(h2-h)/norm(h)>1.0e-12
 %         aaa=1;
