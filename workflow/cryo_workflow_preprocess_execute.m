@@ -154,7 +154,7 @@ if str2double(workflow.preprocess.do_normalize)
     PFCDNfname=tempmrcsname; % phaseflipped+cropped+downsampled+normalized
     log_message('Normalized images will be saved to temporary file %s',PFCDNfname);
     log_message('Running cryo_normalize_background_outofcore');
-    cryo_normalize_background_outofcore(PFCDfname,PFCDNfname,round(n/2)-10);
+    cryo_normalize_background_outofcore(PFCDfname,PFCDNfname,floor(n*0.45));
     log_message('Finished normalizing');
     
     delete(PFCDfname);

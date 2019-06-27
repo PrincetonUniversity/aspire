@@ -1,33 +1,34 @@
 
 %Input: N is size of grid, best choose N=k^2
-function [debug_data]=genLookupGrid_eqClass(N,eq_filter_angle,dtheta,s)
+function [lookup_data]=genLookupGrid_eqClass_Dn2(N,eq_filter_angles,dtheta,n,s)
 
-if nargin>3
+if nargin>4
     rng(s);
 end
 
 %% Generate uniform grid on sphere with Saaf-Kuijlaars
 sphere_grid=SaffKuijlaars(N);
-octant1_idx=(sphere_grid(:,1)>0).*(sphere_grid(:,2)>0).*(sphere_grid(:,3)>0);
-octant2_idx=(sphere_grid(:,1)>0).*(sphere_grid(:,2)>0).*(sphere_grid(:,3)<0);
-sphere_grid2=sphere_grid(octant2_idx==1,:);
-sphere_grid=sphere_grid(octant1_idx==1,:);
-
-%DEBUG
-% sphere_grid2=sphere_grid;
-% sphere_grid2(:,1:2)=sphere_grid2(:,[2,1]);
-% sphere_grid2(:,1)=-sphere_grid2(:,1);
+sphere_grid=filterGridDn(sphere_grid',n);
+%DEBUG CODE
+%sphere_grid=[[0.5276;-0.1714;-0.8321],[0.7913;0.2571;-0.5547],sphere_grid];
+% octant1_idx=(sphere_grid(:,1)>0).*(sphere_grid(:,2)>0).*(sphere_grid(:,3)>0);
+% octant2_idx=(sphere_grid(:,1)>0).*(sphere_grid(:,2)>0).*(sphere_grid(:,3)<0);
+% sphere_grid2=sphere_grid(octant2_idx==1,:);
+% sphere_grid=sphere_grid(octant1_idx==1,:);
+octant1_idx=sphere_grid(3,:)>=0;
+sphere_grid2=sphere_grid(:,~octant1_idx);
+sphere_grid=sphere_grid(:,octant1_idx);
 
 %% Mark points on equators
 %project each vector onto xy,xz,yz planes and measure angular distance
-sphere_grid=sphere_grid'; 
-sphere_grid2=sphere_grid2';
-[eq_idx,eq_class]=markEquators(sphere_grid,eq_filter_angle);
-[eq_idx2,eq_class2]=markEquators(sphere_grid2,eq_filter_angle);
+%sphere_grid=sphere_grid'; 
+%sphere_grid2=sphere_grid2';
+[eq_idx,eq_class]=markEquatorsDn2(sphere_grid,eq_filter_angles,n);
+[eq_idx2,eq_class2]=markEquatorsDn2(sphere_grid2,eq_filter_angles,n);
 
-%% Get rid of top view candidates
-non_tv1=eq_class<=3;
-non_tv2=eq_class2<=3;
+%% Get rid of top view candidates and z-equators
+non_tv1=(eq_class==0) | (eq_class==2) | (eq_class==3);
+non_tv2=(eq_class2==0) |(eq_class2==2) | (eq_class2==3);
 sphere_grid=sphere_grid(:,non_tv1==1);
 sphere_grid2=sphere_grid2(:,non_tv2==1);
 eq_idx=eq_idx(non_tv1==1);
@@ -36,13 +37,6 @@ eq_class=eq_class(non_tv1==1);
 eq_class2=eq_class2(non_tv2==1);
 nrot=size(sphere_grid,2);
 nrot2=size(sphere_grid2,2);
-% 
-% %DEBUG
-% eq_idx=zeros(size(eq_idx));
-% eq_idx2=zeros(size(eq_idx2));
-% eq_class=zeros(size(eq_class));
-% eq_class2=zeros(size(eq_class2));
-
 
 %% Determine in-plane angular resolution to be ~ sphere grid resolution
 if nargin<3
@@ -72,8 +66,10 @@ npairs=sum(unique_pairs(:));
 h=waitbar(0,'Generating relative rotations octant 1...');
 idx=0;
 idx_vec=1:nrot;
-
-cls=zeros(2,4,0.5*ntheta,ntheta,2*npairs);
+cls=zeros(2,2*n,0.5*ntheta,ntheta,2*npairs);
+[g1,g2]=gns(n);
+gs=cat(3,g1(:,:,2:end),g2);
+%gs=permute(gs,[2,1,3]); %???? Should we permute??
 
 for i=1:nrot-1
    
@@ -86,39 +82,41 @@ for i=1:nrot-1
         idx=idx+1;
         Rjs=inplane_rotated_grid(:,:,1:0.5*n_inplane,j);
         Ris=permute(inplane_rotated_grid(:,:,:,i),[1,2,4,3]);
-        Rijs=multiprod(multi_transpose(Rjs),Ris);
+        Rijs=multiprod(permute(Rjs,[2,1,3]),Ris);
         
         cls(1,1,:,:,npairs+idx)=atan2(Rijs(1,3,:,:),-Rijs(2,3,:,:));
         cls(2,1,:,:,npairs+idx)=atan2(-Rijs(3,1,:,:),Rijs(3,2,:,:));
         cls(1,1,:,:,idx)=atan2(Rijs(3,1,:,:),-Rijs(3,2,:,:));
         cls(2,1,:,:,idx)=atan2(-Rijs(1,3,:,:),Rijs(2,3,:,:));        
         
-        gRjs=Rjs;
-        gRjs(2:3,:,:)=-gRjs(2:3,:,:);
-        Rijs=multiprod(multi_transpose(gRjs),Ris);
-        
-        cls(1,2,:,:,npairs+idx)=atan2(Rijs(1,3,:,:),-Rijs(2,3,:,:));
-        cls(2,2,:,:,npairs+idx)=atan2(-Rijs(3,1,:,:),Rijs(3,2,:,:));
-        cls(1,2,:,:,idx)=atan2(Rijs(3,1,:,:),-Rijs(3,2,:,:));
-        cls(2,2,:,:,idx)=atan2(-Rijs(1,3,:,:),Rijs(2,3,:,:)); 
-        
-        gRjs=Rjs;
-        gRjs([1,3],:,:)=-gRjs([1,3],:,:);
-        Rijs=multiprod(multi_transpose(gRjs),Ris);
-        
-        cls(1,3,:,:,npairs+idx)=atan2(Rijs(1,3,:,:),-Rijs(2,3,:,:));
-        cls(2,3,:,:,npairs+idx)=atan2(-Rijs(3,1,:,:),Rijs(3,2,:,:));
-        cls(1,3,:,:,idx)=atan2(Rijs(3,1,:,:),-Rijs(3,2,:,:));
-        cls(2,3,:,:,idx)=atan2(-Rijs(1,3,:,:),Rijs(2,3,:,:)); 
-        
-        gRjs=Rjs;
-        gRjs(1:2,:,:)=-gRjs(1:2,:,:);
-        Rijs=multiprod(multi_transpose(gRjs),Ris);
+        for k=1:2*n-1
+            %gRjs=Rjs;
+            %gRjs(2:3,:,:)=-gRjs(2:3,:,:);
+            gRjs=multiprod(gs(:,:,k),Rjs);
+            Rijs=multiprod(permute(gRjs,[2,1,3]),Ris);
 
-        cls(1,4,:,:,npairs+idx)=atan2(Rijs(1,3,:,:),-Rijs(2,3,:,:));
-        cls(2,4,:,:,npairs+idx)=atan2(-Rijs(3,1,:,:),Rijs(3,2,:,:));
-        cls(1,4,:,:,idx)=atan2(Rijs(3,1,:,:),-Rijs(3,2,:,:));
-        cls(2,4,:,:,idx)=atan2(-Rijs(1,3,:,:),Rijs(2,3,:,:)); 
+            cls(1,k+1,:,:,npairs+idx)=atan2(Rijs(1,3,:,:),-Rijs(2,3,:,:));
+            cls(2,k+1,:,:,npairs+idx)=atan2(-Rijs(3,1,:,:),Rijs(3,2,:,:));
+            cls(1,k+1,:,:,idx)=atan2(Rijs(3,1,:,:),-Rijs(3,2,:,:));
+            cls(2,k+1,:,:,idx)=atan2(-Rijs(1,3,:,:),Rijs(2,3,:,:)); 
+        end
+%         gRjs=Rjs;
+%         gRjs([1,3],:,:)=-gRjs([1,3],:,:);
+%         Rijs=multiprod(multi_transpose(gRjs),Ris);
+%         
+%         cls(1,3,:,:,npairs+idx)=atan2(Rijs(1,3,:,:),-Rijs(2,3,:,:));
+%         cls(2,3,:,:,npairs+idx)=atan2(-Rijs(3,1,:,:),Rijs(3,2,:,:));
+%         cls(1,3,:,:,idx)=atan2(Rijs(3,1,:,:),-Rijs(3,2,:,:));
+%         cls(2,3,:,:,idx)=atan2(-Rijs(1,3,:,:),Rijs(2,3,:,:)); 
+%         
+%         gRjs=Rjs;
+%         gRjs(1:2,:,:)=-gRjs(1:2,:,:);
+%         Rijs=multiprod(multi_transpose(gRjs),Ris);
+% 
+%         cls(1,4,:,:,npairs+idx)=atan2(Rijs(1,3,:,:),-Rijs(2,3,:,:));
+%         cls(2,4,:,:,npairs+idx)=atan2(-Rijs(3,1,:,:),Rijs(3,2,:,:));
+%         cls(1,4,:,:,idx)=atan2(Rijs(3,1,:,:),-Rijs(3,2,:,:));
+%         cls(2,4,:,:,idx)=atan2(-Rijs(1,3,:,:),Rijs(2,3,:,:)); 
     end
     waitbar(idx/npairs);
 end
@@ -139,7 +137,7 @@ Rijs_grid=[];
 idx=0;
 idx_vec=1:nrot2;
 
-cls2=zeros(2,4,0.5*ntheta,ntheta,2*npairs12);
+cls2=zeros(2,2*n,0.5*ntheta,ntheta,2*npairs12);
 
 for i=1:nrot
    
@@ -152,39 +150,42 @@ for i=1:nrot
         idx=idx+1;
         Rjs=inplane_rotated_grid2(:,:,1:0.5*n_inplane2,j);
         Ris=permute(inplane_rotated_grid(:,:,:,i),[1,2,4,3]);
-        Rijs=multiprod(multi_transpose(Rjs),Ris);
+        Rijs=multiprod(permute(Rjs,[2,1,3]),Ris);
         
         cls2(1,1,:,:,npairs12+idx)=atan2(Rijs(1,3,:,:),-Rijs(2,3,:,:));
         cls2(2,1,:,:,npairs12+idx)=atan2(-Rijs(3,1,:,:),Rijs(3,2,:,:));
         cls2(1,1,:,:,idx)=atan2(Rijs(3,1,:,:),-Rijs(3,2,:,:));
         cls2(2,1,:,:,idx)=atan2(-Rijs(1,3,:,:),Rijs(2,3,:,:));        
-        
-        gRjs=Rjs;
-        gRjs(2:3,:,:)=-gRjs(2:3,:,:);
-        Rijs=multiprod(multi_transpose(gRjs),Ris);
-        
-        cls2(1,2,:,:,npairs12+idx)=atan2(Rijs(1,3,:,:),-Rijs(2,3,:,:));
-        cls2(2,2,:,:,npairs12+idx)=atan2(-Rijs(3,1,:,:),Rijs(3,2,:,:));
-        cls2(1,2,:,:,idx)=atan2(Rijs(3,1,:,:),-Rijs(3,2,:,:));
-        cls2(2,2,:,:,idx)=atan2(-Rijs(1,3,:,:),Rijs(2,3,:,:)); 
-        
-        gRjs=Rjs;
-        gRjs([1,3],:,:)=-gRjs([1,3],:,:);
-        Rijs=multiprod(multi_transpose(gRjs),Ris);
-        
-        cls2(1,3,:,:,npairs12+idx)=atan2(Rijs(1,3,:,:),-Rijs(2,3,:,:));
-        cls2(2,3,:,:,npairs12+idx)=atan2(-Rijs(3,1,:,:),Rijs(3,2,:,:));
-        cls2(1,3,:,:,idx)=atan2(Rijs(3,1,:,:),-Rijs(3,2,:,:));
-        cls2(2,3,:,:,idx)=atan2(-Rijs(1,3,:,:),Rijs(2,3,:,:)); 
-        
-        gRjs=Rjs;
-        gRjs(1:2,:,:)=-gRjs(1:2,:,:);
-        Rijs=multiprod(multi_transpose(gRjs),Ris);
+       
+        for k=1:2*n-1
+            %gRjs=Rjs;
+            %gRjs(2:3,:,:)=-gRjs(2:3,:,:);
+            gRjs=multiprod(gs(:,:,k),Rjs);
+            Rijs=multiprod(permute(gRjs,[2,1,3]),Ris);
 
-        cls2(1,4,:,:,npairs12+idx)=atan2(Rijs(1,3,:,:),-Rijs(2,3,:,:));
-        cls2(2,4,:,:,npairs12+idx)=atan2(-Rijs(3,1,:,:),Rijs(3,2,:,:));
-        cls2(1,4,:,:,idx)=atan2(Rijs(3,1,:,:),-Rijs(3,2,:,:));
-        cls2(2,4,:,:,idx)=atan2(-Rijs(1,3,:,:),Rijs(2,3,:,:)); 
+            cls2(1,k+1,:,:,npairs12+idx)=atan2(Rijs(1,3,:,:),-Rijs(2,3,:,:));
+            cls2(2,k+1,:,:,npairs12+idx)=atan2(-Rijs(3,1,:,:),Rijs(3,2,:,:));
+            cls2(1,k+1,:,:,idx)=atan2(Rijs(3,1,:,:),-Rijs(3,2,:,:));
+            cls2(2,k+1,:,:,idx)=atan2(-Rijs(1,3,:,:),Rijs(2,3,:,:)); 
+        end
+        
+%         gRjs=Rjs;
+%         gRjs([1,3],:,:)=-gRjs([1,3],:,:);
+%         Rijs=multiprod(multi_transpose(gRjs),Ris);
+%         
+%         cls2(1,3,:,:,npairs12+idx)=atan2(Rijs(1,3,:,:),-Rijs(2,3,:,:));
+%         cls2(2,3,:,:,npairs12+idx)=atan2(-Rijs(3,1,:,:),Rijs(3,2,:,:));
+%         cls2(1,3,:,:,idx)=atan2(Rijs(3,1,:,:),-Rijs(3,2,:,:));
+%         cls2(2,3,:,:,idx)=atan2(-Rijs(1,3,:,:),Rijs(2,3,:,:)); 
+%         
+%         gRjs=Rjs;
+%         gRjs(1:2,:,:)=-gRjs(1:2,:,:);
+%         Rijs=multiprod(multi_transpose(gRjs),Ris);
+% 
+%         cls2(1,4,:,:,npairs12+idx)=atan2(Rijs(1,3,:,:),-Rijs(2,3,:,:));
+%         cls2(2,4,:,:,npairs12+idx)=atan2(-Rijs(3,1,:,:),Rijs(3,2,:,:));
+%         cls2(1,4,:,:,idx)=atan2(Rijs(3,1,:,:),-Rijs(3,2,:,:));
+%         cls2(2,4,:,:,idx)=atan2(-Rijs(1,3,:,:),Rijs(2,3,:,:)); 
     end
     waitbar(idx/npairs12);
 end
@@ -196,24 +197,24 @@ clearvars Ris Rjs
 disp('Generating common lines...');
 cls=mod(cls+2*pi,2*pi); %make all angles non negative 
 cls=cls*180/pi; %convert to degrees 
-cls=reshape(cls,2,4*0.5*ntheta^2*npairs*2)';
-[cls_lookup]=getClsFromRijs3(cls);
+cls=reshape(cls,2,2*n*0.5*ntheta^2*npairs*2)';
+[cls_lookup]=getClsFromRijsDn(cls);
 %cls_lookup=reshape(cls_lookup,4,0.5*ntheta*ntheta*npairs*2);
 cls=uint16(cls);
-cls11=reshape(cls(:,1),4,1,0.5*ntheta^2*npairs*2);
-cls12=reshape(cls(:,2),4,1,0.5*ntheta^2*npairs*2);
+cls11=reshape(cls(:,1),2*n,1,0.5*ntheta^2*npairs*2);
+cls12=reshape(cls(:,2),2*n,1,0.5*ntheta^2*npairs*2);
 cls=cat(2,cls11,cls12);
 
 %% Generate fourier ray angles (indexes) from Rijs_grid octant 2
 disp('Generating common lines...');
 cls2=mod(cls2+2*pi,2*pi); %make all angles non negative 
 cls2=cls2*180/pi; %convert to degrees 
-cls2=reshape(cls2,2,4*0.5*ntheta^2*npairs12*2)';
-[cls2_lookup]=getClsFromRijs3(cls2);
+cls2=reshape(cls2,2,2*n*0.5*ntheta^2*npairs12*2)';
+[cls2_lookup]=getClsFromRijsDn(cls2);
 %cls_lookup=reshape(cls_lookup,4,0.5*ntheta*ntheta*npairs12*2);
 cls2=uint16(cls2);
-cls11=reshape(cls2(:,1),4,1,0.5*ntheta^2*npairs12*2);
-cls12=reshape(cls2(:,2),4,1,0.5*ntheta^2*npairs12*2);
+cls11=reshape(cls2(:,1),2*n,1,0.5*ntheta^2*npairs12*2);
+cls12=reshape(cls2(:,2),2*n,1,0.5*ntheta^2*npairs12*2);
 cls2=cat(2,cls11,cls12);
 %cls_lookup=[cls_lookup,cls2_lookup];
 %% Generate rots_grid statistics for debuging
@@ -223,14 +224,14 @@ cls2=cat(2,cls11,cls12);
 [grid_stats,pol_rep]=generateGridStats(rots_grid);
 
 %% Finalize
-debug_data=struct('rots_grid',rots_grid,'cls_lookup',cls_lookup,...
+lookup_data=struct('rots_grid',rots_grid,'cls_lookup',cls_lookup,...
     'Rijs_grid',Rijs_grid,'grid_stats',grid_stats,'nrot',nrot,...
-    'ntheta',ntheta,'dtheta',dtheta,'npairs',npairs,'eq_filter_angle',...
-    eq_filter_angle,'mean_angular_dist',mean_angular_dist,'pol_rep',...
+    'ntheta',ntheta,'dtheta',dtheta,'npairs',npairs,'eq_filter_angles',...
+    eq_filter_angles,'mean_angular_dist',mean_angular_dist,'pol_rep',...
     pol_rep,'cls',cls,'inplane_rotated_grid',inplane_rotated_grid,...
     'unique_pairs',unique_pairs,'cls2_lookup',cls2_lookup,'cls2',cls2,...
     'nrot2',nrot2,'unique_pairs12',unique_pairs12,'inplane_rotated_grid2',...
     inplane_rotated_grid2,'rots_grid2',rots_grid2,'npairs12',npairs12,...
     'eq_idx',eq_idx,'eq_idx2',eq_idx2,'eq2eq_Rij_table11',logical(eq2eq_Rij_table11),...
-    'eq2eq_Rij_table12',logical(eq2eq_Rij_table12));
+    'eq2eq_Rij_table12',logical(eq2eq_Rij_table12),'n',n);
 end

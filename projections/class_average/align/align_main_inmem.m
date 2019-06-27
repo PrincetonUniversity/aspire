@@ -34,8 +34,12 @@ function [shifts, corr, averages, norm_variance] = align_main_inmem( ...
     tmpdir = tempname;
     mkdir(tmpdir);
 
-    [shifts, corr, ave_filename, norm_variance] = align_main(data, angle, ...
-        class_VDM, refl, FBsPCA_data, k, max_shifts, list_recon, recon_sPCA, tmpdir);
+    use_EM = false;
+    gpu_list = [];
+
+    [shifts, corr, ave_filename, avg_EM_filename, norm_variance] = ...
+        align_main(data, angle, class_VDM, refl, FBsPCA_data, k, ...
+            max_shifts, list_recon, use_EM, gpu_list, tmpdir);
 
     averages = ReadMRC(ave_filename);
 
