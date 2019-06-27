@@ -66,7 +66,7 @@ M=exp(O1*Coeff_norm+sqrt(-1)*O2*Phase);
 
 %% svd of the reduced bispectrum
 M=cast(M,precision);
-[ U, S, V ] = pca_Y( M, 300 );
+[ U, S, V ] = pca_Y( M, min(size(M,1),300) );
 %disp('PCA done');
 Coeff_b = S*V';
 Coeff_b_r = U'*conj(M);
