@@ -104,7 +104,15 @@ vol2masked=GaussFilt(vol2masked,0.3);
 
 %% Alignment 
 
+
+% Generate projections of volume 2.
 rots_ref = rand_rots(Nprojs); % Quaternions used to project volume 2.
+projs2=cryo_project(vol2masked,rots_ref);
+projs2=permute(projs2,[2,1,3]);
+
+% A poor attempt to speed up. Leaving the call for future reference.
+% [projs2,rots_ref]=cryo_project_random(vol2masked,ceil(Nprojs/3));
+
 
 % Invert rotations
 trueRs=zeros(3,3,Nprojs); 
@@ -112,14 +120,31 @@ for k=1:Nprojs
     trueRs(:,:,k)=rots_ref(:,:,k).';
 end
 
-% Generate projections of volume 2.
-projs2=cryo_project(vol2masked,rots_ref);
-projs2=permute(projs2,[2,1,3]);
-
+% figure;
+% subplot(1,3,1); 
+% imagesc(squeeze(sum(pv,1))); axis image; colormap(gray);
+% subplot(1,3,2);
+% imagesc(fastrotate(squeeze(sum(fastrotate3x(pv,90),3)),-90)); 
+% axis image; colormap(gray)
+% subplot(1,3,3)
+% imagesc(sum(fastrotate3d(pv,rotz(90)*rotx(90)),3));
+% axis image;colormap(gray)
+%
+% figure;
+% subplot(1,3,1);
+% imagesc(squeeze(sum(pv,2)));
+% axis image; colormap(gray);
+% subplot(1,3,2)
+% imagesc(squeeze(sum(fastrotate3y(pv,90),3)));
+% axis image; colormap(gray);
+% subplot(1,3,3);
+% imagesc(sum(fastrotate3d(pv,roty(90)),3));
+% axis image;colormap(gray)
+%
 % Estimate rotations of the projections of volume 2.
 log_message('Aligning volumes.')
-[Rests,dxests]=cryo_orient_projections_gpu(projs2,vol1masked,Nprojs,[],verbose,0);
-%[Rests,dxests]=cryo_orient_projections(projs2,vol1masked,Nprojs,[],verbose,0);
+%[Rests,dxests]=cryo_orient_projections_gpu(projs2,vol1masked,Nprojs,[],verbose,0);
+[Rests,dxests]=cryo_orient_projections(projs2,vol1masked,Nprojs,[],verbose,0);
 
 % Assess quality of the alignment. Use Rests and trueRs to estimate the
 % matrix aligning the two volumes. The close this matrix to an orthogonal
