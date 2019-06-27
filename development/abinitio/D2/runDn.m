@@ -223,6 +223,7 @@ if stages.st5
     %[volRec,dxD2] = reconstructDn_ML(noisy_projs,rots,nr,360,max_shift,1);
     [volRec,dxDn,post_corrs] = reconstructDn_dev(masked_projs,rots_est,nr,360,max_shift,1);
     %[volRec,dxD2] = reconstructD2(masked_projs,rots,nr,360,max_shift,1);
+    save temp
     vol=params.vol;
     pixA=params.pixA;
     cutoff=params.cutoff;
