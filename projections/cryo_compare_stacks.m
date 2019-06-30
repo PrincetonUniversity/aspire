@@ -58,7 +58,7 @@ for k=1:mrc1reader.dim(3)
             log_message('Difference between projections %d/%d: %5.3e',ek);
         end
         
-        errtot=errtot+ek;
+        errtot=errtot+ek/norm(im1(:));  % Accumulate relative errors for all images.
         count=count+1;
     else
         warning('Image %d in one of the stacks has NaNs',k);
@@ -72,7 +72,8 @@ for k=1:mrc1reader.dim(3)
     end    
 end
 
-err=errtot/mrc1reader.dim(3);
+err=errtot/mrc1reader.dim(3); % Divide total error by number of images to get
+                              % "relative error per image".
 if verbose>=3
     log_message('Relative error between stacks: %5.3e',err);
 end
