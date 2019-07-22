@@ -117,7 +117,7 @@ end
 % longer correlations (of length 2*n_r-1 instead of n_r), as the two halfs
 % are exactly the same. Taking shorter correlation would speed the
 % computation by a factor of two.
-pf=[flipdim(pf(2:end,T/2+1:end,:),1) ; pf(:,1:T/2,:) ];
+pf=[flip(pf(2:end,T/2+1:end,:),1) ; pf(:,1:T/2,:) ];
 
 % % Project all common lines on the first 15 principal components.
 % nPCs=30;
