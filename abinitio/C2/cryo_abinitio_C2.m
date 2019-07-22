@@ -140,7 +140,7 @@ end
 
 npf = gaussian_filter_imgs(npf);
 
-save(outparams,'n_theta','n_r','-append');
+save(outparams,'n_theta','n_r');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 2  : detect two pairs of common-lines between each pair of images
