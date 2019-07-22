@@ -146,16 +146,16 @@ if (nargin<2) || (NK==-1)
     NK=n_proj; % Number of common-line pairs to compute for each projection
 end
 
-if ~exist('verbose','var');
+if ~exist('verbose','var')
     verbose=1;
 end
 
-if ~exist('max_shift','var');
+if ~exist('max_shift','var')
     max_shift=15; % Maximal shift between common-lines in pixels. The 
                   % shift  is from -max_shift to max_shift. 
 end
 
-if ~exist('shift_step','var');
+if ~exist('shift_step','var')
     shift_step=1.0; % Resolution of shift estimation in pixels.
 end
 n_shifts=ceil(2*max_shift/shift_step+1); % Number of shifts to try.
@@ -195,7 +195,7 @@ verbose_plot_shifts=0;
 
 if bitand(verbose,1)
     verbose_progress=1;
-end;
+end
 
 found_ref_clmatrix=0;
 if ~isscalar(ref_clmatrix) 
@@ -218,21 +218,21 @@ end
 if bitand(verbose,2)
         verbose_detailed_debugging=1;
         verbose_progress=0;
-end;
+end
 
 if bitand(verbose,4) 
     if isscalar(ref_clmatrix) 
         log_message('Common-lines plots not available. Reference clmatrix is missing\n');
     end
     verbose_plot_cl=1;
-end;
+end
 
 if bitand(verbose,8) 
     if isscalar(ref_clmatrix) || isscalar(ref_shifts_2d)
         log_message('Only partial information will be plotted. Reference clmatrix or shifts are missing\n');
     end
     verbose_plot_shifts=1;
-end;
+end
 
 
 if verbose>0
@@ -337,7 +337,7 @@ for shiftidx=1:n_shifts
 end
 
 
-for k1=1:n_proj;
+for k1=1:n_proj
     
     n2=min(n_proj-k1,NK);
     subsetK2=sort(randperm(n_proj-k1)+k1);
@@ -374,7 +374,7 @@ for k1=1:n_proj;
         error('DC component of projection is not zero');
     end
     
-    for k2=subsetK2;
+    for k2=subsetK2
         
         t1=clock;                       
         proj2=pf3(:,:,k2); % proj1 and proj2 are both normalized to unit norm.
@@ -523,7 +523,7 @@ for k1=1:n_proj;
 
                 text(px(2)*0.4,py(2)*0.7,str,'EdgeColor','k')
                 hold off;                                
-            end;
+            end
             %%%%%%%%%%%% End of debug code %%%%%%%%%%%%
         end
         
@@ -876,8 +876,8 @@ for k1=1:n_proj;
             msg=sprintf('k1=%3d/%3d  k2=%3d/%3d  t=%7.5f',k1,n_proj,k2,n_proj,t);
             fprintf('%s',msg);
         end
-    end;
-end;
+    end
+end
 
 
 if verbose_progress
@@ -905,7 +905,7 @@ if verbose_detailed_debugging
     % XXX Check that the shift estimation improves with n_theta.
     % XXX Does it improve with n_proj?
     if n_proj<=100
-        [U,S,V]=svd(full(shift_equations(:,1:end-1)));
+        [~,S,V]=svd(full(shift_equations(:,1:end-1)));
         s=diag(S);
         log_message('Singular values of the shift system of equations:');
         log_message('%d  ',fliplr(s.'));
@@ -932,7 +932,7 @@ if verbose_detailed_debugging
         end
     else
         log_message('Not computing SVD of shifts matrix -- matrix is too big');
-    end;
+    end
 end
 
 function y=enforce_real(x)
