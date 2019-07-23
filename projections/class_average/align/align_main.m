@@ -96,7 +96,9 @@ if numel(filelist)>2
 end
 
 printProgressBarHeader;
-delete(gcp('nocreate'))
+if exist('gcp')
+    delete(gcp('nocreate'))
+end
 
 if use_EM
     ngpus=numel(gpu_list);
