@@ -1,7 +1,7 @@
 
 ![Logo](http://spr.math.princeton.edu/sites/spr.math.princeton.edu/files/ASPIRE_1.jpg)
 
-ASPIRE – Algorithms for Single PartIcle REconstruction
+# ASPIRE - Algorithms for Single PartIcle REconstruction
 
 This is the MATLAB version with initial private repository started in 2013. Please check the corresponding 
 [Python version](https://github.com/ComputationalCryoEM/ASPIRE-Python) started in 2018.
@@ -30,7 +30,7 @@ Getting started
 Revisions
 ---------
 
-*Changes from version 0.13
+## Changes from version 0.13
 1. Improve speed
 2. Improve reconstruction workflows
 3. Integrate PSWF-based sPCA
@@ -45,7 +45,7 @@ Revisions
 12.Add various utilities
 
 
-*Changes from version 0.12
+## Changes from version 0.12
 1. Added improved denoising for images
 2. Added volume covariance estimation
 3. Added improved noise estimation
@@ -55,14 +55,14 @@ Revisions
 7. Added routines for reconstruction workflow
 
 
-*Changes from version 0.11
+## Changes from version 0.11
 1. 	Added memory efficient FIRM reconstruction routine reconstruction/FIRM/recon3d_firm_ctf_large.m 
 2.	Added example file for using cryo_project examples/simulated_projections.m
 3.	Update documentation of projections/simulation/cryo_project.m
 4. 	Remove obsolete benchmark results from comment at the end of  ./sinograms/test_commonlines_gaussian.m
 
 
-*Changes from version 0.1
+## Changes from version 0.1
 1.	Updated class averaging code.
 2.	Revised the function cryo_project to generate projections whose size is different from the size of the projected volume.
 
