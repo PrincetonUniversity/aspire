@@ -1,5 +1,6 @@
-
 ![Logo](http://spr.math.princeton.edu/sites/spr.math.princeton.edu/files/ASPIRE_1.jpg)
+
+![Github Releases](https://img.shields.io/github/downloads/PrincetonUniversity/aspire/total.svg?style=plastic)
 
 # ASPIRE - Algorithms for Single PartIcle REconstruction
 
