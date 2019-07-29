@@ -1,7 +1,7 @@
 
 ![Logo](http://spr.math.princeton.edu/sites/spr.math.princeton.edu/files/ASPIRE_1.jpg)
 
-# ASPIRE - Algorithms for Single PartIcle REconstruction
+# ASPIRE - Algorithms for Single Particle Reconstruction
 
 This is the MATLAB version with initial private repository started in 2013. Please check the corresponding 
 [Python version](https://github.com/ComputationalCryoEM/ASPIRE-Python) started in 2018.
