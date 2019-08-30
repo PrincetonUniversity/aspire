@@ -17,7 +17,7 @@ The following steps should be executed only once.
    We will assume that the package has been extracted to a folder named ASPIRE.
 2. Change into the directory ASPIRE.
 3. Run "initpath".
-4. Run “install”.
+4. Run "install".
 5. Change into the directory ASPIRE/projections/class_average/ and run “gen_simulation_data”.
 
 
