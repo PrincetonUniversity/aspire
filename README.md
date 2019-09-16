@@ -10,6 +10,8 @@ This is the MATLAB version with initial private repository started in 2013. Plea
 Current version: 0.14
 Date: 11/2018
 
+For more information about the project, algorithms, and related publications please refer to the [ASPIRE Project website](http://spr.math.princeton.edu/).
+
 Installation
 ------------
 The following steps should be executed only once.
