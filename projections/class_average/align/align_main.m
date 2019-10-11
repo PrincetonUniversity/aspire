@@ -208,7 +208,7 @@ end
 
 % Merge all averages into a single file.
 log_message('Merging all averages into a single MRCS');
-averagesfname=tempname;
+averagesfname=tempmrcname;
 log_message('Filename: %s',averagesfname);
 [~, averagesfname]=fileparts(averagesfname);
 averagesfname=fullfile(tmpdir,averagesfname);
@@ -225,7 +225,7 @@ stack.close;
 
 if use_EM
     log_message('Merging all EM refined averages into a single MRCS');
-    averagesEMfname=tempname;
+    averagesEMfname=tempmrcname;
     log_message('Filename: %s',averagesEMfname);
     [~, averagesEMfname]=fileparts(averagesEMfname);
     averagesEMfname=fullfile(tmpdir,averagesEMfname);

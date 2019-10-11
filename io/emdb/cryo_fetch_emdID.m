@@ -30,7 +30,7 @@ ngdc = ftp(ftpServer);
 log_message('FTP connection was established.');
 
 log_message('Downloading the zipped density map ...');
-target=tempname;    % Create a temporary location to save the retrieved map.
+target=tempmrcname;    % Create a temporary location to save the retrieved map.
 zippedMapFile =mget(ngdc, ftpAddress,target);
 log_message('The zipped density map was downloaded to %s.',target);
 
