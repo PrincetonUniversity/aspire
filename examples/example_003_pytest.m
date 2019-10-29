@@ -6,8 +6,8 @@
 %%% Parameters %%%
 
 L = 8;                 % Size of images
-n = 1024;               % Number of images
-
+n = 32;               % Number of images n
+% n = 1024;               % Number of images n
 SNR = 1;                % Signal-to-noise ratio of images.
 
 pixel_size = 5;         % Pixel size of the images (in angstroms).
@@ -112,8 +112,17 @@ covar_coeff = fb_rot_covar(coeff_clean, mean_coeff, basis);
 % the estimated mean and the variance of the noise are needed. Again, the
 % covariance matrix estimate is provided in block diagonal form.
 mean_coeff_est = fb_rot_mean_ctf(coeff, h_fb, h_idx, basis);
+% covar_coeff_est = fb_rot_covar_ctf(coeff, h_fb, h_idx, ...
+%    mean_coeff_est, noise_var, basis);
+
+covar_est_opt = struct();
+covar_est_opt = fill_struct(covar_est_opt, ...
+        'shrinker', 'frobenius_norm', ...
+        'verbose', 0, ...
+        'max_iter', 250, ...
+        'rel_tolerance', 1e-12);
 covar_coeff_est = fb_rot_covar_ctf(coeff, h_fb, h_idx, ...
-    mean_coeff_est, noise_var, basis);
+    mean_coeff_est, noise_var, basis, covar_est_opt);
 
 % Estimate the Fourier-Bessel coefficients of the underlying images using a
 % Wiener filter. This Wiener filter is calculated from the estimated mean,
