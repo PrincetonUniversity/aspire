@@ -1,7 +1,7 @@
 function [ images_nufft ] = computeNfft( images, usFftPts, L, points_inside_the_circle)
 % This function computes the NFFT of the images at the designated nodes
 
-images_full = zeros((2*L)^2, size(images, 2));
+images_full = zeros((2*L+1)^2, size(images, 2));
 images_full(points_inside_the_circle,:) = images;
 images_full = vec_to_im(images_full);
 

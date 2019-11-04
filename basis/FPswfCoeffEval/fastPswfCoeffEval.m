@@ -17,14 +17,17 @@ angularQuadErr = 1e-16;
 [quadRulePtsX,quadRulePtsY,~,radialQuadPts,quadRuleRadialWts,numAngularPts] = generatePswfQuad(4*L,2*c,phiApproxErr,radialQuadErr,angularQuadErr,realFlag);
 
 %% Generate rectangular grids 
-% x_1d_grid = -1:(1/L):1;   % - Odd number of points
-x_1d_grid = -1:(1/L):(1-1/L);   % - Even number of points
+x_1d_grid = -1:(1/L):1;   % - Odd number of points
+%% x_1d_grid = -1:(1/L):(1-1/L);   % - Even number of points
 [x_2d_grid,y_2d_grid] = meshgrid(x_1d_grid,x_1d_grid);
 r_2d_grid = sqrt(x_2d_grid.^2 + y_2d_grid.^2);
 points_inside_the_circle = (r_2d_grid <= 1);
+image_height = numel(x_1d_grid);
+points_inside_the_circle_vec = reshape(points_inside_the_circle, image_height*image_height, 1);
 
 %% Take only samples inside the unite disk
-images = images(points_inside_the_circle(:),:);
+%% images = images(points_inside_the_circle(:),:);
+images = images(points_inside_the_circle_vec(:),:);
 
 %% Generate PSWF basis on Cartesian grid 
 [ normalizedPSWF_mat, Alpha_Nn, ang_freqs, rad_freqs ] = PSWF_basis_gen_v3( L+1, L, beta, phiApproxErr, T, L*x, L*y );
@@ -50,7 +53,7 @@ for i = 1:numChunks
 end
 % - Compute NFFT and expansion coefficients
 parfor i = 1:numChunks
-    nfftRes = computeNfft( imagesCell{i}, usFftPts, L, points_inside_the_circle);
+    nfftRes = computeNfft( imagesCell{i}, usFftPts, L, points_inside_the_circle_vec);
     coeffVecQuadFast_cell{i} = fastPswfIntegration(nfftRes ,c ,L, numAngularPts, ang_freq, radialQuadPts, quadRuleRadialWts, PSWF_radial_quad, realFlag);
     imagesCell{i} = [];
 end
