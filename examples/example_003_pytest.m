@@ -6,8 +6,8 @@
 %%% Parameters %%%
 
 L = 8;                 % Size of images
-n = 32;               % Number of images n
-% n = 1024;               % Number of images n
+% n = 32;               % Number of images n
+n = 1024;               % Number of images n
 SNR = 1;                % Signal-to-noise ratio of images.
 
 pixel_size = 5;         % Pixel size of the images (in angstroms).
