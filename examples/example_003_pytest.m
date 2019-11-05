@@ -80,7 +80,7 @@ end
 power_clean = tnorm(proj_ctf_clean)^2/numel(proj_ctf_clean);
 noise_var = power_clean/SNR;
 initstate(0);
-proj = proj_ctf_clean + sqrt(noise_var)*randn2(size(proj_ctf_clean));
+proj = proj_ctf_clean + sqrt(noise_var)*randn_py(size(proj_ctf_clean));
 
 %%% Estimation %%%
 

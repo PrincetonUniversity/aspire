@@ -1,4 +1,4 @@
-function [ output ] = randn2(varargin)
+function [ output ] = randn_py(varargin)
 % randn2  Calls rand and applies inverse transform sampling to the output.
  
 output = rand(varargin{:});
