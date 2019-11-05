@@ -3,13 +3,13 @@ clear variables;
 close all;
 
 %% Load example dataset 
-load 70S_proj_10_s4     % Example with 10 projection images
+load 70S_proj_10_s4;     % Example with 10 projection images
 
 %% Define parameters
 beta = 1;
 L = 64;
 c = beta*pi*L;
-T = 1e1;
+T = 1.0;
 realFlag = 0;
 numChunks = 2;
 
