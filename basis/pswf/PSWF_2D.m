@@ -101,7 +101,7 @@ alpha_N = lambda_N*2*pi*((1i)^N) / sqrt(c);
 %% Compute PSFW's on the grid inside the disk
 j=0:(approx_len-1);
 T_radial_part_mat = @(x,N,j,approx_len) ((x.^N)*((2*(2*j+N+1)).^(1/2))) .* Pn(approx_len-1,N,0,1-2*x.^2); % - These are the ordinairy T's divided by x^(1/2).
-d_vec = bsxfun(@times,d_vec,sign(sign(diag(d_vec).')+0.5));    %Fix the signs so that all functions begin positive.
+%d_vec = bsxfun(@times,d_vec,sign(sign(diag(d_vec).')+0.5));    %Fix the signs so that all functions begin positive.
 R_radial_part_mat = T_radial_part_mat(radial_eval_pts,N,j,approx_len) * d_vec(:,1:(n+1));
 % R_radial_part_mat = R_radial_part_mat .* (ones(length(radial_eval_pts),1)*sign(phi(100,:)));    %Fix the signs so that all functions begin positive.
 
