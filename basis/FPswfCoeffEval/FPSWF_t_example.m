@@ -10,7 +10,7 @@ beta = 1;
 L = 64;
 c = beta*pi*L;
 T = 1.0;
-realFlag = 0;
+realFlag = 1;
 numChunks = 2;
 
 % - Choose tolerances
