@@ -55,7 +55,7 @@ for k1=1:nImages-1
     t1 = clock;
     for cl_layer=1:2
         Rijtmp=zeros(3,3,nImages);
-        %for k2=k1+1:K
+        %for k2=k1+1:nImages
         parfor k2=k1+1:nImages
             [Rijtmp(:,:,k2),ConfijsTmp(k1,k2,cl_layer)] = ...
                 cryo_calpha_voteIJ_wrapper(clmatrix,k1,k2,1:nImages,cl_layer,0,n_theta,refq);
@@ -182,5 +182,8 @@ else
         Rk1k2=inv_R1ref.'*inv_R2ref;
     end
 end
+
+% fname=sprintf('tmp_%03d_%0.3d.mat',k1,k2);
+% save(fname)
 
 end
