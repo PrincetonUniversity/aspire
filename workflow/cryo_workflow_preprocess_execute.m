@@ -34,7 +34,7 @@ nprojs=str2double(workflow.preprocess.nprojs); % Number of images from the
     % stack to process
 log_message('Processing %d images from the data set',nprojs);
 
-[data_dir,~,data_ext]=fileparts(workflow.info.rawdata);
+[~,~,data_ext]=fileparts(workflow.info.rawdata);
 if strcmpi(data_ext,'.star')    
     % Phaseflip
     if str2double(workflow.preprocess.phaseflip)
@@ -59,14 +59,14 @@ if strcmpi(data_ext,'.star')
         PFfname=tempmrcsname; %PF stands for phaseflipped
         log_message('Phaseflipped images will be saved to temporary file %s',PFfname);
         log_message('Running cryo_phaseflip_outofcore');
-        cryo_phaseflip_outofcore(CTFdata,data_dir,PFfname,pixA,1);
+        cryo_phaseflip_outofcore(CTFdata,[],PFfname,pixA,1);
         log_message('Finished phaseflipping')
     else
         PFfname=tempmrcsname; %PF stands for phaseflipped
         log_message('Skipping phaseflip. Creating MRC from STAR file');
         log_message('Generating MRC file %s',PFfname);
         % Copy raw images to temporary file
-        star2mrc(workflow.info.rawdata,PFfname,data_dir,0,nprojs,1)
+        star2mrc(workflow.info.rawdata,PFfname,[],0,nprojs,1)
     end
     
 else
