@@ -65,7 +65,7 @@ if ~exist('verbose','var')
 end
 
 
-if exist('recon_mat_fname','var')
+if exist('matfname','var')
     do_save_res_to_mat = true;
 else
     do_save_res_to_mat = false;
@@ -209,14 +209,19 @@ end
 
 %% Step 8: Reconstructing volume
 log_message('Reconstructing abinitio volume');
-estimatedVol = reconstruct_cn(masked_projs,rots,n_symm,n_r,n_theta,max_shift,shift_step); % supply max_shift_2d or max_shift_1d ?
+[estimatedVol,rotationsCn,est_shiftsCn] = reconstruct_cn(masked_projs,rots,n_symm,n_r,n_theta,max_shift,shift_step); % supply max_shift_2d or max_shift_1d ?
+% RotationsCn are the rotations for each of the images, under the action of
+% the symmetry group. For example, if the input mask_projs consists of n
+% images, then rotationsCn is of size 3x3x4n, where each image is
+% considered 4 times, once for each element of the symmetry group C4.
+% The same holds for est_shiftsCn.
 
 %% Step 9: Saving volumes
 save_vols(estimatedVol,outvol,n_symm);
 
 if do_save_res_to_mat
-    log_message('Saving estimated rotations and shoifts under: %s', matfname);
-    save(matfname,'rotations','est_shifts','-append');
+    log_message('Saving estimated rotations and shifts under: %s', matfname);
+    save(matfname,'rotationsCn','est_shiftsCn','-append');
 end
 
 % close_log();
