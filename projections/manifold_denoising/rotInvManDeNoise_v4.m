@@ -26,7 +26,7 @@ function [ projections_man_den,projections_svs_den,projections_sPca,rndPermIdx] 
 %                denoising, and the other half for likelihood test).
 %                Default nImCV=10000.
 %   olN          Number of images to classify as outliers and remove (based
-%         on pixel variance extermum). Default is to remove 25% of the
+%         on pixel variance extermum). Default is to remove 10% of the
 %         input images.
 %   nn_p        Percentage of nearest-neighbors to retain when constructing
 %         the steerable graph Laplacian. Default nn_p=5%.
@@ -87,7 +87,7 @@ if ~exist('nImCV','var') || isempty(nImCV)
 end
 
 if ~exist('olN','var') || isempty(olN)
-    olN=round(N*0.1/4);
+    olN=round(N*0.1);
 end
 
 if ~exist('nn_p','var') || isempty(nn_p)
@@ -153,22 +153,11 @@ for j = 1:nImages
 %         nVarVec(j + nImages / 2) = var(currImageT(r>r_max));
 end
 
-%% Remove outliers
-[~,idx] = sort(nVarVec,'ascend');
-idx_ol1 = [idx(1:olN),idx((end-olN+1):end)];
-projections(:,:,idx_ol1) = [];
-nVarVec(idx_ol1) = [];
-sVarVec(idx_ol1) = [];
 
-[~,idx] = sort(sVarVec,'ascend');
-idx_ol2 = [idx(1:olN),idx((end-olN+1):end)];
-projections(:,:,idx_ol2) = [];
-nVarVec(idx_ol2) = [];
-sVarVec(idx_ol2) = [];
-
-nImages = size(projections,3);
-
-%% Shuffle the images
+%% Shuffle the images. 
+%  Also shuffle the arrays of variances.
+%  This way, once we remove outliers below, we are left with the correct 
+%  indices pointing into the original projections array.
 if shuffle
     rndPermIdx = randperm(nImages);
     projections = projections(:,:,rndPermIdx);
@@ -178,12 +167,34 @@ else
     rndPermIdx = 1:nImages;
 end
 
+%% Remove outliers
+[~,idx] = sort(nVarVec,'ascend');
+tmp=ceil(olN/4); % Remove a total of olN image. olN/2 with the largest and 
+    % lowest noise variance, and olN/2 with the largest and lowest signal
+    % variance.
+idx_ol1 = [idx(1:tmp),idx((end-(olN-tmp)+1):end)];
+projections(:,:,idx_ol1) = [];
+nVarVec(idx_ol1) = [];
+sVarVec(idx_ol1) = [];
+rndPermIdx(idx_ol1) = [];
+
+[~,idx] = sort(sVarVec,'ascend');
+idx_ol2 = [idx(1:tmp),idx((end-(olN-tmp)+1):end)];
+projections(:,:,idx_ol2) = [];
+nVarVec(idx_ol2) = [];
+sVarVec(idx_ol2) = [];
+rndPermIdx(idx_ol2) = [];
+
+
+nImages = size(projections,3);
+
 %% Estimate noise variance and signal power
 nv = mean(nVarVec);
 sp = mean(sVarVec);
 
-snr = 10*log10(sp/nv-1);
-log_message('Estimated data SNR %5.1fdB (%4.2e)',snr,10^(snr/10));
+snr = sp/nv-1;
+snrdb = 10*log10(snr);
+log_message('Estimated SNR=1/%d (more precisely %d or %5.1fdB)',round(1/snr),snr,snrdb);
 
 %% Map images to PSWF expansion coefficients
 log_message('Computing PSWF expansion coefficients...');
@@ -239,7 +250,8 @@ end
 
 %% Do mini-cross-validation on a subset of the data (over parameters lambda_c and epsilon)
 log_message('Starting cross-validation procedure for optimal parameters...')
-nTheta = 256;
+% nTheta = 256;
+nTheta = 512;
 nImCV = min(nImCV,nImages);
 trainSize = round(nImCV/2);
 nn_cv=ceil(nn_p*trainSize/100);
