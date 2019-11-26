@@ -54,7 +54,8 @@ rejected=zeros(nVotesPerImage*numel(K3),3);
 rejidx=0;
 
 for k3=K3
-    if (k1~=k2) && (k1~=k3) && clmatrix(k1,k2)~=0 && clmatrix(k1,k3)~=0 && clmatrix(k2,k3)~=0
+    if (k1~=k2) && (k1~=k3) && clmatrix(k1,k2,cl_layer)~=0 ...
+        && clmatrix(k1,k3,cl_layer)~=0 && clmatrix(k2,k3,cl_layer)~=0
         % some of the entries in clmatrix may be zero if we cleared
         % them due to small correlation, or if for each image
         % we compute intersections with only some of the other
@@ -248,4 +249,5 @@ if idx>1
         end
     end
 end
-
+% fname=sprintf('tmp_%03d_%0.3d.mat',k1,k2);
+% save(fname)
