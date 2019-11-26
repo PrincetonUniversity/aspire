@@ -389,144 +389,7 @@ for k1=1:n_proj
         if norm(proj2(rmax+1,:))>1.0e-13
             error('DC component of projection is not zero');
         end
-
-
-        %%%%%%%%%%%% Beginning of debug code %%%%%%%%%%%%
-        if verbose_plot_shifts && found_ref_clmatrix
-            % Plot the signals that correspond to the true common-line.
-            % This allows to appreciate visually that this is indeed the
-            % common line, as well as the shift between the signal. Note
-            % that the plotted signal are not filtered.
-            xx=-rmax:1:rmax;
-            if ref_clmatrix(k1,k2)<=n_theta
-                pf1=pf(:,ref_clmatrix(k1,k2),k1);
-            else
-                pf1=pf(:,ref_clmatrix(k1,k2)-n_theta,k1);
-                pf1=flipud(pf1);
-            end
-            
-            p1=enforce_real(cfft(cryo_raynormalize(pf1)));
-            v1=triginterp(p1,1);
-            
-            if ref_clmatrix(k2,k1)<=n_theta
-                pf2=pf(:,ref_clmatrix(k2,k1),k2);
-            else
-                pf2=pf(:,ref_clmatrix(k2,k1)-n_theta,k2);
-                pf2=flipud(pf2);
-            end
-
-            p2=enforce_real(cfft(cryo_raynormalize(pf2)));
-            v2=triginterp(p2,1);
-            
-            figure(h1);
-            plot(xx,real(v1),'-b');
-            hold on;
-            plot(xx,real(v2),'-r');
-            hold off;
-            % We always measure by how much we need to shift the blue
-            % signal (v1). If we need to shift it to the right then shift is
-            % negative and dx is positive.
-            legend('Shifted signal','Fixed Signal')
-                        
-        end
-        %%%%%%%%%%%% End of debug code %%%%%%%%%%%%
-        
-        % Find the shift that gives best correlation.
-        for shiftidx=1:n_shifts
-            % Now just debugging code is left is this loop.
-            
-            if verbose_detailed_debugging && found_ref_clmatrix && found_ref_shifts
-                % Compute and store the correlation between the true
-                % common-lines.
-                l1=ref_clmatrix(k1,k2);
-                l2=ref_clmatrix(k2,k1);
-
-                if l1<=n_theta
-                    r1=proj1(:,l1);
-                else
-                    r1=proj1(:,l1-n_theta);
-                    r1=flipud(r1);
-                end
-
-                if l2<=n_theta
-                    r2=proj2(:,l2);
-                else
-                    r2=proj2(:,l2-n_theta);
-                    r2=flipud(r2);
-                end
-
-                alpha=(l1-1)*dtheta;
-                beta =(l2-1)*dtheta;
-                dx1=ref_shifts_2d(k1,1); dy1=ref_shifts_2d(k1,2);
-                dx2=ref_shifts_2d(k2,1); dy2=ref_shifts_2d(k2,2);
-                % Shift by the exact amount:
-                ds=sin(alpha)*dx1+cos(alpha)*dy1-sin(beta)*dx2-cos(beta)*dy2;
-                phi=exp(-2*pi*sqrt(-1).*rk.*ds./(2*rmax+1));
-                r1=r1.*phi;
-                refcorr(k1,k2)=enforce_real(r1'*r2);
-            end
-
-            %%%%%%%%%%%% Beginning of debug code %%%%%%%%%%%%            
-            if verbose_plot_shifts && improved_correlation
-                
-            % XXX Move this debugging code outside the loop since
-            % XXX clstack is not being updated here any more.
-                
-            % If the current shift produces a better correlation, then plot
-            % the two appropriately shifted estimated common-lines. The
-            % figure also displays the true and estimated common lines, and
-            % the estimated correlation value.
-            
-                fac=max(1/shift_step,1);
-                xx=-rmax:1/fac:rmax;
-                
-                if clstack(k2,k1)<=n_theta                               
-                    proj1_shifted=[P1; zeros(1,n_theta) ; conj(flipud(P1))];
-                    p1=enforce_real(icfft(proj1_shifted(:,clstack(k1,k2))));                                                            
-                    p2=enforce_real(icfft(proj2(:,clstack(k2,k1))));
-                else
-                    proj1_shifted_flipped=[P1_shifted_flipped; zeros(1,n_theta) ; conj(flipud(P1_shifted_flipped))];
-                    p1=enforce_real(icfft(proj1_shifted_flipped(:,clstack(k1,k2))));                   
-                    p2=enforce_real(icfft(proj2(:,clstack(k2,k1)-n_theta)));
-                end
-                
-                v1=triginterp(p1,fac);
-                v2=triginterp(p2,fac);
-                
-                figure(h2);
-                plot(xx,real(v1));
-                hold on;                
-                plot(xx,real(v2),'r');
-                px=get(gca,'Xlim');
-                py=get(gca,'Ylim');
-                                
-                if found_ref_clmatrix
-                    l1str=sprintf('%3d',ref_clmatrix(k1,k2));
-                    l2str=sprintf('%3d',ref_clmatrix(k2,k1));
-                else
-                    l1str='N/A';
-                    l2str='N/A';
-                end
-                
-                str=sprintf(strcat(' k1=%d  k2=%d \n shift = %4.2f \n',...
-                    ' est cl   = [ %3d  %3d ] \n',...
-                    ' ref cl   = [ %s  %s ] \n',...
-                    ' est corr = %7.5f'),...
-                    k1,k2,shift,clstack(k1,k2),clstack(k2,k1),...
-                    l1str,l2str,...
-                    corrstack(k1,k2));
-                
-                if found_ref_clmatrix && found_ref_shifts
-                    str=strcat(str,...
-                        sprintf('\n ref corr = %7.5f',refcorr(k1,k2)));
-                end
-
-                text(px(2)*0.4,py(2)*0.7,str,'EdgeColor','k')
-                hold off;                                
-            end
-            %%%%%%%%%%%% End of debug code %%%%%%%%%%%%
-        end
-        
+      
 %Optimized GPU version:
         g_C1=2*real(g_P1_stack'*g_P2);
         g_C2=2*real(g_P1_flipped_stack'*g_P2);
@@ -560,9 +423,7 @@ for k1=1:n_proj
         clstack(k2,k1,1)=cl2;
         corrstack(k1,k2,1)=sval;
         shift=-max_shift+(sidx-1)*shift_step;
-        shifts_1d(k1,k2,1)=shift;
-        improved_correlation=1;
-        
+        shifts_1d(k1,k2,1)=shift;             
         
         
         %%%%%%%%%%%%%%%%%%%%%%%%%
