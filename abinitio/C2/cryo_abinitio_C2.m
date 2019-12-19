@@ -125,7 +125,7 @@ if size(projs,1)~=size(projs,2)
 end
 
 %% Mask projections
-mask_radius = round(size(projs,1)*0.3);
+mask_radius = round(size(projs,1)*0.45);
 log_message('Masking projections. Masking radius is %d pixels',mask_radius);
 [masked_projs,~] = mask_fuzzy(projs,mask_radius);
 
@@ -140,7 +140,7 @@ end
 
 npf = gaussian_filter_imgs(npf);
 
-save(outparams,'n_theta','n_r','-append');
+save(outparams,'n_theta','n_r');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % step 2  : detect two pairs of common-lines between each pair of images
