@@ -9,6 +9,7 @@ function cryo_workflow_classify_execute(workflow_fname)
 %
 % Yoel Shkolnisky, August 2015.
 
+rand('twister', 1137);
 %% Validate workflow file
 cryo_workflow_classify_validate(workflow_fname);
 
@@ -88,11 +89,11 @@ for groupid=1:numgroups
     log_message('Starting VDM');
     [ class_VDM, class_VDM_refl, VDM_angles ] = VDM(class, ones(size(class)), rot,...
         class_refl, str2double(workflow.classification.k_VDM_in),...
-        str2double(workflow.classification.VDM_flag),...
+        str2double(workflow.classification.VDM_flag), str2double(workflow.classification.VDM_num_eig),...
         str2double(workflow.classification.k_VDM_out));
     log_message('Finished VDM classification...');
-    
-    save(matname,'class_VDM','class_VDM_refl','VDM_angles','-append');
+
+save(matname,'class_VDM','class_VDM_refl','VDM_angles','-append');
     
     log_message('Saved %s (MD5: %s)',matname,MD5(matname));
 end

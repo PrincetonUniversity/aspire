@@ -96,11 +96,13 @@ if numel(filelist)>2
 end
 
 printProgressBarHeader;
-delete(gcp('nocreate'))
+if exist('gcp')
+    delete(gcp('nocreate'))
+end
 
 if use_EM
     ngpus=numel(gpu_list);
-    parpool(ngpus);
+    parpool(2*ngpus);
     spmd
         gpuid=gpu_list(mod(labindex-1,ngpus)+1);
         gpuDevice(gpuid);

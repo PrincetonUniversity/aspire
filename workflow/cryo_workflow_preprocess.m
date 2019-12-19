@@ -31,7 +31,9 @@ workflow=convert(tree);
 %     end
 % end
 
-[data_dir,~,data_ext]=fileparts(workflow.info.rawdata);
+%[data_dir,~,data_ext]=fileparts(workflow.info.rawdata);
+[~,~,data_ext]=fileparts(workflow.info.rawdata);
+data_dir=[]; % Look for stack files exatcly as appears in the STAR file.
 
 %% Read preprocessing parameters
 

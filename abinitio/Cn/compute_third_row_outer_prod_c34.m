@@ -27,7 +27,11 @@ log_message('Detecting common-lines');
 clmatrix = cryo_clmatrix(npf,n_images,verbose,max_shift,shift_step); 
 if do_save_res_to_mat
     log_message('Saving clmatrix to %s',recon_mat_fname);
-    save(recon_mat_fname,'clmatrix','-append');
+    if exist(recon_mat_fname,'file')
+        save(recon_mat_fname,'clmatrix','-append');
+    else
+        save(recon_mat_fname,'clmatrix');
+    end
 end
 if is_simulation
     cl_detection_rate_c3_c4(n_symm,clmatrix,n_theta,refq);

@@ -1,4 +1,4 @@
-function [ class_VDM, class_VDM_refl, angle ] = VDM(class, corr, rot, class_refl, k, flag, n_nbor) 
+function [ class_VDM, class_VDM_refl, angle ] = VDM(class, corr, rot, class_refl, k, flag, num_eig, n_nbor) 
 %Function for using VDM to search for nearest neighbors more robust to
 %noise
 % Input:
@@ -16,6 +16,8 @@ function [ class_VDM, class_VDM_refl, angle ] = VDM(class, corr, rot, class_refl
 %           reflection. class_refl==2: reflection.
 %       k: 
 %           number of nearest neighbors to choose to make the graph.
+%       num_eig: 
+%           number of eigenvectors selected for vector diffusion maps.
 %       flag:
 %           indicates generating k-nn graph using union rule (flag==0) or
 %           k-nn graph using linear programming.
@@ -38,17 +40,19 @@ function [ class_VDM, class_VDM_refl, angle ] = VDM(class, corr, rot, class_refl
 
 P=size(class, 1); 
 
+%Construct graph using union rule
 [ X, Ah, rows, cols ] = sort_list_weights_wrefl(class(:, 1:k), sqrt(2-2*real(corr(:, 1:k))), rot(:, 1:k), class_refl(:, 1:k) );
 if flag==0
     W = ones(length(X), 1); %Generating knn graph using union rule
 else
-    W =script_find_graph_weights_v3(X, [rows, cols], 2*P, 5); %Generating k-nn graph using linear programming. It makes sure that the weight in each row is the same.
+    W = script_find_graph_weights_v3(X, [rows, cols], 2*P, 5); %Generating k-nn graph using linear programming. It makes sure that the weight in each row is the same.
 end;
-W2=W.*Ah;
-H2=sparse(rows(W>0.001), cols(W>0.001), W2(W>0.001), 2*P, 2*P);
+W2=W.*Ah; %W has scalar weights 1. Ah contains gaussian weights exp(-\| x_i - x_j\|^2/\sigma^2)
+eps = 1e-6;
+H2=sparse(rows(W>eps), cols(W>eps), W2(W>eps), 2*P, 2*P); %This contains the Gaussian weights. 
 H2=H2+H2';
 
-[r_VDM_LP, ~, VV_LP]=VDM_LP(H2, 24);
+[r_VDM_LP, ~, VV_LP] = VDM_LP(H2, num_eig); %Compute the VDM embedding
 
 if P<=10^4
     corr_VDM=r_VDM_LP(1:P, :)*r_VDM_LP';
