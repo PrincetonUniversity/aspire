@@ -1,0 +1,5 @@
+1. Integrate initpath into ASPIRE's initpath.
+2. Remove 7770.mat. Download it from the iternet if necessary.
+3. Update ASPIRE scripts to compile MEX files in these directories.
+4. Eliminate subfolders if possible. There are too many subfolders, most seem to contain only one (or very few) files.
+5. What is color_perms.mat? Is there a code to generate it? Can it be generated on-the-fly?
