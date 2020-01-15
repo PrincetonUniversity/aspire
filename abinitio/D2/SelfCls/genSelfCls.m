@@ -330,3 +330,7 @@ scls_lookup_data=struct('scls_lookup1',scls_lookup1,...
     lookup_data.eq2eq_Rij_table12);
 scls_lookup_data.eq_idx_lists=eq_linIdx_lists;
 
+[oct1_ij_map,oct2_ij_map]=genSclsScoresIdxMap_eqClass(scls_lookup_data);
+scls_lookup_data.oct1_ij_map=oct1_ij_map;
+scls_lookup_data.oct2_ij_map=oct2_ij_map;
+

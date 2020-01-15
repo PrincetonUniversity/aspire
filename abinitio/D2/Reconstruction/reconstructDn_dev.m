@@ -30,7 +30,7 @@ dxD2=repmat(dxD2,4,1);
 RsD2=cat(3,RsD2(:,:,:,1),RsD2(:,:,:,2),RsD2(:,:,:,3),RsD2(:,:,:,4));
 
 params = struct();
-params.rot_matrices = RsD2; %MAYBE WE NEED Inverse (transpose)!!!
+params.rot_matrices = RsD2; 
 params.ctf = ones(size(projsD2, 1)*ones(1, 2));
 params.ctf_idx = ones(size(projsD2, 3), 1);
 params.shifts = full(dxD2');

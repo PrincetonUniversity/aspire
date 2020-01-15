@@ -27,7 +27,7 @@ end
 %   First determine for each pair of tuples of the form {Qi^T*Ik*Qj} and 
 %   {Qr^T*Il*Qj} where {i,j}\cap{r,l}==1, whether l==r. 
 color_perms=match_colors_eff(Rijs_rows,K,nCPU);
-save('color_perms.mat','color_perms');
+%save('color_perms.mat','color_perms');
 toc
 
 %%  Compute eigenvectors of color matrix. This is just a matrix of dimensions

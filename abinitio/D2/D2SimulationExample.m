@@ -4,7 +4,7 @@ delete(gcp('nocreate'));
 
 %% Volume for simulation
 res = 89;
-vol = load('7770');
+vol = load('/home/eitanr/cryo/D2ForAspire/7770.mat');
 vol = vol.volref;
 vol=cryo_downsample(vol,res);
 vol=genD2fromVol(vol);
@@ -26,7 +26,7 @@ max_shift=round(size(vol,1)*max_shift_ratio);
 shift_step=1;
 snr = 1/3; 
 s = rng(); % choose seed for later reproducibility. 
-nproj = 200;
+nproj = 100;
 [projs,Rijs_gt,q,ref_shifts]=genDataForSimulation(vol,...
     nproj,max_shift,1,snr,s,0);
 
@@ -38,5 +38,10 @@ pixA=1.896;
 cutoff=0.143;
 debugParam=struct('q',q,'vol',vol,'pixA',1.896,'cutoff',0.143);
 
+grid_res = 1200;
+eq_min_dist = 7;
+inplane_res = 5;
+ntheta = 360;
+
 [results]=runD2(projs,gpuIdx,nCpu,grid_res,eq_min_dist,inplane_res,...
-                max_shift,shift_step,ntheta,doFilter,Rijs_gt,s,q,debugParam);
+                max_shift,shift_step,ntheta,doFilter,s,Rijs_gt,q,debugParam);

@@ -10,17 +10,19 @@ if ~exist('saveDir','var')
     error('Please input directory to store results');
 end
 
+%  Use pre defined seed 's' to reproduce results. 
+if ~isempty(params.s)
+    rng(params.s);
+else
+    rng();
+end
+
 %% Prepare ML data
 cls_lookup=[lookup_data.cls_lookup;lookup_data.cls2_lookup];
 ntheta=params.ntheta;
 nrot=size(projs,3);
 
 %% Prepare shift params
-if isempty(params.s)
-    rng(params.s);
-else
-    rng();
-end
 nr=size(projs,1);
 max_shift=params.max_shift;
 if isempty(params.max_shift)
@@ -192,14 +194,8 @@ end
 
 %% Reconstruct volume
 if stages.st5
-%     currPool=gcp('nocreate');
-%     if ~isempty(currPool) && currPool.NumWorkers<params.maxNumWorkers && nrot>params.manyProjs
-%         delete(gcp('nocreate'));
-%         parpool('local',params.maxNumWorkers);
-%     end
-    %[volRec,dxD2] = reconstructDn_ML(noisy_projs,rots,nr,360,max_shift,1);
+
     [volRec,dxDn,post_corrs] = reconstructDn_dev(masked_projs,rots_est,nr,360,max_shift,1);
-    %[volRec,dxD2] = reconstructD2(masked_projs,rots,nr,360,max_shift,1);
     vol=params.vol;
     pixA=params.pixA;
     cutoff=params.cutoff;
