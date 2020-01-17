@@ -35,36 +35,44 @@ function [results] = runD2(projs,gpuIdx,nCpu,grid_res,eq_min_dist,inplane_res,..
 %               volume (using Fourier shell correlations). Optional. 
             
 %% Initialize default values for unspecified arguments. 
-if ~exist('grid_res','var')
+if ~exist('grid_res','var') || isempty(grid_res)
     grid_res = 1200;
+    log_message('grid_res not specified. Using grid_res=%d',grid_res);
 end
 
-if ~exist('eq_min_dist','var')
+if ~exist('eq_min_dist','var') || isempty(eq_min_dist)
     eq_min_dist = 7;
+    log_message('eq_min_dist not specified. Using eq_min_dist=%d',eq_min_dist);
 end
 
-if ~exist('inplane_res','var')
+if ~exist('inplane_res','var') || isempty(inplane_res)
     inplane_res = 5;
+    log_message('inplane_res not specified. Using inplane_res=%d',inplane_res);
 end
 
-if ~exist('shift_step','var')
-    shift_step = 1200;
+if ~exist('shift_step','var') || isempty(shift_step)    
+    shift_step = 1;
+    log_message('shift_step not specified. Using shift_step=%d',shift_step);
 end
 
-if ~exist('ntheta','var')
+if ~exist('ntheta','var') || isempty(ntheta)
     ntheta = 360;
+    log_message('ntheta not specified. Using ntheta=%d',ntheta);
 end
 
-if ~exist('doFilter','var')
+if ~exist('doFilter','var') || isempty(doFilter)
     doFilter = 1;
+    log_message('doFilter not specified. Using doFilter=%d',doFilter);
 end
 
-if ~exist('nCpu','var')
+if ~exist('nCpu','var') || isempty(nCpu)
    nCpu = 1; 
+   log_message('nCpu not specified. Using nCpu=%d',nCpu);
 end
 
-if exist('s','var')
+if exist('s','var') && ~isempty(s)
     rng(s);
+    log_message('Random seend specified (%d).',s);
 else
     s = rng();
     results.s = s;
@@ -80,8 +88,9 @@ nrot=size(projs,3);
 
 %% Prepare shift params
 nr=size(projs,1);
-if ~exist('max_shift','var')
+if ~exist('max_shift','var') || isempty(max_shift)
     max_shift=ceil(0.15*nr);
+    log_message('max_shift not specified. Using max_shift=%d',max_shift);
 end
 max_shift_1D = ceil(2*sqrt(2)*max_shift);
 
