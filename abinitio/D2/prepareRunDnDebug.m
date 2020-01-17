@@ -27,7 +27,7 @@ shift_step=1;
 snr = 1/3; 
 s = rng(); % choose seed for later reproducibility. 
 nproj = 200;
-[projs,Rijs_gt,q,ref_shifts]=genDataForSimulation(vol,...
+[projs,Rijs_gt,q,ref_shifts]=genDataForD2Simulation(vol,...
     nproj,max_shift,1,snr,s,0);
 
 %% Generate lookup Data

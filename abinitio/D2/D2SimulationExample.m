@@ -1,11 +1,10 @@
 
-initpath; % Need to input local directory of aspire inside initpath file!!! 
 delete(gcp('nocreate'));
 
-%% Volume for simulation
-res = 89;
-vol = load('/home/eitanr/cryo/D2ForAspire/7770.mat');
-vol = vol.volref;
+%% Generate a D2 symmetric volume for simulation
+res = 89;   
+D2mapfile = cryo_fetch_emdID(7770);
+vol = ReadMRC(D2mapfile);
 vol=cryo_downsample(vol,res);
 vol=genD2fromVol(vol);
 d=30;
@@ -14,34 +13,35 @@ vol2(0.5*d+1:0.5*d+res,0.5*d+1:0.5*d+res,0.5*d+1:0.5*d+res)=vol;
 vol=vol2;
 clear vol2;
 
-%% Initialize some parameters for simulation
-% shift_step and max_shift are defined inside cryo_clmatrix_ML_gpu_scls.m. 
-% max_shift_ratio   used to bound the the range of shifts of the images to
-%                   go over when approximating common lines. 
-% s         pre initialized seed for later reproducibility. 
-% snr       signal to noise ratio in simualted images. 
-% nproj     number of images to generate for simualtion. 
-max_shift_ratio=0.15;
+%% Geberate noisy projections of a D2 symmetric volume 
+
+max_shift_ratio=0.15; % Projection images will be shifted by up to that 
+            % fraction (relative to the size of the projected volume)
 max_shift=round(size(vol,1)*max_shift_ratio);
 shift_step=1;
-snr = 1/3; 
-s = rng(); % choose seed for later reproducibility. 
-nproj = 100;
-[projs,Rijs_gt,q,ref_shifts]=genDataForSimulation(vol,...
+snr = 1/3; %  Signal to noise ratio of noisy simualted images. 
+s = 1234; % Seed for initialize rng for reproducibility of the results.
+nproj = 300; % Number of projections to generate
+[projs,Rijs_gt,q,ref_shifts]=genDataForD2Simulation(vol,...
     nproj,max_shift,1,snr,s,0);
 
-doFilter=1;
-gpuIdx = 1:2;
-nCpu = maxNumCompThreads;
 
-pixA=1.896;
-cutoff=0.143;
-debugParam=struct('q',q,'vol',vol,'pixA',1.896,'cutoff',0.143);
+%% Initialize parameters for simulation
+doFilter=1;     % COMMENT
+gpuIdx = 1:2;   % Indices of GPUs to use by the D2 algorithm.
+nCpu = maxNumCompThreads;   % COMMENT
 
-grid_res = 1200;
-eq_min_dist = 7;
-inplane_res = 5;
-ntheta = 360;
+pixA=1.896; % Pixel size of the images in the simulation. Used to computed 
+    % the resolution of the reconstruced volume.
+cutoff=0.143;   % Cutoff threshold for the FSC.
+debugParam=struct('q',q,'vol',vol,'pixA',pixA,'cutoff',cutoff);
 
-[results]=runD2(projs,gpuIdx,nCpu,grid_res,eq_min_dist,inplane_res,...
+grid_res = 1200;  % COMMENT
+eq_min_dist = 7;  % COMMENT
+inplane_res = 5;  % COMMENT
+ntheta = 360;     % Angular resolution (number of Fourier ray) used when 
+                  % searching for common lines between pairs of images.
+
+%% Reconstruct volume from projections
+results=runD2(projs,gpuIdx,nCpu,grid_res,eq_min_dist,inplane_res,...
                 max_shift,shift_step,ntheta,doFilter,s,Rijs_gt,q,debugParam);

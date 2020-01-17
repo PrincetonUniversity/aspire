@@ -1,6 +1,8 @@
-
-function [noisy_projs,Rijs_gt,q,ref_shifts]=genDataForSimulation(vol,...
+function [noisy_projs,Rijs_gt,q,ref_shifts]=genDataForD2Simulation(vol,...
     n_projs,max_shift,shift_step,snr,s,eqFilterAngle,shifts,grid_in,n)
+%
+% Generate noisy projections for D2 simulation.
+%
 %% Analyse input
 if exist('eqFilterAngle','var')
     if isempty(eqFilterAngle)

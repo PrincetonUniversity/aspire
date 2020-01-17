@@ -1,5 +1,4 @@
 %% Initialize path
-initpath; % Need to input local directory of aspire inside initpath file!!! 
 delete(gcp('nocreate'));
 
 %% Initialize images and ML data
