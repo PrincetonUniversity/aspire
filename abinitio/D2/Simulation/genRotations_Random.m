@@ -1,7 +1,7 @@
 
 
 %Input: N is size of grid, best choose N=k^2
-function [debug_data]=genRotations_Random(N,eq_filter_angle,s)
+function [debug_data]=genRandD2Rots(N,eq_filter_angle,s)
 %% Generate random grid on the sphere
 rng(s);
 q=qrand(N);

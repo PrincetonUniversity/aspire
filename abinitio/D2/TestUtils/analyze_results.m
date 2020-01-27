@@ -6,7 +6,7 @@ if ~params.real_data && params.analyzeResults
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     fprintf('\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
     fprintf('\nStep 13: Analyzing results');
-    [mse, rot_alligned, sign_g_Ri] = check_rotations_error(rots,params);
+    [mse, rot_alligned, ~] = check_rotations_error(rots,params);
     fprintf('MSE of rotations estimate: %e\n',mse);
     
     err_in_degrees = check_degrees_error(rot_alligned,params);
@@ -65,7 +65,7 @@ g_s(:,:,4) = diag([-1 -1 1]);
     Rref=zeros(3,3,N);
     
     for k=1:N
-        Rref(:,:,k)=q_to_rot(params.refq(:,k));
+        Rref(:,:,k)=params.refq(:,:,k);
     end
     
     %generate all 3! row swap matrices
@@ -270,7 +270,7 @@ end
 function err_in_degrees = check_degrees_error(rots,params)
 
 %global g;
-nImages = size(params.refq,2);
+nImages = size(params.refq,3);
 assert(size(rots,3) == nImages);
 n_theta = params.n_theta;
 d_theta = 2*pi/params.n_theta;
@@ -289,7 +289,7 @@ end
 err_in_degrees = zeros(1,n_theta*nImages);
 for k = 1:nImages
     rays_gt = zeros(n_theta,3);
-    Rk_gt  = q_to_rot(params.refq(:,k))';
+    Rk_gt  =params.refq(:,:,k)';
     for j = 1:n_theta
         rays_gt(j,:) = cos((j-1)*d_theta).*Rk_gt(:,1) ...
             +  ...
@@ -351,7 +351,7 @@ gs(:,:,4) = diag([-1 -1 1]);
 
 Rs_t = zeros(3,3,nImages);
 for i = 1:nImages
-    Rs_t(:,:,i) = q_to_rot(params.refq(:,i));
+    Rs_t(:,:,i) = params.refq(:,:,i);
 end
 
 % J_Rs_J_t = zeros(3,3,nImages);
@@ -402,7 +402,7 @@ for i = 1:nImages-1
     % s for g^s
     norm_diff_concat = cat(3,norm_diff,J_norm_diff_J);
     
-    [diff,ii] = min(sum(norm_diff_concat),[],3);
+    [~,ii] = min(sum(norm_diff_concat),[],3);
     
     % remove the effect of concatination above.
     ii = mod(ii,4);
@@ -430,7 +430,7 @@ A_g2 = A_g2 + eye(size(A_g2));
 [evals, ind] = sort(diag(d), 'descend');
 evect1 = v(:,ind(1));
 [v2,d2] = eig(A_g2);% eigs(A_g, 10, 'lm');
-[evals2, ind2] = sort(diag(d2), 'ascend');
+[~, ind2] = sort(diag(d2), 'ascend');
 evect2 = v2(:,ind2(1));
 
 evect1=sign(evect1);

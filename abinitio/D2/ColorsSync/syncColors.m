@@ -1,7 +1,7 @@
 
-function [out,Rijs_rows,color_perms,D,V]=syncColors(Rijs,K,nCPU)
+function [out,Rijs_rows,color_perms,D,V]=syncColors(Rijs,K)
 
-disp('syncing colors...');
+log_message('syncing colors...');
 tic
 
 % Run in parallel on nCPU workers. 
@@ -26,7 +26,7 @@ end
 
 %   First determine for each pair of tuples of the form {Qi^T*Ik*Qj} and 
 %   {Qr^T*Il*Qj} where {i,j}\cap{r,l}==1, whether l==r. 
-color_perms=match_colors_eff(Rijs_rows,K,nCPU);
+color_perms=match_colors_eff(Rijs_rows,K);
 %save('color_perms.mat','color_perms');
 toc
 
@@ -38,13 +38,16 @@ toc
 %   either 1,0 or -1, where the number encodes which the index r in Ir. 
 %   This vector is a linear combination of the two leading eigen vectors,
 %   and so we 'unmix' these vectors to retrieve it. 
-disp('done matching colors , now calculating Eigen Vectors...');
+log_message('done matching colors , now calculating color matrix eigen vectors...');
 neig=3;
 cmat=@(x) mult_cmat_by_vec(color_perms,x,K);
 [colors,D]=eigs(cmat,3*N_pairs,neig,'largestreal');
+log_message('done computing color matrix eigen vectors, now unmixing color eigen vectors... '); 
 D=diag(D);
 V=colors;
+toc
 [cp,~]=unmixColors(colors(:,1:2),360);
+log_message('Done Unmixing color eigen vectors...');
 toc
 out=cp; %colors(:,whichVec);
 
@@ -105,8 +108,10 @@ out=cp; %colors(:,whichVec);
 %     V=V(:,1:2);
 end
 
-function [colors]=match_colors_eff(Rijs_rows,K,nworkers)
+function [colors]=match_colors_eff(Rijs_rows,K)
 
+currPool = gcp();
+nworkers = currPool.NumWorkers;
 colors=zeros(nchoosek(K,3),1);
 ntrip=nchoosek(K,3);
 ntrip_per_worker=floor(ntrip/nworkers);

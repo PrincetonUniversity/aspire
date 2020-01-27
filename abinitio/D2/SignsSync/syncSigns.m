@@ -3,7 +3,7 @@
 %   and the matrices Ri are assembled. 
    
 function [rot,svals,s_out,svals2]= syncSigns(rr,cVec,N)
-disp('Restoring rotations...');
+log_message('Synchronizing signs...');
 tic
 %%  Partition the union of tuples {0.5*(Ri^TRj+Ri^TgkRj), k=1:3} according 
 %   to the color partition established in color synchroniztion procedure. 
@@ -111,7 +111,8 @@ est_signs=reshape(cMat4D,[9,s(3:4)]);
 est_signs=sign(squeeze(sum(est_signs,1)));
 signs=permute(signs,[2,1,3]);
 
-%%	Compute relative signs between Qik^c and Qij^c*Qjk^c.  
+%%	Compute relative signs between Qik^c and Qij^c*Qjk^c. 
+log_message('Computing relative signs...');
 %   c=1,2,3. 
 for c=1:3
 %     relative_signs=est_signs(:,c).*signs(:,:,c);
@@ -160,6 +161,7 @@ svals=zeros(N,2,3);
 %     parpool('local',3);
 % end
 
+log_message('Constructing and decomposing N sign synchroniztion matrices...');
 parfor c=1:3 %color 
     for r=1:N
    
@@ -206,6 +208,7 @@ end
 signs=zeros(npairs,3);
 s_out=zeros(3,3);
 
+log_message('Constructing and decomposing 3 sign synchroniztion matrices...');
 %   The matrix S requires space on order of O(N^4). Instead of storing it
 %   in memory we compute its SVD using the function smat which multiplies
 %   (N over 2)x1 vectors by S.
@@ -234,6 +237,7 @@ signs=sign(signs);
 
 %% Adjust the signs of Qij^c in the matrices cMat(:,:,c) for all c=1,2,3 
 %  and 1<=i<j<=N according to the results of the signs from the last stage.  
+log_message('Constructing and decomposing 3 row synchroniztion matrices...');
 for c=1:3
     idx=0;
     for i=1:N-1
@@ -258,6 +262,7 @@ svals2(:,3)=diag(S3);
 
 %%  The c'th row of the rotation Rj is Uc(3*j-2:3*j,1)/norm(Uc(3*j-2:3*j,1)),
 %   (Rows must be normalized to length 1). 
+log_message('Assembeling rows to rotations matrices...');
 for j=1:N
     rot(:,:,j)=[U1(3*j-2:3*j,1)'/norm(U1(3*j-2:3*j,1));...
         U2(3*j-2:3*j,1)'/norm(U2(3*j-2:3*j,1));...

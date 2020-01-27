@@ -1,21 +1,23 @@
 
 %% Synchronize handedness of relative rotations for D2 molecules. 
-function [Rijs_synced,J_list,evals]=jsync(Rijs,K,nCPU)
-    disp('Syncing relative rotations');
+function [Rijs_synced,J_list,evals]=jsync(Rijs,K)
+    log_message('Syncing relative rotations');
     tic 
-    J_list = outer_sync_brute_eff(Rijs,K,nCPU);
+    J_list = outer_sync_brute_eff(Rijs,K);
     Rijs_synced = Rijs;
     toc
-    disp('Done matching triplets, now running power method...');  
+    log_message('Done matching triplets, now running power method...');  
     [J_signs,~,evals] =signs_power_method (K,double(J_list),3,0);
     Rijs_synced(:,:,J_signs<0,:)=multi_Jify(Rijs_synced(:,:,J_signs<0,:));  
-    disp('Done syncing handedness');
+    log_message('Done syncing handedness');
     toc
 end
 
 %%
-function [J_list]=outer_sync_brute_eff(Rijs,K,nworkers)
+function [J_list]=outer_sync_brute_eff(Rijs,K)
 
+currPool = gcp();
+nworkers = currPool.NumWorkers;
 J_list=zeros(nchoosek(K,3),1);
 ntrip=nchoosek(K,3);
 ntrip_per_worker=floor(ntrip/nworkers);

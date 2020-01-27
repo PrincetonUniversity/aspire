@@ -1,5 +1,5 @@
-function [results] = runD2(projs,gpuIdx,nCpu,grid_res,eq_min_dist,inplane_res,...
-                max_shift,shift_step,ntheta,doFilter,s,Rijs_gt,q,debugParam)
+function [results] = runD2(projs,gpuIdx,grid_res,eq_min_dist,inplane_res,...
+                max_shift,shift_step,ntheta,doFilter,s,Rijs_gt,refRots,debugParam)
 %  runD2 computes a reconstruction of a D2 volume from a given set of
 %  projection images.
 
@@ -28,12 +28,42 @@ function [results] = runD2(projs,gpuIdx,nCpu,grid_res,eq_min_dist,inplane_res,..
 %               simulations. Optional. 
 %  s            A pre generated seed ( s = rng() ) for reproducibility.
 %               Optional. 
-%  q            In a simulation this is an array of unit quaternions from 
-%               which to retrieve the rotations used to simulate the 
-%               projections. Optional. 
+%  refRots      In a simulation this is an array of ground truth rotatios  
+%               which where used to generate the images. Optional. 
 %  debugParam   parameters used to compare resulting volume with a given 
-%               volume (using Fourier shell correlations). Optional. 
-            
+%               volume (using Fourier shell correlations). Optional.
+%               debugParam should be a struct with the following fields: 
+%               volref = is a volume to compare (FSC) with the reconstructed
+%               volume. 
+%               pixA = pixel size in angstrom to compute resuolution of the 
+%                      reconstructed volume. 
+%               cutoff = cutoff value for FSC. 
+
+%  Output:      All results are outputed in a single MATALAB struct 
+%               containing the following fields: 
+%      
+%  ML_corrs     Scores of the estimated relative rotations for each pair of
+%               i and j. Values are between 0 and 1. A high value (>0.9 for 
+%               clean images) are an indication of good estimates for
+%               relative rotations. 
+%  evals_jsync  First 3 eigenvalues of J -synchronizartion matrix.
+%               Theoratical values are : 2*(N-2) N-4 N-4. 
+%  D_colors     First 3 eigenvalues of color synchronization matrix.
+%               Theoratical values are 4(N-2) 4(N-2) 2*(N-4).
+%  svals1       First 3 eigenvaluse of first sign synchronization matrix. 
+%               Theoratical values are same as evals_jsync.
+%  svals2       First 3 eigenvaluse of second sign synchronization matrix. 
+%               Theoratical values are same as evals_jsync.
+%  svals3       First 3 eigenvaluse of third sign synchronization matrix. 
+%               Theoratical values are same as evals_jsync.
+%  rots_est     Estimated rotation matrices for the input images. 
+%  err_in_degrees   The difference in degrees between the projection
+%                   directions of gorund truth rotations matrices and
+%                   estimated rotations. 
+%  mse          Mean squared error of err_in_degrees. 
+%  volRec       Reconstructed volume from input data and rots_est. 
+%  volaligned   Reconstructed volume from input data and rots_est, aligned
+%               to reference volume, if exists('debugParam.volref','var'); 
 %% Initialize default values for unspecified arguments. 
 if ~exist('grid_res','var') || isempty(grid_res)
     grid_res = 1200;
@@ -65,14 +95,9 @@ if ~exist('doFilter','var') || isempty(doFilter)
     log_message('doFilter not specified. Using doFilter=%d',doFilter);
 end
 
-if ~exist('nCpu','var') || isempty(nCpu)
-   nCpu = 1; 
-   log_message('nCpu not specified. Using nCpu=%d',nCpu);
-end
-
 if exist('s','var') && ~isempty(s)
     rng(s);
-    log_message('Random seend specified (%d).',s);
+    log_message('Random seed specified (%d).',s);
 else
     s = rng();
     results.s = s;
@@ -102,7 +127,7 @@ masked_projs = mask_fuzzy(projs,0.5*(nr-1));
 [scl_scores_noisy]=...
     cryo_clmatrix_scl_ML(pf,max_shift_1D,shift_step,doFilter,scls_lookup_data);
 scls_lookup_data.scls_scores=scl_scores_noisy;
-results.scl_scores=scl_scores_noisy;
+%results.scl_scores=scl_scores_noisy;
 
 %% Estimate relative rotations using ML procedure on common lines. 
 [corrs_out]=clmatrix_ML_D2_scls_par(pf,cls_lookup,...
@@ -113,8 +138,8 @@ est_idx=corrs_data.corrs_idx;
 Rijs_est=getRijsFromLinIdx(lookup_data,est_idx);
 
 results.ML_corrs=corrs_data.ML_corrs;
-results.Rijs_est=Rijs_est;
-results.est_idx=est_idx; %Can be used only with this lookup data
+%results.Rijs_est=Rijs_est;
+%results.est_idx=est_idx; %Can be used only with this lookup data
 
 if  exist('Rijs_gt','var')
     [sum_err,~,~]=calcApproxErr(Rijs_gt,Rijs_est);
@@ -124,23 +149,17 @@ if  exist('Rijs_gt','var')
     results.prc2=prc2;
 end
 
-%% Create new pool after we are finished with GPU's. 
-if nCpu > 1
-    currPool = parpool('local',nCpu);
-    nWorkers = currPool.NumWorkers;
-else
-    nWorkers = 1;
-end
+parpool('local');
 %% Run J-synchronization (Handedness synchronization).    
-[Rijs_synced,~,evals_jsync]=jsync(permute(Rijs_est,[1,2,4,3]),nrot,nWorkers);
+[Rijs_synced,~,evals_jsync]=jsync(permute(Rijs_est,[1,2,4,3]),nrot);
 results.evals_jsync=evals_jsync;
-results.Rijs_synced=Rijs_synced;
+%results.Rijs_synced=Rijs_synced;
 
 %% Synchronize colors
-[colors,Rijs_rows,~,D_colors]=syncColors(Rijs_synced,nrot,nWorkers);
+[colors,Rijs_rows,~,D_colors]=syncColors(Rijs_synced,nrot);
 results.D_colors=D_colors;
-results.Rijs_rows=Rijs_rows;
-results.colors=colors;
+%results.Rijs_rows=Rijs_rows;
+%results.colors=colors;
    
 %%  Synchronize signs
 [rots_est,svals1,svals2,svals3]= syncSigns(Rijs_rows,colors(:,1)',nrot);
@@ -150,23 +169,23 @@ results.svals3=svals3;
 results.rots_est=rots_est;
     
 %% Analyse results with debug data
-if exist('q','var')
-    debug_params=struct('real_data',0,'analyzeResults',1,'refq',q,'FOUR',4,'alpha',pi/2,'n_theta',ntheta);
-    [rot_alligned,err_in_degrees,mse] = analyze_results(rots_est,debug_params);
-    results.rot_alligned=rot_alligned;
+if exist('refRots','var')
+    debug_params=struct('real_data',0,'analyzeResults',1,'refq',refRots,'FOUR',4,'alpha',pi/2,'n_theta',ntheta);
+    [~,err_in_degrees,mse] = analyze_results(rots_est,debug_params);
+    %results.rot_alligned=rot_alligned;
     results.err_in_degrees=err_in_degrees;
     results.mse=mse;
 end
 
 %% Reconstruct volume
-[volRec,dxDn,post_corrs] = reconstructDn_dev(masked_projs,rots_est,nr,360,max_shift,1);
+[volRec,~,~] = reconstructDn_dev(masked_projs,rots_est,nr,360,max_shift,1);
 results.vol=volRec;
-results.dxDn=dxDn;
-results.corrs=post_corrs;
+%results.dxDn=dxDn;
+%results.corrs=post_corrs;
 
 %% Compare with existing volume. 
 if exist('debugParam','var')
-    vol=debugParam.vol;
+    vol=debugParam.volref;
     pixA=debugParam.pixA;
     cutoff=debugParam.cutoff;
     

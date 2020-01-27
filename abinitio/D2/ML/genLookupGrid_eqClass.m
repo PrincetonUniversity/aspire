@@ -94,7 +94,7 @@ eq2eq_Rij_table=triu(ones(nrot,nrot)-...
 eq2eq_Rij_table11=logical(eq2eq_Rij_table);
 
 npairs=sum(eq2eq_Rij_table11(:));
-h=waitbar(0,'Generating relative rotations octant 1...');
+%h=waitbar(0,'Generating relative rotations octant 1...');
 idx=0;
 idx_vec=1:nrot;
 cls=zeros(2,4,0.5*ntheta,ntheta,2*npairs);
@@ -146,9 +146,9 @@ for i=1:nrot-1
         cls(1,4,:,:,idx)=atan2(Rijs(3,1,:,:),-Rijs(3,2,:,:));
         cls(2,4,:,:,idx)=atan2(-Rijs(1,3,:,:),Rijs(2,3,:,:)); 
     end
-    waitbar(idx/npairs);
+    %waitbar(idx/npairs);
 end
-close(h);
+%close(h);
 
 %% Generate all relative rotations in octant 2
 %  This is the same as with octant 1 but relative rotations are computed
@@ -163,7 +163,7 @@ eq2eq_Rij_table12=logical(eq2eq_Rij_table);
 %unique_pairs12=logical(eq2eq_Rij_table);
 
 npairs12=sum(eq2eq_Rij_table12(:));
-h=waitbar(0,'Generating relative rotations, octant 1 to octant 2...');
+%h=waitbar(0,'Generating relative rotations, octant 1 to octant 2...');
 Rijs_grid=[];
 idx=0;
 idx_vec=1:nrot2;
@@ -214,10 +214,10 @@ for i=1:nrot
         cls2(1,4,:,:,idx)=atan2(Rijs(3,1,:,:),-Rijs(3,2,:,:));
         cls2(2,4,:,:,idx)=atan2(-Rijs(1,3,:,:),Rijs(2,3,:,:)); 
     end
-    waitbar(idx/npairs12);
+    %waitbar(idx/npairs12);
 end
 
-close(h);
+%close(h);
 clearvars Ris Rjs
 
 %% Generate fourier ray angles indices into correlations tables
