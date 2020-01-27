@@ -13,18 +13,21 @@ shift_step=1;
 vol=ReadMRC(mapname); %Input vol from mrc for comparison
 s=rng();
 
-%% Generate lookup Data
-grid_res=1200;
-eq_min_dist=15;
-inplane_res=5;
-
-%% Initialize parameters for algorithm and run
-ntheta=360;
-doFilter=1;
-gpuIdx = 1:2;
-nCpu = maxNumCompThreads;
-
-%Run algorithm
-[results]=runD2(projs,gpuIdx,nCpu,grid_res,eq_min_dist,inplane_res,...
+%% Initialize parameters for simulation
+% The next 3 parameters are used to construct a discretezation of SO(3)
+% which will be used to estimate the relative roatitions between each pair 
+% of images. 
+grid_res = 1200;  % Number of points to sample on the sphere as projection 
+                  % directions. Default = 1200. 
+eq_min_dist = 15;  % Defines which projection directions are considered to
+                  % be 'Equator directions'and are to be filtered. Default = 15. 
+inplane_res = 5;  % sampling resolution of angles of in plane rotations. 
+                  % Default = 5. (i.e. if ntheta == 360, then sample 72 
+                  % angulary equispaced inplane rotations for each 
+                  % projection direction). 
+ntheta = 360;     % Angular resolution (number of Fourier rays) used when 
+                  % searching for common lines between pairs of images.
+%% Run algorithm
+results = runD2(projs,gpuIdx,grid_res,eq_min_dist,inplane_res,...
                 max_shift,shift_step,ntheta,doFilter,s);
 
