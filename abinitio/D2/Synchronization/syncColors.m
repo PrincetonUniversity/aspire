@@ -1,7 +1,7 @@
 
 function [out,Rijs_rows,color_perms,D,V]=syncColors(Rijs,K)
 
-log_message('syncing colors...');
+log_message('Synchronizing colors...');
 tic
 
 % Run in parallel on nCPU workers. 
@@ -38,11 +38,11 @@ toc
 %   either 1,0 or -1, where the number encodes which the index r in Ir. 
 %   This vector is a linear combination of the two leading eigen vectors,
 %   and so we 'unmix' these vectors to retrieve it. 
-log_message('done matching colors , now calculating color matrix eigen vectors...');
+log_message('Done matching colors. Now calculating color matrix eigen vectors...');
 neig=3;
 cmat=@(x) mult_cmat_by_vec(color_perms,x,K);
 [colors,D]=eigs(cmat,3*N_pairs,neig,'largestreal');
-log_message('done computing color matrix eigen vectors, now unmixing color eigen vectors... '); 
+log_message('Done computing color matrix eigen vectors. Now unmixing color eigen vectors... '); 
 D=diag(D);
 V=colors;
 toc

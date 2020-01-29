@@ -2,7 +2,7 @@ function [vol,dxD2,corrs,Icl] = reconstructDn_dev(projs,rots,n_r,n_theta,max_shi
     shifts_2d_ref)
 
 tic
-disp('Reconstructing volume...');
+log_message('Reconstructing volume...');
 [pf,~] = cryo_pft(projs,n_r,n_theta,'single');  % take Fourier transform of projections
 %pfD2 = cat(3,pf,pf,pf,pf); % Replicate the images
 %pfD2=pf;
