@@ -220,9 +220,10 @@ end
 %close(h);
 clearvars Ris Rjs
 
+log_message('Generating lookup data for common lines estimation');
+
 %% Generate fourier ray angles indices into correlations tables
 %  for common lines between projection directions in octant 1 
-disp('Generating common lines...');
 cls=mod(cls+2*pi,2*pi); %make all angles non negative 
 cls=cls*180/pi; %convert to degrees 
 cls=reshape(cls,2,4*0.5*ntheta^2*npairs*2)';
@@ -234,7 +235,7 @@ cls=cat(2,cls11,cls12);
 
 %% Generate fourier ray angles indices into correlations tables
 %  for common lines between projection directions in octant 1 and octant 2
-disp('Generating common lines...');
+%disp('Generating common lines...');
 cls2=mod(cls2+2*pi,2*pi); %make all angles non negative 
 cls2=cls2*180/pi; %convert to degrees 
 cls2=reshape(cls2,2,4*0.5*ntheta^2*npairs12*2)';

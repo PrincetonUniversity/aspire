@@ -75,11 +75,14 @@ end
 cl_idx_last=single(cls(g_part(nIter,1):g_part(nIter,2)));
 
 %% Run parallel code
+log_message('Estimating D2 relative rotations');
+
 delete(gcp('nocreate'));
 parpool('local', nGpu);
 spmd 
     gpuDevice(gpuIdx(labindex));
 end
+
 parfor i=1:nIter
     cl_idx_loc=cl_idx;
     scls_idx_loc=scls_idx;
