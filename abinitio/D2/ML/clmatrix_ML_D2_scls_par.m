@@ -22,7 +22,7 @@ for j = 1:nGpu
 end
 avlMem = min(gpuMem);
 reqMem = 4*(3*length(cls)+3*length(cls)/4+numel(scores)+n_shifts*size(pf,2)^2);
-nIter = ceil(reqMem/((0.98*avlMem))); % Each common line index on GPU is a single float, thus 4 
+nIter = ceil(reqMem/((0.95*avlMem))); % Each common line index on GPU is a single float, thus 4 
                                                   % bytes are required. We only fill pack 98%
                                                   % of memory on each GPU, and distribute
                                                   % operations on all avalible gpu's. 
