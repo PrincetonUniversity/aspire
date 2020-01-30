@@ -1,9 +1,0 @@
-1. In D2SimulationExample, add comments to lines marked with COMMENT
-2. Document input and output paramters in genDataForD2Simulation.
-3. Document Input and output parameters in genRotations_Random. ALso add a description of this function (as a comment in the M-file). If that function is specific to D2, then you better think of another name.
-4. Is there a reason to use quaterions in your code? We have elimiated them from all other places in ASPIRE.
-5. Why do we need nCPU?
-6. Document output of runD2
-7. The default value for shift_step in runD2 is 1200. Why is that? I changed to 1.
-8. Remove progress bar.
-9. Replace all printouts with log messages.
