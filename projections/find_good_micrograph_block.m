@@ -106,6 +106,7 @@ if debug
         end
         
         imagesc(im);
+        axis image;
         drawnow;
     end
 end
