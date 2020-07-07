@@ -6,6 +6,7 @@ rotations = rand_rots(rotations_num);
 angles = linspace(0, 360, symmetry_degree + 1);
 angles = angles(2:symmetry_degree);
 x_rot = quaternion([180, 0, 0], 'eulerd','XYZ','frame');
+cn_symmetries = quaternion([zeros(numel(angles), 2), angles'], 'eulerd', 'XYZ', 'frame')';
 
 for rotation_ind = 1:rotations_num
     rotation_i = rotations(:, :, rotation_ind).';  % Picking R^{T}_{i}
@@ -20,11 +21,10 @@ for rotation_ind = 1:rotations_num
         rotations_average = rotation_i * rotation_j;
         other_symmetries_average = rotation_i * shifted_rotation_j;
         
-        % Averaging over all symmetries of Dn.
-        for angle = angles
-            z_rot = quaternion([0, 0, angle], 'eulerd','XYZ','frame');
-            rotations_average = rotations_average + rotation_i * rotatepoint(z_rot, rotation_j.').';
-            other_symmetries_average = other_symmetries_average + rotation_i * rotatepoint(z_rot, shifted_rotation_j.').';
+        % Averaging over all symmetries of Cn.
+        for cn_symmetry = cn_symmetries
+            rotations_average = rotations_average + rotation_i * rotatepoint(cn_symmetry, rotation_j.').';
+            other_symmetries_average = other_symmetries_average + rotation_i * rotatepoint(cn_symmetry, shifted_rotation_j.').';
         end
         rotation_average = rotations_average / symmetry_degree;
         other_symmetries_average = other_symmetries_average / symmetry_degree;
@@ -36,7 +36,10 @@ for rotation_ind = 1:rotations_num
         % Asserting the other symmetries average is equal to the Cn
         % rotations average in magnitude, but different in sign.
         assert(all(abs(rotation_average + other_symmetries_average) < 1e-12, 'all'));
+        
+        % Assert the rotation average are all of rank 1.
+        assert(rank(rotations_average) == 1);
     end
 end
-disp('Validation Succeeded!');
+log_message('Validation Succeeded!');
 
