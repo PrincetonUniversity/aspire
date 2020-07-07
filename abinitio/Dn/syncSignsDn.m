@@ -177,7 +177,7 @@ for i=1:N
     end
 end
 
-log_message('Constructing and decomposing 3 sign synchroniztion matrices...');
+log_message('Constructing and decomposing a single sign synchroniztion matrix...');
 %   The matrix S requires space on order of O(N^4). Instead of storing it
 %   in memory we compute its SVD using the function smat which multiplies
 %   (N over 2)x1 vectors by S.
@@ -204,7 +204,7 @@ signs=sign(signs);
 
 %% Adjust the signs of Qij^c in the matrices cMat(:,:,c) for all c=1,2,3 
 %  and 1<=i<j<=N according to the results of the signs from the last stage.  
-log_message('Constructing and decomposing 3 row synchroniztion matrices...');
+log_message('Constructing and decomposing a single row synchroniztion matrix...');
 idx=0;
 for i=1:N-1
 	for j=i+1:N
