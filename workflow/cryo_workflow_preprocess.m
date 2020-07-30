@@ -54,11 +54,20 @@ end
 if strcmpi(data_ext,'.star')
     fprintf('Reading STAR file %s...\n',workflow.info.rawdata);
     stardata=readSTAR(workflow.info.rawdata,1);
-    nz=numel(stardata.data);
     
     % Read the first image from the star data to read the dimensions of the
     % images.
-    imageID=stardata.data{1}.rlnImageName;
+    % NOTE: If STAR files of RELION 3.1 is used, then the structure of the
+    % STAR file is assumed to contained one optics group (location 1 in the
+    % stardata array) and one particles group (location 2 in the stardata
+    % array). 
+    if numel(stardata)==1 % RELION version < 3.1
+        nz=numel(stardata.data);
+        imageID=stardata.data.rlnImageName;
+    else % RELION 3.1
+        nz=numel(stardata(2).data);
+        imageID=stardata(2).data{1}.rlnImageName;
+    end
     imparts=strsplit(imageID,'@');
     %imageidx=str2double(imparts{1});
     stackname=imparts{2};

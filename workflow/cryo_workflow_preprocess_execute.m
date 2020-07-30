@@ -55,7 +55,16 @@ if strcmpi(data_ext,'.star')
             MD5(workflow.info.rawdata));
         
         CTFdata=readSTAR(workflow.info.rawdata,1);
-        CTFdata.data=CTFdata.data(1:nprojs);
+
+        % NOTE: If STAR files of RELION 3.1 is used, then the structure of the
+        % STAR file is assumed to contained one optics group (location 1 in the
+        % stardata array) and one particles group (location 2 in the stardata
+        % array).
+        if numel(CTFdata)==1 % RELION version < 3.1
+            CTFdata.data=CTFdata.data(1:nprojs);
+        else
+            CTFdata(2).data=CTFdata(2).data(1:nprojs);
+        end
         PFfname=tempmrcsname; %PF stands for phaseflipped
         log_message('Phaseflipped images will be saved to temporary file %s',PFfname);
         log_message('Running cryo_phaseflip_outofcore');

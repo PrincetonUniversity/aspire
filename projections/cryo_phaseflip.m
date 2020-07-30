@@ -44,7 +44,16 @@ if ~exist('verbose','var')
 end
 
 lastStackProcessed='';
-Nprojs=numel(CTFdata.data);
+% NOTE: If STAR files of RELION 3.1 is used, then the structure of the
+% STAR file is assumed to contained one optics group (location 1 in the
+% stardata array) and one particles group (location 2 in the stardata
+% array).
+if numel(CTFdata)==1 % RELION version < 3.1
+    Nprojs=numel(CTFdata.data);
+else
+    Nprojs=numel(CTFdata(2).data);
+end
+
 projsinit=0; % Has the stack PFprojs been initialized already.
 
 if verbose==1
@@ -57,7 +66,12 @@ for k=1:Nprojs
     % Get the identification string of the next image to process.
     % This is composed from the index of the image within an image stack,
     % followed by '@' and followed by the filename of the MRC stack.
-    imageID=CTFdata.data{k}.rlnImageName;
+    if numel(CTFdata)==1 % RELION version < 3.1
+        imageID=CTFdata.data{k}.rlnImageName;
+    else
+        imageID=CTFdata(2).data{k}.rlnImageName;
+    end
+
     imparts=strsplit(imageID,'@');
     imageidx=str2double(imparts{1});
     stackname=imparts{2};
@@ -97,10 +111,10 @@ for k=1:Nprojs
     if projsinit==0
         PFprojs=zeros(n,n,Nprojs,'single');
         projsinit=1;
-    end;
+    end
     
     [voltage,DefocusU,DefocusV,DefocusAngle,Cs,tmppixA,A]=...
-        cryo_parse_Relion_CTF_struct(CTFdata.data{k});
+        cryo_parse_Relion_CTF_struct(CTFdata,k);
     
     if verbose>=3
         log_message('Processing prjection %d/%d: CTF params read voltage=%d, DefocusU=%d, DefocusV=%d, DefocusAngle=%d, Cs=%d, pixA=%d ,A=%d',...

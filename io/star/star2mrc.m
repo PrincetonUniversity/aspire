@@ -44,10 +44,21 @@ end
 log_message('Loading %s',starname);
 datablocks=readSTAR(starname);
 
-if Nprojs~=-1
-    N=min(Nprojs,numel(datablocks.data)); % Number of images to read
+% NOTE: If STAR files of RELION 3.1 is used, then the structure of the
+% STAR file is assumed to contained one optics group (location 1 in the
+% stardata array) and one particles group (location 2 in the stardata
+% array).
+if numel(datablocks)==1 % RELION version < 3.1
+    Nrecords=numel(datablocks.data);
 else
-    N=numel(datablocks.data);
+    Nrecords=numel(datablocks(2).data);
+end
+
+
+if Nprojs~=-1
+    N=min(Nprojs,Nrecords); % Number of images to read
+else
+    N=Nrecords;
 end
 
 if verbose>=1
@@ -70,9 +81,14 @@ for i=1:N
     if verbose==1
         progressTicFor(i,N);
     end
+        
+    if numel(datablocks)==1 % RELION version < 3.1        
+        imkey=datablocks.data{i}.rlnImageName; % String encoding micrograph
+        % name and image index withing the micrograph
+    else
+        imkey=datablocks(2).data{i}.rlnImageName;
+    end
     
-    imkey=datablocks.data{i}.rlnImageName; % String encoding micrograph 
-                          % name and image index withing the micrograph
     keyparts=strsplit(imkey,'@');
     idx=str2double(keyparts{1});
     stackname=keyparts{2};

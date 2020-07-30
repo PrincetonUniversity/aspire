@@ -109,7 +109,7 @@ while ischar(tline)
                 error('Malformed data line on line %d',lineno);
             end
             
-            s=row2struct(rowdata,datablocks.labels);
+            s=row2struct(rowdata,datablocks(blockidx).labels);
             datablocks(blockidx).data{1}=s;            
             dataidx=2;
         elseif (loopstate==2)
@@ -118,7 +118,7 @@ while ischar(tline)
                 error('Malformed data line on line %d',lineno);
             end
 
-            s=row2struct(rowdata,datablocks.labels);
+            s=row2struct(rowdata,datablocks(blockidx).labels);
             datablocks(blockidx).data{dataidx}=s;
             dataidx=dataidx+1;
         end
