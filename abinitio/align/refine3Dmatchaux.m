@@ -1,4 +1,4 @@
-function [Rest,estdx,optout]=refind3Dmatchaux(vol1,vol2,R1,estdx)
+function [Rest,estdx,optout]=refine3Dmatchaux(vol1,vol2,R1,estdx)
 
 % Create initial guess vector
 [psi,theta,phi]=rot2xyz(R1);
