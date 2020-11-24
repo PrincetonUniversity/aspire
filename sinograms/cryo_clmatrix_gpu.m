@@ -92,6 +92,7 @@ function [clstack,corrstack,shift_equations,shift_equations_map,clstack_mask]=..
 %          for double precision and ~14 for single precision.
 
 msg=[];
+PRECISION='single';
 
 T=size(pf,2);
 
@@ -176,9 +177,6 @@ end
 if ~exist('ref_shifts_2d','var') || isempty(ref_shifts_2d)
     ref_shifts_2d=0;
 end
-
-
-PRECISION='single';
 
 if verbose>0
     log_message('GPU PRECISION=%s',PRECISION);
