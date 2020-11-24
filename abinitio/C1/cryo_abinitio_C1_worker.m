@@ -1,5 +1,5 @@
 function cryo_abinitio_C1_worker(algo,instack,outvol,outparams,showfigs,...
-    verbose,n_theta,n_r,max_shift,shift_step)
+    verbose,n_theta,n_r,max_shift,shift_step,map_filter_radius)
 % CRYO_ABINITO_C1_WORKER  Worker function for C1 abainitio reconstruction
 %
 % Internal function called by abinitio reconstruction functions.
@@ -34,6 +34,7 @@ function cryo_abinitio_C1_worker(algo,instack,outvol,outparams,showfigs,...
 %               common-lines. Default is 15% of image width of the images.
 %   shift_step  (Optional) Resolution of shift estimation in pixels. Note
 %               that shift_step can be any positive real number. Default:1. 
+%   map_filter_radius See cryo_clmatrix_cpu.
 %
 % Yoel Shkolnisky, March 2017.
 
@@ -95,7 +96,7 @@ if ~max_shift_given
     max_shift=ceil(size(projs,1)*0.15); % max_shift is 15% of the image size
 end
 log_message('Finding common lines using max_shift=%d, shift_step=%d',max_shift,shift_step);
-[clstack,~,~,~]=cryo_clmatrix(pf,K,1,max_shift,shift_step);
+[clstack,~,~,~]=cryo_clmatrix(pf,K,1,max_shift,shift_step,map_filter_radius);
 
 log_message('Saving common lines');
 save(outparams,'n_theta','n_r','clstack','max_shift','shift_step');
