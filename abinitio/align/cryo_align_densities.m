@@ -105,8 +105,8 @@ vol2masked=GaussFilt(vol2masked,0.3);
 % rotation and translation which results in the best match is taken as the
 % estimated relative rotation/translation between the volumes.
 
-n_downsample=round(n/4);
-n_downsample=max(n_downsample,32); % Minimal size of downsampled volume is 32.
+%n_downsample=round(n/4);
+n_downsample=min(n,32); % Size of downsampled volume is 32.
 pixA_downsample=pixA*n/n_downsample;
 vol1ds=cryo_downsample(vol1masked,[n_downsample n_downsample n_downsample]);
 vol2ds=cryo_downsample(vol2masked,[n_downsample n_downsample n_downsample]);
