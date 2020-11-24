@@ -24,7 +24,8 @@ function [clstack,corrstack,shift_equations,shift_equations_map,clstack_mask]=..
 %   map_filter_radius      If nonzero, the common line between a pair
 %       images is detected not by the pair of lines with the highest 
 %       correlation, but rather the pair of lines that both them and their
-%       sorroundings given the best match. The radius for comparison is
+%       sorroundings (map_filter_radius Fourier rays to each directions)
+%       give the best match. The radius for comparison is
 %       determined by the value of map_filter_radius (Default 0).
 %   ref_clmatrix    True common-lines matrix (for debugging).
 %   ref_shifts_2d   True 2D shifts between projections (for debugging).
