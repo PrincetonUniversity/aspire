@@ -1,10 +1,5 @@
 function [estR,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA,verbose,cutoff,Rref,forcereflect)
 % 
-% Deprecated function.
-% Ths function is based on brute-force search of the aligment parameters.
-% Use cryo_align_densities instead.
-% Yoel Shkolnisky, Juny 2016.
-% 
 % CRYO_ALIGN_DENSITIES  Align two denisity maps
 %
 % [Rest,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2)
@@ -33,7 +28,7 @@ function [estR,estdx,vol2aligned,reflect]=cryo_align_densities(vol1,vol2,pixA,ve
 %       development/debugging), the function uses Rref to provide detailed
 %       debugging messages. Rref is ignored if reflection is detected.
 %
-% Yoel Shkolnisky, January 2015.
+% Yoel Shkolnisky, December 2020.
 
 fftw('planner','exhaustive');
 
@@ -105,15 +100,14 @@ vol2masked=GaussFilt(vol2masked,0.3);
 % rotation and translation which results in the best match is taken as the
 % estimated relative rotation/translation between the volumes.
 
-n_downsample=round(n/4);
-n_downsample=max(n_downsample,32); % Minimal size of downsampled volume is 32.
+n_downsample=min(n,48); % Perform aligment on down sampled volumes. This 
+                        % speeds up calculation, and does not seem to
+                        % degrade accuracy
 pixA_downsample=pixA*n/n_downsample;
 vol1ds=cryo_downsample(vol1masked,[n_downsample n_downsample n_downsample]);
 vol2ds=cryo_downsample(vol2masked,[n_downsample n_downsample n_downsample]);
 
 
-% Nrots=5000;
-% rotations=rand_rots(Nrots);
 rotations=genRotationsGrid(75);
 
 corr0=0;
@@ -164,108 +158,71 @@ if corr0<corr0R
     reflect=1;
     vol2ds=flip(vol2ds,3);
     R0=R0R;
-end
-
-%% Refine search on downsampled volumes
-%
-% Take the estimated relative rotation/translation found above and refine
-% it. This is implemented by selecting several random rotations around the
-% estimated rotation, and for each such rotation looking for the best
-% translation. The best match is taken as the new estimate of the relative
-% rotation/translation.
-
-if verbose
-    log_message('************************************************');
-    log_message('Refined alignment on downsampled masked volumes:');
-end
-   
-newrots=genNearRotations(R0,10,100,10,31);
-
-if verbose
-    log_message('Volume downsampled from %d to %d',n,n_downsample);
-    log_message('Using %d candidate rotations for refined search',size(newrots,3));
-end
-
-tic;
-[R1,dx1,corr1,res1,~]=bf3Dmatchaux(vol1ds,vol2ds,newrots,pixA_downsample,1,cutoff);
-t=toc;
-
-
-if verbose
-    debugmessage(t,corr1,res1,dx1,R1,pixA_downsample,refgiven && ~reflect,Rref);
-end
-
-%% Brute-force search on original volumes
-%
-% Take the estimated relative rotation/translation found above and refine
-% it using the original volume. This is implemented by selecting several
-% random rotations around the estimated rotation, and for each such
-% rotation looking for the best translation. The best match is taken as the
-% new estimate of the relative rotation/translation.
-
-if reflect
-    vol2masked=flip(vol2masked,3);
+    dx0=dx0R;
+    
+    %vol2masked=flip(vol2masked,3);
     vol2=flip(vol2,3);
 end
 
+% Now we have a rough estimate for the rotation and translation between the
+% downsampled volumes. Use optimization to refine the estimates.
 if verbose
-    log_message('*************************************');
-    log_message('Alignment on original masked volumes:');
+    log_message('**********************************************');
+    log_message('Optimized alignment of downsampled volumes:');
 end
-   
-newrots=genNearRotations(R1,10,20,10,11);
-
-if verbose
-    log_message('Volume of size %d',n);
-    log_message('Using %d candidate rotations for refined search',size(newrots,3));
-end
-
 
 tic;
-[R2,dx2,corr2,res2,~]=bf3Dmatchaux(vol1masked,vol2masked,newrots,pixA,1,cutoff);
+[R1,~]=refine3DmatchBFGS(vol1ds,vol2ds,R0,dx0,verbose);
 t=toc;
-
-
 if verbose
-    debugmessage(t,corr2,res2,dx2,R2,pixA,refgiven && ~reflect,Rref);
+    vol2Rds=fastrotate3d(vol2ds,R1);
+    estdx=register_translations_3d(vol1ds,vol2Rds);
+    vol2Rds=reshift_vol(vol2Rds,estdx);    
+    corr1=corr(vol1ds(:),vol2Rds(:));
+    fsc=FSCorr(vol1ds,vol2ds);
+    res=fscres(fsc,cutoff);
+    pixAds=pixA*size(vol1,1)/size(vol1ds,1);
+    res1=2*pixAds*numel(fsc)/res; % Resolution in Angstrom.
+    debugmessage(t,corr1,res1,estdx,R1,pixA_downsample,refgiven & ~reflect,Rref);
 end
 
-%% Refine once more on the original volume
-%
-% Use the prevoius estimated rotation/translation as a starting point for
-% aligning the two original (not downsampled) volumes. This is done as
-% above by using several random rotation near the previously estimated
-% rotation.
 
+% %%%%%% Debug code start
+% % Check FSC between original volumes using the paramters
+% % estimated thus far.
+% 
+% % Using R0,dx0:
+% vol2Rmasked=fastrotate3d(vol2masked,R0);
+% estdx=register_translations_3d(vol1masked,vol2Rmasked);
+% vol2aligned=reshift_vol(vol2Rmasked,estdx);    
+% plotFSC(vol1masked,vol2aligned,0.143,1);
+% 
+% % Using R1,dx1:
+% vol2Rmasked=fastrotate3d(vol2masked,R1);
+% estdx=register_translations_3d(vol1masked,vol2Rmasked);
+% vol2aligned=reshift_vol(vol2Rmasked,estdx);    
+% plotFSC(vol1masked,vol2aligned,0.143,1);
+% %%%%%% Debug code end
 if verbose
-    log_message('*********************************************');
-    log_message('Refined alignment on original masked volumes:');
+    log_message('**********************************************');
+    log_message('Alignment of original (non-filtered) volumes:');
 end
-
-vol2Rmasked=fastrotate3d(vol2masked,R2);
-estdx=register_translations_3d(vol1masked,vol2Rmasked);
-
-
 
 tic;
-[bestR,bestdx]=refine3Dmatchaux(vol1masked,vol2masked,R2,estdx);
-t=toc;
-
-vol2aligned=fastrotate3d(vol2,bestR);
-vol2aligned=reshift_vol(vol2aligned,bestdx);    
-
+vol2aligned=fastrotate3d(vol2,R1);
+estdx=register_translations_3d(vol1,vol2aligned);
+vol2aligned=reshift_vol(vol2aligned,estdx);    
 bestcorr=corr(vol1(:),vol2aligned(:));
+t=toc;
 
-estR=bestR.';
-estdx=bestdx;
+estR=R1.';
 
 fsc=FSCorr(vol1,vol2aligned);
 bestRes=fscres(fsc,cutoff);
 bestResA=2*pixA*numel(fsc)/bestRes; % Resolution in Angstrom.
 
-
 if verbose
-    debugmessage(t,bestcorr,bestResA,bestdx,bestR,pixA,refgiven && ~reflect,Rref);
+    debugmessage(t,bestcorr,bestResA,estdx,R1,pixA,refgiven && ~reflect,Rref);
 end
 
 
