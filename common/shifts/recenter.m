@@ -30,6 +30,6 @@ end
 % Compute center of mass again to make sure the object is centered.
 % If it is not, it is an indication for a problem.
 cm2=CenterOfMass(cX);
-if norm(cm2)>0.1
+if norm(cm2)/max(size(X))>0.1
     warning('Could not center object');
 end
