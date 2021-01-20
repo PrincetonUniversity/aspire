@@ -1,6 +1,6 @@
 run('/scratch/yoelsh/aspire/initpath.m');
 symmetry_degree = 24; % n of Dn.
-rotations_num = 100; % Number of sampled rotations.
+rotations_num = 10; % Number of sampled rotations.
 tol = 1e-12;
 rotations = rand_rots(rotations_num);
 third_rows = squeeze(rotations(3, :, :)).';
@@ -52,3 +52,4 @@ is_dn_sign_symmetry_ok = abs(U1_dn - third_rows) < tol | abs(U1_dn + third_rows)
 assert(all(is_d2_sign_symmetry_ok, 'all'));
 assert(all(is_dn_sign_symmetry_ok, 'all'));
 log_message('Sign Synchronization for Dn is successfull!');
+clear;
