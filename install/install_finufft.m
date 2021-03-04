@@ -8,7 +8,7 @@
 %    url: The url from which the package should be downloaded. By default,
 %       this is
 %
-%          https://github.com/ahbarnett/finufft/archive/master.zip
+%          https://github.com/flatironinstitute/finufft/archive/v1.1.2.zip
 %
 %    location: The location in which the package should be installed. By
 %       default, this is the subfolder 'extern' of the ASPIRE root folder.
@@ -24,7 +24,9 @@
 
 function install_finufft(url, location, fftw_location, use_openmp)
 	if nargin < 1 || isempty(url)
-		url = 'https://github.com/ahbarnett/finufft/archive/master.zip';
+                % Versions after 1.1.2 have breaking API changes, and should
+                %   not be expected to work without other modifcations.
+                url = 'https://github.com/flatironinstitute/finufft/archive/v1.1.2.zip';
 	end
 
 	if nargin < 2 || isempty(location)
@@ -110,8 +112,7 @@ function install_finufft(url, location, fftw_location, use_openmp)
 
 	% Can't use output from unzip since it seems to contain non-existent files?
 	% Probably an Octave bug.
-	[~, commit_id, ~] = fileparts(filepath);
-	finufft_dir = ['finufft-' commit_id];
+	finufft_dir = 'finufft-1.1.2';
 
 	old_finufft_root = fullfile(fileparts(filepath), finufft_dir);
 	new_finufft_root = fullfile(fileparts(filepath), 'finufft');
