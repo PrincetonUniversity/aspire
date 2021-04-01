@@ -163,14 +163,14 @@ if bestcorr < 0.5 % The coorelations of the estimated rotation are
        warning('***** Alignment failed *****');
 end
 
-figure
-view3d(vol2aligned)
-title('aligned volume with optimization')
+%figure
+%view3d(vol2aligned)
+%title('aligned volume with optimization')
 
-cutoff = 0.5;
-pixA = 1;
-resA = plotFSC(vol1,vol2aligned,cutoff,pixA);
-log_message('Resolution between volumes is %5.2fA (using cutoff %4.3f)',resA,cutoff);
+% cutoff = 0.5;
+% pixA = 1;
+% resA = plotFSC(vol1,vol2aligned,cutoff,pixA);
+% log_message('Resolution between volumes is %5.2fA (using cutoff %4.3f)',resA,cutoff);
 
 
 %% Error calculation:

@@ -1,4 +1,4 @@
-% test_cryo_align_densities_3
+% test_cryo_align_vols_3
 %
 % Align two density maps where one is rotate/translated relative to
 % the other, in the presence of noise.
