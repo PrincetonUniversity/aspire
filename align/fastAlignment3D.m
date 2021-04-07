@@ -1,26 +1,29 @@
-function [R_est,R_est_J] = fastAlignment3D(sym,n_sym,n,vol1,vol2,N_projs,true_R,G_group,noise,SNR)
+function [R_est,R_est_J] = fastAlignment3D(sym,vol1,vol2,verbose,n,N_projs,true_R,G,noise,SNR)
 %% This function does the work for cryo_align_vols.    
 %% input: 
-%{
-sym- symmetry tipe- 'C'/ 'D'/ 'T'/ 'O'/ 'I'.
-n_s- symmetry value. for cubic symmetries it doesn't metter.
-n- the size of vol1 and vol2.
-N_projs- number of reference projections for the alignment. 
-true_R- the true rotation matrix between vol_2 and vol_1. 
-G_roup- size=(3,3,n) all n symmetry group elemnts. 
-noise- enter a number different from 0 in order to add noise to the
-      projections.
-SNR- if noise ~= 0 than enter the required SNR.  
-%}
+% sym- the symmetry type- 'Cn'\'Dn'\'T'\'O'\'I', were n is the the symmetry
+%      order.  
+% vol1- 3D reference volume that vol2 should be aligned accordingly.
+% vol2- 3D volume to be aligned.
+% verbose- enter some number different from 0 if you wish to print log 
+%       messages. (default is 0).
+% n- the size of vol1 and vol2.
+% N_projs- number of reference projections for the alignment. 
+% true_R- the true rotation matrix between vol_2 and vol_1. 
+% G_- size=(3,3,n) all n symmetry group elemnts. 
+% noise- enter a number different from 0 in order to add noise to the
+%       projections.
+% SNR- if noise ~= 0 then enter the required SNR.  
 %% output: 
-%{
-R_est- the estimated rotation between vol_2 and vol_1 without reflection.
-R_est_J- the estimated rotation between vol_2 and vol_1 with reflection.
-%}
+% R_est- the estimated rotation between vol_2 and vol_1 without reflection.
+% R_est_J- the estimated rotation between vol_2 and vol_1 with reflection.
+
+%% 
 refrot = 1;
-if ~exist('true_R','var') || isempty(true_R)
-    refrot = 0;
-end
+if isempty(true_R), refrot = 0; end  
+
+currentsilentmode = log_silent(verbose == 0);
+
 %% Generate reference projections from vol_2:
 log_message('Generating %d reference projections.',N_projs);
 Rots = genRotationsGrid(75);
@@ -37,6 +40,8 @@ if noise ~= 0
     log_message('Added noise to reference projections with SNR=%5.3f.',SNR);
 end
 %% Align reference projections with vol1:
+opt.N_projs = N_projs; opt.G = G; opt.Rots = Rots;
+log_message('Aligning reference projections from vol 2.');
 if refrot == 1
     R = true_R;
     R = R.';
@@ -47,14 +52,11 @@ if refrot == 1
         true_R_tild(:,:,i) = (R*R_ref(:,:,i));
         J3 = diag([1 1 -1]);
         true_R_tild_J(:,:,i) = (J3*R*J3*R_ref(:,:,i));
-    end
-    log_message('Start aligning reference projections from vol 2.');
-    [R_tild,~] = cryo_align_projs(sym,n_sym,ref_projs,vol1,N_projs,0,G_group,true_R_tild,true_R_tild_J,[],Rots,1);     % size (3,3,N_projs). 
-    log_message('Aligning reference projections is done.');
+    end   
+    opt.true_Rots = true_R_tild; opt.true_Rots_J = true_R_tild_J;
+    [R_tild,~] = cryo_align_projs(sym,ref_projs,vol1,verbose,opt);     % size (3,3,N_projs). 
 else
-    log_message('Start aligning reference projections from vol 2.');
-    [R_tild,~] = cryo_align_projs(sym,n_sym,ref_projs,vol1,N_projs,0,G_group,[],[],[],Rots,1);     % size (3,3,N_projs). 
-    log_message('Aligning reference projections is done.');
+    [R_tild,~] = cryo_align_projs(sym,ref_projs,vol1,verbose,opt);     % size (3,3,N_projs). 
 end
 %% Synchronization:
 % define the relation between the rotations as:1. there is no reflection 
@@ -116,7 +118,6 @@ log_message('\t with    reflection (%4.2e, %4.2e, %4.2e, %4.2e, %4.2e, %4.2e)',.
 log_message('In the noiseless case the synchronization matrix should be rank 3.');
 
 %%% estimating G:
-
 G = zeros(3,3,N_projs);
 G_J = zeros(3,3,N_projs);
 for i = 1:N_projs
@@ -132,7 +133,6 @@ for i = 1:N_projs
 end
 
 %%% set the global rotation to be an element from the symmetry group: 
-
 O1 = G(:,:,1).';
 O1_J = G_J(:,:,1).';
 for i=1:N_projs
@@ -168,4 +168,5 @@ assert(det(R_est_J)>0);
 R_est_J = R_est_J([2 1 3],[2 1 3]);
 R_est_J = R_est_J.';
 
+log_silent(currentsilentmode);
 end

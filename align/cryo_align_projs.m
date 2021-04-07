@@ -1,71 +1,84 @@
-function [Rots_est,Shifts,corrs,err_Rots,err_Shifts] = cryo_align_projs(sym,n_sym,projs,vol,N_ref,isshift,G,true_Rots,true_Rots_J,true_Shifts,Rots,verbose)
-%% This function aligns given projection in a given volume.
+function [Rots_est,Shifts_est,corrs,err_Rots,err_Shifts] = cryo_align_projs(sym,projs,vol,verbose,opt)
+%% This function aligns the given projections in the given volume.
 %% input: 
-%{
-sym- symmetry tipe- 'C'/ 'D'/ 'T'/ 'O'/ 'I'.
-n_s- symmetry value. for cubic symmetries it doesn't metter (don't have 
-     to enter).
-projs- projection images to align in a given volume.
-vol- reference volume for the alignment.
-N_ref- number of reference projections for the alignment. (default is 50).
-isshift- enter 1 if you wish to estimate the translations of the projections. 
-         and enter 0 if not. 
-
-
-G- size=(3,3,n) all n symmetry group elemnts. 
-true_Rots- the true rotations of projs.
-true_Rots_J- the true rotations of projs in case of reflection.
-true_Shifts- the true shifts-(dx,dy) of projs.
-Rots - size (3x3xsz_Rots), is a set of candidate rotations. (don't have to
-       enter).
-verbose- enter some number different from 0 if you wish to print log 
-       messages. (default is 0).
-%}
+% sym- the symmetry type- 'Cn'\'Dn'\'T'\'O'\'I', were n is the the symmetry
+%      order.  
+% projs- projection images to align in the given volume.
+% vol- reference volume for the alignment.
+% verbose- enter some number different from 0 if you wish to print log 
+%       messages. (default is 0).
+% opt- Structure with optimizer options.
 %% output:
-%{
-Rots_est- the rotation matrices of the alingment of projs (3x3xsize(projs,3)).
-Shifts- (size(projs,3)x2) the 2D shift of each projection, first column
-       contained the shift in the x-axis, and the secound colunm in the y-axis.
-corrs- (size(projs,3)x2) the i'th entry of the first column contains 
-       the correlation of the common lines between the i'th image and all the 
-       reference images induced by the best matching rotation. The i'th entry of 
-       the second column contains the mean matching correlation over all tested 
-       rotations.
-candidate_rots- set of candidate rotations that from them the estimated
-       rotation for each projection is chosen. 
-err_Rots- error calculation between the true rotations and the estimated
-       rotations.
-err_Shifts- error calculation between the true shifts and the estimated
-       shifts, in x and y axis.
-%}
-%% Check parameters:
-if ~exist('N_ref','var') || isempty(N_ref)
-    N_ref = 30;
+% Rots_est- the estimated rotation matrices of projs (3x3xsize(projs,3)).
+% Shifts- (size(projs,3)x2) the 2D estimated shift of projs, first column
+%        contained the shift in the x-axis, and the secound colunm in the 
+%        y-axis.
+% corrs- (size(projs,3)x2) the i'th entry of the first column contains 
+%        the correlation of the common lines between the i'th image and all  
+%        the reference images induced by the best matching rotation. The  
+%        i'th entry of the second column contains the mean matching  
+%        correlation over all testedrotations.
+% candidate_rots- set of candidate rotations that from them the estimated
+%        rotation for each projection is chosen. 
+% err_Rots- error calculation between the true rotations and the estimated
+%        rotations.
+% err_Shifts- error calculation between the true shifts and the estimated
+%        shifts, in x and y axis.
+%% Options:
+% opt.N_ref- number of reference projections for the alignment. (default 
+%       is 50).
+% opt.isshift- enter 1 if you wish to estimate the translations of the 
+%       projections. and enter 0 if not. 
+% opt.G- size=(3,3,n) all n symmetry group elemnts. 
+% opt.true_Rots- the true rotations of projs.
+% opt.true_Rots_J- the true rotations of projs in case of reflection.
+% opt.true_Shifts- the true shifts-(dx,dy) of projs.
+% opt.Rots - size (3x3xsz_Rots), is a set of candidate rotations. (don't 
+%       have to enter).
+
+%% Check options:
+defaultopt = struct('N_ref',30,'G',[],'true_Rots',[],'true_Rots_J',[], ...
+            'true_Shifts',[],'Rots',[],'isshift',0);
+        
+if ~exist('opt','var') || isempty(opt)
+    opt = defaultopt;
+else
+    f = fieldnames(defaultopt);
+    for i = 1:length(f)
+        if (~isfield(opt,f{i})||(isempty(opt.(f{i}))))
+            opt.(f{i}) = defaultopt.(f{i});
+        end
+    end
+end
+                    
+%% Define variables:
+N_ref = opt.N_ref; G = opt.G; true_Rots = opt.true_Rots; 
+true_Rots_J = opt.true_Rots_J; true_Shifts = opt.true_Shifts; 
+Rots = opt.Rots; isshift = opt.isshift;
+
+s = sym(1);
+if numel(sym) > 1
+        n_s = str2double(sym(2:end));
+else
+    n_s=0;
 end
 
 er_calc = 1;
-if sym == 'C' && n_sym == 1
-    er_calc = 1;
-    G = eye(3);
-elseif ~exist('G','var') || isempty(G)
-    er_calc = 0;
-end
+if s == 'C' && n_s == 1, G = eye(3);
+elseif isempty(G), er_calc = 0; end
+
 ref_true_rot = 1;
-if ~exist('true_Rots','var') || isempty(true_Rots)
-    ref_true_rot = 0;
-end      
+if isempty(true_Rots), ref_true_rot = 0; end
+
 ref_true_rot_J = 1;
-if ~exist('true_Rots_J','var') || isempty(true_Rots_J)
-    ref_true_rot_J = 0;
-end 
+if isempty(true_Rots_J),ref_true_rot_J = 0; end 
+
 refshift = 1;
-if ~exist('true_Shifts','var') || isempty(true_Shifts)
-    refshift = 0;
-end
+if isempty(true_Shifts), refshift = 0; end
+
 can_Rots = 1;
-if ~exist('Rots','var') || isempty(Rots)
-    can_Rots = 0;
-end
+if isempty(Rots), can_Rots = 0; end
+
 if ~exist('verbose','var') || isempty(verbose)
     verbose = 0;
 end
@@ -76,23 +89,19 @@ L = 360;
 
 %% Compute polar Fourier transform of projs:
 n_r = ceil(n/2);
-log_message('Start computing polar Fourier transforms of input projections Using n_r=%d L=%d.',n_r,L);
+log_message('Computing the pft of the projections using n_r=%d L=%d.',n_r,L);
 projs_hat = cryo_pft(projs,n_r,L,'single');
-log_message('Computing polar Fourier transform done');
 
 % Normalize polar Fourier transforms
-log_message('Start normalizing polar Fourier transform of input projections (cryo_raynormalize)');
+log_message('Normalizing the pft projections.');
 projs_hat = cryo_raynormalize(projs_hat);
-log_message('Normalizing done');
 n_projs = size(projs_hat,3);
 
 %% Generate candidate rotations and reference projections:
 log_message('Generating %d reference projections.',N_ref);
-
 if can_Rots == 0
     Rots = genRotationsGrid(75);
 end
-
 candidate_rots = Rots;
 N_rot = size(candidate_rots,3);
 log_message('Using %d candidate rotations for alignment.',N_rot);
@@ -104,17 +113,15 @@ ref_projs = permute(ref_projs,[2 1 3]);
 rots_ref = permute(rots_ref,[2,1,3]);         % the true rotations.
 
 %% Compute polar Fourier transform of reference projections:
-log_message('Start computing polar Fourier transforms of reference projections. Using n_r=%d L=%d.',n_r,L);
+log_message('Computing the pft of the reference projections using n_r=%d L=%d.',n_r,L);
 refprojs_hat = cryo_pft(ref_projs,n_r,L,'single');
-log_message('Computing polar Fourier transform done');
 
 % Normalize polar Fourier transforms
-log_message('Start normalizing polar Fourier transform of reference projections (cryo_raynormalize)');
+log_message('Normalizing the pft reference projections.');
 refprojs_hat = cryo_raynormalize(refprojs_hat);
-log_message('Normalizing done');
-
 
 %% Compute the common lines between the candidate rotations and the reference rotations:
+log_message('Computing the common lines.');
 Ckj = (-1)*ones(N_rot,N_ref);   % In the coordinates of candidate_rots.
 Cjk = (-1)*ones(N_rot,N_ref);   % In the coordinates of rots_ref.
 Mkj = zeros(N_rot,N_ref);       % Pairs of rotations that are not "too close"
@@ -147,7 +154,6 @@ max_s = round((0.2)*size(projs_hat,1));     % set the maximum shift.
 s_step = 0.5;
 n_shifts = (2/s_step)*max_s + 1;            % always odd number (to have zero value without shift).
 max_r = size(projs_hat,1);
-%log_message('Using max_shift=%d  shift_step=%5.1e, n_shifts=%d for projections of size_r=%d',max_s,s_step,n_shifts,max_r);
 s_vec = linspace(-max_s,max_s,n_shifts);    % those are the shifts in the r variable in the common lines.  
 r_vec = (0:max_r-1);
 s_phases = exp(-2*pi*sqrt(-1).*r_vec'*s_vec./(2*max_r+1));    % size of (n_rXn_shift)
@@ -155,9 +161,10 @@ s_phases = exp(-2*pi*sqrt(-1).*r_vec'*s_vec./(2*max_r+1));    % size of (n_rXn_s
 %% Main loop- compute the cross correlation: 
 % computing the correlation between the common line, first choose the best
 % shift, and then chose the best rotation.
+log_message('Aligning the projections.');
 Rots_est = zeros(3,3,n_projs);
 corrs = zeros(n_projs,2);                   % Statistics on common-lines matching.
-Shifts = zeros(2,n_projs);
+Shifts_est = zeros(2,n_projs);
 dtheta = 2*pi/L;
 if ref_true_rot ~= 0 || ref_true_rot_J ~= 0
     err_Rots = zeros(n_projs,1);
@@ -220,9 +227,7 @@ for projidx = 1:n_projs
         else
             err_Rots(projidx,:) = err_2; 
         end
-    end      
-               
-    
+    end       
 
     %% Find estimated shift:
     % by least-squares on the estimated rotation with the reference projections. 
@@ -244,11 +249,11 @@ for projidx = 1:n_projs
             i = i+1;
         end
 
-        Shifts(:,projidx) = shift_eq\shift;
+        Shifts_est(:,projidx) = shift_eq\shift;
         %%% Error calc for estimated shifts:
         if refshift ~= 0 
-            err_Shifts(1,projidx) = norm(true_Shifts(projidx,1)-Shifts(1,projidx),2);
-            err_Shifts(2,projidx) = norm(true_Shifts(projidx,2)-Shifts(2,projidx),2);
+            err_Shifts(1,projidx) = norm(true_Shifts(projidx,1)-Shifts_est(1,projidx),2);
+            err_Shifts(2,projidx) = norm(true_Shifts(projidx,2)-Shifts_est(2,projidx),2);
         end
     end
 end
