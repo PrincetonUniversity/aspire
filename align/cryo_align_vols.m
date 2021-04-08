@@ -18,20 +18,34 @@ function [bestR,bestdx,vol2aligned,bestcorr] = cryo_align_vols(sym,vol1,vol2,ver
 %              aligned with vol_1 (after optimization). 
 % bestcorr- the coorelation between vol_1 and vol2aligned.
 %% Options:
-% opt.N_projs- number of projections for the alignment. defult is 30. 
-% opt.true_R- the true rotation matrix between vol2 and vol1, such that 
-%         vol2 =true_R*vol2. in the case of reflection, true_R should be  
+% opt.downsample   Downsample the volume to this size (in pixels) for
+%                  faster alignment. Default is 48. Use larger value if
+%                  alignment fails.
+% opt.N_projs  Number of projections to use for the alignment. 
+%              Defult is 30.  
+% opt.true_R   True rotation matrix between vol2 and vol1, such that 
+%         vol2 =true_R*vol2. In the case of reflection, true_R should be  
 %         the rotation between the volumes such that vol2=J*true_R*vol_1, 
-%         where J is the reflection matrix over the z axis.(this input is  
-%         for error calculations).  
-% opt.G- size=(3,3,n) the symmetry group elemnts. 
-% opt.noise- if noise~=0 then the algorithm will add noise to the 
-%        projections from vol2. if you don't want to add noise enter 
-%        noise=0. 
-% opt.SNR- for noise~=0, defualt is 0.1.
+%         where J is the reflection matrix over the z axis
+%         J=diag([1,1,-1]). This input is used for debugging to calculate
+%         errors.
+% opt.G  Array of matrices of size 3x3xn containing the symmetry group
+%        elemnts.  XXX Why do you need this parameter? Why can't you just
+%        call genSymGroup XXX?
+% opt.noise      If noise~=0 then the algorithm will add noise to the 
+%        projections from vol2. If you don't want to add noise enter 
+%        noise=0. XXX Why do you need this parameter? If you want to test
+%        the robustness to noise, then you should add noise to the input
+%        volume, no? XXX
+% opt.SNR- for noise~=0, defualt is 0.1. XXX Same as previous XXX.
+% XXX Missing description of dofscplot XXX
+
+% TODO (Yael, ignore this for now):
+% 1. Improve printouts.
+
 
 %% Check options:
-defaultopt = struct('N_projs',30,'G',[],'true_R',[],'noise',0, ...
+defaultopt = struct('downsample',48,'N_projs',30,'G',[],'true_R',[],'noise',0, ...
              'SNR',0.1,'dofscplot',0);
         
 if ~exist('opt','var') || isempty(opt)
@@ -83,10 +97,11 @@ assert((n_2(1) == n_1(2)) && (n_2(1) == n_1(2)),...
 assert(n_1(1) == n_2(1),'Input volumes have different dimensions');
 n = n_1(1);
 
-n_ds = min(n,48); % Perform aligment on down sampled volumes. This 
+n_ds = min(n,opt.downsample); % Perform aligment on down sampled volumes. This 
                           % speeds up calculation, and does not seem to
                           % degrade accuracy
-                        
+
+log_message('Downsampling volumes to %d pixels',n_ds);
 vol1_ds = cryo_downsample(vol1,[n_ds n_ds n_ds]);
 vol2_ds = cryo_downsample(vol2,[n_ds n_ds n_ds]);
 
@@ -134,15 +149,13 @@ if refrot ~= 0
     log_message('%7.4f %7.4f  %7.4f',true_R(2,1),true_R(2,2),true_R(2,3));
     log_message('%7.4f %7.4f  %7.4f',true_R(3,1),true_R(3,2),true_R(3,3));
 end
-log_message('Correlation between down-sampled aligned volumes = %7.4f',corr_v);
+log_message('Correlation between downsampled aligned volumes = %7.4f',corr_v);
 
 %% Optimization:
 [bestR,~] = refine3DmatchBFGS(vol1_ds,vol2_ds,R_est,estdx_ds,0);
-log_message('**********************************************');
-log_message('Optimization on down-sampled volumes is done.');
+log_message('Optimization on downsampled volumes is done.');
 
 log_message('Optimization results on original volumes:');
-
 vol2aligned = fastrotate3d(vol2,bestR);
 
 bestdx = register_translations_3d(vol1,vol2aligned);
@@ -163,9 +176,9 @@ if bestcorr < 0.5 % The coorelations of the estimated rotation are
        warning('***** Alignment failed *****');
 end
 
-figure
-view3d(vol2aligned)
-title('aligned volume with optimization')
+%figure
+%view3d(vol2aligned)
+%title('aligned volume with optimization')
 if dofscplot ~= 0
     cutoff = 0.5;
     pixA = 1;

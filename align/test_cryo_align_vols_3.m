@@ -47,9 +47,10 @@ for snridx=1:numel(SNRs)
     axis off;
     %% Align
     verbose=1;
+    opts.true_R=R;
 
     %[Rest,estdx,volAlignedNoisy]=cryo_align_densities(volNoisy,volRotatedNoisy,0,verbose,0.5,R,0);
-    [Rest,estdx,volAlignedNoisy]=cryo_align_vols('C',1,vol,volRotatedNoisy,[],R);
+    [Rest,estdx,volAlignedNoisy]=cryo_align_vols('C1',vol,volRotatedNoisy,verbose,opts);
 
 
     % Correlation of noisy volumes after alignment

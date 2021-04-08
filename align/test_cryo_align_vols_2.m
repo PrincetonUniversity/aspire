@@ -34,9 +34,10 @@ figure(2); clf; view3d(volRotatedReflected,2.0e-4); title('Rotated volume');
 
 %% Align
 verbose=1;
+opts.true_R=R;
 tic;
 %[Rest,estdx,vol2aligned]=cryo_align_densities(vol,volRotatedReflected,0,verbose,0.5,R);
-[Rest,estdx,vol2aligned]=cryo_align_vols('C',1,vol,volRotatedReflected,[],R);
+[Rest,estdx,vol2aligned]=cryo_align_vols('C1',vol,volRotatedReflected,verbose,opts);
 toc
 
 figure(3); clf; view3d(vol2aligned,2.0e-4); title('Aligned volume');

@@ -31,25 +31,19 @@ test_densities = {...
 {'I',	 3528,	2.7},...
 {'I',	22854, 	1.56}};
 
-results=cell(numel(test_densities),3);
+results=cell(numel(test_densities),4);
 
 
 for testidx=1:numel(test_densities)
-    
+%testidx=7;    
     %% Generate two density maps.
     
     test_data=test_densities{testidx};
     symmetry=test_data{1};
     emdid=test_data{2};
-    
-    symgroup=symmetry(1);
-
-    if numel(symmetry)>1
-        symorder=str2double(symmetry(2:end));
-    else
-        symorder=0;
-    end
-    
+    log_message('********************************');
+    log_message('Test %d/%d %s  (EMD%04d)',testidx,numel(test_densities),symmetry,emdid);
+      
     try
         mapfile=cryo_fetch_emdID(emdid);
         vol=ReadMRC(mapfile);
@@ -75,8 +69,11 @@ for testidx=1:numel(test_densities)
     %% Align
     verbose=1;
     tic;
-    [Rest,estdx,vol2aligned]=cryo_align_vols(symgroup,symorder,vol,volRotated,[],R);
-    toc
+    opts.true_R=R;
+    opts.downsample=64;
+    opts.filter=1;
+    [Rest,estdx,vol2aligned]=cryo_align_vols(symmetry,vol,volRotated,verbose,opts);
+    t=toc;
     
     %figure(3); clf; view3d(vol2aligned,2.0e-4); title('Aligned volume');
     
@@ -96,4 +93,5 @@ for testidx=1:numel(test_densities)
     results{testidx,1}=testidx;
     results{testidx,2}=symmetry;
     results{testidx,3}=c2;
+    results{testidx,4}=t;
 end
