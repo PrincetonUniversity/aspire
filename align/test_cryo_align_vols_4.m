@@ -9,6 +9,7 @@
 % model resolution in Angstrom.
 
 clear;
+initstate;
 
 test_densities = {...
 {'C1',	 2660, 	3.2},...
@@ -47,6 +48,7 @@ for testidx=1:numel(test_densities)
     try
         mapfile=cryo_fetch_emdID(emdid);
         vol=ReadMRC(mapfile);
+        vol=GaussFilt(vol,0.1);
     catch err
         delete(mapfile);
     end
