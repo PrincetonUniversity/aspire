@@ -24,8 +24,8 @@ if isempty(true_R), refrot = 0; end
 
 currentsilentmode = log_silent(verbose == 0);
 
-%% Generate reference projections from vol_2:
-log_message('Generating %d reference projections.',N_projs);
+%% Generate reference projections from vol2:
+log_message('Generating %d projections from vol2',N_projs);
 Rots = genRotationsGrid(75);
 sz_Rots = size(Rots,3);
 
@@ -39,9 +39,9 @@ if noise ~= 0
     ref_projs = cryo_addnoise(ref_projs, SNR, 'gaussian');
     log_message('Added noise to reference projections with SNR=%5.3f.',SNR);
 end
-%% Align reference projections with vol1:
+%% Align reference projections to vol1:
 opt.N_projs = N_projs; opt.G = G; opt.Rots = Rots;
-log_message('Aligning reference projections from vol 2.');
+log_message('Aligning projections of vol2 to vol1');
 if refrot == 1
     R = true_R;
     R = R.';
@@ -58,13 +58,17 @@ if refrot == 1
 else
     [R_tild,~] = cryo_align_projs(sym,ref_projs,vol1,verbose,opt);     % size (3,3,N_projs). 
 end
+%XXX The following comment wasn't not clear enough for me. XXX
+%XXX Also, there is no description of O. XXX.
 %% Synchronization:
-% define the relation between the rotations as:1. there is no reflection 
+% define the relation between the rotations as:
+% 1. there is no reflection 
 % between vol1 and vol2, thus the relation is only by rotation: Ri = O*g^{si}*Ri_tild,
 % where Ri is the true rotation in the coordinates of vol2- R_ref(i), 
 % and Ri_tild is the estimated rotation in the coordinates of vol 1-
 % R_tild(i). and g^{si} is the symmetry group element of image i, when si
-% in {0,1,...n-1}. 2. there is reflection, in that case the relation can be
+% in {0,1,...n-1}. 
+% 2. there is reflection, in that case the relation can be
 % written as: Ri = O*g^{si}*(J*Ri_tild*J). 
 % if we define Oi = Ri*Ri_tild.' (or Oi = Ri*(J*Ri_tild*J).') than we get
 % Oi.'*Oj = g^{si}.'*g^{sj}= g^{sj-si}. 
@@ -72,7 +76,7 @@ end
 % synchronization matrix Oij = Oi.'*Oj. then estimate the group elemnts for 
 % each image with and whitout reflection, and latter choose the better option. 
 
-%%% estimate O with or without reflection:
+%%% estimate O with and without reflection:
 O_mat = zeros(3,3,N_projs);
 O_mat_J = zeros(3,3,N_projs);
 J3 = diag([1 1 -1]);
@@ -106,6 +110,8 @@ V = U(:,1:3);
 [UJ,sJ]=eig(O_ij_J); sJ=diag(sJ); [sJ,ii]=sort(sJ,'descend'); UJ=UJ(:,ii);
 VJ = UJ(:,1:3);
 
+
+% XXX From the printouts, both matrices are rank-3. Is this ok? XXX
 %%% Print the first singular values of both synchronization matrices. Only
 %%% one of them should be rank-3. In fact, at this point we can figure out if
 %%% the two volumes are reflected with respect to each other or not. However,
@@ -116,7 +122,12 @@ log_message('\t without reflection (%4.2e, %4.2e, %4.2e, %4.2e, %4.2e, %4.2e)',.
 log_message('\t with    reflection (%4.2e, %4.2e, %4.2e, %4.2e, %4.2e, %4.2e)',...
         sJ(1),sJ(2),sJ(3),sJ(4),sJ(5),sJ(6));
 log_message('In the noiseless case the synchronization matrix should be rank 3.');
+% XXX Why not using the rank information to detect reflection? Isn't it
+% more robust than correlation? XXX
 
+
+% XXX This part is not commented. What is G and what is the purpose of this
+% code? XXX
 %%% estimating G:
 G = zeros(3,3,N_projs);
 G_J = zeros(3,3,N_projs);

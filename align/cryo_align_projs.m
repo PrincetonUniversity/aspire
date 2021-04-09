@@ -89,22 +89,22 @@ L = 360;
 
 %% Compute polar Fourier transform of projs:
 n_r = ceil(n/2);
-log_message('Computing the pft of the projections using n_r=%d L=%d.',n_r,L);
+log_message('Computing polar Fourier transform of unaligned projections using n_r=%d L=%d',n_r,L);
 projs_hat = cryo_pft(projs,n_r,L,'single');
 
 % Normalize polar Fourier transforms
-log_message('Normalizing the pft projections.');
+log_message('Normalizing the polar Fourier transform of unaligned projections');
 projs_hat = cryo_raynormalize(projs_hat);
 n_projs = size(projs_hat,3);
 
 %% Generate candidate rotations and reference projections:
-log_message('Generating %d reference projections.',N_ref);
+log_message('Generating %d reference projections',N_ref);
 if can_Rots == 0
     Rots = genRotationsGrid(75);
 end
 candidate_rots = Rots;
 N_rot = size(candidate_rots,3);
-log_message('Using %d candidate rotations for alignment.',N_rot);
+log_message('Using %d candidate rotations for alignment',N_rot);
 
 rots_ref = Rots(:,:,randperm(N_rot,N_ref));   
 
@@ -113,15 +113,15 @@ ref_projs = permute(ref_projs,[2 1 3]);
 rots_ref = permute(rots_ref,[2,1,3]);         % the true rotations.
 
 %% Compute polar Fourier transform of reference projections:
-log_message('Computing the pft of the reference projections using n_r=%d L=%d.',n_r,L);
+log_message('Computing polar Fourier transform of reference projections using n_r=%d L=%d',n_r,L);
 refprojs_hat = cryo_pft(ref_projs,n_r,L,'single');
 
 % Normalize polar Fourier transforms
-log_message('Normalizing the pft reference projections.');
+log_message('Normalizing the polar Fourier transform of reference projections');
 refprojs_hat = cryo_raynormalize(refprojs_hat);
 
 %% Compute the common lines between the candidate rotations and the reference rotations:
-log_message('Computing the common lines.');
+log_message('Computing the common lines between reference and unaligned projections');
 Ckj = (-1)*ones(N_rot,N_ref);   % In the coordinates of candidate_rots.
 Cjk = (-1)*ones(N_rot,N_ref);   % In the coordinates of rots_ref.
 Mkj = zeros(N_rot,N_ref);       % Pairs of rotations that are not "too close"
@@ -161,7 +161,8 @@ s_phases = exp(-2*pi*sqrt(-1).*r_vec'*s_vec./(2*max_r+1));    % size of (n_rXn_s
 %% Main loop- compute the cross correlation: 
 % computing the correlation between the common line, first choose the best
 % shift, and then chose the best rotation.
-log_message('Aligning the projections.');
+log_message('Aligning unaligned projections to reference projections.');
+% XXX Is this log message correct? XXX
 Rots_est = zeros(3,3,n_projs);
 corrs = zeros(n_projs,2);                   % Statistics on common-lines matching.
 Shifts_est = zeros(2,n_projs);
@@ -259,19 +260,12 @@ for projidx = 1:n_projs
 end
 if ref_true_rot ~= 0 && er_calc ~= 0
     mean_err = mean(err_Rots);
-    log_message('Mean error in estimating the rotations of the projections is %5.3f in degrees.',mean_err);
+    log_message('Mean error in estimating the rotations of the unaligned projections is %5.3f degrees.',mean_err);
 end
 if isshift ~= 0 && refshift ~= 0
     mean_err_shift = mean(mean(err_Shifts));
-    log_message('Mean error in estimating the translations of the projections is %5.3f.',mean_err_shift);
+    log_message('Mean error in estimating the translations of the unaligned projections is %5.3f.',mean_err_shift);
 end
 
 log_silent(currentsilentmode);
 end
-
-
-           
-
-
-
-    

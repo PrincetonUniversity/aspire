@@ -101,7 +101,7 @@ n_ds = min(n,opt.downsample); % Perform aligment on down sampled volumes. This
                           % speeds up calculation, and does not seem to
                           % degrade accuracy
 
-log_message('Downsampling volumes to %d pixels',n_ds);
+log_message('Downsampling volumes from %d to %d pixels',n,n_ds);
 vol1_ds = cryo_downsample(vol1,[n_ds n_ds n_ds]);
 vol2_ds = cryo_downsample(vol2,[n_ds n_ds n_ds]);
 
@@ -143,6 +143,7 @@ if no2 > no1
     log_message('***** Reflection detected *****');
 end
 
+% XXX Is this printout relevant in case of molecules with symmetry? XXX
 if refrot ~= 0
     log_message('Reference rotation:');
     log_message('%7.4f %7.4f  %7.4f',true_R(1,1),true_R(1,2),true_R(1,3));
@@ -153,15 +154,16 @@ log_message('Correlation between downsampled aligned volumes = %7.4f',corr_v);
 
 %% Optimization:
 [bestR,~] = refine3DmatchBFGS(vol1_ds,vol2_ds,R_est,estdx_ds,0);
-log_message('Optimization on downsampled volumes is done.');
+log_message('Done aligning downsampled volumes');
 
-log_message('Optimization results on original volumes:');
+log_message('Applying estimated rotation to original volumes');
 vol2aligned = fastrotate3d(vol2,bestR);
 
 bestdx = register_translations_3d(vol1,vol2aligned);
 vol2aligned = reshift_vol(vol2aligned,bestdx);    
 bestcorr = corr(vol1(:),vol2aligned(:));
 
+% XXX Is this printout relevant in case of molecules with symmetry? XXX
 log_message('Estimated rotation:');
 log_message('%7.4f %7.4f  %7.4f',bestR(1,1),bestR(1,2),bestR(1,3));
 log_message('%7.4f %7.4f  %7.4f',bestR(2,1),bestR(2,2),bestR(2,3));
@@ -234,6 +236,3 @@ end
 log_silent(currentsilentmode);
 end
         
-
-
-
