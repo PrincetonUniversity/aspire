@@ -20,6 +20,7 @@ addpath(genpath(fullfile(pathstr,'sinograms')))
 addpath(genpath(fullfile(pathstr,'reconstruction')))
 addpath(genpath(fullfile(pathstr,'refinement')))
 addpath(genpath(fullfile(pathstr,'workflow')))
+addpath(genpath(fullfile(pathstr,'align')))
 
 if exist(fullfile(pathstr, 'extern', 'nufftall-1.33'))
     addpath(fullfile(pathstr, 'extern', 'nufftall-1.33'));

@@ -40,9 +40,13 @@ function [bestR,bestdx,vol2aligned,bestcorr] = cryo_align_vols(sym,vol1,vol2,ver
 % opt.SNR- for noise~=0, defualt is 0.1. XXX Same as previous XXX.
 % XXX Missing description of dofscplot XXX
 
-% TODO (Yael, ignore this for now):
-% 1. Improve printouts.
-
+% To align vol2 to vol1 using the returned parameters bestR and bestdx,
+% first, if there is a reflection, use
+%       vol2 = flip(vol2,3); 
+% Then, rotate by bestR using 
+%   vol2 = fastrotate3d(vol2,Rest);
+% and finally, translate by estdx
+% vol2 = reshift_vol(vol2, estdx );
 
 %% Check options:
 defaultopt = struct('downsample',48,'N_projs',30,'G',[],'true_R',[],'noise',0, ...
