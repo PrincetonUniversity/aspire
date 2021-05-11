@@ -6,7 +6,7 @@ function [rots, pf] = generate_D4_molecule_data(n, snr, noise_type, seed)
     % At this point use vol to generate D4 volume, and validate that it's D4.
 %     nr = 3;
 %     vol = reshape(1:nr^3, nr, nr, nr);
-    vol = symmetrize_D4_volume(vol, true);
+    vol = symmetrize_Dn_volume(vol, 4, true);
     rots = rand_rots(n); % Generate random rotations
     rots = permute(rots,[2,1,3]); %transpose all matrices
     projs = cryo_project(vol,rots);%project molecule in these orientations

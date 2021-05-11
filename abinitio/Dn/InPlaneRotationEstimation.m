@@ -1,5 +1,5 @@
-function [Ris_tilde, theta_est, original_ests] = investigate_inplane_rotation(npf,vis,...
-    n_symm, order_2_gen, inplane_rot_res)
+function [Ris_tilde, theta_est, original_ests] = ...
+    InPlaneRotationEstimation(npf,vis,n_symm, order_2_gen, inplane_rot_res)
 %
 % General description
 % 

@@ -29,4 +29,3 @@ err=volD3-fastrotate3z(volD3,240);
 assert(norm(err(:)/norm(volD3(:)))<1.0e-14)
 err=volD3-fastrotate3x(volD3,180);
 assert(norm(err(:)/norm(volD3(:)))<1.0e-14)
-
