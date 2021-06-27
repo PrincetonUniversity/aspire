@@ -35,7 +35,7 @@ function [bestR,bestdx,reflect,vol2aligned,bestcorr] = cryo_align_vols(sym,vol1,
 % opt.G- Array of matrices of size 3x3xn containing the symmetry group
 %        elemnts. This input is for accurate error calculation. If G is not 
 %        submitted then the error will be calculated by optimization over 
-%        the symmetry group 
+%        the symmetry group. 
 % opt.dofscplot- set dofscplot to nonzero for FSC plot printouts (default 
 %                is zero). 
 
@@ -106,9 +106,8 @@ vol2_aligned_J_ds = reshift_vol(vol2_aligned_J_ds,estdx_J_ds);
 
 no1 = corr(vol1_ds(:),vol2_aligned_ds(:));            
 no2 = corr(vol1_ds(:),vol2_aligned_J_ds(:));          
-if max(no1,no2) < 0.2 % The coorelations of the estimated rotations are 
-       % smaller than 0.2, that is, no transformation was recovered. This
-       % threshold was set arbitrarily.
+if max(no1,no2) < 0.1 % The coorelations of the estimated rotations are 
+       % smaller than 0.1, that is, no transformation was recovered. 
        warning('***** Alignment failed *****');
 end
 %%% Do we have reflection?
@@ -136,9 +135,8 @@ vol2aligned = reshift_vol(vol2aligned,bestdx);
 bestcorr = corr(vol1(:),vol2aligned(:));
 log_message('Estimated translations: (%7.4f,%7.4f,%7.4f)',bestdx(1),bestdx(2),bestdx(3));
 log_message('Correlation between original aligned volumes = %7.4f',bestcorr);
-if bestcorr < 0.5 % The coorelations of the estimated rotation are 
-       % smaller than 0.5, that is, no rotation was recovered. This
-       % threshold was set arbitrarily.
+if bestcorr < 0.1 % The coorelation of the estimated rotation is 
+       % smaller than 0.1, that is, no rotation was recovered. 
        warning('***** Alignment failed *****');
 end
 if dofscplot ~= 0
@@ -147,9 +145,9 @@ if dofscplot ~= 0
     resA = plotFSC(vol1,vol2aligned,cutoff,pixA);
     log_message('Resolution between volumes is %5.2fA (using cutoff %4.3f)',resA,cutoff);
 end
-%% Error calculation:
-% The difference between the estimated and reference rotation
-% should be an element of the symmetry group:
+%% Accurate error calculation:
+% The difference between the estimated and reference rotation should be an
+% element from the symmetry group:
 if refrot ~= 0 && er_calc ~= 0
     n_g = size(G,3);
     if s == 'D' || s == 'I'
@@ -198,26 +196,51 @@ if refrot ~= 0 && er_calc ~= 0
     log_message('\t Estimated \t %5.3f degrees',rad2deg(angle_est));      
     log_message('\t Angle difference \t %5.3f degrees',abs(rad2deg(angle_ref)-rad2deg(angle_est))); 
 end
-%% Error calculation without G:
-% The difference between the estimated and reference rotation
-% should be an element of the symmetry group:
+%% Error calculation by optimization:
+% The difference between the estimated and reference rotation should be an
+% element from the symmetry group. In the case the symmetry group of vol1 
+% is not given, it can be estimated using optimization process.
+% Let G be the symmetry group of the symmetry type of the molecule in the 
+% canonical coordinate system (G is obtained using genSymgroup). Then, the
+% symmetry group of vol1 is given by O*G*O.', where O is the orthogonal 
+% transformation between the coordinate system of vol1 and the canonical 
+% one. Therefore, the symmetry group can be estimated by evaluating O using
+% optimization algorithm.
 if refrot ~= 0 && er_calc == 0  
-    G = genSymGroup(sym);   
+    % Creating initial guess by brute-force algorithm:
+    G = genSymGroup(sym);
+    n_g = size(G,3);
+    Rots = genRotationsGrid(75);
+    n = size(Rots,3);
+    dist = zeros(n,n_g);
+    for i = 1:n
+        for j = 1:n_g
+            O = Rots(:,:,i); g = G(:,:,j);
+            dist(i,j) = norm(true_R.' - O*g*O.'*bestR,'fro');
+        end
+    end 
+    err = min(dist(:)); [row,~] = find(dist == err);
+    O = Rots(:,:,row(1,1));    
+    % BFGS optimization:
+    [psi,theta,phi] = rot2xyz(O); 
+    X0 = [ psi; theta; phi];
+    X0 = double(X0);    
     f = @(X)evalO(true_R.',bestR,G,X);
-    opt.TolFUN = 1.0e-6;
-    opt.TolX = 1.0e-6;
+    opt.GoalsExactAchieve = 0;
+    opt.TolFUN = 1.0e-3;
+    opt.TolX = 1.0e-3;
     opt.Display = 'off';
-    X = ga(f,3,opt);
+    X = fminlbfgs(f,X0,opt);
     psi = X(1); theta = X(2); phi = X(3);  
     O = Rz(phi)*Ry(theta)*Rx(psi);
     n_g = size(G,3);
     dist = zeros(1,n_g);
     for i = 1:n_g
         g = G(:,:,i);
-        dist(1,i) = norm(O*true_R.' - g*O*bestR,'fro');
+        dist(1,i) = norm(true_R.' - O*g*O.'*bestR,'fro');
     end
-    [err_norm,idx] = min(dist);
-    g = G(:,:,idx); g_est = O.'*g*O; 
+    [err_norm,idx] = min(dist);   
+    g = G(:,:,idx); g_est = O*g*O.'; 
     ref_true_R = true_R.';
     log_message('Reference rotation:');
     log_message('%7.4f %7.4f  %7.4f',ref_true_R(1,1),ref_true_R(1,2),ref_true_R(1,3));

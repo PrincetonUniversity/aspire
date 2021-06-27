@@ -10,7 +10,7 @@ dist = zeros(1,n);
 
 for i = 1:n
     g = G(:,:,i);
-    dist(1,i) = norm(O*R_true - g*O*R_est,'fro');
+    dist(1,i) = norm(R_true - O*g*O.'*R_est,'fro');
 end
 [err,~] = min(dist);
 
