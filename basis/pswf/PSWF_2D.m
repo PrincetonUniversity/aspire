@@ -33,6 +33,7 @@ approx_len = n + 1 + d_decay_idx_counter;
 %% Funcion defenitions
 Pn = @(n,alpha,beta,x) j_polynomial(length(x),n,alpha,beta,x);
 
+
 %% Generate Matrix for calculation of d_k coefficients
 B_N = Generate_BN_mat(N,c,approx_len);
 [d_vec, xi] = eig(B_N);
@@ -43,6 +44,17 @@ d_vec = d_vec(:,idx);
 for i=1:approx_len
     xi(i,i) = xiVec(i);
 end
+
+%% Change the sign of eigen vectors to make consistent with Python version
+%% for example, using N = 0; c = 1.0*pi*64; approx_len=182; for BN_mat.
+
+[~, maxi] = max(abs(d_vec),[],1);
+bmat = zeros(approx_len, approx_len);
+for i=1:approx_len
+    bmat(:, i) = sign(d_vec(maxi(i),i));
+end
+d_vec = d_vec .* bmat;
+
 
 %% Compare true decay of d's with approximation function
 % d_decay_compare = [abs(d_vec((n+2):end,n+1)./d_vec((n+1):(end-1),n+1)),d_decay_approx_fun(N,n,c,0:(approx_len-2-n)).'];
@@ -89,7 +101,7 @@ alpha_N = lambda_N*2*pi*((1i)^N) / sqrt(c);
 %% Compute PSFW's on the grid inside the disk
 j=0:(approx_len-1);
 T_radial_part_mat = @(x,N,j,approx_len) ((x.^N)*((2*(2*j+N+1)).^(1/2))) .* Pn(approx_len-1,N,0,1-2*x.^2); % - These are the ordinairy T's divided by x^(1/2).
-d_vec = bsxfun(@times,d_vec,sign(sign(diag(d_vec).')+0.5));    %Fix the signs so that all functions begin positive.
+%d_vec = bsxfun(@times,d_vec,sign(sign(diag(d_vec).')+0.5));    %Fix the signs so that all functions begin positive.
 R_radial_part_mat = T_radial_part_mat(radial_eval_pts,N,j,approx_len) * d_vec(:,1:(n+1));
 % R_radial_part_mat = R_radial_part_mat .* (ones(length(radial_eval_pts),1)*sign(phi(100,:)));    %Fix the signs so that all functions begin positive.
 

@@ -8,7 +8,7 @@ load 70S_proj_10_s4     % Example with 10 projection images
 L = 64;         % Image resolution: (2L+1)x(2L+1) samples on a Cartesian grid
 beta = 1;       % Bandlimit ratio (between 0 and 1) - smaller values stand for greater oversampling
 c = beta*pi*L;  % Bandlimit 
-T = 1e-3;       % Truncation parameter
+T = 1.0;       % Truncation parameter
 realFlag = 1;   % Flag indicating whether the data is assumed to be real-valued
 
 % For all parameters - see more details in the function pswf_t_f. Also, see the
