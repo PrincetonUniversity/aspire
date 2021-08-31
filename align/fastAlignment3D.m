@@ -38,10 +38,11 @@ if refrot == 1
         J3 = diag([1 1 -1]);
         true_R_tild_J(:,:,i) = (J3*R*J3*R_ref(:,:,i));
     end   
-    opt.true_Rots = true_R_tild; opt.true_Rots_J = true_R_tild_J;
-    [R_tild,~] = cryo_align_projs(sym,ref_projs,vol1,verbose,opt);     % size (3,3,N_projs). 
+    opt.true_Rots = true_R_tild; opt.true_Rots_J = true_R_tild_J; 
+    opt.sym = sym;
+    [R_tild,~] = cryo_align_projs(ref_projs,vol1,verbose,opt);     % size (3,3,N_projs). 
 else
-    [R_tild,~] = cryo_align_projs(sym,ref_projs,vol1,verbose,opt);     % size (3,3,N_projs). 
+    [R_tild,~] = cryo_align_projs(ref_projs,vol1,verbose,opt);     % size (3,3,N_projs). 
 end
 %% Synchronization:
 % A synchronization algorithm is used In order to revel the symmetry 
@@ -102,8 +103,7 @@ log_message('In the noiseless case the synchronization matrices should be rank 3
 % estimation is being done from the eigenvector v by using a rounding 
 % algorithm over SO(3) for each 3x3 block of v.
 % estimating G:
-G = zeros(3,3,N_projs);
-G_J = zeros(3,3,N_projs);
+G = zeros(3,3,N_projs); G_J = zeros(3,3,N_projs);
 for i = 1:N_projs
     B = V((3*(i-1)+1):(3*i),:);
     [u_tmp,~,v_tmp] = svd(B);
@@ -119,12 +119,10 @@ end
 % from SO(3). So, in order to get the estimated symmetry elements to be 
 % from the symmetry group we set the global rotation to be also an element 
 % from the symmetry group: 
-O1 = G(:,:,1).';
-O1_J = G_J(:,:,1).';
+O1 = G(:,:,1).'; O1_J = G_J(:,:,1).';
 for i=1:N_projs
     % setting the global rotation to be g_1.':
-    G(:,:,i) = O1*G(:,:,i); 
-    G_J(:,:,i) = O1_J*G_J(:,:,i);
+    G(:,:,i) = O1*G(:,:,i); G_J(:,:,i) = O1_J*G_J(:,:,i);
 end
 %% Estimating the rotations:
 % Estimate the two candidate orthogonal transformations.
@@ -132,8 +130,7 @@ for i = 1:N_projs
     X_mat(:,:,i) = X_mat(:,:,i)*(G(:,:,i)).';
     X_mat_J(:,:,i) = X_mat_J(:,:,i)*(G_J(:,:,i)).';
 end
-X = mean(X_mat,3);
-X_J = mean(X_mat_J,3);
+X = mean(X_mat,3); X_J = mean(X_mat_J,3);
 % Without reflection:
 R = X;
 [U,~,V] = svd(R); % Project R to the nearest rotation.

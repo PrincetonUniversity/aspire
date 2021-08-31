@@ -1,11 +1,9 @@
-function [bestR,bestdx,reflect,vol2aligned,bestcorr] = cryo_align_vols(sym,vol1,vol2,verbose,opt)
+function [bestR,bestdx,reflect,vol2aligned,bestcorr] = cryo_align_vols(vol1,vol2,verbose,opt)
 %% This function aligns vol2 according to vol1  
 % Align vol2 to vol1: find the relative rotation, translation and 
 % reflection between vol1 and vol2, such that vol2 is best aligned with 
 % vol1.
 %% input:
-% sym- the symmetry type- 'Cn'\'Dn'\'T'\'O'\'I', where n is the the symmetry
-%      order (for example: 'C2'). 
 % vol1- 3D reference volume that vol2 should be aligned accordingly.
 % vol2- 3D volume to be aligned.
 % verbose- Set verbose to nonzero for verbose printouts (default is zero).
@@ -21,6 +19,9 @@ function [bestR,bestdx,reflect,vol2aligned,bestcorr] = cryo_align_vols(sym,vol1,
 %              best aligned with vol1 (after optimization). 
 % bestcorr- the coorelation between vol1 and vol2aligned.
 %% Options:
+% sym- the symmetry type- 'Cn'\'Dn'\'T'\'O'\'I', where n is the the 
+%      symmetry order (for example: 'C2'). This input is required only for 
+%      the error calculation.
 % opt.downsample-  Downsample the volume to this size (in pixels) for
 %                  faster alignment. Default is 48. Use larger value if
 %                  alignment fails.
@@ -43,8 +44,8 @@ function [bestR,bestdx,reflect,vol2aligned,bestcorr] = cryo_align_vols(sym,vol1,
 % 1. Improve printouts.
 
 %% Check options:
-defaultopt = struct('downsample',48,'N_projs',30,'G',[],'true_R',[], ...
-                    'dofscplot',0);      
+defaultopt = struct('sym',[],'downsample',48,'N_projs',30,'G',[], ...
+                    'true_R',[],'dofscplot',0);      
 if ~exist('opt','var') || isempty(opt)
     opt = defaultopt;
 else
@@ -56,17 +57,21 @@ else
     end
 end              
 %% Define variables:
-N_projs = opt.N_projs; G = opt.G; true_R = opt.true_R; 
-dofscplot = opt.dofscplot;
-s = sym(1);
-if numel(sym) > 1
-        n_s = str2double(sym(2:end));
-else
-    n_s=0;
+sym = opt.sym; N_projs = opt.N_projs; G = opt.G; true_R = opt.true_R; 
+dofscplot = opt.dofscplot; 
+er_calc = 0;
+if ~isempty(sym)
+    s = sym(1);
+    if numel(sym) > 1
+            sz_sym = numel(sym);
+            n_s = str2double(sym(2:sz_sym));
+    else
+        n_s=0;
+    end
+    er_calc = 1;
+    if s == 'C' && n_s == 1, G = eye(3); 
+    elseif isempty(G), er_calc = 0; end
 end
-er_calc = 1;
-if s == 'C' && n_s == 1, G = eye(3);
-elseif isempty(G), er_calc = 0; end
 refrot = 1;
 if isempty(true_R), refrot = 0; end  
 if ~exist('verbose','var') || isempty(verbose)

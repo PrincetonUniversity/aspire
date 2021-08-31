@@ -1,8 +1,6 @@
-function [Rots_est,Shifts_est,corrs,err_Rots,err_Shifts] = cryo_align_projs(sym,projs,vol,verbose,opt)
+function [Rots_est,Shifts_est,corrs,err_Rots,err_Shifts] = cryo_align_projs(projs,vol,verbose,opt)
 %% This function aligns the given projections according to the given volume
 %% input: 
-% sym- symmetry type- 'Cn'\'Dn'\'T'\'O'\'I', where n is the the symmetry
-%      order (for example: 'C2').  
 % projs- projection images for the alignment.
 % vol- reference volume for the alignment.
 % verbose- Set verbose to nonzero for verbose printouts (default is zero).
@@ -24,6 +22,9 @@ function [Rots_est,Shifts_est,corrs,err_Rots,err_Shifts] = cryo_align_projs(sym,
 % err_Shifts- error calculation between the true shifts and the estimated
 %             shifts, in x and y axis.
 %% Options:
+% sym- the symmetry type- 'Cn'\'Dn'\'T'\'O'\'I', where n is the the 
+%      symmetry order (for example: 'C2'). This input is reqired only for 
+%      the error calculation.
 % opt.N_ref- number of reference projections for the alignment. (default 
 %            is 30).
 % opt.isshift- set isshift to nonzero in order to estimate the translations 
@@ -35,8 +36,8 @@ function [Rots_est,Shifts_est,corrs,err_Rots,err_Shifts] = cryo_align_projs(sym,
 % opt.true_Shifts- the true shifts-(dx,dy) of projs.
 % opt.Rots - size=3x3x(size(Rots,3)). a set of candidate rotations. 
 %% Check options:
-defaultopt = struct('N_ref',30,'G',[],'true_Rots',[],'true_Rots_J',[], ...
-            'true_Shifts',[],'Rots',[],'isshift',0);      
+defaultopt = struct('sym',[],'N_ref',30,'G',[],'true_Rots',[], ...
+            'true_Rots_J',[],'true_Shifts',[],'Rots',[],'isshift',0);      
 if ~exist('opt','var') || isempty(opt)
     opt = defaultopt;
 else
@@ -48,18 +49,22 @@ else
     end
 end                
 %% Define variables:
-N_ref = opt.N_ref; G = opt.G; true_Rots = opt.true_Rots; 
+sym = opt.sym; N_ref = opt.N_ref; G = opt.G; true_Rots = opt.true_Rots; 
 true_Rots_J = opt.true_Rots_J; true_Shifts = opt.true_Shifts; 
 Rots = opt.Rots; isshift = opt.isshift;
-s = sym(1);
-if numel(sym) > 1
-        n_s = str2double(sym(2:end));
-else
-    n_s=0;
+er_calc = 0;
+if ~isempty(sym)
+    s = sym(1);
+    if numel(sym) > 1
+           sz_sym = numel(sym);
+           n_s = str2double(sym(2:sz_sym));
+    else
+        n_s=0;
+    end
+    er_calc = 1;
+    if s == 'C' && n_s == 1, G = eye(3);
+    elseif isempty(G), er_calc = 0; end
 end
-er_calc = 1;
-if s == 'C' && n_s == 1, G = eye(3);
-elseif isempty(G), er_calc = 0; end
 ref_true_rot = 1;
 if isempty(true_Rots), ref_true_rot = 0; end
 ref_true_rot_J = 1;
