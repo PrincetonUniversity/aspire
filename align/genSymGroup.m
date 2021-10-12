@@ -1,15 +1,14 @@
-function [G,n] = genSymGroup(sym)
+function G = genSymGroup(sym)
 % This function generates the symmetry group of the given symmetry type. 
 
 % The symmetry elements are being generated according to the most common 
 % coordinate systems of molecules from the EMDB. Note that it is necessary  
 % to check that the generated symmetry group is indeed the appropriate one.  
 %% Input:
-% sym- the symmetry type- 'Cn'\'Dn'\'T'\'O'\'I', were n is the the symmetry
+% sym- the symmetry type- 'Cn'\'Dn'\'T'\'O'\'I', where n is the the symmetry
 %      order.  
 %% Output:
-% G- size=(3,3,n) the symmetry group elemnts. 
-% n- the amount of symmetry elements in G.
+% G- Array of matrices of size 3x3xn containing the symmetry group elemnts. 
 
 %%
 
@@ -43,7 +42,7 @@ elseif symgroup == 'D'
     for i = 1:n_s
         G(:,:,i) = rotz((i-1)*theta);
     end
-    G(:,:,n_s+1) = rotx(180);
+    G(:,:,n_s+1) = roty(180);
     for i = 2:n_s
         G(:,:,n_s+i) = G(:,:,n_s+1)*G(:,:,i);
     end
@@ -179,6 +178,12 @@ elseif symgroup == 'I'
     G(:,:,58) = axang2rotm([phi -1/phi 1 pi]);
     G(:,:,59) = axang2rotm([phi 1/phi -1 pi]);
     G(:,:,60) = axang2rotm([phi 1/phi 1 pi]);
+    
+    %O_g = [0 1 0; 1 0 0; 0 0 1]; %XXXXX
+    %for i = 1:60 %XXXXX
+    %    G(:,:,i) = O_g*G(:,:,i)*O_g.'; %XXXXX
+    %end %XXXXX
+       
 else 
     error('sym was not entered properly') 
 end

@@ -1,13 +1,15 @@
 function [Rots_est,Shifts_est,corrs,err_Rots,err_Shifts] = cryo_align_projs(projs,vol,verbose,opt)
 %% This function aligns the given projections according to the given volume
+% This is a secondary algorithm for cryo_align_vols.
 %% input: 
 % projs- projection images for the alignment.
-% vol- reference volume for the alignment.
+% vol- reference volume.
 % verbose- Set verbose to nonzero for verbose printouts (default is zero).
 % opt- Structure with optimizer options.
 %% output:
 % Rots_est- size=3x3x(size(projs,3)). The estimated rotation matrices of 
-%           the projections.
+%           the projections. If we project the volume in these
+%           orientations we will receive the same projections.
 % Shifts- size=(size(projs,3))x2. The 2D estimated shift of the 
 %         projections, first column contained the shift in the x-axis, and  
 %         the secound colunm in the y-axis.
@@ -29,7 +31,8 @@ function [Rots_est,Shifts_est,corrs,err_Rots,err_Shifts] = cryo_align_projs(proj
 %            is 30).
 % opt.isshift- set isshift to nonzero in order to estimate the translations 
 %              of the projections (default is zero).
-% opt.G- size=(3,3,n). all n symmetry group elemnts. 
+% opt.G- Array of matrices of size 3x3xn containing the symmetry group
+%        elemnts. This input is for error calculation. 
 % opt.true_Rots- the true rotations of the projections.
 % opt.true_Rots_J- the true rotations of the projections in case of 
 %                  reflection between the projection and the volume.
@@ -65,6 +68,17 @@ if ~isempty(sym)
     if s == 'C' && n_s == 1, G = eye(3);
     elseif isempty(G), er_calc = 0; end
 end
+if ~isempty(G) %XXXXX
+    % The symmetry group should be adjusted so it will be acurate for the 
+    % projection images. We use the permute function on the projections 
+    % such that it replaces the x-axis and the y-axis, so we have to do the
+    % same for the symmetry group.
+    n_g = size(G,3); %XXXXX
+    O_g = [0 1 0; 1 0 0; 0 0 1]; %XXXXX
+    for i = 1:n_g %XXXXX
+        G(:,:,i) = O_g*G(:,:,i)*O_g.'; %XXXXX
+    end %XXXXX
+end %XXXXX
 ref_true_rot = 1;
 if isempty(true_Rots), ref_true_rot = 0; end
 ref_true_rot_J = 1;

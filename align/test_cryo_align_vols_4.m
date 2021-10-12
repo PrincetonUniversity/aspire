@@ -74,7 +74,8 @@ for testidx=1:numel(test_densities)
     opts.true_R=R;
     opts.downsample=64;
     opts.filter=1;
-    [Rest,estdx,vol2aligned]=cryo_align_vols(symmetry,vol,volRotated,verbose,opts);
+    opts.sym=symmetry;
+    [Rest,estdx,reflect,vol2aligned]=cryo_align_vols(vol,volRotated,verbose,opts);
     t=toc;
     
     %figure(3); clf; view3d(vol2aligned,2.0e-4); title('Aligned volume');

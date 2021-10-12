@@ -1,7 +1,7 @@
-% test_cryo_align_vols_2
+% test_cryo_align_vol1_1
 %
-% Align two clean density maps where one is rotate/translated and reflected
-% relative to the other.
+% Align two clean density maps where one is rotate/translated relative to
+% the other.
 %
 % Yoel Shkolnisky, January 2015.
 % Revised: April 2021.
@@ -13,14 +13,12 @@
 load cleanrib
 vol=real(volref);
 vol=GaussFilt(vol,0.8);
-%vol=cryo_downsample(vol,[33 33 33]);
 
 % Instead of the above lines you can use:
 % vol=cryo_gaussian_phantom_3d('C1_params',64,1); % Perfect Gaussian, perfect results.
 [R,~,~]=svd(rand(3)); % Generate random rotation
 volRotated=fastrotate3d(vol,R); % Rotate the reference volume by the random rotation
-volRotatedReflected=flip(volRotated,1);
-volRotatedReflected=reshift_vol(volRotatedReflected,[5 0 0]);
+volRotated=reshift_vol(volRotated,[5 0 0]);
 %
 % Note: it seems that the estimated shift estdx below is equation to (the
 % negative of) R.'*[0 5 0].', where the flip in the position of the 5 is
@@ -30,21 +28,20 @@ volRotatedReflected=reshift_vol(volRotatedReflected,[5 0 0]);
 
 %% Visualize the two maps.
 figure(1); clf; view3d(vol,2.0e-4); title('Reference volume');
-figure(2); clf; view3d(volRotatedReflected,2.0e-4); title('Rotated volume');
+figure(2); clf; view3d(volRotated,2.0e-4); title('Rotated volume');
 
 %% Align
 verbose=1;
-opts.true_R=diag([1 1 -1])*diag([1 -1 1])*R; %the error calc is with respect to reflection in the z-axis.
+opts.true_R=R;
 opts.sym = 'C1';
 tic;
-%[Rest,estdx,vol2aligned]=cryo_align_densities(vol,volRotatedReflected,0,verbose,0.5,R);
-[Rest,estdx,reflect,vol2aligned]=cryo_align_vols(vol,volRotatedReflected,verbose,opts);
+[Rest,estdx,reflect,vol2aligned]=cryo_align_vols(vol,volRotated,verbose,opts);
 toc
 
 figure(3); clf; view3d(vol2aligned,2.0e-4); title('Aligned volume');
 
 % Correlation between two original volumes
-c1=corr(vol(:),volRotatedReflected(:));
+c1=corr(vol(:),volRotated(:));
 fprintf('Correlation between two original volumes %7.4f\n',c1);
 
 % Correlation after alignment

@@ -1,20 +1,28 @@
 function [bestR,bestdx,reflect,vol2aligned,bestcorr] = cryo_align_vols(vol1,vol2,verbose,opt)
 %% This function aligns vol2 according to vol1  
-% Align vol2 to vol1: find the relative rotation, translation and 
+% Aligning vol2 to vol1 by finding the relative rotation, translation and 
 % reflection between vol1 and vol2, such that vol2 is best aligned with 
 % vol1.
-%% input:
+%% How to align the two volumes:
+% The user should align vol2 according to vol1 using the parameters bestR,
+% bestdx and reflect. If reflect=0 then there is no reflection between the
+% volumes. In that case the user should first rotate vol2 by bestR and then
+% reshift by bestdx. If reflect=1, then there is a reflection between the 
+% volumes. In that case the user should first reflcet vol2 about the z axis
+% using the flip function, then rotate the volume by bestR and finally 
+% reshift by bestdx.
+%% Input:
 % vol1- 3D reference volume that vol2 should be aligned accordingly.
 % vol2- 3D volume to be aligned.
 % verbose- Set verbose to nonzero for verbose printouts (default is zero).
-%% output: 
+%% Output: 
 % bestR- the estimated rotation between vol2 and vol1, such that bestR*vol2
 %        will align vol2 to vol1. 
 % bestdx- size=3x1. the estimated translation between vol2 and vol1. 
-% reflect- indicator for reflection. if reflect=1 then there is a
+% reflect- indicator for reflection. If reflect=1 then there is a
 %          reflection between vol1 and vol2, else reflect=0. In order to
-%          align the volumes in the case of reflect=1, you should first
-%          reflect vol2 about the z axis, and then rotate by bestR.
+%          align the volumes in the case of reflect=1, the user should 
+%          first reflect vol2 about the z axis, and then rotate by bestR.
 % vol2aligned- vol2 after applyng the estimated transformation, so it is 
 %              best aligned with vol1 (after optimization). 
 % bestcorr- the coorelation between vol1 and vol2aligned.
@@ -131,6 +139,8 @@ if no2 > no1
 end
 log_message('Correlation between downsampled aligned volumes = %7.4f',corr_v);
 %% Optimization:
+% We use the BFGS optimization algorithm in order to refine the resulted
+% transformation between the two volumes.
 [bestR,~] = refine3DmatchBFGS(vol1_ds,vol2_ds,R_est,estdx_ds,0);
 log_message('Done aligning downsampled volumes');
 log_message('Applying estimated rotation to original volumes');
@@ -140,10 +150,7 @@ vol2aligned = reshift_vol(vol2aligned,bestdx);
 bestcorr = corr(vol1(:),vol2aligned(:));
 log_message('Estimated translations: (%7.4f,%7.4f,%7.4f)',bestdx(1),bestdx(2),bestdx(3));
 log_message('Correlation between original aligned volumes = %7.4f',bestcorr);
-if bestcorr < 0.1 % The coorelation of the estimated rotation is 
-       % smaller than 0.1, that is, no rotation was recovered. 
-       warning('***** Alignment failed *****');
-end
+
 if dofscplot ~= 0
     cutoff = 0.5;
     pixA = 1;
@@ -155,12 +162,6 @@ end
 % element from the symmetry group:
 if refrot ~= 0 && er_calc ~= 0
     n_g = size(G,3);
-    if s == 'D' || s == 'I'
-        O_g = [0 1 0; 1 0 0; 0 0 1];
-        for i = 1:n_g
-            G(:,:,i) = O_g*G(:,:,i)*O_g.';
-        end
-    end
     g_est_t = true_R.'*bestR.';
     dist = zeros(n_g,1);
     for g_idx = 1:n_g
