@@ -1,14 +1,16 @@
 function [R_est,R_est_J] = fastAlignment3D(sym,vol1,vol2,verbose,n,N_projs,true_R,refrot,G_group)
 %% This function does the work for cryo_align_vols.    
 %% input: 
-% sym- the symmetry type- 'Cn'\'Dn'\'T'\'O'\'I', where n is the the symmetry
-%      order (for example: 'C2').
+% sym- the symmetry type- 'Cn'\'Dn'\'T'\'O'\'I', where n is the the 
+%      symmetry order (for example: 'C2').
 % vol1- 3D reference volume that vol2 should be aligned accordingly.
 % vol2- 3D volume to be aligned.
 % verbose- Set verbose to nonzero for verbose printouts (default is zero).
 % n- the size of vol1 and vol2.
 % N_projs- number of reference projections for the alignment. 
 % true_R- the true rotation matrix between vol2 and vol1. 
+% refrot- indicator for true_R. If true_R exist then refrot=1, else
+%         refrot=0.
 % G_- size=(3,3,n) all n symmetry group elemnts.  
 %% output: 
 % R_est- the estimated rotation between vol_2 and vol_1 without reflection.
@@ -19,7 +21,6 @@ currentsilentmode = log_silent(verbose == 0);
 log_message('Generating %d projections from vol2',N_projs);
 Rots = genRotationsGrid(75);
 sz_Rots = size(Rots,3);
-
 R_ref = Rots(:,:,randperm(sz_Rots,N_projs));       % size (3,3,N_projs)
 ref_projs = cryo_project(vol2,R_ref,n);
 ref_projs = permute(ref_projs,[2 1 3]);
@@ -40,9 +41,9 @@ if refrot == 1
     end   
     opt.true_Rots = true_R_tild; opt.true_Rots_J = true_R_tild_J; 
     opt.sym = sym;
-    [R_tild,~] = cryo_align_projs(ref_projs,vol1,verbose,opt);     % size (3,3,N_projs). 
+    [R_tild,~] = cryo_align_projs(ref_projs,vol1,verbose,opt); % size (3,3,N_projs). 
 else
-    [R_tild,~] = cryo_align_projs(ref_projs,vol1,verbose,opt);     % size (3,3,N_projs). 
+    [R_tild,~] = cryo_align_projs(ref_projs,vol1,verbose,opt); % size (3,3,N_projs). 
 end
 %% Synchronization:
 % A synchronization algorithm is used In order to revel the symmetry 
@@ -97,7 +98,7 @@ log_message('\t without reflection (%4.2e, %4.2e, %4.2e, %4.2e, %4.2e, %4.2e)',.
         s(1),s(2),s(3),s(4),s(5),s(6));
 log_message('\t with    reflection (%4.2e, %4.2e, %4.2e, %4.2e, %4.2e, %4.2e)',...
         sJ(1),sJ(2),sJ(3),sJ(4),sJ(5),sJ(6));
-log_message('In the noiseless case the synchronization matrices should be rank 3.');
+log_message('The synchronization matrices should be of rank 3.');
 % Estimate the group elemnts for each reference image. G denotes the 
 % estimated group without reflection, and G_J with reflection. This 
 % estimation is being done from the eigenvector v by using a rounding 
@@ -145,6 +146,5 @@ R_est_J = U*V.';
 assert(det(R_est_J)>0);
 R_est_J = R_est_J([2 1 3],[2 1 3]);
 R_est_J = R_est_J.';
-
 log_silent(currentsilentmode);
 end
