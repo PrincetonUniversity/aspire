@@ -22,8 +22,13 @@ currentsilentmode=log_silent(verbose==0);
 
 emdIDstr=sprintf('%04d',emdID);
 
-ftpServer = 'ftp.ebi.ac.uk';
-ftpAddress = ['/pub/databases/emdb/structures/EMD-' emdIDstr '/map/emd_' emdIDstr '.map.gz'];
+%ftpServer = 'ftp.ebi.ac.uk';
+%ftpAddress = ['/pub/databases/emdb/structures/EMD-' emdIDstr '/map/emd_' emdIDstr '.map.gz'];
+
+% Old address stopped working, so I found the new one
+%ftpServer = 'ftp.pdbj.org';
+ftpServer = 'ftp.wwpdb.org';
+ftpAddress = ['/pub/emdb/structures/EMD-' emdIDstr '/map/emd_' emdIDstr '.map.gz'];
 
 log_message('Establishing an FTP connection with the EMD server ...');
 ngdc = ftp(ftpServer);
