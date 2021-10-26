@@ -137,7 +137,7 @@ if no2 > no1
     reflect = 1;
     log_message('***** Reflection detected *****');
 end
-log_message('Correlation between downsampled aligned volumes = %7.4f',corr_v);
+log_message('Correlation between downsampled aligned volumes is %7.4f',corr_v);
 %% Optimization:
 % We use the BFGS optimization algorithm in order to refine the resulted
 % transformation between the two volumes.
@@ -149,7 +149,7 @@ bestdx = register_translations_3d(vol1,vol2aligned);
 vol2aligned = reshift_vol(vol2aligned,bestdx);    
 bestcorr = corr(vol1(:),vol2aligned(:));
 log_message('Estimated translations: (%7.4f,%7.4f,%7.4f)',bestdx(1),bestdx(2),bestdx(3));
-log_message('Correlation between original aligned volumes = %7.4f',bestcorr);
+log_message('Correlation between original aligned volumes is %7.4f',bestcorr);
 
 if dofscplot ~= 0
     cutoff = 0.5;
@@ -196,11 +196,11 @@ if refrot ~= 0 && er_calc ~= 0
         axis_ref(1,1),axis_ref(1,2),axis_ref(1,3));
     log_message('\t Estimated \t [%5.3f , %5.3f, %5.3f]',...
         axis_est(1),axis_est(2),axis_est(3));
-    log_message('Angle between axes %5.3f degrees',acosd(dot(axis_est,axis_ref)));
+    log_message('Angle between axes is %5.3f degrees',acosd(dot(axis_est,axis_ref)));
     log_message('In-plane rotation:');
     log_message('\t Reference \t %5.3f degrees',rad2deg(angle_ref));
     log_message('\t Estimated \t %5.3f degrees',rad2deg(angle_est));      
-    log_message('\t Angle difference \t %5.3f degrees',abs(rad2deg(angle_ref)-rad2deg(angle_est))); 
+    log_message('\t Angle difference is \t %5.3f degrees',abs(rad2deg(angle_ref)-rad2deg(angle_est))); 
 end
 %% Error calculation by optimization:
 % The difference between the estimated and reference rotation should be an
@@ -254,7 +254,6 @@ if refrot ~= 0 && er_calc == 0
     log_message('%7.4f %7.4f  %7.4f',ref_true_R(3,1),ref_true_R(3,2),ref_true_R(3,3));
     aligned_bestR = g_est*bestR;
     log_message('Estimated rotation (aligned according to the reference by a symmetry element):');
-    log_message('**** This estimation was done by optimization over the symmetry group ****');
     log_message('%7.4f %7.4f  %7.4f',aligned_bestR(1,1),aligned_bestR(1,2),aligned_bestR(1,3));
     log_message('%7.4f %7.4f  %7.4f',aligned_bestR(2,1),aligned_bestR(2,2),aligned_bestR(2,3));
     log_message('%7.4f %7.4f  %7.4f',aligned_bestR(3,1),aligned_bestR(3,2),aligned_bestR(3,3));   
@@ -279,8 +278,7 @@ if refrot ~= 0 && er_calc == 0
     log_message('\t Reference \t %5.3f degrees',rad2deg(angle_ref));
     log_message('\t Estimated \t %5.3f degrees',rad2deg(angle_est));      
     log_message('\t Angle difference \t %5.2f degrees',abs(rad2deg(angle_ref)-rad2deg(angle_est))); 
-    log_message('**** The symmetry group of the reference volume is not pre-known and was evaluated,')
-    log_message('     therefore the error calculation is not accurate ***')
+    log_message('**** The symmetry group G was not given in the input options. Therefore, G was estimated using BFGS optimization and the error calculation was performed with that estimated G ****')
 end    
 log_silent(currentsilentmode);
 end
