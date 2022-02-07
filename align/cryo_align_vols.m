@@ -1,4 +1,4 @@
-function [bestR,bestdx,reflect,vol2aligned,bestcorr] = cryo_align_vols(vol1,vol2,verbose,opt)
+function [bestR,bestdx,reflect,vol2aligned,bestcorr,T_optimize] = cryo_align_vols(vol1,vol2,verbose,opt)
 %% This function aligns vol2 according to vol1  
 % Aligning vol2 to vol1 by finding the relative rotation, translation and 
 % reflection between vol1 and vol2, such that vol2 is best aligned with 
@@ -26,6 +26,8 @@ function [bestR,bestdx,reflect,vol2aligned,bestcorr] = cryo_align_vols(vol1,vol2
 % vol2aligned- vol2 after applyng the estimated transformation, so it is 
 %              best aligned with vol1 (after optimization). 
 % bestcorr- the coorelation between vol1 and vol2aligned.
+% T_optimize- the time that took for the optimization step in the alignment 
+%             algorithm.
 %% Options:
 % sym- the symmetry type- 'Cn'\'Dn'\'T'\'O'\'I', where n is the the 
 %      symmetry order (for example: 'C2'). This input is required only for 
@@ -36,15 +38,16 @@ function [bestR,bestdx,reflect,vol2aligned,bestcorr] = cryo_align_vols(vol1,vol2
 % opt.N_projs- Number of projections to use for the alignment. 
 %              Defult is 30.  
 % opt.true_R-  True rotation matrix between vol2 and vol1, such that 
-%         vol2 =true_R*vol2. In the case of reflection, true_R should be  
-%         the rotation between the volumes such that vol2=J*true_R*vol_1, 
-%         where J is the reflection matrix over the z axis
-%         J=diag([1,1,-1]). This input is used for debugging to calculate
+%         vol2 = fastrotate3d(vol1,true_R). In the case of reflection,   
+%         true_R should be the rotation between the volumes such that 
+%         vol2 = flip(fastrotate3d(vol1,true_R),3). In this case 
+%         O = J*true_R, where J is the reflection matrix over the z axis 
+%         J=diag([1,1,-1]). This input is used for debugging to calculate 
 %         errors.
 % opt.G- Array of matrices of size 3x3xn containing the symmetry group
-%        elemnts. This input is for accurate error calculation. If G is not 
-%        submitted then the error will be calculated by optimization over 
-%        the symmetry group. 
+%        elemnts of vol1. This input is for accurate error calculation. If 
+%        G is not submitted then the error will be calculated by 
+%        optimization over the symmetry group. 
 % opt.dofscplot- set dofscplot to nonzero for FSC plot printouts (default 
 %                is zero). 
 
@@ -137,12 +140,12 @@ if no2 > no1
     reflect = 1;
     log_message('***** Reflection detected *****');
 end
-log_message('Correlation between downsampled aligned volumes is %7.4f',corr_v);
+log_message('Correlation between downsampled aligned volumes before optimization is %7.4f',corr_v);
 %% Optimization:
 % We use the BFGS optimization algorithm in order to refine the resulted
 % transformation between the two volumes.
-[bestR,~] = refine3DmatchBFGS(vol1_ds,vol2_ds,R_est,estdx_ds,0);
-log_message('Done aligning downsampled volumes');
+[bestR,~,T_optimize] = refine3DmatchBFGS(vol1_ds,vol2_ds,R_est,estdx_ds,0);
+log_message('Optimization on the aligned downsampled volumes took %5.2f seconds',T_optimize);
 log_message('Applying estimated rotation to original volumes');
 vol2aligned = fastrotate3d(vol2,bestR);
 bestdx = register_translations_3d(vol1,vol2aligned);

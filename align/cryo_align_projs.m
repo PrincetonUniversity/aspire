@@ -158,7 +158,7 @@ s_phases = exp(-2*pi*sqrt(-1).*r_vec'*s_vec./(2*max_r+1));    % size = n_rXn_shi
 %% Main loop- compute the cross correlation: 
 % computing the correlation between the common lines, first choose the best
 % shift, and then chose the best rotation.
-log_message('Aligning unaligned projections using reference projections');
+log_message('Start aligning unaligned projections using reference projections');
 Rots_est = zeros(3,3,n_projs);
 corrs = zeros(n_projs,2);                   % Statistics on common-lines matching.
 Shifts_est = zeros(2,n_projs);

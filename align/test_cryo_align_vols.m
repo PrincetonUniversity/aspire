@@ -2,20 +2,20 @@
 
 
 %% example of cyclic molecule:
-%mapfile = cryo_fetch_emdID(2660);   % C1 symmetry
+%mapfile = cryo_fetch_emdID(10280);   % C1 symmetry
 %sym = 'C1';
 %% example of C6 molecule:
 %mapfile=cryo_fetch_emdID(10477);   % C6 symmetry
-mapfile = cryo_fetch_emdID(0825);
-sym = 'C6';
+%mapfile = cryo_fetch_emdID(0825);
+%sym = 'C6';
 %%
 %mapfile=cryo_fetch_emdID(11516);
 %sym = 'C7';
 %%
-%mapfile=cryo_fetch_emdID(24494);
+mapfile=cryo_fetch_emdID(24494);
 %mapfile=cryo_fetch_emdID(3528);
 %mapfile=cryo_fetch_emdID(22854);
-%sym = 'I';
+sym = 'I';
 %% D2-beta gal
 %mapfile = cryo_fetch_emdID(7770);
 %sym = 'D2';
@@ -23,8 +23,11 @@ sym = 'C6';
 %mapfile = cryo_fetch_emdID(9203); 
 %sym = 'D3';
 %% 
-%mapfile = cryo_fetch_emdID(4179); 
+%mapfile = cryo_fetch_emdID(4179);  
 %sym = 'T';
+%%
+%mapfile = cryo_fetch_emdID(22658);
+%sym = 'O';
 %% from yoel:
 %vol1 = ReadMRC('abinitio_10272_ref.mrc');
 %vol2 = ReadMRC('abinitio_10272.mrc');
@@ -40,24 +43,25 @@ initstate
 vol = ReadMRC(mapfile);
 sz_vol = 129;
 vol = cryo_downsample(vol,sz_vol,0);
-[R,~,~] = svd(rand(3)); % Generate random rotation
-vol = fastrotate3d(vol,R);
-figure
-view3d(vol)
-title('tested reference volume')
+%[R,~,~] = svd(rand(3)); % Generate random rotation
+%vol = fastrotate3d(vol,R);
+
+%figure
+%view3d(vol)
+%title('tested reference volume')
 
 %%% Rotate the reference volume:
 [true_R,~,~] = svd(rand(3)); % Generate random rotation
 vol_rotated = fastrotate3d(vol,true_R);
 
 %%% Add reflection:
-vol_rotated = flip(vol_rotated,3);
+%vol_rotated = flip(vol_rotated,3);
 
 %%% Reshift the volume:
 vol_rotated = reshift_vol(vol_rotated,[-5 0 0]);
-figure
-view3d(vol_rotated)
-title('rotated and shifted volume')
+%figure
+%view3d(vol_rotated)
+%title('rotated and shifted volume')
 %% Add noise to volume:
 %{
 noise = 1;
@@ -75,14 +79,14 @@ title('rotated and shifted volume + noise')
 %% Align volumes:
 G = genSymGroup(sym);
 n = size(G,3);
-for i = 1:n
-    G(:,:,i) = R*G(:,:,i)*R.';
-end
+%for i = 1:n
+%    G(:,:,i) = R*G(:,:,i)*R.';
+%end
 opt.N_projs = 30;     
 opt.G = G;
 opt.true_R = true_R;
 opt.dofscplot = 1;
-opt.downsample = 64;
+opt.downsample = 48;
 opt.sym = sym;
 
 t1 = tic;
