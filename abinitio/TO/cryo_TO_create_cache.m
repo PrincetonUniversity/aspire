@@ -15,16 +15,16 @@ function cache_filename = cryo_TO_create_cache(symmetry)
 %   Written by Adi Shasha January 2021. 
 
 [n_theta, ~, ~, resolution, viewing_angle, inplane_rot_degree] = cryo_TO_configuration();
-[gR, n_gR, n_scl_pairs] = cryo_TO_group_elements(symmetry);
+[gR, scl_inds] = cryo_TO_group_elements(symmetry);
 
 log_message('Generating candidate rotations set');
 R = TO_candidate_rotations_set(gR, resolution, viewing_angle, inplane_rot_degree);
 n_candidates = size(R,3);
 
 log_message('Computing common lines and self common lines indices sets');
-[l_self_ind, l_ij_ji_ind] = TO_cl_scl_inds(gR, n_gR, n_scl_pairs, n_theta, R);
+[l_self_ind, l_ij_ji_ind] = TO_cl_scl_inds(gR, scl_inds, n_theta, R);
 
-cache_filename = sprintf('%c_symmetry_%d_candidates_cache_test.mat',symmetry, n_candidates);
+cache_filename = sprintf('%c_symmetry_%d_candidates_cache_080222.mat',symmetry, n_candidates);
 log_message('Cache file name: %s', cache_filename);
 save(cache_filename,'l_self_ind','l_ij_ji_ind','-v7.3','-nocompression');
 save(cache_filename,'R','n_theta','-append');    
@@ -82,7 +82,7 @@ left_idx = close_idx==0;
 R = candidates_set(:,:,left_idx);
 
 
-function [l_self_ind, l_ij_ji_ind] = TO_cl_scl_inds(gR, n_gR, n_scl_pairs, n_theta, R)
+function [l_self_ind, l_ij_ji_ind] = TO_cl_scl_inds(gR, scl_inds, n_theta, R)
 
 % Computes the set of common lines induced by all rotation pairs from R, 
 % and the set of self common lines induces by each rotation from R.
@@ -106,6 +106,8 @@ function [l_self_ind, l_ij_ji_ind] = TO_cl_scl_inds(gR, n_gR, n_scl_pairs, n_the
 %   Written by Adi Shasha January 2021. 
 
 n_R = size(R, 3);
+n_gR = size(gR, 3);
+n_scl_pairs = size(scl_inds, 2);
 
 % array of linear indices of common lines and self common lines
 l_self  = zeros(2,n_scl_pairs,n_R);
@@ -114,7 +116,7 @@ l_ij_ji = zeros(2,n_gR,n_R*n_R);
 for i=1:n_R 
     % Compute self common lines of Ri.
     for k=1:n_scl_pairs
-        [l_self(1,k,i),l_self(2,k,i)] = commonline_R(R(:,:,i),R(:,:,i)*gR(:,:,2*k),n_theta);
+        [l_self(1,k,i),l_self(2,k,i)] = commonline_R(R(:,:,i),R(:,:,i)*gR(:,:,scl_inds(k)),n_theta);
     end
     for j=1:n_R 
         if i == j
