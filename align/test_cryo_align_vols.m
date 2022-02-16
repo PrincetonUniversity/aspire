@@ -12,16 +12,16 @@
 %mapfile=cryo_fetch_emdID(11516);
 %sym = 'C7';
 %%
-mapfile=cryo_fetch_emdID(24494);
+%mapfile=cryo_fetch_emdID(24494);
 %mapfile=cryo_fetch_emdID(3528);
 %mapfile=cryo_fetch_emdID(22854);
-sym = 'I';
+%sym = 'I';
 %% D2-beta gal
 %mapfile = cryo_fetch_emdID(7770);
 %sym = 'D2';
 %% 
-%mapfile = cryo_fetch_emdID(9203); 
-%sym = 'D3';
+mapfile = cryo_fetch_emdID(9203); 
+sym = 'D3';
 %% 
 %mapfile = cryo_fetch_emdID(4179);  
 %sym = 'T';
@@ -38,6 +38,7 @@ sym = 'I';
 
 %%
 initstate
+%rand('twister', 1337);
 
 %%% Rotate the volume to generate reference volume:
 vol = ReadMRC(mapfile);
@@ -86,8 +87,8 @@ opt.N_projs = 30;
 opt.G = G;
 opt.true_R = true_R;
 opt.dofscplot = 1;
-opt.downsample = 48;
-opt.sym = sym;
+opt.downsample = 64;
+%opt.sym = sym;
 
 t1 = tic;
 [R_est,estdx,reflect,vol_aligned,corr_R] = cryo_align_vols(vol,vol_rotated,1,opt);

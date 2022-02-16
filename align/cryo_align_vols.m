@@ -55,7 +55,7 @@ function [bestR,bestdx,reflect,vol2aligned,bestcorr,T_optimize] = cryo_align_vol
 % 1. Improve printouts.
 
 %% Check options:
-defaultopt = struct('sym',[],'downsample',48,'N_projs',30,'G',[], ...
+defaultopt = struct('sym',[],'downsample',64,'N_projs',30,'G',[], ...
                     'true_R',[],'dofscplot',0);      
 if ~exist('opt','var') || isempty(opt)
     opt = defaultopt;
@@ -70,7 +70,8 @@ end
 %% Define variables:
 sym = opt.sym; N_projs = opt.N_projs; G = opt.G; true_R = opt.true_R; 
 dofscplot = opt.dofscplot; 
-er_calc = 0;
+sym_flag = 0;
+G_flag = 0;
 if ~isempty(sym)
     s = sym(1);
     if numel(sym) > 1
@@ -79,9 +80,11 @@ if ~isempty(sym)
     else
         n_s=0;
     end
-    er_calc = 1;
-    if s == 'C' && n_s == 1, G = eye(3); 
-    elseif isempty(G), er_calc = 0; end
+    sym_flag = 1;
+    if s == 'C' && n_s == 1, G = eye(3); end
+end
+if ~isempty(G)
+    G_flag = 1;
 end
 refrot = 1;
 if isempty(true_R), refrot = 0; end  
@@ -163,7 +166,7 @@ end
 %% Accurate error calculation:
 % The difference between the estimated and reference rotation should be an
 % element from the symmetry group:
-if refrot ~= 0 && er_calc ~= 0
+if refrot ~= 0 && G_flag ~= 0
     n_g = size(G,3);
     g_est_t = true_R.'*bestR.';
     dist = zeros(n_g,1);
@@ -215,7 +218,7 @@ end
 % transformation between the coordinate system of vol1 and the canonical 
 % one. Therefore, the symmetry group can be estimated by evaluating O using
 % optimization algorithm.
-if refrot ~= 0 && er_calc == 0  
+if refrot ~= 0 && G_flag == 0 && sym_flag ~= 0 
     % Creating initial guess by brute-force algorithm:
     G = genSymGroup(sym);
     n_g = size(G,3);

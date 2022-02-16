@@ -55,7 +55,7 @@ end
 sym = opt.sym; N_ref = opt.N_ref; G = opt.G; true_Rots = opt.true_Rots; 
 true_Rots_J = opt.true_Rots_J; true_Shifts = opt.true_Shifts; 
 Rots = opt.Rots; isshift = opt.isshift;
-er_calc = 0;
+G_flag = 0;
 if ~isempty(sym)
     s = sym(1);
     if numel(sym) > 1
@@ -64,21 +64,21 @@ if ~isempty(sym)
     else
         n_s=0;
     end
-    er_calc = 1;
     if s == 'C' && n_s == 1, G = eye(3);
-    elseif isempty(G), er_calc = 0; end
+    elseif isempty(G), end
 end
-if ~isempty(G) %XXXXX
+if ~isempty(G) 
+    G_flag = 1;
     % The symmetry group should be adjusted so it will be acurate for the 
     % projection images. We use the permute function on the projections 
     % such that it replaces the x-axis and the y-axis, so we have to do the
     % same for the symmetry group.
-    n_g = size(G,3); %XXXXX
-    O_g = [0 1 0; 1 0 0; 0 0 1]; %XXXXX
-    for i = 1:n_g %XXXXX
-        G(:,:,i) = O_g*G(:,:,i)*O_g.'; %XXXXX
-    end %XXXXX
-end %XXXXX
+    n_g = size(G,3); 
+    O_g = [0 1 0; 1 0 0; 0 0 1]; 
+    for i = 1:n_g 
+        G(:,:,i) = O_g*G(:,:,i)*O_g.'; 
+    end 
+end 
 ref_true_rot = 1;
 if isempty(true_Rots), ref_true_rot = 0; end
 ref_true_rot_J = 1;
@@ -186,7 +186,7 @@ for projidx = 1:n_projs
     corrs(projidx,2) = meanRscore;
     Rots_est(:,:,projidx) = candidate_rots(:,:,bestRidx);
     %%% Error calc for estimated rotation:
-    if ref_true_rot ~= 0 && er_calc ~= 0
+    if ref_true_rot ~= 0 && G_flag ~= 0
         g_est_t = Rots_est(:,:,projidx)*true_Rots(:,:,projidx).';
         n_g = size(G,3);
         dist = zeros(n_g,1);
@@ -202,7 +202,7 @@ for projidx = 1:n_projs
         %%% Error calculation for reflection case:
         % if there is a reflection between the projection and the volume
         % then, the relation is R_est=gJRJ.
-    if ref_true_rot_J ~= 0 && er_calc ~= 0
+    if ref_true_rot_J ~= 0 && G_flag ~= 0
         J3 = diag([1 1 -1]);
         g_est_t = Rots_est(:,:,projidx)*(J3*true_Rots_J(:,:,projidx)*J3).';
         n_g = size(G,3);
@@ -248,7 +248,7 @@ for projidx = 1:n_projs
         end
     end
 end
-if ref_true_rot ~= 0 && er_calc ~= 0
+if ref_true_rot ~= 0 && G_flag ~= 0
     mean_err = mean(err_Rots);
     log_message('Mean error in estimating the rotations of the unaligned projections is %5.3f degrees.',mean_err);
 end
