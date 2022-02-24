@@ -18,7 +18,7 @@ nGpu = length(gpuIdx);
 gpuMem = zeros(1,nGpu);
 for j = 1:nGpu
    gpu_j = gpuDevice(gpuIdx(j));
-   gpuMem(j) = gpu_j.AvailableMemory;
+   gpuMem(j) = round(gpu_j.AvailableMemory*0.25);
 end
 avlMem = min(gpuMem);
 reqMem = 4*(3*length(cls)+3*length(cls)/4+numel(scores)+n_shifts*size(pf,2)^2);
