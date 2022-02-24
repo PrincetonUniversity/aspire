@@ -18,14 +18,15 @@ nGpu = length(gpuIdx);
 gpuMem = zeros(1,nGpu);
 for j = 1:nGpu
    gpu_j = gpuDevice(gpuIdx(j));
-   gpuMem(j) = round(gpu_j.AvailableMemory*0.25);
+   gpuMem(j) = round(gpu_j.AvailableMemory);
 end
 avlMem = min(gpuMem);
 reqMem = 4*(3*length(cls)+3*length(cls)/4+numel(scores)+n_shifts*size(pf,2)^2);
-nIter = ceil(reqMem/((0.95*avlMem))); % Each common line index on GPU is a single float, thus 4 
-                                                  % bytes are required. We only fill pack 98%
-                                                  % of memory on each GPU, and distribute
-                                                  % operations on all avalible gpu's. 
+nIter = ceil(reqMem/((0.25*avlMem))); % Each common line index on GPU is a single float, thus 4 
+    % bytes are required. We only fill pack 98 of memory on each GPU, and
+    % distribute operations on all avalible gpu's. 
+    % YS: reduced the memory usage from 0.95 available memory to 0.25
+    % available memory to avoid crashes.
 nIter = max(nIter,nGpu);                                                  
 
 %% Initialize parameters.
