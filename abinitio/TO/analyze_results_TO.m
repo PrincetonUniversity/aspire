@@ -1,4 +1,6 @@
-function [rots_alligned,err_in_degrees,mse] = analyze_results_TO(rots,symmetry,n_theta,gt_R)
+function [rots_alligned,err_in_degrees,mse] = analyze_results_TO(rots,symmetry,n_theta,qref)
+
+gt_R = q_to_rot(qref);
 
 [mse, rots_alligned, sign_g_Ri] = check_rotations_error(rots,gt_R,symmetry);
 fprintf('MSE of rotations estimate: %f\n',mse);

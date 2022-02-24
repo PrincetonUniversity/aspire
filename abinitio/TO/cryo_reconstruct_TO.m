@@ -1,13 +1,28 @@
 function [vol,rotations, est_shifts]= cryo_reconstruct_TO(symmetry,projs,rots,n_r,n_theta,max_shift,shift_step)
 
-[gR, n_gR] = cryo_TO_group_elements(symmetry);
+% cryo_reconstruct_TOreconsturction of a T or O symmetric molecule
+%
+% Parameters
+%   symmetry          symmetry type: 'T' or 'O'.
+%   projs             array of projection images. 
+%   rots              array of estimated rotation matrices for each projection image.
+%   n_theta           Angular resolution for common lines detection.
+%                     Default 360.
+%   n_r               Radial resolution for common line detection as a
+%                     percentage of image size. Default is half the width of the images.
+%   max_shift         Maximal 1d shift (in pixels) to search between
+%                     common-lines. Default is 15% of image width of the images.
+%   shift_step        Resolution of shift estimation in pixels. Note
+%                     that shift_step can be any positive real number. Default:0.5.
+%
+%   Written by Adi Shasha January 2021. 
 
 if ~exist('shift_step','var')
     shift_step = 0.5;
 end
 
 if ~exist('max_shift','var')
-    max_shift = ceil(size(projs,1)*0.5); % max_shift is 15% of the image size
+    max_shift = ceil(size(projs,1)*0.15); % max_shift is 15% of the image size
 end
 
 if ~exist('n_theta','var')
@@ -17,6 +32,9 @@ end
 if ~exist('n_r','var')
     n_r = ceil(size(projs,1)*0.5);
 end
+
+gR = cryo_TO_group_elements(symmetry);
+n_gR = size(gR,3);
 
 [pf,~] = cryo_pft(projs,n_r,n_theta,'single');  % take Fourier transform of projections
 pf_TO = [];

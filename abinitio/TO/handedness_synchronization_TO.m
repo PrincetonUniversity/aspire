@@ -1,9 +1,21 @@
 function u_G = handedness_synchronization_TO(symmetry, est_rel_rots, cache_file_name)
 
+% J sync method
+%
+% Parameters
+%   symmetry          symmetry type: 'T' or 'O'.
+%   est_rel_rots      array of estimated rotation matrices for each projection image.
+% cache_file_name     The mat file name containing all candidate rotation
+%                     matrices.  
+%
+
+
 % loading data
 n_images = size(est_rel_rots,1);
-[gR, n_gR] = cryo_TO_group_elements(symmetry);
+gR = cryo_TO_group_elements(symmetry);
 load(cache_file_name,'R');
+
+n_gR = size(gR,3);
 
 n_pairs = nchoosek(n_images,2);
 Rijs = zeros(3,3,n_pairs,n_gR);
@@ -32,8 +44,7 @@ end
 %
 function [J_list]=outer_sync_brute_eff(n_gR,Rijs,K)
 
-currPool = gcp();
-nworkers = currPool.NumWorkers;
+nworkers = 32;
 J_list = zeros(nchoosek(K,3),1);
 ntrip = nchoosek(K,3);
 ntrip_per_worker = floor(ntrip/nworkers);

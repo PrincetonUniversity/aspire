@@ -3,35 +3,33 @@ function cryo_abinitio_TO(sym,instack,outvol,cache_file_name,matfname,...
 % cryo_abinitio_TO  abinitio reconsturction of a T or O symmetric molecule
 %
 % Parameters
-%   sym         'T' for tetrahedral symmetry. 'O' for octahedral symmetry.
-%   instack     Name of MRC file containing the projections (or class
-%               averages) from which to estimate an abinitio model.
-%   outvol      Name of MRC file into which to save the reconstructed volume.
-%cache_file_name (Optional) The mat file name containing all candidate rotation
-%               matrices. If not supplied cache will be created.  
-%   matfname    (Optional) Name of MAT file in which intermediate outcomes of the
-%               reconstruction algorithm are save (such as estimated
-%               rotations and shifts). Used to debugging and detailed
-%               analysis of the results.
-%   verbose     (Optional) Level of detailed debug output. 0: none, 1:
-%                detailed output (default:0)
-%   n_r_perc   (Optional) Radial resolution for common line detection as a
-%               percentage of image size. Default is half the width of the images.
-%   max_shift   (Optional) Maximal 1d shift (in pixels) to search between
-%               common-lines. Default is 15% of image width of the images.
-%   shift_step  (Optional) Resolution of shift estimation in pixels. Note
-%               that shift_step can be any positive real number. Default:0.5.
-%   mask_radius_perc (Optional) The size of mask applied to each image as a
-%                   percentage of image's size
-%   inplane_rot_res (Optional) the resolution in angles to search for the
-%                   inplane rotation angle of each rotation matrix (Default:1)
-%   refq          (Optional) A 4xnImages array holding the ground truth quaternions of all rotation matrices 
+%     sym             'T' for tetrahedral symmetry. 'O' for octahedral symmetry.
+%   instack           Name of MRC file containing the projections (or class
+%                     averages) from which to estimate an abinitio model.
+%   outvol            Name of MRC file into which to save the reconstructed volume.
+% cache_file_name     (Optional) The mat file name containing all candidate rotation
+%                     matrices, common lines indices, self common lines indices. 
+%                     If not supplied cache will be created.  
+%   matfname          (Optional) Name of MAT file in which intermediate outcomes of the
+%                     reconstruction algorithm are save (such as estimated
+%                     rotations and shifts). Used to debugging and detailed
+%                     analysis of the results.
+%   n_theta           (Optional) Angular resolution for common lines detection.
+%                     Default 360.
+%   n_r_perc          (Optional) Radial resolution for common line detection as a
+%                     percentage of image size. Default is half the width of the images.
+%   max_shift_perc    (Optional) Maximal 1d shift (in pixels) to search between
+%                     common-lines. Default is 15% of image width of the images.
+%   shift_step        (Optional) Resolution of shift estimation in pixels. Note
+%                     that shift_step can be any positive real number. Default:0.5.
+%   mask_radius_perc  (Optional) The size of mask applied to each image as a
+%                     percentage of image's size
+%   refq              (Optional) A 4xnImages array holding the ground truth quaternions of all rotation matrices 
 %
-
-% Adi Shasha, June 2021.
+%  Adi Shasha, June 2021. 
 
 if sym~='T' && sym~='O'
-    error('First argument must be ''T'' or ''O'' (tetrahedral or octahedral symmetry');
+    error('First argument must be ''T'' or ''O'' (tetrahedral or octahedral symmetry)');
 end
 
 [folder_recon_mrc_fname, ~, ~] = fileparts(outvol);
@@ -123,7 +121,7 @@ log_message('Shift step is %d pixels',shift_step);
 
 %% Step 3: Computing the relative rotations
 log_message('Computing all relative rotations');
-est_rel_rots = estimate_relative_rotations_with_shifts_parallel_gpu(pf_norm, max_shift, shift_step, cache_file_name);
+est_rel_rots = estimate_relative_rotations_with_shifts(pf_norm, max_shift, shift_step, cache_file_name);
 
 if do_save_res_to_mat
     log_message('Saving relative rotations under: %s', matfname);
@@ -136,12 +134,12 @@ log_message('Handedness synchronization');
 u_G = handedness_synchronization_TO(sym, est_rel_rots, cache_file_name);
 
 if do_save_res_to_mat
-    log_message('Saving third rows outer prods under: %s', matfname);
+    log_message('Saving handedness synchronization vector: %s', matfname);
     save(matfname,'u_G','-append');
 end
 
 %% Step 5: Rotation estimation
-log_message('Estimating the rotation of each image');
+log_message('Estimating rotations');
 rots = estimate_rotations_synchronization(est_rel_rots, u_G, cache_file_name);
 rots_t = permute(rots,[2 1 3]);
 

@@ -1,6 +1,6 @@
-function [gR, n_gR, n_scl_pairs] = cryo_TO_group_elements(symmetry)
+function [gR, scl_inds] = cryo_TO_group_elements(symmetry)
 
-% Defines the symmety group elements. 
+% Defines the symmetry group elements. 
 %
 % Note: there is a certain order of the symmetry group elements, which is 
 % important for computing the self common lines set.
@@ -18,8 +18,8 @@ function [gR, n_gR, n_scl_pairs] = cryo_TO_group_elements(symmetry)
 % Set group elements for 'T':
 if symmetry == 'T'
     n_gR = 12;                                  % The size of group T is 12.
-    n_scl_pairs = 4;                            % 4 pairs of self common lines.
-
+    scl_inds = [2,4,6,8,10,11,12];
+    
     gR = zeros(3,3,n_gR);                       % T symmetry group.
     gR(:,:,01)  = eye(3);
     gR(:,:,02) = [ 0  0  1; 1  0  0; 0  1  0];      % axis: [ 1, 1, 1] angle: 120
@@ -37,8 +37,8 @@ if symmetry == 'T'
 % Set group elements for 'O':
 elseif symmetry == 'O'
     n_gR  = 24;                                 % The size of group O is 24.
-    n_scl_pairs = 7;                            % 7 pairs of self common lines.
-
+    scl_inds = [2,4,6,8,10,11,12,14,16,17,18,19,20,21,22,23,24];
+    
     gR = zeros(3,3,n_gR);                       % O symmetry group.
     gR(:,:,01) = [ 0 -1  0; 1  0  0; 0  0  1];   
     gR(:,:,02) = [ 0  1  0;-1  0  0; 0  0  1];      % gR_1^T = gR_2
