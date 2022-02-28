@@ -179,10 +179,10 @@ elseif symgroup == 'I'
     G(:,:,59) = axang2rotm([phi 1/phi -1 pi]);
     G(:,:,60) = axang2rotm([phi 1/phi 1 pi]);
     
-    %O_g = [0 1 0; 1 0 0; 0 0 1]; %XXXXX
-    %for i = 1:60 %XXXXX
-    %    G(:,:,i) = O_g*G(:,:,i)*O_g.'; %XXXXX
-    %end %XXXXX
+    O_g = [0 1 0; 1 0 0; 0 0 1]; %XXXXX
+    for i = 1:60 %XXXXX
+        G(:,:,i) = O_g*G(:,:,i)*O_g.'; %XXXXX
+    end %XXXXX
        
 else 
     error('sym was not entered properly') 
