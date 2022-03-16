@@ -59,7 +59,8 @@ volref=cryo_downsample(volref,sz,0);
 if verbose
     log_message('Aligning volumes');
 end
-[~,~,vol_aligned]=cryo_align_densities(volref,vol,pixA,verbose,cutoff);
+%[~,~,vol_aligned]=cryo_align_densities(volref,vol,pixA,verbose,cutoff);
+[~,~,~,vol_aligned]=cryo_align_vols(volref,vol,verbose);
 
 % Plot FSC
 n=size(volref,1);
