@@ -75,7 +75,13 @@ else
     range=-n/2+1/2:n/2-1/2;
 end
 
-[I,J]=ndgrid(range,range);
+if isreal(volume)
+    real_flag = 1;
+    [I,J]=ndgrid(range,range(1:ceil(n/2)));
+else
+    real_flag = 0;
+    [I,J]=ndgrid(range,range);
+end
 I=I(:);
 J=J(:);
 
@@ -105,12 +111,13 @@ projection_batches=zeros(N,N,batch_size,ceil(K/batch_size),precision_str);
 
 % Verify that we have only small imaginary components in the
 % projcetions. How 'small' dependes on the accuracy.
-imagtol=precision*5;
+imagtol=precision*50;%5;
 
 % Accuracy parameter for NUFFT below.
 nufft_opt.epsilon=precision;
+nufft_opt.num_threads = 1;
 
-parfor batch=1:ceil(K/batch_size)
+for batch=1:ceil(K/batch_size)
     % It may be that the number of remained images is less than batch_size.
     % So compute the actual_batch_size.
     actual_batch_size=min(batch_size,K-(batch-1)*batch_size);
@@ -149,6 +156,14 @@ parfor batch=1:ceil(K/batch_size)
         Jrep=repmat(J,1,actual_batch_size);
         projection_fourier = projection_fourier ...
             .* exp(2*pi*1i*(Irep+Jrep-1)/(2*n));
+    end
+    
+    % for real volume use symmetry in the Fourier space
+    if real_flag
+        projection_fourier = reshape(projection_fourier, n, ceil(n/2), actual_batch_size);
+        temp = conj(flip(flip(projection_fourier(:,1:floor(n/2),:),1),2));
+        projection_fourier = cat(2, projection_fourier, temp);
+        projection_fourier = reshape(projection_fourier, N*N, []);
     end
     
     % IFFT the images from Fourier space to real space.
