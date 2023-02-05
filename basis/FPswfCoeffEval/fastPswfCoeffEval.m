@@ -9,9 +9,9 @@ images = reshape(images,size(images,1)*size(images,2),nImages); % Reshape from 3
 c = beta*pi*L;
 
 % - Choose tolerances
-phiApproxErr = 1e-16;
-radialQuadErr = 1e-16;
-angularQuadErr = 1e-16;
+phiApproxErr = 1e-13;
+radialQuadErr = 1e-13;
+angularQuadErr = 1e-13;
 
 %% Generate quadrature nodes and weights
 [quadRulePtsX,quadRulePtsY,~,radialQuadPts,quadRuleRadialWts,numAngularPts] = generatePswfQuad(4*L,2*c,phiApproxErr,radialQuadErr,angularQuadErr,realFlag);

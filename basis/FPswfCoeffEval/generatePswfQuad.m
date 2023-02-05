@@ -9,7 +9,12 @@ numAngularPts = ceil(exp(1)*radialQuadPts*c/2 + log(1/epsilon)) + 1;
 % - Numerical solution, About 20% less points than the analytical solution above (for large c).
 for i = 1:numel(radialQuadPts)
     angErrVec = abs(besselj(1:2*numAngularPts(i),c*radialQuadPts(i)));
-    numAngularPts(i) = find( (sum(angErrVec)-cumsum(angErrVec)) < epsilon,1,'first');
+    tmp = find( (sum(angErrVec)-cumsum(angErrVec)) < epsilon,1,'first');
+    if ~isempty(tmp)
+        numAngularPts(i) = tmp;
+    else
+        error("Failed to truncate list of point. Probably epsilon is too small.")
+    end
     % - Make sure there is an even number of angular points for each radius
     % such that each node and its reflection are present, thus allowing for
     % x2 less computations for real-valued images.
