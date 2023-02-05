@@ -11,6 +11,8 @@
 clear;
 initstate;
 
+open_log('test4.txt');
+
 test_densities = {...
 {'C1',	 2660, 	3.2},...
 {'C1',	 6581,	7.0},...
@@ -98,3 +100,5 @@ for testidx=1:numel(test_densities)
     results{testidx,3}=c2;
     results{testidx,4}=t;
 end
+
+close_log;
