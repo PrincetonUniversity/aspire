@@ -45,7 +45,7 @@ if numel(CTFdata)==1 % RELION version < 3.1
 else
     Nprojs=numel(CTFdata(2).data);
 end
-outstack=imagestackWriter(outstackname,Nprojs,1,100);
+outstack=imagestackWriter(outstackname,Nprojs,1,10000);
 
 if verbose==1
     printProgressBarHeader;
@@ -75,7 +75,7 @@ for k=1:Nprojs
     % one.
     if ~strcmp(stackname,lastStackProcessed)
         MRCname=fullfile(prefix,stackname);
-        MRCstack=imagestackReader(MRCname,100);
+        MRCstack=imagestackReader(MRCname);
         if verbose>=2
             log_message('Processing prjection %d/%d: Initializing MRC stack %s',...
                 k,Nprojs,MRCname);
