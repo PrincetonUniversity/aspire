@@ -34,5 +34,10 @@ if ~exist('shift_step','var')
     shift_step=1;
 end
 
+if ~exist('map_filter_radius','var') || isempty(map_filter_radius)
+    map_filter_radius=0;
+end
+
+
 cryo_abinitio_C1_worker(3,instack,outvol,outparams,showfigs,...
-    verbose,n_theta,n_r,max_shift,shift_step)
+    verbose,n_theta,n_r,max_shift,shift_step,map_filter_radius)
