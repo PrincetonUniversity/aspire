@@ -17,7 +17,7 @@ if nargin<4
     verbose=1;
 end
 
-instack=imagestackReader(instackname,100);
+instack=imagestackReader(instackname);
 Nprojs=instack.dim(3);
 outstack=imagestackWriter(outstackname,Nprojs,1,100);
 

@@ -14,7 +14,7 @@ function cryo_crop_outofcore(instackname,outstackname,croppeddim)
 %
 % Yoel Shkolnisky, May 2016.
 
-instack=imagestackReader(instackname,100);
+instack=imagestackReader(instackname);
 Nprojs=instack.dim(3);
 outstack=imagestackWriter(outstackname,Nprojs,1,100);
 

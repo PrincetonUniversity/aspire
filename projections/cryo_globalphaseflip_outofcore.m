@@ -35,7 +35,7 @@ function [doflip,signalmean,noisemean]=cryo_globalphaseflip_outofcore(instacknam
 %
 % Yoel Shkolnisky, May 2016
 
-instack=imagestackReader(instackname,100);
+instack=imagestackReader(instackname);
 sz=instack.dim;
 
 if numel(sz)==3

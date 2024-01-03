@@ -18,7 +18,7 @@ function cryo_sort_stack_outofcore(instackname,idx,outstackname)
 %
 % Yoel Shkolnisky, March 2018.
 
-instack=imagestackReader(instackname,100);
+instack=imagestackReader(instackname);
 outstack=imagestackWriter(outstackname,instack.dim(3),1,100);
 for k=1:numel(idx)
     im=instack.getImage(idx(k));
