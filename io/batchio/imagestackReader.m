@@ -42,7 +42,7 @@ classdef imagestackReader < handle
             % verbose       nonzero to print messages (default 0).
             
             if ~exist('cachesize','var')
-                cachesize=100; % Default cache size.
+                cachesize=1000000; % Default cache size.
             end
             obj.cachesize=cachesize;
             
