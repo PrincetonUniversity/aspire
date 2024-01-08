@@ -21,11 +21,6 @@ projs=cryo_gen_projections(n,K,snr,max_shift_2d,shift_step_2d);
 instackname=tempname;
 WriteMRC(single(projs),1,instackname); % Save the projections to an MRC file.
 projs=ReadMRC(instackname);
-projs=double(projs); % Although we read single precision numbers, cast to 
-    % double precision since cryo_normalize_background_outofcore uses
-    % double precision internally, and we want both
-    % cryo_normalize_background and cryo_normalize_background_outofcore to
-    % have exactly the same roundoff error.
 
 % Downsample the images in-memory
 projs_normalized1=cryo_normalize_background(projs);
