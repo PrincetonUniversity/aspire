@@ -64,8 +64,8 @@ end
 
 % Plot FSC
 n=size(volref,1);
-volref_masked=volref.*fuzzymask(n,3,floor(0.45*n),floor(0.05*n));
-vol_aligned_masked=vol_aligned.*fuzzymask(n,3,floor(0.45*n),floor(0.05*n));
+volref_masked=volref.*fuzzymask(n,3,floor(0.3*n),floor(0.05*n));
+vol_aligned_masked=vol_aligned.*fuzzymask(n,3,floor(0.3*n),floor(0.05*n));
 
 [resA,h]=plotFSC(volref_masked,vol_aligned_masked,cutoff,pixA);
 if verbose
