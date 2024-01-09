@@ -95,7 +95,7 @@ else
     end
 
     printProgressBarHeader;
-    SRCstackcopy=imagestackWriter(SRCname,nprojs);
+    SRCstackcopy=imagestackWriter(SRCname,nprojs,pixA);
     for k=1:nprojs
         progressTicFor(k,nprojs);
         im=rawdataReader.getImage(k);
@@ -284,8 +284,10 @@ for groupid=1:numgroups
     log_message('Saving group %d into file %s',groupid,fullfilename);
     %WriteMRC(single(prewhitened_projs(:,:,shuffleidx((groupid-1)*K2+1:groupid*K2))),1,fullfilename);
     
-    groupstack=imagestackWriter(fullfilename,K2,1);
+    groupstack=imagestackWriter(fullfilename,K2,pixA);
+    printProgressBarHeader;
     for k=1:K2
+        progressTicFor(k,K2);
         proj=PFCDNWGReader.getImage(shuffleidx((groupid-1)*K2+k));
         groupstack.append(proj);
     end
