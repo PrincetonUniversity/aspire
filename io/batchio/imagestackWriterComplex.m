@@ -21,11 +21,11 @@ methods
         %           2: single (default), 6: uint16).
         
         if ~exist('pixA','var')
-            pixA=1;
+            pixA=-1;
         end
             
         if ~exist('cachesize','var') || isempty(cachesize)
-            cachesize=1;
+            cachesize=100000;
         end
         if ~exist('mrcmode','var')
             mrcmode=2;
