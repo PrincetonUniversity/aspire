@@ -70,7 +70,7 @@ parfor worker=1:nWorkers
     % worker.
     idx=(worker-1)*chuncksize+1:min(chuncksize*worker,n_projs);    
     
-    pf=imagestackWriterComplex(fnames{worker},numel(idx),100);
+    pf=imagestackWriterComplex(fnames{worker},numel(idx));
     for k=1:numel(idx)
         tmp=imreader.getImage(idx(k));
         tmp = nufft2(tmp, -freqs');  
@@ -80,7 +80,7 @@ parfor worker=1:nWorkers
 end
 
 % Merge all temporary files into a single file.
-pf=imagestackWriterComplex(outstack,n_projs,100);
+pf=imagestackWriterComplex(outstack,n_projs);
 for worker=1:nWorkers
     stackreader=imagestackReaderComplex(fnames{worker});
     for k=1:stackreader.dim(3)

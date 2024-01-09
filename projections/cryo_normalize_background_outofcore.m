@@ -43,7 +43,7 @@ ctr=(n+1)/2;
 radiisq=(I(:)-ctr).^2+(J(:)-ctr).^2;
 background_pixels_idx=radiisq>r*r;
 
-outstack=imagestackWriter(outstackname,instack.dim(3),1);
+outstack=imagestackWriter(outstackname,instack.dim(3));
 
 if verbose
     printProgressBarHeader;

@@ -16,7 +16,7 @@ function cryo_crop_outofcore(instackname,outstackname,croppeddim)
 
 instack=imagestackReader(instackname);
 Nprojs=instack.dim(3);
-outstack=imagestackWriter(outstackname,Nprojs,1,100);
+outstack=imagestackWriter(outstackname,Nprojs);
 
 %printProgressBarHeader;
 for k=1:Nprojs

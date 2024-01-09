@@ -19,7 +19,7 @@ end
 
 instack=imagestackReader(instackname);
 Nprojs=instack.dim(3);
-outstack=imagestackWriter(outstackname,Nprojs,1,100);
+outstack=imagestackWriter(outstackname,Nprojs);
 
 if verbose
     printProgressBarHeader;

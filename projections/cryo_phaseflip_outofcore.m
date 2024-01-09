@@ -45,7 +45,7 @@ if numel(CTFdata)==1 % RELION version < 3.1
 else
     Nprojs=numel(CTFdata(2).data);
 end
-outstack=imagestackWriter(outstackname,Nprojs,1,10000);
+outstack=imagestackWriter(outstackname,Nprojs,pixA);
 
 if verbose==1
     printProgressBarHeader;
