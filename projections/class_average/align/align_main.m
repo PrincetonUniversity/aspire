@@ -61,7 +61,7 @@ norm_variance=zeros(length(list_recon), 1);
 averagesEMfname=[];
 
 %generate grid. Precompute phase for shifts
-range=-fix(L/2):fix(L/2);
+range=-fix(L/2):fix((L-0.5)/2);
 [omega_x,omega_y]=ndgrid(range,range);
 omega_x=-2*pi.*omega_x/L; omega_y=-2*pi.*omega_y/L;
 omega_x=omega_x(:); omega_y=omega_y(:);
