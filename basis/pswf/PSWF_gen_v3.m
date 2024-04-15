@@ -39,7 +39,7 @@ while(1)
         PSWF_for_approx = [PSWF_for_approx,PSWF];        
         N = N +1;
         % clc; 
-        display(['Generating PSWFs for angular index: ',num2str(N)]);
+        % display(['Generating PSWFs for angular index: ',num2str(N)]);
         n = n_end;
     else
         % The case where the initial n isn't large enough -> Try again.        
