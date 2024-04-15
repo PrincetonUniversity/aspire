@@ -71,6 +71,7 @@ n=numel(fsc);
 if ~exist('fighandle','var')
     fighandle=figure;
 end
+figure(fighandle)
 
 plot(1:n,fsc,'-g','LineWidth',2); % Plot FSC
 xlim([1 n]);
