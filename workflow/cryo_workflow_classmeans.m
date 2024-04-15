@@ -54,16 +54,18 @@ if gpuDeviceCount>0
         numEMavg=fmtinput(message,defnumEMavg,'%d');
     end
 
-
     defnnavg=maxavg;
-    message=sprintf('Number of projections to average into each EM class means (up to %d)? ',maxavg);
-    nnavg_EM=fmtinput(message,defnnavg,'%d');
-    
-    if nnavg_EM>maxavg
-        log_message('Cannot average %s projections. Max averaging allowed is %d.',nnavg_EM,maxavg);
-        log_message('Run cryo_workflow_classify again and increase k_VDM_out to at least %d',nnavg_EM);
-        log_message('Aborting...');
-        return;
+    nnavg_EM=-1;
+    if use_EM
+        message=sprintf('Number of projections to average into each EM class means (up to %d)? ',maxavg);
+        nnavg_EM=fmtinput(message,defnnavg,'%d');
+
+        if nnavg_EM>maxavg
+            log_message('Cannot average %s projections. Max averaging allowed is %d.',nnavg_EM,maxavg);
+            log_message('Run cryo_workflow_classify again and increase k_VDM_out to at least %d',nnavg_EM);
+            log_message('Aborting...');
+            return;
+        end
     end
 
 else
