@@ -13,7 +13,7 @@ function q=qrand(K)
 % same group elements, so we take a>=0.
 %
 
-q = randn(4,K);
+q = randn_py(4,K);
 %q(:,1) = [0;1;0;1];
 l2_norm = sqrt(q(1,:).^2 + q(2,:).^2 + q(3,:).^2 + q(4,:).^2);
 for i=1:4

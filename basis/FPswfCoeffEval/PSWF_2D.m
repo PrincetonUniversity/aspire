@@ -1,16 +1,19 @@
 function [PSWF_N_n_mat,alpha_N,xiVec] = PSWF_2D(N,n,c,radial_eval_pts,phase_eval_pts,phi_approx_err)
 %% Generate points for numerical integration
-% persistent x;
-% persistent w;
+persistent x;
+persistent w;
 
 % if (isempty(x))
-[x,w]=lgwt(8*max(N,n),0,1);    % Legendre-Gauss nodes for numerical integration   
+% [x,w]=lgwt(8*max(N,n),0,1);    % Legendre-Gauss nodes for numerical integration   
+[x,w]=lgwt(1e3,0,1);
 x = flipud(x);
 w = flipud(w);
+
 % end
 
 %% Change to appropriate N and calculate radial part of PSWF's
-Phase_part = 1/sqrt(2*pi) * exp(1i*N*phase_eval_pts);     % Complex valued basis functions
+% Phase_part = 1/sqrt(2*pi) * exp(1i*N*phase_eval_pts);     % Complex valued basis functions
+Phase_part = (1/sqrt(2*pi)) * exp(1i*N*phase_eval_pts);
 
 %% Calculate approx_len
 % - Definition for the approximation function of the d's decay
@@ -44,6 +47,16 @@ for i=1:approx_len
     xi(i,i) = xiVec(i);
 end
 
+%% Change the sign of eigen vectors to make consistent with Python version
+%% for example, using N = 0; c = 1.0*pi*64; approx_len=182; for BN_mat. 
+[~, maxi] = max(abs(d_vec),[],1);
+bmat = zeros(approx_len, approx_len);
+for i=1:approx_len
+    bmat(:, i) = sign(d_vec(maxi(i),i));
+end
+d_vec = d_vec .* bmat;
+
+
 %% Compare true decay of d's with approximation function
 % d_decay_compare = [abs(d_vec((n+2):end,n+1)./d_vec((n+1):(end-1),n+1)),d_decay_approx_fun(N,n,c,0:(approx_len-2-n)).'];
 % d_approx = cumprod([ones(first_idx_for_decrease,1);d_decay_approx_fun(N,n,c,first_idx_for_decrease:(approx_len-1-n)).']);
@@ -52,7 +65,6 @@ end
 
 %% Generate T_n basis functions on grid points ,and the derivatives of T_n.
 j=0:(approx_len-1);
-
 % - Calculation of functions
 T_x_mat = @(x,N,j,approx_len) ((x.^(N+1/2))*((2*(2*j+N+1)).^(1/2))) .* Pn(approx_len-1,N,0,1-2*x.^2);
 % - Calculation of derivatives
@@ -85,14 +97,11 @@ alpha_N = lambda_N*2*pi*((1i)^N) / sqrt(c);
 %% Compute PSFW's on the grid inside the disk
 j=0:(approx_len-1);
 T_radial_part_mat = @(x,N,j,approx_len) ((x.^N)*((2*(2*j+N+1)).^(1/2))) .* Pn(approx_len-1,N,0,1-2*x.^2); % - These are the ordinairy T's divided by x^(1/2).
-maxVal = max(d_vec);
-minVal = min(d_vec);
-signVec = ones(1,size(d_vec,2));
-signVec(abs(maxVal)<abs(minVal)) = -1;
-d_vec = bsxfun(@times,d_vec,signVec);    % Fix the signs for consistency between runs (the eigenvectors can have both signs)
+  
+%d_vec=bsxfun(@times, d_vec, sign(sign(diag(d_vec).')+0.5)); % Fix the signs so that all functions begin positive  
 R_radial_part_mat = T_radial_part_mat(radial_eval_pts,N,j,approx_len) * d_vec(:,1:(n+1));
 
 %% Calculate PSWF's
-PSWF_N_n_mat = bsxfun(@times,R_radial_part_mat,Phase_part);
-
+% PSWF_N_n_mat = bsxfun(@times,R_radial_part_mat,Phase_part);
+PSWF_N_n_mat = R_radial_part_mat.* (Phase_part * ones(1, n+1));
 end
